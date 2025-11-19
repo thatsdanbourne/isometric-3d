@@ -1,12 +1,14 @@
-[gd_scene load_steps=12 format=3 uid="uid://dtgd4yjkf4awx"]
+[gd_scene load_steps=15 format=3 uid="uid://dtgd4yjkf4awx"]
 
 [ext_resource type="Script" uid="uid://bo5gppxxuljem" path="res://scripts/Game.gd" id="1_0uv0p"]
 [ext_resource type="Script" uid="uid://ch825vpfd7yt6" path="res://scripts/World.gd" id="1_7g83o"]
 [ext_resource type="Script" uid="uid://dqaj5pnbqxlnv" path="res://scripts/tools/Debug.gd" id="1_d1c63"]
-[ext_resource type="MeshLibrary" uid="uid://ctrm7vv0bonlp" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
+[ext_resource type="MeshLibrary" uid="uid://b380gaeu6ucv1" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="Script" uid="uid://clha2a03grojb" path="res://scripts/DayNightCycle.gd" id="3_1lgw5"]
 [ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD.tscn" id="3_b3faq"]
 [ext_resource type="PackedScene" uid="uid://di4w6cxgjeo66" path="res://scenes/Player.tscn" id="5_1lgw5"]
+[ext_resource type="Shader" uid="uid://cmpvdcty3aeoe" path="res://resources/shaders/BiomeTint.gdshader" id="5_b3faq"]
+[ext_resource type="Script" uid="uid://jljrsp7sebsl" path="res://scenes/BiomeTintOverlay.gd" id="6_ygioq"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_d1c63"]
 font_size = 40
@@ -16,6 +18,11 @@ font_size = 40
 
 [sub_resource type="LabelSettings" id="LabelSettings_0uv0p"]
 font_size = 40
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ygioq"]
+shader = ExtResource("5_b3faq")
+shader_parameter/biome_tint = Color(1, 1, 1, 1)
+shader_parameter/strength = 0.0
 
 [sub_resource type="Environment" id="Environment_1lgw5"]
 ambient_light_source = 2
@@ -49,6 +56,18 @@ layer = 2
 
 [node name="World" type="Node3D" parent="."]
 script = ExtResource("1_7g83o")
+
+[node name="BiomeTint" type="CanvasLayer" parent="World"]
+
+[node name="BiomeOverlay" type="ColorRect" parent="World/BiomeTint"]
+material = SubResource("ShaderMaterial_ygioq")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0)
+script = ExtResource("6_ygioq")
 
 [node name="DayNightCycle" type="Node" parent="World"]
 script = ExtResource("3_1lgw5")

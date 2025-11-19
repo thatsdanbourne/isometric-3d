@@ -26,6 +26,7 @@ var placement_rules := PlacementRuleRegistry.get_all_object_rules()
 
 
 func _ready():
+	WorldUtils.world = self
 	terrain_seed = randi()
 
 	# if not terrain_noise:
@@ -67,7 +68,7 @@ func _process(_delta: float):
 		_update_active_chunks()
 		_last_chunk_coord = chunk
 
-
+	
 func _update_active_chunks():
 	var player_chunk = WorldUtils.world_to_chunk(player.global_position)
 
@@ -94,8 +95,11 @@ func unload_chunk(coord: Vector2i):
 		if is_instance_valid(obj):
 			obj.queue_free()
 	
-	for tile in data.tiles:
-		gridmap.set_cell_item(Vector3(tile.position.x, 0, tile.position.y), -1)
+	for x in range(WorldUtils.CHUNK_SIZE):
+		for y in range(WorldUtils.CHUNK_SIZE):
+			var global_x = coord.x * WorldUtils.CHUNK_SIZE + x
+			var global_y = coord.y * WorldUtils.CHUNK_SIZE + y
+			gridmap.set_cell_item(Vector3(global_x, 0, global_y), -1)
 	
 	active_chunks.erase(coord)
 
@@ -120,8 +124,13 @@ func _generate_chunks_thread():
 
 
 func build_chunk_data(coord) -> Dictionary:
-	var tiles = []
-	var objects = []
+	var tiles := []
+	var objects := []
+
+	for x in range(WorldUtils.CHUNK_SIZE):
+		tiles.append([])
+		for y in range(WorldUtils.CHUNK_SIZE):
+			tiles[x].append(null)
 
 	for x in range(WorldUtils.CHUNK_SIZE):
 		for y in range(WorldUtils.CHUNK_SIZE):
@@ -134,16 +143,17 @@ func build_chunk_data(coord) -> Dictionary:
 			var temp = adjust_contrast((temp_raw + 1.0) * 0.5)
 			var humidity = adjust_contrast((humidity_raw + 1.0) * 0.5)
 
-			print("Temp: ", temp, " Humidity: ", humidity)
 			var biome: BiomePlacementRule = WorldUtils.get_biome(temp, humidity)
 			var tile_type = biome.ground_tile_type
 			var tile_variant = WorldUtils.pick_weighted_tile(tile_type)
 			var tile_id = WorldUtils.get_tile_id(tile_type, tile_variant)
 
-			tiles.append({ 
-				"position": Vector2(global_x, global_y),
-				"id": tile_id
-			})
+			tiles[x][y] = { 
+				"id": tile_id,
+				"temp": temp,
+				"humidity": humidity,
+				"biome": biome.biome_name,
+			}
 
 			for spawn_rules in biome.object_spawn_rules:
 				var rule = spawn_rules.rule
@@ -171,8 +181,18 @@ func _finalise_chunk_load(coord: Vector2i, chunk_data: Dictionary):
 
 	active_chunks[coord] = chunk
 
-	for tile in chunk.tiles:
-		gridmap.set_cell_item(Vector3i(tile.position.x, 0, tile.position.y), tile.id)
+	for x in range(WorldUtils.CHUNK_SIZE):
+		for y in range(WorldUtils.CHUNK_SIZE):
+			var tile_data = chunk.tiles[x][y]
+			if tile_data == null:
+				continue
+
+			var tile_id = tile_data["id"]
+
+			var global_x = coord.x * WorldUtils.CHUNK_SIZE + x
+			var global_y = coord.y * WorldUtils.CHUNK_SIZE + y
+
+			gridmap.set_cell_item(Vector3i(global_x, 0, global_y), tile_id)
 	
 	for obj in chunk_data["objects"]:
 		var rule: ObjectPlacementRule = obj["rule"]
@@ -190,16 +210,6 @@ func _cleanup_thread():
 	if chunk_thread:
 		chunk_thread.wait_to_finish()
 		chunk_thread = null
-
-
-func get_biome_at_pos(world_pos: Vector3) -> BiomePlacementRule:
-	var x = int(world_pos.x)
-	var z = int(world_pos.z)
-	
-	var temp = temp_noise.get_noise_2d(x, z)
-	var humidity = humidity_noise.get_noise_2d(x, z)
-
-	return WorldUtils.get_biome(temp, humidity)
 
 
 func _input(_event):

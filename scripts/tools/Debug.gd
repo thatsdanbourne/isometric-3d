@@ -17,4 +17,4 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	fps.text = "%sfps" % Engine.get_frames_per_second()
 	position.text = "x: %s, y: %s" % [int(player.position.x), int(player.position.z)]
-	biome.text = "Biome: %s" % world.get_biome_at_pos(player.position).biome_name.capitalize()
+	biome.text = "Biome: %s" % player.current_biome.capitalize()

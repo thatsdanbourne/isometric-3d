@@ -12,6 +12,8 @@ var default_tool: Tool = preload("res://items/tools/fist/Fist.tres")
 var equipped_item: Item
 var can_swing := true
 
+var current_biome := ""
+
 
 func _ready():
 	var mat = BASE_MAT.duplicate()
@@ -21,6 +23,13 @@ func _ready():
 
 	hotbar.hotbar_changed.connect(_on_hotbar_changed)
 	hotbar.selected_slot_changed.connect(_on_selected_slot_changed)
+
+
+func _process(_delta: float):
+	var biome = WorldUtils.get_biome_at_pos(global_position)
+	if !biome.is_empty() and biome != current_biome:
+		current_biome = biome
+		WorldUtils.update_biome_tint(current_biome)
 
 
 func get_active_tool() -> Tool:

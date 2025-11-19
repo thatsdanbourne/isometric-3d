@@ -22,6 +22,9 @@ const TILE_TYPES = [
 	},
 ]
 
+var world: Node = null
+var biome_tint_overlay: Node = null
+
 var rng := RandomNumberGenerator.new()
 
 
@@ -39,12 +42,44 @@ func world_to_tile(world_pos: Vector3) -> Vector2i:
 	)
 
 
+func tile_to_chunk(tile_pos: Vector2i) -> Vector2i:
+	return Vector2i(
+		floor(tile_pos.x / float(CHUNK_SIZE)),
+		floor(tile_pos.y / float(CHUNK_SIZE))
+	)
+
+
+func tile_local_in_chunk(tile_pos: Vector2i) -> Vector2i:
+	return Vector2i(
+		abs(tile_pos.x % CHUNK_SIZE),
+		abs(tile_pos.y % CHUNK_SIZE)
+	)
+
+
+func get_biome_at_pos(world_pos: Vector3) -> String:
+	var tile = WorldUtils.world_to_tile(world_pos)
+	var chunk_coord = WorldUtils.tile_to_chunk(tile)
+	var local = WorldUtils.tile_local_in_chunk(tile)
+
+	var chunk = world.active_chunks.get(chunk_coord)
+	if chunk == null:
+		return ""
+	
+	return chunk.tiles[local.x][local.y]["biome"]
+
+
 func get_biome(temp, humidity):
 	for biome in PlacementRuleRegistry.biome_rules:
 		if biome.matches(temp, humidity):
 			return biome
 	
 	return PlacementRuleRegistry.biome_rules[0]
+
+
+func update_biome_tint(biome: String):
+	if biome_tint_overlay:
+		biome_tint_overlay.set_tint_for_biome(biome)
+
 
 
 func pick_weighted_tile(tile_name: String) -> int:
