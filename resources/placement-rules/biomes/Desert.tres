@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BiomePlacementRule" load_steps=3 format=3 uid="uid://cb4eft66jj1lr"]
+
+[ext_resource type="Script" uid="uid://gbxemuf3ucfo" path="res://scripts/classes/BiomeObjectSpawnRule.gd" id="1_de1oi"]
+[ext_resource type="Script" uid="uid://bksveg336obg1" path="res://scripts/classes/BiomePlacementRule.gd" id="2_4wqt8"]
+
+[resource]
+script = ExtResource("2_4wqt8")
+biome_name = "desert"
+min_temperature = 0.7
+min_humidity = 0.0
+max_humidity = 0.3
+ground_tile_type = "sand"
+metadata/_custom_type_script = "uid://bksveg336obg1"

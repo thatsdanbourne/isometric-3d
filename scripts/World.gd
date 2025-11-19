@@ -5,7 +5,10 @@ extends Node3D
 @onready var world_objects: Node3D = $WorldObjects
 @onready var gridmap: GridMap = $GridMap
 
-@export var terrain_noise: FastNoiseLite
+# @export var terrain_noise: FastNoiseLite
+@export var temp_noise: FastNoiseLite
+@export var humidity_noise: FastNoiseLite
+
 @export var grass_id: int = 0
 @export var sand_id: int = 1
 
@@ -19,18 +22,37 @@ var chunk_thread: Thread
 var active_chunks: Dictionary = {}
 var pending_loads: Array[Vector2i] = []
 var _last_chunk_coord: Vector2i = Vector2i(-9999, -9999)
-var placement_rules := PlacementRuleRegistry.get_all()
+var placement_rules := PlacementRuleRegistry.get_all_object_rules()
 
 
 func _ready():
-	if not terrain_noise:
-		terrain_noise = FastNoiseLite.new()
-		terrain_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-		terrain_seed = randi()
-		terrain_noise.seed = terrain_seed
-		terrain_noise.frequency = 0.02
+	terrain_seed = randi()
+
+	# if not terrain_noise:
+	# 	terrain_noise = FastNoiseLite.new()
+	# 	terrain_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	# 	terrain_noise.seed = terrain_seed
+	# 	terrain_noise.frequency = 0.02
 	
-	PlacementRuleRegistry.initialise_rules(terrain_seed)
+	if not temp_noise:
+		temp_noise = FastNoiseLite.new()
+		temp_noise.noise_type = FastNoiseLite.TYPE_PERLIN
+		temp_noise.seed = terrain_seed + 1000
+		temp_noise.frequency = 0.0015
+		temp_noise.fractal_octaves = 3
+		temp_noise.fractal_gain = 0.5
+		temp_noise.fractal_lacunarity = 2.0
+
+	if not humidity_noise:
+		humidity_noise = FastNoiseLite.new()
+		humidity_noise.noise_type = FastNoiseLite.TYPE_PERLIN
+		humidity_noise.seed = terrain_seed + 2000
+		humidity_noise.frequency = 0.003
+		humidity_noise.fractal_octaves = 4
+		humidity_noise.fractal_gain = 0.55
+		humidity_noise.fractal_lacunarity = 2.0
+	
+	PlacementRuleRegistry.initialise_object_rules(terrain_seed)
 
 
 func _physics_process(_delta):
@@ -40,8 +62,10 @@ func _physics_process(_delta):
 
 
 func _process(_delta: float):
-	if WorldUtils.world_to_chunk(player.global_position) != _last_chunk_coord:
+	var chunk = WorldUtils.world_to_chunk(player.global_position)
+	if chunk != _last_chunk_coord:
 		_update_active_chunks()
+		_last_chunk_coord = chunk
 
 
 func _update_active_chunks():
@@ -104,30 +128,38 @@ func build_chunk_data(coord) -> Dictionary:
 			var global_x = coord.x * WorldUtils.CHUNK_SIZE + x
 			var global_y = coord.y * WorldUtils.CHUNK_SIZE + y
 
-			var n = terrain_noise.get_noise_2d(global_x, global_y)
-			var id = grass_id if n > 0.0 else sand_id
+			var temp_raw = temp_noise.get_noise_2d(global_x, global_y)
+			var humidity_raw = humidity_noise.get_noise_2d(global_x, global_y)
+
+			var temp = adjust_contrast((temp_raw + 1.0) * 0.5)
+			var humidity = adjust_contrast((humidity_raw + 1.0) * 0.5)
+
+			print("Temp: ", temp, " Humidity: ", humidity)
+			var biome: BiomePlacementRule = WorldUtils.get_biome(temp, humidity)
+			var tile_type = biome.ground_tile_type
+			var tile_variant = WorldUtils.pick_weighted_tile(tile_type)
+			var tile_id = WorldUtils.get_tile_id(tile_type, tile_variant)
 
 			tiles.append({ 
 				"position": Vector2(global_x, global_y),
-				"id": id
+				"id": tile_id
 			})
 
-			for rule in placement_rules:
-				var base = rule.base_noise.get_noise_2d(global_x, global_y)
-				if base <= rule.base_noise_threshold:
-					continue
-				
-				if rule.use_detail_noise:
-					var detail = rule.detail_noise.get_noise_2d(global_x, global_y)
-					if detail <= rule.detail_noise_threshold:
-						continue
-				
-				objects.append({
-					"position": Vector3(global_x, 0, global_y) + Vector3(0.25, 0, 0.25),
-					"rule": rule,
-				})
+			for spawn_rules in biome.object_spawn_rules:
+				var rule = spawn_rules.rule
+				var density = spawn_rules.spawn_density
+
+				if rule.should_place_at(global_x, global_y, density):
+					objects.append({
+						"position": Vector3(global_x, 0, global_y) + Vector3(0.25, 0, 0.25),
+						"rule": rule,
+					})
 	
 	return { "tiles": tiles, "objects": objects }
+
+
+func adjust_contrast(v: float, amount := 1.75) -> float:
+	return clamp((v - 0.5) * amount + 0.5, 0.0, 1.0)
 
 
 func _finalise_chunk_load(coord: Vector2i, chunk_data: Dictionary):
@@ -158,6 +190,16 @@ func _cleanup_thread():
 	if chunk_thread:
 		chunk_thread.wait_to_finish()
 		chunk_thread = null
+
+
+func get_biome_at_pos(world_pos: Vector3) -> BiomePlacementRule:
+	var x = int(world_pos.x)
+	var z = int(world_pos.z)
+	
+	var temp = temp_noise.get_noise_2d(x, z)
+	var humidity = humidity_noise.get_noise_2d(x, z)
+
+	return WorldUtils.get_biome(temp, humidity)
 
 
 func _input(_event):

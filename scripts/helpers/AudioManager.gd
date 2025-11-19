@@ -10,8 +10,8 @@ const BUS_MUSIC := "Music"
 var music_player := AudioStreamPlayer.new()
 var music_tracks: Array[AudioStream] = []
 var next_music_time := 0.0
-var music_min_delay := 10.0
-var music_max_delay := 15.0
+var music_min_delay := 60.0
+var music_max_delay := 180.0
 
 var ambient_player := AudioStreamPlayer.new()
 var ambient_target := AudioStreamPlayer.new()
@@ -32,7 +32,7 @@ func _ready():
 
 	music_tracks = [
 		preload("res://assets/audio/music/relativity.mp3"),
-		# preload("res://assets/audio/music/explorers.mp3")
+		preload("res://assets/audio/music/explorers.mp3")
 	]
 
 	_schedule_next_music()

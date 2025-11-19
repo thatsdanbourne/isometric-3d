@@ -40,3 +40,22 @@ func init(terrain_seed):
 		detail_noise.fractal_octaves = detail_noise_octaves
 		detail_noise.fractal_gain = detail_noise_gain
 		detail_noise.fractal_lacunarity = detail_noise_lacunarity
+
+
+func should_place_at(x: int, z: int, density: float = 1.0) -> bool:
+	density = clamp(density, 0.0, 1.0)
+	if density <= 0.0: return false
+
+	if randf() > density:
+		return false
+
+	var base_val = base_noise.get_noise_2d(x, z)
+	if base_val < (base_noise_threshold * density):
+		return false
+	
+	if use_detail_noise:
+		var detail_val = detail_noise.get_noise_2d(x, z)
+		if detail_val < (detail_noise_threshold * density):
+			return false
+	
+	return true

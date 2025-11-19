@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://dtgd4yjkf4awx"]
+[gd_scene load_steps=12 format=3 uid="uid://dtgd4yjkf4awx"]
 
 [ext_resource type="Script" uid="uid://bo5gppxxuljem" path="res://scripts/Game.gd" id="1_0uv0p"]
 [ext_resource type="Script" uid="uid://ch825vpfd7yt6" path="res://scripts/World.gd" id="1_7g83o"]
@@ -12,6 +12,9 @@
 font_size = 40
 
 [sub_resource type="LabelSettings" id="LabelSettings_1lgw5"]
+font_size = 40
+
+[sub_resource type="LabelSettings" id="LabelSettings_0uv0p"]
 font_size = 40
 
 [sub_resource type="Environment" id="Environment_1lgw5"]
@@ -35,6 +38,11 @@ label_settings = SubResource("LabelSettings_d1c63")
 offset_right = 40.0
 offset_bottom = 23.0
 label_settings = SubResource("LabelSettings_1lgw5")
+
+[node name="Biome" type="Label" parent="Debug"]
+offset_right = 40.0
+offset_bottom = 23.0
+label_settings = SubResource("LabelSettings_0uv0p")
 
 [node name="HUD" parent="." instance=ExtResource("3_b3faq")]
 layer = 2

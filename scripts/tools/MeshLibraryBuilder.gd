@@ -75,7 +75,6 @@ func _make_tile_mesh(tex: Texture2D, tx: int, ty: int, tiles_x: int, tiles_y: in
 	mat.albedo_texture = tex
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 
-	mat.receive_shadows = true
 	mat.enable_fog = true
 
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED

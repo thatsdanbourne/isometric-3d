@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BiomePlacementRule" load_steps=5 format=3 uid="uid://b5hy5ec5iyu1h"]
+
+[ext_resource type="Script" uid="uid://gbxemuf3ucfo" path="res://scripts/classes/BiomeObjectSpawnRule.gd" id="1_vc3m4"]
+[ext_resource type="Script" uid="uid://bksveg336obg1" path="res://scripts/classes/BiomePlacementRule.gd" id="2_2ewg2"]
+[ext_resource type="Resource" uid="uid://dtrl5o3ofbjed" path="res://resources/placement-rules/world-objects/TreeRule.tres" id="2_8pjlb"]
+
+[sub_resource type="Resource" id="Resource_jby1k"]
+script = ExtResource("1_vc3m4")
+rule = ExtResource("2_8pjlb")
+metadata/_custom_type_script = "uid://gbxemuf3ucfo"
+
+[resource]
+script = ExtResource("2_2ewg2")
+biome_name = "forest"
+min_temperature = 0.3
+max_temperature = 0.7
+min_humidity = 0.6
+object_spawn_rules = Array[ExtResource("1_vc3m4")]([SubResource("Resource_jby1k")])
+metadata/_custom_type_script = "uid://bksveg336obg1"
