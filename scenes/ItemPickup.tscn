@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3 uid="uid://dbc5xhk0rx40p"]
+
+[ext_resource type="Script" uid="uid://cop5yxrs4w80g" path="res://scripts/ItemPickup.gd" id="1_a0vs4"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_a0vs4"]
+radius = 1.0
+
+[node name="ItemPickup" type="Node3D"]
+script = ExtResource("1_a0vs4")
+
+[node name="Area3D" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+shape = SubResource("SphereShape3D_a0vs4")
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+pixel_size = 0.05
+billboard = 1
+texture_filter = 0
+
+[node name="Shadow" type="Sprite3D" parent="."]

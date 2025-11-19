@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3 uid="uid://cjrcdkqsl4q3i"]
+
+[ext_resource type="Texture2D" uid="uid://dy1vncct46nkg" path="res://assets/sprites/tree/tree.png" id="1_2cic4"]
+[ext_resource type="Script" uid="uid://rluwe1vq71s2" path="res://scripts/terrain/Tree.gd" id="1_omb14"]
+[ext_resource type="PackedScene" uid="uid://6rj14wxgrsky" path="res://scenes/ShadowCard.tscn" id="3_874r4"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_874r4"]
+size = Vector3(0.8, 0.8, 0.8)
+
+[node name="Tree" type="StaticBody3D"]
+transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 0, 0, 0)
+script = ExtResource("1_omb14")
+object_type = "tree"
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+offset = Vector2(-2, 48)
+pixel_size = 0.05
+billboard = 2
+texture_filter = 0
+texture = ExtResource("1_2cic4")
+
+[node name="ShadowCard" parent="." instance=ExtResource("3_874r4")]
+transform = Transform3D(0.9999939, 0, -0.0034906515, 0, 1, 0, 0.0034906515, 0, 0.9999939, 0, 0, 0)
+offset = Vector2(-2, 47)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("BoxShape3D_874r4")

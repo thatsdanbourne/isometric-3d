@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://6rj14wxgrsky"]
+
+[ext_resource type="Texture2D" uid="uid://cgvtrt5qt4y8s" path="res://assets/sprites/tree/tree_shadow.png" id="1_ugxfi"]
+[ext_resource type="Script" uid="uid://diwq7xko3q1hq" path="res://scripts/ShadowCard.gd" id="2_qmvqi"]
+
+[node name="ShadowCard" type="Sprite3D"]
+cast_shadow = 3
+offset = Vector2(-2, 48)
+pixel_size = 0.05
+texture_filter = 0
+texture = ExtResource("1_ugxfi")
+script = ExtResource("2_qmvqi")

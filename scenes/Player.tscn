@@ -1,0 +1,60 @@
+[gd_scene load_steps=7 format=3 uid="uid://di4w6cxgjeo66"]
+
+[ext_resource type="Script" uid="uid://celmfiprohfbo" path="res://scripts/Player.gd" id="1_v6fml"]
+[ext_resource type="Texture2D" uid="uid://bn2sfbequxfuk" path="res://assets/sprites/player/player3_idle.png" id="2_3li8b"]
+[ext_resource type="Script" uid="uid://d1gwcj366ut56" path="res://scripts/ui/PlayerHotbar.gd" id="3_3li8b"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mdl7e"]
+atlas = ExtResource("2_3li8b")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_qu4a1"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mdl7e")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_v6fml"]
+radius = 0.4
+
+[node name="Player" type="CharacterBody3D"]
+script = ExtResource("1_v6fml")
+
+[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="."]
+offset = Vector2(0, 18)
+pixel_size = 0.05
+shaded = true
+texture_filter = 0
+sprite_frames = SubResource("SpriteFrames_qu4a1")
+animation = &"idle"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.404222, 0)
+shape = SubResource("SphereShape3D_v6fml")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+visible = false
+
+[node name="HitCooldown" type="Timer" parent="."]
+wait_time = 0.5
+one_shot = true
+
+[node name="HitRay" type="RayCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+target_position = Vector3(0, 0, -2)
+collide_with_areas = true
+
+[node name="AudioListener3D" type="AudioListener3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+current = true
+
+[node name="Hotbar" type="Node" parent="."]
+script = ExtResource("3_3li8b")
+
+[connection signal="timeout" from="HitCooldown" to="." method="_on_hit_cooldown_timeout"]

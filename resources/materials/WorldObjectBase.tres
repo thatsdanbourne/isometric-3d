@@ -1,0 +1,9 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://oe1u368nqo30"]
+
+[resource]
+transparency = 2
+alpha_scissor_threshold = 0.1
+alpha_antialiasing_mode = 0
+depth_draw_mode = 1
+texture_filter = 0
+billboard_mode = 2

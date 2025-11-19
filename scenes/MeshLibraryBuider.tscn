@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3 uid="uid://brypl17r56f51"]
+
+[ext_resource type="Script" uid="uid://df6kssmyx37s1" path="res://scripts/tools/MeshLibraryBuilder.gd" id="1_a4k7o"]
+[ext_resource type="Texture2D" uid="uid://uanpdlofsn3w" path="res://assets/sprites/ground/grass.png" id="2_lo707"]
+
+[node name="Node3D" type="Node3D"]
+script = ExtResource("1_a4k7o")
+atlas = ExtResource("2_lo707")

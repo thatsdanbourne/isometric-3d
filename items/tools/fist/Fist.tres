@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="Tool" load_steps=9 format=3 uid="uid://cadc2bmvwybiq"]
+
+[ext_resource type="Script" uid="uid://cx6502kgfjxra" path="res://items/Tool.gd" id="1_e5l3b"]
+[ext_resource type="AudioStream" uid="uid://clmo6bbsomgka" path="res://assets/audio/hit/punch-1.wav" id="1_r6t0v"]
+[ext_resource type="AudioStream" uid="uid://p2b6xreyd0w0" path="res://assets/audio/hit/punch-2.wav" id="2_lxpdb"]
+[ext_resource type="AudioStream" uid="uid://cyln77knp16sn" path="res://assets/audio/hit/punch-3.wav" id="3_b58yw"]
+[ext_resource type="AudioStream" uid="uid://dwmg1vju83tfh" path="res://assets/audio/hit/punch-4.wav" id="4_vyl8n"]
+[ext_resource type="Script" uid="uid://b50f52lk8v5o1" path="res://items/tools/ImpactSoundSet.gd" id="5_yjr7c"]
+[ext_resource type="AudioStream" uid="uid://dsydrv54p1kel" path="res://assets/audio/tools/fist/fist-1.wav" id="7_r6t0v"]
+
+[sub_resource type="Resource" id="Resource_6o0h8"]
+script = ExtResource("5_yjr7c")
+default = Array[AudioStream]([ExtResource("1_r6t0v"), ExtResource("2_lxpdb"), ExtResource("3_b58yw"), ExtResource("4_vyl8n")])
+metadata/_custom_type_script = "uid://b50f52lk8v5o1"
+
+[resource]
+script = ExtResource("1_e5l3b")
+effectiveness = {
+"tree": 0.5
+}
+swing_sounds = Array[AudioStream]([ExtResource("7_r6t0v")])
+impact_sounds = SubResource("Resource_6o0h8")
+id = "fist"
+name = "Fist"
+metadata/_custom_type_script = "uid://cx6502kgfjxra"

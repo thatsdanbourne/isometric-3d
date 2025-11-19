@@ -1,0 +1,81 @@
+[gd_scene load_steps=11 format=3 uid="uid://dtgd4yjkf4awx"]
+
+[ext_resource type="Script" uid="uid://bo5gppxxuljem" path="res://scripts/Game.gd" id="1_0uv0p"]
+[ext_resource type="Script" uid="uid://ch825vpfd7yt6" path="res://scripts/World.gd" id="1_7g83o"]
+[ext_resource type="Script" uid="uid://dqaj5pnbqxlnv" path="res://scripts/tools/Debug.gd" id="1_d1c63"]
+[ext_resource type="MeshLibrary" uid="uid://ctrm7vv0bonlp" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
+[ext_resource type="Script" uid="uid://clha2a03grojb" path="res://scripts/DayNightCycle.gd" id="3_1lgw5"]
+[ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD.tscn" id="3_b3faq"]
+[ext_resource type="PackedScene" uid="uid://di4w6cxgjeo66" path="res://scenes/Player.tscn" id="5_1lgw5"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_d1c63"]
+font_size = 40
+
+[sub_resource type="LabelSettings" id="LabelSettings_1lgw5"]
+font_size = 40
+
+[sub_resource type="Environment" id="Environment_1lgw5"]
+ambient_light_source = 2
+fog_mode = 1
+fog_density = 1.0
+volumetric_fog_density = 0.0356
+
+[node name="Game" type="Node3D"]
+script = ExtResource("1_0uv0p")
+
+[node name="Debug" type="CanvasLayer" parent="."]
+script = ExtResource("1_d1c63")
+
+[node name="FPS" type="Label" parent="Debug"]
+offset_right = 40.0
+offset_bottom = 23.0
+label_settings = SubResource("LabelSettings_d1c63")
+
+[node name="Position" type="Label" parent="Debug"]
+offset_right = 40.0
+offset_bottom = 23.0
+label_settings = SubResource("LabelSettings_1lgw5")
+
+[node name="HUD" parent="." instance=ExtResource("3_b3faq")]
+layer = 2
+
+[node name="World" type="Node3D" parent="."]
+script = ExtResource("1_7g83o")
+
+[node name="DayNightCycle" type="Node" parent="World"]
+script = ExtResource("3_1lgw5")
+
+[node name="Sun" type="DirectionalLight3D" parent="World"]
+transform = Transform3D(-0.036643866, 0.54427326, -0.8381073, 0, 0.83867055, 0.54463905, 0.9993283, 0.019957682, -0.030732134, 0, 20, 0)
+light_color = Color(1, 0.9776916, 0.9063318, 1)
+shadow_enabled = true
+shadow_bias = 0.0
+shadow_blur = 2.0
+directional_shadow_mode = 0
+directional_shadow_max_distance = 300.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="World"]
+environment = SubResource("Environment_1lgw5")
+
+[node name="GridMap" type="GridMap" parent="World"]
+mesh_library = ExtResource("2_7g83o")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(0, 0, 0, 0, 65535, 0, 65535, 65535, 0, 65535, 0, 0, 65535, 1, 0)
+}
+metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="WorldObjects" type="Node3D" parent="World"]
+
+[node name="Player" parent="World/WorldObjects" instance=ExtResource("5_1lgw5")]
+transform = Transform3D(0.7071067, 0, 0.7071067, 0, 0.99999994, 0, -0.7071067, 0, 0.7071067, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.7071068, -0.38511795, 0.5930297, 0, 0.83867055, 0.54463905, -0.7071068, -0.38511795, 0.5930297, 30, 30, 30)
+projection = 1
+current = true
+size = 23.896
+far = 100.0
