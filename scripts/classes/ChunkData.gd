@@ -1,6 +1,6 @@
-extends Node
-class_name ChunkData
+extends RefCounted
+class_name Chunk
 
 var chunk_coord: Vector2i
-var tiles: Array = []
-var objects: Array = []
+var tiles: Array[Array]
+var objects: Array

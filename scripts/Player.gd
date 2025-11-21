@@ -13,6 +13,7 @@ var equipped_item: Item
 var can_swing := true
 
 var current_biome := ""
+var last_tile := Vector2i(-9999, -9999)
 
 
 func _ready():
@@ -26,10 +27,13 @@ func _ready():
 
 
 func _process(_delta: float):
-	var biome = WorldUtils.get_biome_at_pos(global_position)
-	if !biome.is_empty() and biome != current_biome:
-		current_biome = biome
-		WorldUtils.update_biome_tint(current_biome)
+	var tile = WorldUtils.world_to_tile(global_position)
+	if tile != last_tile:
+		last_tile = tile
+		var biome = WorldUtils.get_biome_at_pos(global_position)
+		if !biome.is_empty() and biome != current_biome:
+			current_biome = biome
+			WorldUtils.update_biome_tint(current_biome)
 
 
 func get_active_tool() -> Tool:

@@ -19,10 +19,13 @@ var last_size = -1.0
 
 var is_thread_busy := false
 var chunk_thread: Thread
-var active_chunks: Dictionary = {}
+var active_chunks: Dictionary[Vector2i, Chunk] = {}
 var pending_loads: Array[Vector2i] = []
 var _last_chunk_coord: Vector2i = Vector2i(-9999, -9999)
 var placement_rules := PlacementRuleRegistry.get_all_object_rules()
+
+var perf_last_time := 0.0
+var perf_last_ms := 0.0
 
 
 func _ready():
@@ -89,17 +92,23 @@ func _update_active_chunks():
 func unload_chunk(coord: Vector2i):
 	if not active_chunks.has(coord): return
 
-	var data: ChunkData = active_chunks[coord]
+	var C := WorldUtils.CHUNK_SIZE
+	var data: Chunk = active_chunks[coord]
 	
 	for obj in data.objects:
 		if is_instance_valid(obj):
 			obj.queue_free()
 	
-	for x in range(WorldUtils.CHUNK_SIZE):
-		for y in range(WorldUtils.CHUNK_SIZE):
-			var global_x = coord.x * WorldUtils.CHUNK_SIZE + x
-			var global_y = coord.y * WorldUtils.CHUNK_SIZE + y
-			gridmap.set_cell_item(Vector3(global_x, 0, global_y), -1)
+	var pos := Vector3i()
+
+	for x in range(C):
+		for y in range(C):
+			var global_x = coord.x * C + x
+			var global_y = coord.y * C + y
+			pos.x = global_x
+			pos.y = 0
+			pos.z = global_y
+			gridmap.set_cell_item(pos, -1)
 	
 	active_chunks.erase(coord)
 
@@ -116,27 +125,36 @@ func _start_chunk_thread():
 func _generate_chunks_thread():
 	while not pending_loads.is_empty():
 		var coord = pending_loads.pop_front()
+		perf_stamp()
 		var data = build_chunk_data(coord)
+		perf_end("Build Chunk " + str(coord))
+
+		perf_stamp()
 		call_deferred("_finalise_chunk_load", coord, data)
+		perf_end("Finalise Chunk " + str(coord))
 	
 	is_thread_busy = false
 	call_deferred("_cleanup_thread")
 
 
-func build_chunk_data(coord) -> Dictionary:
-	var tiles := []
-	var objects := []
+func build_chunk_data(coord: Vector2i) -> Dictionary:
+	var C := WorldUtils.CHUNK_SIZE
 
-	for x in range(WorldUtils.CHUNK_SIZE):
-		tiles.append([])
-		for y in range(WorldUtils.CHUNK_SIZE):
-			tiles[x].append(null)
+	var tiles: Array[Array] = []
+	tiles.resize(C)
+	for x in range(C):
+		tiles[x] = []
+		tiles[x].resize(C)
 
-	for x in range(WorldUtils.CHUNK_SIZE):
-		for y in range(WorldUtils.CHUNK_SIZE):
-			var global_x = coord.x * WorldUtils.CHUNK_SIZE + x
-			var global_y = coord.y * WorldUtils.CHUNK_SIZE + y
+	var objects: Array = []
 
+	var base_x = coord.x * C
+	var base_y = coord.y * C
+	
+	for x in range(C):
+		for y in range(C):
+			var global_x = base_x + x
+			var global_y = base_y + y
 			var temp_raw = temp_noise.get_noise_2d(global_x, global_y)
 			var humidity_raw = humidity_noise.get_noise_2d(global_x, global_y)
 
@@ -148,22 +166,20 @@ func build_chunk_data(coord) -> Dictionary:
 			var tile_variant = WorldUtils.pick_weighted_tile(tile_type)
 			var tile_id = WorldUtils.get_tile_id(tile_type, tile_variant)
 
-			tiles[x][y] = { 
-				"id": tile_id,
-				"temp": temp,
-				"humidity": humidity,
-				"biome": biome.biome_name,
-			}
+			var tile = Tile.new(tile_id, biome.biome_name, temp, humidity) 
+			tiles[x][y] = tile
 
-			for spawn_rules in biome.object_spawn_rules:
+			var spawn_rules_list = biome.object_spawn_rules
+			for spawn_rules in spawn_rules_list:
 				var rule = spawn_rules.rule
 				var density = spawn_rules.spawn_density
 
 				if rule.should_place_at(global_x, global_y, density):
-					objects.append({
-						"position": Vector3(global_x, 0, global_y) + Vector3(0.25, 0, 0.25),
-						"rule": rule,
-					})
+					var pos = Vector3(global_x + 0.25, 0, global_y + 0.25)
+					var object = ChunkObject.new()
+					object.position = pos
+					object.rule = rule
+					objects.append(object)
 	
 	return { "tiles": tiles, "objects": objects }
 
@@ -175,32 +191,42 @@ func adjust_contrast(v: float, amount := 1.75) -> float:
 func _finalise_chunk_load(coord: Vector2i, chunk_data: Dictionary):
 	if active_chunks.has(coord): return
 
-	var chunk := ChunkData.new()
+	var C := WorldUtils.CHUNK_SIZE
+
+	var chunk := Chunk.new()
 	chunk.chunk_coord = coord
 	chunk.tiles = chunk_data["tiles"]
 
 	active_chunks[coord] = chunk
 
-	for x in range(WorldUtils.CHUNK_SIZE):
-		for y in range(WorldUtils.CHUNK_SIZE):
-			var tile_data = chunk.tiles[x][y]
-			if tile_data == null:
+	var pos := Vector3i()
+
+	var base_x = coord.x * C
+	var base_y = coord.y * C
+
+	for x in range(C):
+		for y in range(C):
+			var tile = chunk.tiles[x][y]
+			if tile == null:
 				continue
 
-			var tile_id = tile_data["id"]
+			var tile_id = tile.id
 
-			var global_x = coord.x * WorldUtils.CHUNK_SIZE + x
-			var global_y = coord.y * WorldUtils.CHUNK_SIZE + y
+			var global_x = base_x + x
+			var global_y = base_y + y
+			pos.x = global_x
+			pos.y = 0
+			pos.z = global_y
 
-			gridmap.set_cell_item(Vector3i(global_x, 0, global_y), tile_id)
+			gridmap.set_cell_item(pos, tile_id)
 	
 	for obj in chunk_data["objects"]:
-		var rule: ObjectPlacementRule = obj["rule"]
+		var rule: ObjectPlacementRule = obj.rule
 		var scene := rule.scene.instantiate()
 		if scene.has_method("initialise"):
 			scene.initialise()
 			
-		scene.position = obj["position"]
+		scene.position = obj.position
 
 		world_objects.add_child(scene)
 		chunk.objects.append(scene)
@@ -217,3 +243,11 @@ func _input(_event):
 		camera.size = max(camera.size - 2, 5)
 	elif Input.is_action_just_pressed("zoom_out"):
 		camera.size = min(camera.size + 2, 200)
+
+func perf_stamp():
+	perf_last_time = Time.get_ticks_usec()
+
+func perf_end(tag: String):
+	var now := Time.get_ticks_usec()
+	perf_last_ms = float(now - perf_last_time) / 1000.0
+	print(tag, ": ", perf_last_ms, " ms")
