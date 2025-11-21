@@ -1,19 +1,19 @@
-[gd_resource type="Resource" script_class="ObjectPlacementRule" load_steps=3 format=3 uid="uid://dtrl5o3ofbjed"]
+[gd_resource type="Resource" script_class="ObjectPlacementRule" load_steps=3 format=3 uid="uid://d4k65e0iv7pc"]
 
-[ext_resource type="PackedScene" uid="uid://cjrcdkqsl4q3i" path="res://scenes/Tree.tscn" id="1_tas27"]
-[ext_resource type="Script" uid="uid://necrawq8vkw3" path="res://scripts/classes/ObjectPlacementRule.gd" id="2_5bvhh"]
+[ext_resource type="Script" uid="uid://cskxsiga5ihi8" path="res://scripts/classes/ObjectPlacementRule.cs" id="1_3gktf"]
+[ext_resource type="PackedScene" uid="uid://cjrcdkqsl4q3i" path="res://scenes/Tree.tscn" id="1_ul42u"]
 
 [resource]
-script = ExtResource("2_5bvhh")
-scene = ExtResource("1_tas27")
-name = "tree"
-base_noise_frequency = 0.25
-base_noise_threshold = 0.05
-base_noise_octaves = 2
-base_noise_gain = 0.6
-base_noise_lacunarity = 2.5
-detail_noise_frequency = 0.05
-detail_noise_threshold = 0.2
-detail_noise_octaves = 4
-detail_noise_gain = 0.4
-metadata/_custom_type_script = "uid://necrawq8vkw3"
+script = ExtResource("1_3gktf")
+Name = "tree"
+Scene = ExtResource("1_ul42u")
+BaseNoiseFrequency = 0.25
+BaseNoiseThreshold = 0.05
+BaseNoiseOctaves = 2
+BaseNoiseGain = 0.6
+BaseNoiseLacunarity = 2.5
+DetailNoiseFrequency = 0.05
+DetailNoiseThreshold = 0.2
+DetailNoiseOctaves = 4
+DetailNoiseGain = 0.4
+metadata/_custom_type_script = "uid://cskxsiga5ihi8"

@@ -1,9 +1,11 @@
 extends CharacterBody3D
 
+@onready var world = get_node("../..")
 @onready var sprite: AnimatedSprite3D = $AnimatedSprite3D
 @onready var hit_cooldown: Timer = $HitCooldown
 @onready var hit_ray: RayCast3D = $HitRay
 @onready var hotbar: Node = $Hotbar
+@onready var camera: Camera3D = $Camera3D
 
 const BASE_MAT := preload("res://resources/materials/WorldObjectBase.tres")
 
@@ -13,7 +15,6 @@ var equipped_item: Item
 var can_swing := true
 
 var current_biome := ""
-var last_tile := Vector2i(-9999, -9999)
 
 
 func _ready():
@@ -27,13 +28,10 @@ func _ready():
 
 
 func _process(_delta: float):
-	var tile = WorldUtils.world_to_tile(global_position)
-	if tile != last_tile:
-		last_tile = tile
-		var biome = WorldUtils.get_biome_at_pos(global_position)
-		if !biome.is_empty() and biome != current_biome:
-			current_biome = biome
-			WorldUtils.update_biome_tint(current_biome)
+	var biome = world.GetBiomeAtPos(global_position)
+	if !biome.is_empty() and biome != current_biome:
+		current_biome = biome
+		WorldUtils.update_biome_tint(current_biome)
 
 
 func get_active_tool() -> Tool:
@@ -80,6 +78,12 @@ func _unhandled_input(event: InputEvent):
 			hotbar.select_prev()
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			hotbar.select_next()
+
+func _input(_event):
+	if Input.is_action_just_pressed("zoom_in"):
+		camera.size = max(camera.size - 2, 5)
+	elif Input.is_action_just_pressed("zoom_out"):
+		camera.size = min(camera.size + 2, 200)
 
 
 func _physics_process(_delta: float):

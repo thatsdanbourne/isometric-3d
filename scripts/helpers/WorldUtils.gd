@@ -22,7 +22,6 @@ const TILE_TYPES = [
 	},
 ]
 
-var world: Node = null
 var biome_tint_overlay: Node = null
 
 var rng := RandomNumberGenerator.new()
@@ -56,26 +55,6 @@ func tile_local_in_chunk(tile_pos: Vector2i) -> Vector2i:
 	)
 
 
-func get_biome_at_pos(world_pos: Vector3) -> String:
-	var tile = WorldUtils.world_to_tile(world_pos)
-	var chunk_coord = WorldUtils.tile_to_chunk(tile)
-	var local = WorldUtils.tile_local_in_chunk(tile)
-
-	var chunk = world.active_chunks.get(chunk_coord)
-	if chunk == null:
-		return ""
-	
-	return chunk.tiles[local.x][local.y]["biome"]
-
-
-func get_biome(temp, humidity):
-	for biome in PlacementRuleRegistry.biome_rules:
-		if biome.matches(temp, humidity):
-			return biome
-	
-	return PlacementRuleRegistry.biome_rules[0]
-
-
 func update_biome_tint(biome: String):
 	if biome_tint_overlay:
 		biome_tint_overlay.set_tint_for_biome(biome)
@@ -95,4 +74,3 @@ func get_tile_id(tile_name: String, variant: int) -> int:
 		id += tile["variant_count"]
 	
 	return -1
-

@@ -12,13 +12,12 @@ config_version=5
 
 config/name="isometric 3d"
 run/main_scene="uid://dtgd4yjkf4awx"
-config/features=PackedStringArray("4.5", "Forward Plus")
+config/features=PackedStringArray("4.5", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
 WorldUtils="*res://scripts/helpers/WorldUtils.gd"
-PlacementRuleRegistry="*res://scripts/helpers/PlacementRuleRegistry.gd"
 AudioManager="*res://scripts/helpers/AudioManager.gd"
 
 [display]

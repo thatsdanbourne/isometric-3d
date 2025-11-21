@@ -1,11 +1,11 @@
 [gd_scene load_steps=15 format=3 uid="uid://dtgd4yjkf4awx"]
 
 [ext_resource type="Script" uid="uid://bo5gppxxuljem" path="res://scripts/Game.gd" id="1_0uv0p"]
-[ext_resource type="Script" uid="uid://ch825vpfd7yt6" path="res://scripts/World.gd" id="1_7g83o"]
 [ext_resource type="Script" uid="uid://dqaj5pnbqxlnv" path="res://scripts/tools/Debug.gd" id="1_d1c63"]
-[ext_resource type="MeshLibrary" uid="uid://b380gaeu6ucv1" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
+[ext_resource type="MeshLibrary" uid="uid://d20bu4xrfn6n0" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="Script" uid="uid://clha2a03grojb" path="res://scripts/DayNightCycle.gd" id="3_1lgw5"]
 [ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD.tscn" id="3_b3faq"]
+[ext_resource type="Script" uid="uid://ddvbtaf4ymjhc" path="res://scripts/World.cs" id="4_ygioq"]
 [ext_resource type="PackedScene" uid="uid://di4w6cxgjeo66" path="res://scenes/Player.tscn" id="5_1lgw5"]
 [ext_resource type="Shader" uid="uid://cmpvdcty3aeoe" path="res://resources/shaders/BiomeTint.gdshader" id="5_b3faq"]
 [ext_resource type="Script" uid="uid://jljrsp7sebsl" path="res://scenes/BiomeTintOverlay.gd" id="6_ygioq"]
@@ -54,8 +54,11 @@ label_settings = SubResource("LabelSettings_0uv0p")
 [node name="HUD" parent="." instance=ExtResource("3_b3faq")]
 layer = 2
 
-[node name="World" type="Node3D" parent="."]
-script = ExtResource("1_7g83o")
+[node name="World" type="Node3D" parent="." node_paths=PackedStringArray("WorldObjects", "GridMap", "Player")]
+script = ExtResource("4_ygioq")
+WorldObjects = NodePath("WorldObjects")
+GridMap = NodePath("GridMap")
+Player = NodePath("WorldObjects/Player")
 
 [node name="BiomeTint" type="CanvasLayer" parent="World"]
 
@@ -100,8 +103,8 @@ metadata/_editor_floor_ = Vector3(0, 0, 0)
 [node name="Player" parent="World/WorldObjects" instance=ExtResource("5_1lgw5")]
 transform = Transform3D(0.7071067, 0, 0.7071067, 0, 0.99999994, 0, -0.7071067, 0, 0.7071067, 0, 0, 0)
 
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.7071068, -0.38511795, 0.5930297, 0, 0.83867055, 0.54463905, -0.7071068, -0.38511795, 0.5930297, 30, 30, 30)
+[node name="Camera3D" type="Camera3D" parent="World/WorldObjects/Player"]
+transform = Transform3D(1.0000002, 0, 0, 0, 0.8386707, 0.5446391, 0, -0.5446391, 0.83867073, 0, 30.000004, 42.426414)
 projection = 1
 current = true
 size = 23.896
