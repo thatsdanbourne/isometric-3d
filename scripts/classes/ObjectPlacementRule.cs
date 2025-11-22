@@ -24,6 +24,7 @@ public partial class ObjectPlacementRule : Resource
     [Export] public float DetailNoiseLacunarity { get; set; } = 2.0f;
 
     // Runtime state ----------------------------------------------
+    public Vector2I WorldOffset;
 
     private FastNoiseLite baseNoise;
     private FastNoiseLite detailNoise;
@@ -57,12 +58,17 @@ public partial class ObjectPlacementRule : Resource
 
     public bool ShouldPlace(int x, int z, float density)
     {
+        x += WorldOffset.X;
+        z += WorldOffset.Y;
+
         density = Mathf.Clamp(density, 0f, 1f);
         if (density <= 0)
             return false;
 
-        // Global density roll
-        if (rng.Randf() > density)
+        float rand = baseNoise.GetNoise2D(x + 12345, z + 67890);
+        rand = (rand + 1f) * 0.5f;
+        
+        if (rand > density)
             return false;
 
         // Base noise check

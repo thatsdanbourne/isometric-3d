@@ -32,6 +32,10 @@ window/size/always_on_top=true
 
 project/assembly_name="isometric 3d"
 
+[editor]
+
+export/convert_text_resources_to_binary=false
+
 [input]
 
 move_right={
@@ -77,4 +81,5 @@ common/physics_interpolation=true
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
+textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0.15487596, 0.154876, 0.1548759, 1)

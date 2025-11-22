@@ -2,9 +2,9 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cgvtrt5qt4y8s"
-path.s3tc="res://.godot/imported/tree_shadow.png-429bddc1fb8d79068edb65d35439ba55.s3tc.ctex"
-path.etc2="res://.godot/imported/tree_shadow.png-429bddc1fb8d79068edb65d35439ba55.etc2.ctex"
+uid="uid://b0i3w6cdey405"
+path.s3tc="res://.godot/imported/water.png-064dba80d5afeaf2fea0cba9d4b35c0e.s3tc.ctex"
+path.etc2="res://.godot/imported/water.png-064dba80d5afeaf2fea0cba9d4b35c0e.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/sprites/tree/tree_shadow.png"
-dest_files=["res://.godot/imported/tree_shadow.png-429bddc1fb8d79068edb65d35439ba55.s3tc.ctex", "res://.godot/imported/tree_shadow.png-429bddc1fb8d79068edb65d35439ba55.etc2.ctex"]
+source_file="res://assets/sprites/ground/water.png"
+dest_files=["res://.godot/imported/water.png-064dba80d5afeaf2fea0cba9d4b35c0e.s3tc.ctex", "res://.godot/imported/water.png-064dba80d5afeaf2fea0cba9d4b35c0e.etc2.ctex"]
 
 [params]
 

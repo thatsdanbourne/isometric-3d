@@ -1,0 +1,35 @@
+[gd_resource type="MeshLibrary" load_steps=5 format=4 uid="uid://ey4q01wucqbw"]
+
+[ext_resource type="Shader" uid="uid://b0n6cccg7px32" path="res://resources/shaders/Water.gdshader" id="1_t75e4"]
+[ext_resource type="Texture2D" uid="uid://b0i3w6cdey405" path="res://assets/sprites/ground/water.png" id="2_jhlx1"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_qeqkn"]
+render_priority = 0
+shader = ExtResource("1_t75e4")
+shader_parameter/water_tex = ExtResource("2_jhlx1")
+shader_parameter/speed = 0.05
+shader_parameter/scale = 1.0
+shader_parameter/alpha = 0.7
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_2268y"]
+_surfaces = [{
+"aabb": AABB(-0.5, 0, -0.5, 1, 1e-05, 1),
+"attribute_data": PackedByteArray("AAAAAAAAAAAAAIA/AAAAAAAAgD8AAIA/AAAAAAAAgD8="),
+"format": 34359742487,
+"index_count": 6,
+"index_data": PackedByteArray("AAABAAIAAAACAAMA"),
+"material": SubResource("ShaderMaterial_qeqkn"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 4,
+"vertex_data": PackedByteArray("AAAAvwAAAAAAAAC/AAAAPwAAAAAAAAC/AAAAPwAAAAAAAAA/AAAAvwAAAAAAAAA//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/78=")
+}]
+
+[resource]
+item/0/name = "water"
+item/0/mesh = SubResource("ArrayMesh_2268y")
+item/0/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/mesh_cast_shadow = 1
+item/0/shapes = []
+item/0/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/navigation_layers = 1

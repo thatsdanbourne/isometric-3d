@@ -8,7 +8,8 @@ using System.Threading;
 public partial class World : Node3D
 {
 	[Export] public Node3D WorldObjects;
-	[Export] public GridMap GridMap;
+	[Export] public GridMap GroundMap;
+	[Export] public GridMap WaterMap;
 	[Export] public Node3D Player;
 
 	public int ChunkSize = 16;
@@ -16,6 +17,7 @@ public partial class World : Node3D
 
 	public FastNoiseLite TempNoise;
 	public FastNoiseLite HumidityNoise;
+	public FastNoiseLite RiverNoise;
 
 	private RuleRegistry registry;
 
@@ -25,14 +27,13 @@ public partial class World : Node3D
 	private Thread workerThread;
 	private bool running = true;
 
-	private GodotObject RuleRegistry;
-
 	private readonly ConcurrentQueue<Vector2I> buildQueue = new();
 	private readonly ConcurrentQueue<ChunkData> finaliseQueue = new();
 
 	private Vector2I lastPlayerChunk = new(-999, -999);
 
 	private int terrainSeed = 0;
+	private Vector2I worldOffset; // prevents samping noise at (0,0)
 
 	private Dictionary<string, TileType> tileTypes = new();
 	private RandomNumberGenerator rng;
@@ -40,9 +41,8 @@ public partial class World : Node3D
 
 	private class TileType
 	{
+		public int Id;
 		public string Name;
-		public int VariantCount;
-		public float[] Weights;
 	}
 
 	public override void _Ready()
@@ -53,9 +53,14 @@ public partial class World : Node3D
 		rng = new RandomNumberGenerator();
 		rng.Randomize();
 
+		worldOffset = new Vector2I(
+			(int)rng.Randi() % 100000,
+			(int)rng.Randi() % 100000
+		);
+
 		InitTileTypes();
 		SetupNoise();
-		registry = new RuleRegistry(terrainSeed);
+		registry = new RuleRegistry(terrainSeed, worldOffset);
 		StartWorkerThread();
 	}
 
@@ -98,6 +103,16 @@ public partial class World : Node3D
 			FractalGain = 0.55f,
 			FractalLacunarity = 2.0f
 		};
+
+		RiverNoise = new FastNoiseLite()
+        {
+            Seed = terrainSeed + 3000,
+			NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
+			Frequency = 0.0025f,
+			FractalOctaves = 3,
+			FractalGain = 0.5f,
+			FractalLacunarity = 2f
+        };
 	}
 
 
@@ -166,7 +181,7 @@ public partial class World : Node3D
 
 	private void UnloadChunksOutside(Vector2I center)
     {
-        int r = ChunkRadius + 1;
+        int r = ChunkRadius;
 		var toRemove = new List<Vector2I>();
 
 		foreach(var kv in ActiveChunks)
@@ -199,7 +214,13 @@ public partial class World : Node3D
                 pos.X = baseX + x;
 				pos.Y = 0;
 				pos.Z = baseY + y;
-				GridMap.SetCellItem(pos, -1);
+
+				var tile = chunk.Tiles[x, y];
+
+				if(tile.Type == "water")
+					WaterMap.SetCellItem(pos, -1);
+				else
+					GroundMap.SetCellItem(pos, -1);	
             }
         }
 
@@ -226,27 +247,40 @@ public partial class World : Node3D
 				int globalX = coord.X * C + x;
 				int globalY = coord.Y * C + y;
 
-				float tempRaw = TempNoise.GetNoise2D(globalX, globalY);
-				float humidityRaw = HumidityNoise.GetNoise2D(globalX, globalY);
+				float tempRaw = TempNoise.GetNoise2D(globalX + worldOffset.X, globalY + worldOffset.Y);
+				float humidityRaw = HumidityNoise.GetNoise2D(globalX + worldOffset.X, globalY + worldOffset.Y);
+				float riverVal = RiverNoise.GetNoise2D(globalX, globalY + worldOffset.Y);
 
 				float temp = AdjustContrast((tempRaw + 1f) / 2f);
 				float humidity = AdjustContrast((humidityRaw + 1f) / 2f);
+				float riverDist = Math.Abs(riverVal);
 
 				BiomePlacementRule biome = registry.GetBiome(temp, humidity);
 				string tileType = biome.GroundTileType;
-				int tileVariant = PickWeightedTile(tileType);
-				int tileId = GetTileId(tileType, tileVariant);
+				int tileId = GetTileId(tileType);
 
-				tiles[x, y] = new Tile(tileId, biome.Name, temp, humidity);
+				bool biomeAllowsRivers = humidity > 0.45f;
+				bool isRiver = riverDist < 0.05f && biomeAllowsRivers;
 
-				foreach (BiomeObjectSpawnRule spawn in biome.ObjectSpawnRules)
+				if (isRiver)
+                {
+                    tileType = "water";
+					tileId = 0;
+                }
+
+				tiles[x, y] = new Tile(tileId, tileType, biome.Name, temp, humidity);
+
+				if (!isRiver)
 				{
-					if (spawn.Rule.ShouldPlace(globalX, globalY, spawn.Density))
+					foreach (BiomeObjectSpawnRule spawn in biome.ObjectSpawnRules)
 					{
-						var obj = new ChunkObject();
-						obj.Rule = spawn.Rule;
-						obj.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
-						objects.Add(obj);
+						if (spawn.Rule.ShouldPlace(globalX, globalY, spawn.Density))
+						{
+							var obj = new ChunkObject();
+							obj.Rule = spawn.Rule;
+							obj.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
+							objects.Add(obj);
+						}
 					}
 				}
 			}
@@ -296,7 +330,14 @@ public partial class World : Node3D
 				pos.Y = 0;
 				pos.Z = baseY + y;
 
-				GridMap.SetCellItem(pos, id);
+				if (data.Tiles[x, y].Type == "water")
+                {
+                    WaterMap.SetCellItem(pos, id);
+                }
+				else
+                {
+					GroundMap.SetCellItem(pos, id);
+                }
 			}
 		}
 
@@ -347,56 +388,44 @@ public partial class World : Node3D
 	private void InitTileTypes()
 	{
 		tileTypes["grass"] = new TileType {
+			Id = 0,
 			Name = "grass",
-			VariantCount = 2,
-			Weights = new float[] { 0.99f, 0.01f }
 		};
 
 		tileTypes["sand"] = new TileType {
+			Id = 1,
 			Name = "sand",
-			VariantCount = 2,
-			Weights = new float[] { 0.99f, 0.01f }
 		};
 
 		tileTypes["snow"] = new TileType {
+			Id = 2,
 			Name = "snow",
-			VariantCount = 2,
-			Weights = new float[] { 0.99f, 0.01f }
 		};
 	}
 
 
-	private int PickWeightedTile(string tileName)
+	// private int PickWeightedTile(string tileName)
+	// {
+	// 	TileType t = tileTypes[tileName];
+	// 	float r = rng.Randf();
+
+	// 	float cumulative = 0f;
+
+	// 	for (int i = 0; i < t.Weights.Length; i++)
+	// 	{
+	// 		cumulative += t.Weights[i];
+	// 		if (r <= cumulative)
+	// 			return i;
+	// 	}
+
+	// 	return t.Weights.Length - 1; // fallback
+	// }
+
+	private int GetTileId(string tileName)
 	{
-		TileType t = tileTypes[tileName];
-		float r = rng.Randf();
-
-		float cumulative = 0f;
-
-		for (int i = 0; i < t.Weights.Length; i++)
-		{
-			cumulative += t.Weights[i];
-			if (r <= cumulative)
-				return i;
-		}
-
-		return t.Weights.Length - 1; // fallback
-	}
-
-	private int GetTileId(string tileName, int variant)
-	{
-		int id = 0;
-
-		foreach (var kv in tileTypes)
-		{
-			var t = kv.Value;
-
-			if (t.Name == tileName)
-				return id + variant;
-
-			id += t.VariantCount;
-		}
-
+		if (tileTypes.TryGetValue(tileName, out var type))
+			return type.Id;
+		
 		return -1;
 	}
 }
