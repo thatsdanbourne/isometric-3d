@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ObjectPlacementRule" load_steps=3 format=3 uid="uid://n68amumc7git"]
+
+[ext_resource type="Script" uid="uid://cskxsiga5ihi8" path="res://scripts/classes/ObjectPlacementRule.cs" id="1_d5ky8"]
+[ext_resource type="PackedScene" uid="uid://rh0m2ssigb32" path="res://scenes/Rock.tscn" id="1_lou4l"]
+
+[resource]
+script = ExtResource("1_d5ky8")
+Scene = ExtResource("1_lou4l")
+BaseNoiseFrequency = 0.14
+BaseNoiseThreshold = 0.6
+BaseNoiseOctaves = 4
+BaseNoiseGain = 0.45
+BaseNoiseLacunarity = 2.2
+DetailNoiseFrequency = 0.25
+DetailNoiseThreshold = 0.6
+DetailNoiseGain = 0.3
+metadata/_custom_type_script = "uid://cskxsiga5ihi8"

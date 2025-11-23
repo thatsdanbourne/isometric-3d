@@ -2,9 +2,9 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c5byoo5ptjy8"
-path.s3tc="res://.godot/imported/rock.png-5e76f2026415a2aceb0b5c72376eeb2e.s3tc.ctex"
-path.etc2="res://.godot/imported/rock.png-5e76f2026415a2aceb0b5c72376eeb2e.etc2.ctex"
+uid="uid://scq3qowe65ag"
+path.s3tc="res://.godot/imported/stone.png-98ffe436082848500fd994ae48352304.s3tc.ctex"
+path.etc2="res://.godot/imported/stone.png-98ffe436082848500fd994ae48352304.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/sprites/rock/rock.png"
-dest_files=["res://.godot/imported/rock.png-5e76f2026415a2aceb0b5c72376eeb2e.s3tc.ctex", "res://.godot/imported/rock.png-5e76f2026415a2aceb0b5c72376eeb2e.etc2.ctex"]
+source_file="res://assets/icons/stone.png"
+dest_files=["res://.godot/imported/stone.png-98ffe436082848500fd994ae48352304.s3tc.ctex", "res://.godot/imported/stone.png-98ffe436082848500fd994ae48352304.etc2.ctex"]
 
 [params]
 

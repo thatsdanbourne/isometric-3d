@@ -9,7 +9,7 @@ extends CharacterBody3D
 
 const BASE_MAT := preload("res://resources/materials/WorldObjectBase.tres")
 
-var speed := 4.0
+var speed := 6.0
 var default_tool: Tool = preload("res://items/tools/fist/Fist.tres")
 var equipped_item: Item
 var can_swing := true

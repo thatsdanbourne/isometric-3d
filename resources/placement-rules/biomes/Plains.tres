@@ -1,12 +1,19 @@
-[gd_resource type="Resource" script_class="BiomePlacementRule" load_steps=5 format=3 uid="uid://doa60ksmg3wrm"]
+[gd_resource type="Resource" script_class="BiomePlacementRule" load_steps=7 format=3 uid="uid://doa60ksmg3wrm"]
 
 [ext_resource type="Script" uid="uid://ceg1o86gsc1m1" path="res://scripts/classes/BiomeObjectSpawnRule.cs" id="1_3sgl2"]
 [ext_resource type="Resource" uid="uid://d4k65e0iv7pc" path="res://resources/placement-rules/world-objects/TreeRule.tres" id="2_7mxwq"]
 [ext_resource type="Script" uid="uid://c74vgdr8hc544" path="res://scripts/classes/BiomePlacementRule.cs" id="2_e8xe2"]
+[ext_resource type="Resource" uid="uid://n68amumc7git" path="res://resources/placement-rules/world-objects/RockRule.tres" id="3_7mxwq"]
 
 [sub_resource type="Resource" id="Resource_laqtd"]
 script = ExtResource("1_3sgl2")
 Rule = ExtResource("2_7mxwq")
+Density = 0.3
+metadata/_custom_type_script = "uid://ceg1o86gsc1m1"
+
+[sub_resource type="Resource" id="Resource_ibc0p"]
+script = ExtResource("1_3sgl2")
+Rule = ExtResource("3_7mxwq")
 Density = 0.3
 metadata/_custom_type_script = "uid://ceg1o86gsc1m1"
 
@@ -18,5 +25,5 @@ MaxTemp = 0.7
 MinHumidity = 0.3
 MaxHumidity = 0.6
 GroundTileType = "grass"
-ObjectSpawnRules = Array[ExtResource("1_3sgl2")]([SubResource("Resource_laqtd")])
+ObjectSpawnRules = Array[ExtResource("1_3sgl2")]([SubResource("Resource_laqtd"), SubResource("Resource_ibc0p")])
 metadata/_custom_type_script = "uid://c74vgdr8hc544"

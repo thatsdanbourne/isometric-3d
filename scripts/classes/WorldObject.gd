@@ -16,7 +16,8 @@ func _ready():
     translate(Vector3(0.0, 0.0, randf_range(-0.01, 0.01))) # apply slight z offset to prevent z-fighting
 
 func cleanup():
-    pass
+    var world = get_tree().get_root().find_child("World", true, false)
+    world.RemoveChunkObject(self)
 
 
 func destroy():

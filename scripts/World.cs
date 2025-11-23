@@ -226,10 +226,25 @@ public partial class World : Node3D
 
 		foreach(var obj in chunk.Objects)
         {
+			if (obj == null || !IsInstanceValid(obj))
+				continue;
+
             obj.QueueFree();
         }
 
 		ActiveChunks.Remove(coord);
+    }
+
+	public void RemoveChunkObject(Node3D obj)
+    {
+        foreach (var chunk in ActiveChunks.Values)
+        {
+            if (chunk.Objects.Contains(obj))
+            {
+                chunk.Objects.Remove(obj);
+				break;
+            }
+        }
     }
 
 	private ChunkData BuildChunkData(Vector2I coord)

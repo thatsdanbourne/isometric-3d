@@ -16,6 +16,7 @@ metadata/_custom_type_script = "uid://b50f52lk8v5o1"
 [resource]
 script = ExtResource("1_e5l3b")
 effectiveness = {
+"rock": 0.3,
 "tree": 0.5
 }
 swing_sounds = Array[AudioStream]([ExtResource("7_r6t0v")])
