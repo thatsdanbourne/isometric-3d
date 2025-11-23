@@ -10,14 +10,16 @@ const BASE_MAT := preload("res://resources/materials/WorldObjectBase.tres")
 
 var current_health := 0.0
 
+var world: Node = null
+
 func _ready():
     current_health = max_health
     _apply_sprite_material()
     translate(Vector3(0.0, 0.0, randf_range(-0.01, 0.01))) # apply slight z offset to prevent z-fighting
 
 func cleanup():
-    var world = get_tree().get_root().find_child("World", true, false)
-    world.RemoveChunkObject(self)
+    if world and world.has_method("RemoveChunkObject"):
+        world.RemoveChunkObject(self)
 
 
 func destroy():

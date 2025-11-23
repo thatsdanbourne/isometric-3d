@@ -360,7 +360,8 @@ public partial class World : Node3D
 		{
 			var scene = obj.Rule.Scene;
 			var instance = scene.Instantiate<Node3D>();
-
+			
+			instance.Set("world", this);
 			if (instance.HasMethod("initialise"))
 				instance.Call("initialise");
 
