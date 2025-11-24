@@ -237,12 +237,19 @@ public partial class World : Node3D
 
 	public void RemoveChunkObject(Node3D obj)
     {
-        foreach (var chunk in ActiveChunks.Values)
+        if (obj is WorldObject wo && wo.Chunk != null)
         {
-            if (chunk.Objects.Contains(obj))
+            wo.Chunk.Objects.Remove(obj);
+        }
+		else
+        {
+            foreach (var chunk in ActiveChunks.Values)
             {
-                chunk.Objects.Remove(obj);
-				break;
+                if (chunk.Objects.Contains(obj))
+                {
+                    chunk.Objects.Remove(obj);
+					break;
+                }
             }
         }
     }
@@ -361,12 +368,16 @@ public partial class World : Node3D
 			var scene = obj.Rule.Scene;
 			var instance = scene.Instantiate<Node3D>();
 			
-			instance.Set("world", this);
+			if (instance is WorldObject wo)
+            {
+                wo.World = this;
+				wo.Chunk = chunk;
+            }
+
 			if (instance.HasMethod("initialise"))
 				instance.Call("initialise");
 
 			instance.Position = obj.Position;
-
 			WorldObjects.AddChild(instance);
 			chunk.Objects.Add(instance);
 		}

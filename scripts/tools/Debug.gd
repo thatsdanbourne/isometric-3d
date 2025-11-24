@@ -1,10 +1,12 @@
 extends CanvasLayer
 
+const Player = preload("res://scripts/Player.cs")
+
 @onready var world: Node3D = $"../World"
 @onready var fps: Label = $FPS
 @onready var position: Label = $Position
 @onready var biome: Label = $Biome
-@onready var player: CharacterBody3D = $"../World/WorldObjects/Player"
+@onready var player: Player = $"../World/WorldObjects/Player"
 
 var update_timer := 0.0
 
@@ -27,4 +29,4 @@ func _process(delta: float) -> void:
 	var p := player.position
 	position.text = "x: " + str(int(p.x)) + ", y: " + str(int(p.z))
 
-	biome.text = "Biome: " + player.current_biome.capitalize()
+	biome.text = "Biome: " + player.CurrentBiome.capitalize()

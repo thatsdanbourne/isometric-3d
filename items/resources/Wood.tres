@@ -1,13 +1,12 @@
 [gd_resource type="Resource" script_class="ResourceItem" load_steps=3 format=3 uid="uid://bp4c6r2b8t7c6"]
 
-[ext_resource type="Script" uid="uid://d34lefw68jnwj" path="res://items/Resource.gd" id="1_n3qmb"]
+[ext_resource type="Script" uid="uid://cfvnty1di6y3v" path="res://items/ResourceItem.cs" id="1_n3qmb"]
 [ext_resource type="Texture2D" uid="uid://b43coirs7adgp" path="res://assets/icons/wood_icon.png" id="1_o2asf"]
 
 [resource]
 script = ExtResource("1_n3qmb")
-resource_type = "rock"
-id = "wood"
-name = "Wood"
-icon = ExtResource("1_o2asf")
-stack_size = 99
-metadata/_custom_type_script = "uid://d34lefw68jnwj"
+ResourceType = "wood"
+Id = "wood"
+DisplayName = "Wood"
+Icon = ExtResource("1_o2asf")
+metadata/_custom_type_script = "uid://cfvnty1di6y3v"

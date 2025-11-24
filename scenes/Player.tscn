@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://di4w6cxgjeo66"]
 
-[ext_resource type="Script" uid="uid://celmfiprohfbo" path="res://scripts/Player.gd" id="1_v6fml"]
+[ext_resource type="Script" uid="uid://b1qr4br08xph2" path="res://scripts/Player.cs" id="1_3li8b"]
 [ext_resource type="Texture2D" uid="uid://bn2sfbequxfuk" path="res://assets/sprites/player/player3_idle.png" id="2_3li8b"]
 [ext_resource type="Script" uid="uid://d1gwcj366ut56" path="res://scripts/ui/PlayerHotbar.gd" id="3_3li8b"]
 
@@ -23,7 +23,7 @@ animations = [{
 radius = 0.4
 
 [node name="Player" type="CharacterBody3D"]
-script = ExtResource("1_v6fml")
+script = ExtResource("1_3li8b")
 
 [node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="."]
 offset = Vector2(0, 18)
@@ -59,4 +59,4 @@ current = true
 [node name="Hotbar" type="Node" parent="."]
 script = ExtResource("3_3li8b")
 
-[connection signal="timeout" from="HitCooldown" to="." method="_on_hit_cooldown_timeout"]
+[connection signal="timeout" from="HitCooldown" to="." method="OnHitCooldownTimeout"]

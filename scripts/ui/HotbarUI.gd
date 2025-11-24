@@ -42,7 +42,7 @@ func _update_slots(hotbar):
 		var label = slot.get_node("MarginContainer/VBoxContainer/Icon/Label")
 
 		if data:
-			icon.texture = data.item.icon
+			icon.texture = data.item.Icon
 			label.text = str(data.count)
 		else:
 			icon.texture = null

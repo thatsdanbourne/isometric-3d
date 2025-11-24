@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="Tool" load_steps=2 format=3 uid="uid://dgg17gwj3bcug"]
+
+[ext_resource type="Script" uid="uid://bmph2758ofybm" path="res://items/ToolItem.cs" id="1_2ya17"]
+
+[resource]
+script = ExtResource("1_2ya17")
+power = 2.0
+id = "stone_pickaxe"
+name = "Stone Pickaxe"
+metadata/_custom_type_script = "uid://cx6502kgfjxra"

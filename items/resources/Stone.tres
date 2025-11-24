@@ -1,13 +1,12 @@
 [gd_resource type="Resource" script_class="ResourceItem" load_steps=3 format=3 uid="uid://cuaisjoqkn872"]
 
-[ext_resource type="Script" uid="uid://d34lefw68jnwj" path="res://items/Resource.gd" id="1_018lc"]
+[ext_resource type="Script" uid="uid://cfvnty1di6y3v" path="res://items/ResourceItem.cs" id="1_018lc"]
 [ext_resource type="Texture2D" uid="uid://scq3qowe65ag" path="res://assets/icons/stone.png" id="1_xye4g"]
 
 [resource]
 script = ExtResource("1_018lc")
-resource_type = "stone"
-id = "stone"
-name = "Stone"
-icon = ExtResource("1_xye4g")
-stack_size = 99
-metadata/_custom_type_script = "uid://d34lefw68jnwj"
+ResourceType = "stone"
+Id = "stone"
+DisplayName = "Stone"
+Icon = ExtResource("1_xye4g")
+metadata/_custom_type_script = "uid://cfvnty1di6y3v"

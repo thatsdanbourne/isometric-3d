@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="CraftingRecipe" load_steps=7 format=3 uid="uid://27x2sqa2okw5"]
+
+[ext_resource type="Script" uid="uid://byb0luy5yhdf" path="res://resources/crafting/CraftingRecipe.cs" id="1_0b0fq"]
+[ext_resource type="Texture2D" uid="uid://scq3qowe65ag" path="res://assets/icons/stone.png" id="1_ywo88"]
+[ext_resource type="Texture2D" uid="uid://b43coirs7adgp" path="res://assets/icons/wood_icon.png" id="2_7dbwf"]
+
+[sub_resource type="GDScript" id="GDScript_khxvf"]
+script/source = "extends Item
+class_name ResourceItem
+
+@export var resource_type: String
+"
+
+[sub_resource type="Resource" id="Resource_7clmx"]
+script = SubResource("GDScript_khxvf")
+resource_type = "stone"
+id = "stone"
+name = "Stone"
+icon = ExtResource("1_ywo88")
+stack_size = 99
+metadata/_custom_type_script = "uid://d34lefw68jnwj"
+
+[sub_resource type="Resource" id="Resource_6pv8r"]
+script = SubResource("GDScript_khxvf")
+resource_type = "rock"
+id = "wood"
+name = "Wood"
+icon = ExtResource("2_7dbwf")
+stack_size = 99
+metadata/_custom_type_script = "uid://d34lefw68jnwj"
+
+[resource]
+script = ExtResource("1_0b0fq")
+Name = "Stone Pickaxe"
+Ingredients = Dictionary[Object, int]({
+SubResource("Resource_7clmx"): 4,
+SubResource("Resource_6pv8r"): 2
+})
+metadata/_custom_type_script = "uid://byb0luy5yhdf"

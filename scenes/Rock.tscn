@@ -1,14 +1,17 @@
-[gd_scene load_steps=4 format=3 uid="uid://rh0m2ssigb32"]
+[gd_scene load_steps=6 format=3 uid="uid://rh0m2ssigb32"]
 
 [ext_resource type="Texture2D" uid="uid://c5byoo5ptjy8" path="res://assets/sprites/rock/rock.png" id="1_bpoff"]
-[ext_resource type="Script" uid="uid://4d7rajvxrdgy" path="res://scenes/Rock.gd" id="1_wmx41"]
+[ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/WorldObject.cs" id="1_wmx41"]
+[ext_resource type="Script" uid="uid://dcrpwvqoyfatg" path="res://items/Item.cs" id="2_ym0d0"]
+[ext_resource type="Resource" uid="uid://cuaisjoqkn872" path="res://items/resources/Stone.tres" id="3_tl666"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_wmx41"]
 
 [node name="Rock" type="StaticBody3D"]
 script = ExtResource("1_wmx41")
-object_type = "rock"
-hit_material = "stone"
+DropItems = Array[ExtResource("2_ym0d0")]([ExtResource("3_tl666")])
+DropCountMin = 3
+DropCountMax = 5
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
 offset = Vector2(0, 13)

@@ -32,11 +32,12 @@ var collected := false
 
 
 func _ready():
+	global_position.y += 0.2
 	delay_timer = pickup_delay
-	sprite.texture = item.icon
+	sprite.texture = item.Icon
 
 	var mat = BASE_MAT.duplicate()
-	mat.albedo_texture = item.icon
+	mat.albedo_texture = item.Icon
 	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 	sprite.material_override = mat
 
@@ -135,7 +136,7 @@ func _collect():
 	$Area3D.monitoring = false
 	$Area3D.monitorable = false
 
-	target.collect_item(item, count)
+	target.CollectItem(item, count)
 	AudioManager.play_at(preload("res://assets/audio/sfx-pop.wav"), global_position, AudioManager.BUS_WORLD, 0.1, -12.0)
 
 	var t := create_tween().set_parallel()
