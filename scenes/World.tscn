@@ -1,10 +1,11 @@
-[gd_scene load_steps=16 format=3 uid="uid://dtgd4yjkf4awx"]
+[gd_scene load_steps=17 format=3 uid="uid://dtgd4yjkf4awx"]
 
 [ext_resource type="Script" uid="uid://bo5gppxxuljem" path="res://scripts/Game.gd" id="1_0uv0p"]
 [ext_resource type="Script" uid="uid://dqaj5pnbqxlnv" path="res://scripts/tools/Debug.gd" id="1_d1c63"]
 [ext_resource type="MeshLibrary" uid="uid://8k2cbn1jtmco" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="Script" uid="uid://clha2a03grojb" path="res://scripts/DayNightCycle.gd" id="3_1lgw5"]
 [ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD.tscn" id="3_b3faq"]
+[ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="3_h1bdy"]
 [ext_resource type="Script" uid="uid://ddvbtaf4ymjhc" path="res://scripts/World.cs" id="4_ygioq"]
 [ext_resource type="PackedScene" uid="uid://di4w6cxgjeo66" path="res://scenes/Player.tscn" id="5_1lgw5"]
 [ext_resource type="Shader" uid="uid://cmpvdcty3aeoe" path="res://resources/shaders/BiomeTint.gdshader" id="5_b3faq"]
@@ -12,13 +13,16 @@
 [ext_resource type="MeshLibrary" uid="uid://ey4q01wucqbw" path="res://water_meshlibrary.tres" id="8_pdh0q"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_d1c63"]
-font_size = 40
+font = ExtResource("3_h1bdy")
+font_size = 32
 
 [sub_resource type="LabelSettings" id="LabelSettings_1lgw5"]
-font_size = 40
+font = ExtResource("3_h1bdy")
+font_size = 32
 
 [sub_resource type="LabelSettings" id="LabelSettings_0uv0p"]
-font_size = 40
+font = ExtResource("3_h1bdy")
+font_size = 32
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ygioq"]
 shader = ExtResource("5_b3faq")

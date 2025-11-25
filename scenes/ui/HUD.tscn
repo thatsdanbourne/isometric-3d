@@ -1,13 +1,22 @@
-[gd_scene load_steps=3 format=3 uid="uid://nf3wsg32yh2f"]
+[gd_scene load_steps=5 format=3 uid="uid://nf3wsg32yh2f"]
 
 [ext_resource type="Script" uid="uid://drg8a4mhwswat" path="res://scripts/ui/HUD.cs" id="1_kw0id"]
+[ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="2_atyv1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kw0id"]
+content_margin_left = 32.0
+content_margin_top = 16.0
+content_margin_right = 32.0
+content_margin_bottom = 32.0
 bg_color = Color(0, 0, 0, 0.5)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+
+[sub_resource type="LabelSettings" id="LabelSettings_6ll6g"]
+font = ExtResource("2_atyv1")
+font_size = 32
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_kw0id")
@@ -28,10 +37,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -20.0
-offset_right = 20.0
-offset_bottom = 20.0
+offset_left = -37.5
+offset_top = -40.0
+offset_right = 37.5
+offset_bottom = 40.0
 grow_horizontal = 2
 grow_vertical = 2
 localize_numeral_system = false
@@ -41,14 +50,13 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_kw0id")
 layout_mode = 2
 size_flags_vertical = 0
 text = "Inventory"
+label_settings = SubResource("LabelSettings_6ll6g")
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="MarginContainer" type="MarginContainer" parent="Inventory/InventoryWindow"]
 layout_mode = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 48
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 32
+theme_override_constants/margin_top = 75
 
 [node name="SlotGrid" type="GridContainer" parent="Inventory/InventoryWindow/MarginContainer"]
 layout_mode = 2

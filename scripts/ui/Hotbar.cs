@@ -70,13 +70,11 @@ public partial class Hotbar : Node
 
     public void SelectNext()
     {
-        SelectedSlot = (SelectedSlot + 1) % HotbarSize;
-        EmitSignal(SignalName.SelectedSlotChanged, SelectedSlot);
+        SelectSlot((SelectedSlot + 1) % HotbarSize);
     }
 
     public void SelectPrev()
     {
-        SelectedSlot = (SelectedSlot - 1 + HotbarSize) % HotbarSize;
-        EmitSignal(SignalName.SelectedSlotChanged, SelectedSlot);
+        SelectSlot((SelectedSlot - 1 + HotbarSize) % HotbarSize);
     }
 }

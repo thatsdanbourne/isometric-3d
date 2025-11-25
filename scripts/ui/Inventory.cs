@@ -5,7 +5,7 @@ public partial class Inventory : Node
 {
     [Signal] public delegate void InventoryChangedEventHandler();
 
-    public int SlotCount { get; private set; } = 18;
+    public int SlotCount { get; private set; } = 27;
     public ItemStack[] Slots;
 
     public Inventory()

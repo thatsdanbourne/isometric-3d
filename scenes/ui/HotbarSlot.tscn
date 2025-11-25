@@ -1,9 +1,11 @@
-[gd_scene load_steps=3 format=3 uid="uid://b5jqdxgjquxim"]
+[gd_scene load_steps=4 format=3 uid="uid://b5jqdxgjquxim"]
 
 [ext_resource type="Script" uid="uid://c263jx2oyqj65" path="res://scripts/ui/HotbarSlot.cs" id="1_c2eey"]
+[ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="2_twmjk"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_blop1"]
 line_spacing = 1.0
+font = ExtResource("2_twmjk")
 font_size = 20
 
 [node name="HotbarSlot" type="Panel"]
