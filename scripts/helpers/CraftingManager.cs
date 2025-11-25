@@ -10,12 +10,14 @@ public partial class CraftingManager : Node
         Instance = this;
     }
 
-    public bool CanCraft(Inventory inv, CraftingRecipe recipe)
+    public bool CanCraft(Inventory inv, Hotbar hotbar, CraftingRecipe recipe)
     {
-        foreach (var key in recipe.Ingredients.Keys)
+        foreach (var ingredient in recipe.Ingredients)
         {
-            int required = recipe.Ingredients[key];
-            int available = inv.GetItemCount(key);
+            Item item = ingredient.Key;
+            int required = ingredient.Value;
+
+            int available = inv.GetItemCount(item) + hotbar.GetItemCount(item);
 
             if (available < required)
                 return false;   
@@ -24,15 +26,22 @@ public partial class CraftingManager : Node
         return true;
     }
 
-    public bool CraftItem(Inventory inv, CraftingRecipe recipe)
+    public bool CraftItem(Inventory inv, Hotbar hotbar, CraftingRecipe recipe)
     {
-        if (!CanCraft(inv, recipe))
+        if (!CanCraft(inv, hotbar, recipe))
             return false;
         
-        foreach (var key in recipe.Ingredients.Keys)
+        foreach (var ingredient in recipe.Ingredients)
         {
-            int required = recipe.Ingredients[key];
-            inv.RemoveItem(key, required);
+            Item item = ingredient.Key;
+            int required = ingredient.Value;
+
+            required = inv.RemoveItem(item, required);
+
+            if (required > 0)
+            {
+                hotbar.RemoveItem(item, required);
+            }
         }
 
         inv.AddItem(recipe.ResultItem, recipe.ResultCount);

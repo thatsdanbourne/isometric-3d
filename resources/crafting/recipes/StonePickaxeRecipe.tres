@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="CraftingRecipe" load_steps=5 format=3 uid="uid://27x2sqa2okw5"]
+[gd_resource type="Resource" script_class="CraftingRecipe" load_steps=6 format=3 uid="uid://27x2sqa2okw5"]
 
 [ext_resource type="Script" uid="uid://byb0luy5yhdf" path="res://resources/crafting/CraftingRecipe.cs" id="1_0b0fq"]
 [ext_resource type="Script" uid="uid://dcrpwvqoyfatg" path="res://items/Item.cs" id="1_cqnpt"]
 [ext_resource type="Resource" uid="uid://cuaisjoqkn872" path="res://items/resources/Stone.tres" id="2_7dbwf"]
 [ext_resource type="Resource" uid="uid://bp4c6r2b8t7c6" path="res://items/resources/Wood.tres" id="3_khxvf"]
+[ext_resource type="Resource" uid="uid://dgg17gwj3bcug" path="res://items/tools/pickaxe/StonePickaxe.tres" id="4_khxvf"]
 
 [resource]
 script = ExtResource("1_0b0fq")
@@ -12,4 +13,5 @@ Ingredients = Dictionary[ExtResource("1_cqnpt"), int]({
 ExtResource("2_7dbwf"): 4,
 ExtResource("3_khxvf"): 2
 })
+ResultItem = ExtResource("4_khxvf")
 metadata/_custom_type_script = "uid://byb0luy5yhdf"

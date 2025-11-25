@@ -33,6 +33,41 @@ public partial class Hotbar : Node
         EmitSignal(SignalName.HotbarChanged);
     }
 
+    public int GetItemCount(Item item)
+    {
+        int count = 0;
+
+        for (int i = 0; i < HotbarSize; i++)
+        {
+            var stack = Slots[i];
+            if (stack != null && stack.Item == item)
+                count += stack.Count;
+        }
+
+        return count;
+    }
+
+    public int RemoveItem(Item item, int amount)
+    {
+        for (int i = 0; i < HotbarSize && amount > 0; i++)
+        {
+            var slot = Slots[i];
+            if (slot != null && slot.Item == item)
+            {
+                int take = Mathf.Min(slot.Count, amount);
+                slot.Count -= take;
+                amount -= take;
+
+                if (slot.Count <= 0)
+                    Slots[i] = null;
+                
+                EmitSignal(SignalName.HotbarChanged);
+            }
+        }
+
+        return amount;
+    }
+
     public int AddOrMerge(Item item, int amount)
     {
         int remaining = amount;

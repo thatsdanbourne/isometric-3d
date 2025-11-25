@@ -22,6 +22,8 @@ public partial class HUD : CanvasLayer
 	private GridContainer slotGrid;
 	private HBoxContainer hotbarBox;
 
+	private Control craftingRoot;
+
 	private List<HotbarSlot> hotbarSlots = new List<HotbarSlot>();
 	private List<HotbarSlot> inventorySlots = new List<HotbarSlot>();
 
@@ -42,6 +44,8 @@ public partial class HUD : CanvasLayer
 		slotGrid = inventoryWindow.GetNode<GridContainer>("MarginContainer/SlotGrid");
 		hotbarBox = GetNode<HBoxContainer>("MarginContainer/Hotbar");
 
+		craftingRoot = GetNode<Control>("Crafting");
+
 		BuildInventorySlots();
 		BuildHotbarSlots();
 		UpdateHotbarHighlight();
@@ -51,6 +55,7 @@ public partial class HUD : CanvasLayer
 		hotbar.SelectedSlotChanged += OnHotbarSelectionChanged;
 		
 		inventoryRoot.Visible = false;
+		craftingRoot.Visible = false;
 
 		GetWindow().ContentScaleFactor = 1.25f;
 		RefreshUI();
@@ -80,7 +85,14 @@ public partial class HUD : CanvasLayer
 				cursorItem.Visible = false;
             }
 			
+			craftingRoot.Visible = false;
             inventoryRoot.Visible = !inventoryRoot.Visible;
+        }
+
+		if (e.IsActionPressed("toggle_crafting"))
+        {
+            inventoryRoot.Visible = false;
+			craftingRoot.Visible = !craftingRoot.Visible;
         }
     }
 

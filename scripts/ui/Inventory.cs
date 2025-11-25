@@ -88,23 +88,25 @@ public partial class Inventory : Node
         return remaining;
     }
 
-    public bool RemoveItem(Item item, int amount)
+    public int RemoveItem(Item item, int amount)
     {
-        for (int i = 0; i < SlotCount; i++)
+        for (int i = 0; i < SlotCount && amount > 0; i++)
         {
-            var stack = Slots[i];
-            if (stack == null || stack.Item != item)
-                continue;
+            var slot = Slots[i];
+            if (slot != null && slot.Item == item)
+            {
+                int take = Mathf.Min(slot.Count, amount);
+                slot.Count -= take;
+                amount -= take;
 
-            int removed = stack.Remove(amount);
-            amount -= removed;
-
-            if (stack.Count <= 0)
-                Slots[i] = null;
+                if (slot.Count <= 0)
+                    Slots[i] = null;
+                
+                EmitSignal(SignalName.InventoryChanged);
+            }
         }
 
-        EmitSignal(SignalName.InventoryChanged);
-        return amount <= 0;
+        return amount;
     }
 
     public int GetItemCount(Item item)
