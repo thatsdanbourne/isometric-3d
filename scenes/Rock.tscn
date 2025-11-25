@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://rh0m2ssigb32"]
 
 [ext_resource type="Texture2D" uid="uid://c5byoo5ptjy8" path="res://assets/sprites/rock/rock.png" id="1_bpoff"]
-[ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/WorldObject.cs" id="1_wmx41"]
+[ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/world-gen/WorldObject.cs" id="1_wmx41"]
 [ext_resource type="Script" uid="uid://dcrpwvqoyfatg" path="res://items/Item.cs" id="2_ym0d0"]
 [ext_resource type="Resource" uid="uid://cuaisjoqkn872" path="res://items/resources/Stone.tres" id="3_tl666"]
 

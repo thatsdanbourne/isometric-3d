@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="ObjectPlacementRule" load_steps=3 format=3 uid="uid://d4k65e0iv7pc"]
 
-[ext_resource type="Script" uid="uid://cskxsiga5ihi8" path="res://scripts/classes/ObjectPlacementRule.cs" id="1_3gktf"]
+[ext_resource type="Script" uid="uid://cskxsiga5ihi8" path="res://scripts/classes/world-gen/ObjectPlacementRule.cs" id="1_3gktf"]
 [ext_resource type="PackedScene" uid="uid://cjrcdkqsl4q3i" path="res://scenes/Tree.tscn" id="1_ul42u"]
 
 [resource]

@@ -17,7 +17,11 @@ public partial class Player : CharacterBody3D
     private AnimatedSprite3D sprite;
     private Timer hitCooldown;
     private RayCast3D hitRay;
-    private Node hotbar;
+
+    private HUD hud;
+    private Hotbar hotbar;
+    private Inventory inventory;
+
     private Camera3D camera;
 
     public override void _Ready()
@@ -28,16 +32,17 @@ public partial class Player : CharacterBody3D
         sprite = GetNode<AnimatedSprite3D>("AnimatedSprite3D");
         hitCooldown = GetNode<Timer>("HitCooldown");
         hitRay = GetNode<RayCast3D>("HitRay");
-        hotbar = GetNode("Hotbar");
+        hud = GetNode<HUD>("/root/Game/HUD");
+        hotbar = GetNode<Hotbar>("Hotbar");
+        inventory = GetNode<Inventory>("Inventory");
         camera = GetNode<Camera3D>("Camera3D");
+
+        hud.RefreshUI();
 
         var mat = (StandardMaterial3D)ResourceLoader.Load<Material>("res://resources/materials/WorldObjectBase.tres").Duplicate();
         mat.AlbedoTexture = sprite.SpriteFrames.GetFrameTexture("idle", 0);
         sprite.MaterialOverride = mat;
         sprite.CastShadow = GeometryInstance3D.ShadowCastingSetting.On;
-
-        hotbar.Connect("hotbar_changed", new Callable(this, nameof(OnHotbarChanged)));
-        hotbar.Connect("selected_slot_changed", new Callable(this, nameof(OnSelectedSlotChanged)));
     }
 
     public override void _Process(double delta)
@@ -54,7 +59,8 @@ public partial class Player : CharacterBody3D
 
     private ToolItem GetActiveTool()
     {
-        if (equippedItem is ToolItem tool)
+        var stack = hotbar.GetSlot(hotbar.SelectedSlot);
+        if (stack != null && stack.Item is ToolItem tool)
             return tool;
         
         return DefaultTool;
@@ -89,18 +95,10 @@ public partial class Player : CharacterBody3D
 
     public void CollectItem(Item item, int count)
     {
-        hotbar.Call("add_item", item, count);
-    }
+        int remaining = hotbar.AddOrMerge(item, count);
 
-    // hotbar signals
-
-    private void OnHotbarChanged(object state)
-    {
-        
-    }
-
-    private void OnSelectedSlotChanged(int index)
-    {
+        if(remaining > 0)
+            remaining = inventory.AddOrMerge(item, remaining);
         
     }
 
@@ -111,9 +109,9 @@ public partial class Player : CharacterBody3D
         if (e is InputEventMouseButton mb && mb.Pressed)
         {
             if (mb.ButtonIndex == MouseButton.WheelUp)
-                hotbar.Call("select_prev");
+                hotbar.SelectPrev();
             else if (mb.ButtonIndex == MouseButton.WheelDown)
-                hotbar.Call("select_next");
+                hotbar.SelectNext();
         }
     }
 

@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="BiomePlacementRule" load_steps=5 format=3 uid="uid://cxywbpcuvvoxm"]
 
-[ext_resource type="Script" uid="uid://ceg1o86gsc1m1" path="res://scripts/classes/BiomeObjectSpawnRule.cs" id="1_rf3vv"]
-[ext_resource type="Script" uid="uid://c74vgdr8hc544" path="res://scripts/classes/BiomePlacementRule.cs" id="2_2p0pq"]
+[ext_resource type="Script" uid="uid://ceg1o86gsc1m1" path="res://scripts/classes/world-gen/BiomeObjectSpawnRule.cs" id="1_rf3vv"]
+[ext_resource type="Script" uid="uid://c74vgdr8hc544" path="res://scripts/classes/world-gen/BiomePlacementRule.cs" id="2_2p0pq"]
 [ext_resource type="Resource" uid="uid://d4k65e0iv7pc" path="res://resources/placement-rules/world-objects/TreeRule.tres" id="2_c8p32"]
 
 [sub_resource type="Resource" id="Resource_vy5rm"]

@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="BiomePlacementRule" load_steps=3 format=3 uid="uid://cb4eft66jj1lr"]
 
-[ext_resource type="Script" uid="uid://ceg1o86gsc1m1" path="res://scripts/classes/BiomeObjectSpawnRule.cs" id="1_de1oi"]
-[ext_resource type="Script" uid="uid://c74vgdr8hc544" path="res://scripts/classes/BiomePlacementRule.cs" id="1_ot8cn"]
+[ext_resource type="Script" uid="uid://ceg1o86gsc1m1" path="res://scripts/classes/world-gen/BiomeObjectSpawnRule.cs" id="1_de1oi"]
+[ext_resource type="Script" uid="uid://c74vgdr8hc544" path="res://scripts/classes/world-gen/BiomePlacementRule.cs" id="1_ot8cn"]
 
 [resource]
 script = ExtResource("1_ot8cn")

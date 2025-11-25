@@ -19,7 +19,7 @@ public partial class World : Node3D
 	public FastNoiseLite HumidityNoise;
 	public FastNoiseLite RiverNoise;
 
-	private RuleRegistry registry;
+	private RuleRegistry ruleRegistry;
 
 	public readonly System.Collections.Generic.Dictionary<Vector2I, Chunk> ActiveChunks
 		= new System.Collections.Generic.Dictionary<Vector2I, Chunk>();
@@ -60,7 +60,7 @@ public partial class World : Node3D
 
 		InitTileTypes();
 		SetupNoise();
-		registry = new RuleRegistry(terrainSeed, worldOffset);
+		ruleRegistry = new RuleRegistry(terrainSeed, worldOffset);
 		StartWorkerThread();
 	}
 
@@ -277,7 +277,7 @@ public partial class World : Node3D
 				float humidity = AdjustContrast((humidityRaw + 1f) / 2f);
 				float riverDist = Math.Abs(riverVal);
 
-				BiomePlacementRule biome = registry.GetBiome(temp, humidity);
+				BiomePlacementRule biome = ruleRegistry.GetBiome(temp, humidity);
 				string tileType = biome.GroundTileType;
 				int tileId = GetTileId(tileType);
 

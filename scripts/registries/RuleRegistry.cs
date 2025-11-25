@@ -11,7 +11,6 @@ public partial class RuleRegistry : Node
     public RuleRegistry(int seed, Vector2I worldOffset)
     {
         terrainSeed = seed;
-        GD.Print("Checking Biome Path Exists: " + DirAccess.DirExistsAbsolute("res://resources/placement-rules/biomes"));
         LoadObjectRules("res://resources/placement-rules/world-objects");
         LoadBiomeRules("res://resources/placement-rules/biomes");
 
@@ -28,72 +27,72 @@ public partial class RuleRegistry : Node
     // OBJECT RULES
     // ---------------------------------------------------------------------
     private void LoadObjectRules(string path)
-{
-    // 💡 New Godot 4.3+ method for listing files in a packaged resource path
-    var files = DirAccess.GetFilesAt(path); 
-
-    if (files == null || files.Length == 0)
     {
-        // This will now correctly trigger if the folder is empty or not found in the PCK
-        GD.PushError("Could not open object rule folder or folder is empty: " + path);
-        return;
-    }
+        // 💡 New Godot 4.3+ method for listing files in a packaged resource path
+        var files = DirAccess.GetFilesAt(path); 
 
-    foreach (var file in files)
-    {
-        // Check to ensure you only load .tres files
-        if (!file.EndsWith(".tres"))
-            continue;
-
-        string resPath = path + "/" + file;
-
-        var rule = ResourceLoader.Load<ObjectPlacementRule>(resPath);
-        if (rule == null)
+        if (files == null || files.Length == 0)
         {
-            GD.PushWarning($"Skipping invalid object rule: {resPath}");
-            continue;
+            // This will now correctly trigger if the folder is empty or not found in the PCK
+            GD.PushError("Could not open object rule folder or folder is empty: " + path);
+            return;
         }
 
-        int ruleSeed = terrainSeed + resPath.GetHashCode();
-        rule.Init(ruleSeed);
+        foreach (var file in files)
+        {
+            // Check to ensure you only load .tres files
+            if (!file.EndsWith(".tres"))
+                continue;
 
-        ObjectRules.Add(rule);
+            string resPath = path + "/" + file;
+
+            var rule = ResourceLoader.Load<ObjectPlacementRule>(resPath);
+            if (rule == null)
+            {
+                GD.PushWarning($"Skipping invalid object rule: {resPath}");
+                continue;
+            }
+
+            int ruleSeed = terrainSeed + resPath.GetHashCode();
+            rule.Init(ruleSeed);
+
+            ObjectRules.Add(rule);
+        }
     }
-}
 
     // ---------------------------------------------------------------------
     // BIOME RULES
     // ---------------------------------------------------------------------
     private void LoadBiomeRules(string path)
-{
-    // 💡 New Godot 4.3+ method for listing files in a packaged resource path
-    var files = DirAccess.GetFilesAt(path); 
-
-    if (files == null || files.Length == 0)
     {
-        GD.PushError("Could not open biome rule folder or folder is empty: " + path);
-        return;
-    }
+        // 💡 New Godot 4.3+ method for listing files in a packaged resource path
+        var files = DirAccess.GetFilesAt(path); 
 
-    foreach (var file in files)
-    {
-        if (!file.EndsWith(".tres"))
-            continue;
-
-        string resPath = path + "/" + file;
-
-        var biome = ResourceLoader.Load<BiomePlacementRule>(resPath);
-        if (biome == null)
+        if (files == null || files.Length == 0)
         {
-            GD.PushWarning($"Skipping invalid biome rule: {resPath}");
-            continue;
+            GD.PushError("Could not open biome rule folder or folder is empty: " + path);
+            return;
         }
 
-        // All linked spawn rules... (rest of your original logic)
+        foreach (var file in files)
+        {
+            if (!file.EndsWith(".tres"))
+                continue;
 
-        BiomeRules.Add(biome);
+            string resPath = path + "/" + file;
+
+            var biome = ResourceLoader.Load<BiomePlacementRule>(resPath);
+            if (biome == null)
+            {
+                GD.PushWarning($"Skipping invalid biome rule: {resPath}");
+                continue;
+            }
+
+            // All linked spawn rules... (rest of your original logic)
+
+            BiomeRules.Add(biome);
+        }
     }
-}
 
     // ---------------------------------------------------------
     // BIOME LOOKUP
