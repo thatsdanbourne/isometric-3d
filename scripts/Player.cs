@@ -149,7 +149,7 @@ public partial class Player : CharacterBody3D
             sprite.Play("idle");
         }
 
-        if (Input.IsActionPressed("use_tool"))
+        if (Input.IsActionPressed("use_tool") && !hud.IsInventoryOpen)
             UseActiveTool();
     }
 }

@@ -8,8 +8,8 @@ const BASE_MAT := preload("res://resources/materials/WorldObjectBase.tres")
 
 var item: Item
 var count := 1
-var magnet_speed_base: float = 6.0
-var magnet_speed_max: float = 13.0
+var magnet_speed_base: float = 1.0
+var magnet_speed_max: float = 20.0
 var magnet_enabled := false
 var pickup_delay := 0.5
 var collect_radius := 0.25
