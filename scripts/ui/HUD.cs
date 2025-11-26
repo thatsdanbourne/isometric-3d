@@ -27,7 +27,7 @@ public partial class HUD : CanvasLayer
 	private List<ItemContainerSlot> hotbarSlots = new List<ItemContainerSlot>();
 	private List<ItemContainerSlot> inventorySlots = new List<ItemContainerSlot>();
 
-	public bool IsInventoryOpen => inventoryRoot.Visible;
+	public bool WindowOpen => inventoryRoot.Visible || craftingRoot.Visible;
 
 	public override void _Ready()
     {
@@ -114,7 +114,9 @@ public partial class HUD : CanvasLayer
 			slot.AddThemeStyleboxOverride("panel", slotStyle);
 			slot.IsHotbar = false;
 			slot.Index = i;
-			slot.Hud = this;
+			slot.SlotLeftClicked += OnSlotLeftClick;
+			slot.SlotRightClicked += OnSlotRightClick;
+			slot.SlotShiftClicked += OnSlotShiftLeftClick;
 
 			slotGrid.AddChild(slot);
 			inventorySlots.Add(slot);
@@ -132,7 +134,9 @@ public partial class HUD : CanvasLayer
 			slot.AddThemeStyleboxOverride("panel", slotStyle);
 			slot.IsHotbar = true;
 			slot.Index = i;
-			slot.Hud = this;
+			slot.SlotLeftClicked += OnSlotLeftClick;
+			slot.SlotRightClicked += OnSlotRightClick;
+			slot.SlotShiftClicked += OnSlotShiftLeftClick;
 
 			hotbarBox.AddChild(slot);
 			hotbarSlots.Add(slot);

@@ -19,7 +19,7 @@ public partial class CraftingManager : Node
             Item item = ingredient.Key;
             int required = ingredient.Value;
 
-            totalAvailable = player.Inventory.GetItemCount(item) + player.Hotbar.GetItemCount(item);
+            totalAvailable = InventoryManager.Instance.GetItemTotalCount(item, player.Inventory, player.Hotbar);
 
             if (totalAvailable < required)
                 return false;   

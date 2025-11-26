@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://drg8a4mhwswat" path="res://scripts/ui/HUD.cs" id="1_kw0id"]
 [ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="2_atyv1"]
-[ext_resource type="Script" uid="uid://dud8rgc0ebwfn" path="res://scripts/ui/CraftingUI.cs" id="3_6ll6g"]
+[ext_resource type="Script" uid="uid://dud8rgc0ebwfn" path="res://scripts/ui/crafting/CraftingUI.cs" id="3_6ll6g"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kw0id"]
 content_margin_left = 32.0
@@ -155,26 +155,16 @@ text = "Crafting"
 label_settings = SubResource("LabelSettings_4ed8p")
 horizontal_alignment = 1
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Crafting/CraftingWindow/VBoxContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="Crafting/CraftingWindow/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer"]
 custom_minimum_size = Vector2(500, 500)
 layout_mode = 2
 
-[node name="RecipeList" type="VBoxContainer" parent="Crafting/CraftingWindow/VBoxContainer/ScrollContainer"]
+[node name="RecipeList" type="VBoxContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/ScrollContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
-
-[node name="MarginContainer" type="MarginContainer" parent="Crafting/CraftingWindow/VBoxContainer"]
-layout_mode = 2
-
-[node name="HBoxContainer" type="HBoxContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer"]
-layout_mode = 2
-
-[node name="ResultIcon" type="TextureRect" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/HBoxContainer"]
-layout_mode = 2
-
-[node name="ResultName" type="Label" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/HBoxContainer"]
-layout_mode = 2
-
-[node name="CraftButton" type="Button" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/HBoxContainer"]
-layout_mode = 2
-text = "Craft"

@@ -11,7 +11,7 @@ public partial class Hotbar : Node, IItemContainer
     private ItemStack[] slots;
 
 
-    public override void _Ready()
+    public Hotbar()
     {
         slots = new ItemStack[SlotCount];
     }

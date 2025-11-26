@@ -8,7 +8,7 @@ public partial class Inventory : Node, IItemContainer
     private ItemStack[] slots;
 
 
-    public override void _Ready()
+    public Inventory()
     {
         slots = new ItemStack[SlotCount];
     }

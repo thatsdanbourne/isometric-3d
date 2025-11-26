@@ -65,7 +65,7 @@ public partial class InventoryManager : Node
             else
                 container.SetSlot(i, stack);
         }
-        
+
         return remaining;
     }
 
@@ -230,7 +230,7 @@ public partial class InventoryManager : Node
         // pick up half of the stack
         if (dragged == null && stack != null)
         {
-            int half = (stack.Count + 1) / 2;
+            int half = stack.Count / 2;
             if (half <= 0)
                 return null;
             
@@ -244,6 +244,8 @@ public partial class InventoryManager : Node
     public ItemStack ShiftClick(bool fromHotbar, int index, Inventory inventory, Hotbar hotbar)
     {
         var stack = fromHotbar ? hotbar.GetSlot(index) : inventory.GetSlot(index);
+        if (stack == null) return null;
+        
         int remaining = stack.Count;
 
         if (fromHotbar)
@@ -272,5 +274,11 @@ public partial class InventoryManager : Node
             hotbar.SetSlot(index, stack);
         else
             inventory.SetSlot(index, stack);
+    }
+
+    // helpers
+    public int GetItemTotalCount(Item item, Inventory inventory, Hotbar hotbar)
+    {
+        return inventory.GetItemCount(item) + hotbar.GetItemCount(item);
     }
 }

@@ -2,6 +2,8 @@ using Godot;
 
 public partial class Player : CharacterBody3D
 {
+    [Signal] public delegate void PlayerReadyEventHandler();
+
     public float Speed = 6.0f;
     public ToolItem DefaultTool = ResourceLoader.Load<ToolItem>("res://items/tools/fist/Fist.tres");
     private Item equippedItem;
@@ -43,6 +45,8 @@ public partial class Player : CharacterBody3D
         mat.AlbedoTexture = sprite.SpriteFrames.GetFrameTexture("idle", 0);
         sprite.MaterialOverride = mat;
         sprite.CastShadow = GeometryInstance3D.ShadowCastingSetting.On;
+
+        EmitSignal(SignalName.PlayerReady);
     }
 
     public override void _Process(double delta)
@@ -145,7 +149,7 @@ public partial class Player : CharacterBody3D
             sprite.Play("idle");
         }
 
-        if (Input.IsActionPressed("use_tool") && !HUD.IsInventoryOpen)
+        if (Input.IsActionPressed("use_tool") && !HUD.WindowOpen)
             UseActiveTool();
     }
 }
