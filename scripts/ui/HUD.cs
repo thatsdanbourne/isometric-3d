@@ -4,10 +4,10 @@ using System.Collections.Generic;
 public partial class HUD : CanvasLayer
 {
 	private PackedScene pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
-	public PackedScene slotPanelScene = ResourceLoader.Load<PackedScene>("res://scenes/ui/HotbarSlot.tscn");
+	public PackedScene slotPanelScene = ResourceLoader.Load<PackedScene>("res://scenes/ui/ItemContainerSlot.tscn");
 
-	private StyleBoxFlat slotStyle = ResourceLoader.Load<StyleBoxFlat>("res://scenes/ui/HotbarSlotStyle.tres");
-	private StyleBoxFlat slotHighlightStyle = ResourceLoader.Load<StyleBoxFlat>("res://scenes/ui/HotbarSlotHighlight.tres");
+	private StyleBoxFlat slotStyle = ResourceLoader.Load<StyleBoxFlat>("res://scenes/ui/ItemContainerSlotStyle.tres");
+	private StyleBoxFlat slotHighlightStyle = ResourceLoader.Load<StyleBoxFlat>("res://scenes/ui/ItemContainerSlotHighlight.tres");
 
 	private Inventory inventory;
 	private Hotbar hotbar;
@@ -24,8 +24,8 @@ public partial class HUD : CanvasLayer
 
 	private Control craftingRoot;
 
-	private List<HotbarSlot> hotbarSlots = new List<HotbarSlot>();
-	private List<HotbarSlot> inventorySlots = new List<HotbarSlot>();
+	private List<ItemContainerSlot> hotbarSlots = new List<ItemContainerSlot>();
+	private List<ItemContainerSlot> inventorySlots = new List<ItemContainerSlot>();
 
 	public bool IsInventoryOpen => inventoryRoot.Visible;
 
@@ -50,8 +50,8 @@ public partial class HUD : CanvasLayer
 		BuildHotbarSlots();
 		UpdateHotbarHighlight();
 		
-		inventory.InventoryChanged += RefreshUI;
-		hotbar.HotbarChanged += RefreshUI;
+		inventory.ContainerChanged += RefreshUI;
+		hotbar.ContainerChanged += RefreshUI;
 		hotbar.SelectedSlotChanged += OnHotbarSelectionChanged;
 		
 		inventoryRoot.Visible = false;
@@ -82,7 +82,6 @@ public partial class HUD : CanvasLayer
 			if(inventoryRoot.Visible && draggedStack != null)
             {
                 DropStack();
-				cursorItem.Visible = false;
             }
 			
 			craftingRoot.Visible = false;
@@ -111,7 +110,7 @@ public partial class HUD : CanvasLayer
 
 		for (int i = 0; i < inventory.SlotCount; i++)
         {
-			var slot = slotPanelScene.Instantiate<HotbarSlot>();
+			var slot = slotPanelScene.Instantiate<ItemContainerSlot>();
 			slot.AddThemeStyleboxOverride("panel", slotStyle);
 			slot.IsHotbar = false;
 			slot.Index = i;
@@ -127,9 +126,9 @@ public partial class HUD : CanvasLayer
 		ClearChildren(hotbarBox);
 		hotbarSlots.Clear();
 
-		for (int i = 0; i < hotbar.HotbarSize; i++)
+		for (int i = 0; i < hotbar.SlotCount; i++)
         {
-            var slot = slotPanelScene.Instantiate<HotbarSlot>();
+            var slot = slotPanelScene.Instantiate<ItemContainerSlot>();
 			slot.AddThemeStyleboxOverride("panel", slotStyle);
 			slot.IsHotbar = true;
 			slot.Index = i;
@@ -175,7 +174,7 @@ public partial class HUD : CanvasLayer
             }
         }
 
-		for (int i = 0; i < hotbar.HotbarSize; i++)
+		for (int i = 0; i < hotbar.SlotCount; i++)
 		{
 			var slot = hotbarSlots[i];
 			var stack = hotbar.GetSlot(i);
@@ -220,160 +219,50 @@ public partial class HUD : CanvasLayer
 
 	public void OnSlotLeftClick(bool isHotbar, int index)
 	{
-		var stack = GetStack(isHotbar, index);
+		draggedStack = InventoryManager.Instance.LeftClick(isHotbar, index, draggedStack, inventory, hotbar);
+		UpdateCursor();
+		RefreshUI();
+	}
 
-		if (Input.IsKeyPressed(Key.Shift))
-        {
-			if (isHotbar)
-				MoveStackToInventory(stack, index);
-			else
-				MoveStackToHotbar(stack, index);
+	public void OnSlotShiftLeftClick(bool isHotbar, int index)
+	{
+		var remaining = InventoryManager.Instance.ShiftClick(isHotbar, index, inventory, hotbar);
+		if (isHotbar)
+			hotbar.SetSlot(index, remaining);
+		else
+			inventory.SetSlot(index, remaining);
 			
-			RefreshUI();
-			return;
-        }
-
-		if (draggedStack == null && stack != null)
-		{
-			SetStack(isHotbar, index, null);
-			draggedStack = stack;
-			cursorItem.Visible = true;
-			cursorIcon.Texture = draggedStack.Item.Icon;
-			cursorCount.Text = draggedStack.Count > 1 ? draggedStack.Count.ToString() : "";
-
-			RefreshUI();
-			return;
-		}
-		
-		if (draggedStack != null)
-		{
-			if (stack == null)
-            {
-                SetStack(isHotbar, index, draggedStack);
-				draggedStack = null;
-				cursorItem.Visible = false;
-            }
-			else if (stack.Item == draggedStack.Item)
-            {
-                stack.Count += draggedStack.Count;
-				draggedStack = null;
-				cursorItem.Visible = false;
-            }
-			else
-            {
-                var temp = stack;
-				SetStack(isHotbar, index, draggedStack);
-				draggedStack = temp;
-				cursorIcon.Texture = draggedStack.Item.Icon;
-				cursorCount.Text = draggedStack.Count > 1 ? draggedStack.Count.ToString() : "";
-            }
-
-			RefreshUI();
-		}
+		RefreshUI();
 	}
 
 	public void OnSlotRightClick(bool isHotbar, int index)
 	{
-		var stack = GetStack(isHotbar, index);
-
-		if (stack == null && draggedStack != null)
-		{
-			// Place a single item
-			SetStack(isHotbar, index, new ItemStack(draggedStack.Item, 1));
-			draggedStack.Count -= 1;
-			cursorCount.Text = draggedStack.Count > 1 ? draggedStack.Count.ToString() : "";
-			if (draggedStack.Count <= 0) 
-			{
-				draggedStack = null;
-				cursorItem.Visible = false;
-			}
-		}
-		else if (stack != null)
-		{
-			int half = stack.Count / 2;
-			if (half > 0)
-			{
-				if (draggedStack == null)
-				{
-					draggedStack = new ItemStack(stack.Item, half);
-					cursorItem.Visible = true;
-					cursorIcon.Texture = draggedStack.Item.Icon;
-					cursorCount.Text = draggedStack.Count > 1 ? draggedStack.Count.ToString() : "";
-				}
-				else if (draggedStack.Item == stack.Item)
-					draggedStack.Count += half;
-					cursorCount.Text = draggedStack.Count > 1 ? draggedStack.Count.ToString() : "";
-
-				stack.Count -= half;
-
-			}
-		}
-
+		draggedStack = InventoryManager.Instance.RightClick(isHotbar, index, draggedStack, inventory, hotbar);
+		UpdateCursor();
 		RefreshUI();
 	}
 
-	public void MoveStackToInventory(ItemStack stack, int hotbarIndex)
-    {
-        for (int i = 0; i < inventory.SlotCount; i++)
-        {
-            var target = inventory.GetSlot(i);
-			if (target != null && target.Item == stack.Item)
-            {
-				target.Count += stack.Count;
-				SetStack(true, hotbarIndex, null);
-				return;
-            }
-        }
-
-		for (int i = 0; i < inventory.SlotCount; i++)
-		{
-			if (inventory.GetSlot(i) == null)
-			{
-				SetStack(false, i, stack);
-				SetStack(true, hotbarIndex, null);
-				return;
-			}
-		}
-    }
-
-	public void MoveStackToHotbar(ItemStack stack, int inventoryIndex)
-    {
-        for (int i = 0; i < hotbar.HotbarSize; i++)
-		{
-			var target = hotbar.GetSlot(i);
-			if (target != null && target.Item == stack.Item)
-            {
-                target.Count += stack.Count;
-				SetStack(false, inventoryIndex, null);
-				return;
-            }
-		}
-
-		for (int i = 0; i < hotbar.HotbarSize; i++)
-        {
-            if (hotbar.GetSlot(i) == null)
-			{
-				SetStack(true, i, stack);
-				SetStack(false, inventoryIndex, null);
-				return;
-			}
-        }
-    }
 
 	private void DropStack()
     {
         var player = GetNode<Player>("/root/Game/World/WorldObjects/Player");
-
-		var drop = pickupScene.Instantiate<Node3D>();
-		drop.Set("item", draggedStack.Item);
-		drop.Set("count", draggedStack.Count);
-		GetTree().CurrentScene.GetNode<Node3D>("World/WorldObjects").AddChild(drop);
-		drop.GlobalPosition = player.GlobalPosition + new Vector3(0, 1, 0);
-
+		InventoryManager.Instance.DropItem(player, draggedStack.Item, draggedStack.Count);
 		draggedStack = null;
-		cursorItem.Visible = false;
-
+		UpdateCursor();
 		RefreshUI();
+    }
+
+	private void UpdateCursor()
+    {
+        if (draggedStack == null)
+        {
+            cursorItem.Visible = false;
+			return;
+        }
+
+		cursorItem.Visible = true;
+		cursorIcon.Texture = draggedStack.Item.Icon;
+		cursorCount.Text = draggedStack.Count > 1 ? draggedStack.Count.ToString() : "";
     }
 
 	private bool IsCursorOutsideInventory()

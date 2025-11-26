@@ -18,9 +18,9 @@ public partial class Player : CharacterBody3D
     private Timer hitCooldown;
     private RayCast3D hitRay;
 
-    private HUD hud;
-    private Hotbar hotbar;
-    private Inventory inventory;
+    public HUD HUD;
+    public Hotbar Hotbar;
+    public Inventory Inventory;
 
     private Camera3D camera;
 
@@ -32,12 +32,12 @@ public partial class Player : CharacterBody3D
         sprite = GetNode<AnimatedSprite3D>("AnimatedSprite3D");
         hitCooldown = GetNode<Timer>("HitCooldown");
         hitRay = GetNode<RayCast3D>("HitRay");
-        hud = GetNode<HUD>("/root/Game/HUD");
-        hotbar = GetNode<Hotbar>("Hotbar");
-        inventory = GetNode<Inventory>("Inventory");
+        HUD = GetNode<HUD>("/root/Game/HUD");
+        Hotbar = GetNode<Hotbar>("Hotbar");
+        Inventory = GetNode<Inventory>("Inventory");
         camera = GetNode<Camera3D>("Camera3D");
 
-        hud.RefreshUI();
+        HUD.RefreshUI();
 
         var mat = (StandardMaterial3D)ResourceLoader.Load<Material>("res://resources/materials/WorldObjectBase.tres").Duplicate();
         mat.AlbedoTexture = sprite.SpriteFrames.GetFrameTexture("idle", 0);
@@ -59,7 +59,7 @@ public partial class Player : CharacterBody3D
 
     private ToolItem GetActiveTool()
     {
-        var stack = hotbar.GetSlot(hotbar.SelectedSlot);
+        var stack = Hotbar.GetSlot(Hotbar.SelectedSlot);
         if (stack != null && stack.Item is ToolItem tool)
             return tool;
         
@@ -95,11 +95,7 @@ public partial class Player : CharacterBody3D
 
     public void CollectItem(Item item, int count)
     {
-        int remaining = hotbar.AddOrMerge(item, count);
-
-        if(remaining > 0)
-            remaining = inventory.AddOrMerge(item, remaining);
-        
+        InventoryManager.Instance.AddItem(this, item, count);
     }
 
     // input 
@@ -109,9 +105,9 @@ public partial class Player : CharacterBody3D
         if (e is InputEventMouseButton mb && mb.Pressed)
         {
             if (mb.ButtonIndex == MouseButton.WheelUp)
-                hotbar.SelectPrev();
+                Hotbar.SelectPrev();
             else if (mb.ButtonIndex == MouseButton.WheelDown)
-                hotbar.SelectNext();
+                Hotbar.SelectNext();
         }
     }
 
@@ -149,7 +145,7 @@ public partial class Player : CharacterBody3D
             sprite.Play("idle");
         }
 
-        if (Input.IsActionPressed("use_tool") && !hud.IsInventoryOpen)
+        if (Input.IsActionPressed("use_tool") && !HUD.IsInventoryOpen)
             UseActiveTool();
     }
 }

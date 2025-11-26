@@ -1,5 +1,5 @@
 using Godot;
-using System.Collections.Generic;
+using System;
 
 public partial class CraftingManager : Node
 {
@@ -10,25 +10,27 @@ public partial class CraftingManager : Node
         Instance = this;
     }
 
-    public bool CanCraft(Inventory inv, Hotbar hotbar, CraftingRecipe recipe)
+    public bool CanCraft(Player player, CraftingRecipe recipe)
     {
+        int totalAvailable = 0;
+
         foreach (var ingredient in recipe.Ingredients)
         {
             Item item = ingredient.Key;
             int required = ingredient.Value;
 
-            int available = inv.GetItemCount(item) + hotbar.GetItemCount(item);
+            totalAvailable = player.Inventory.GetItemCount(item) + player.Hotbar.GetItemCount(item);
 
-            if (available < required)
+            if (totalAvailable < required)
                 return false;   
         }
 
         return true;
     }
 
-    public bool CraftItem(Inventory inv, Hotbar hotbar, CraftingRecipe recipe)
+    public bool CraftItem(Player player, CraftingRecipe recipe)
     {
-        if (!CanCraft(inv, hotbar, recipe))
+        if (!CanCraft(player, recipe))
             return false;
         
         foreach (var ingredient in recipe.Ingredients)
@@ -36,15 +38,12 @@ public partial class CraftingManager : Node
             Item item = ingredient.Key;
             int required = ingredient.Value;
 
-            required = inv.RemoveItem(item, required);
-
-            if (required > 0)
-            {
-                hotbar.RemoveItem(item, required);
-            }
+           int leftover = InventoryManager.Instance.RemoveItem(player, item, required);
+           if (leftover > 0)
+               return false; // fallback if CanCraft fails for some reason
         }
 
-        inv.AddItem(recipe.ResultItem, recipe.ResultCount);
+        InventoryManager.Instance.AddItem(player, recipe.ResultItem, recipe.ResultCount);
         return true;
     }
 }

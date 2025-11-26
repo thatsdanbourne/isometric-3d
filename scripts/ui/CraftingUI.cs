@@ -55,14 +55,14 @@ public partial class CraftingUI : Control
 		resultIcon.Texture = recipe.ResultItem.Icon;
 		resultName.Text = $"{recipe.ResultItem.DisplayName} x{recipe.ResultCount}";
 
-		craftButton.Disabled = !CraftingManager.Instance.CanCraft(Inventory, Hotbar, recipe);
+		craftButton.Disabled = !CraftingManager.Instance.CanCraft(Player, recipe);
     }
 
 	private void OnCraftButtonPressed()
     {
         if (selectedRecipe == null) return;
 
-		CraftingManager.Instance.CraftItem(Inventory, Hotbar, selectedRecipe);
+		CraftingManager.Instance.CraftItem(Player, selectedRecipe);
 	}
 
 	private void ClearSelected()

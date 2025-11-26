@@ -21,6 +21,7 @@ WorldUtils="*res://scripts/helpers/WorldUtils.gd"
 AudioManager="*res://scripts/helpers/AudioManager.gd"
 CraftingRegistry="*res://scripts/registries/CraftingRegistry.cs"
 CraftingManager="*res://scripts/helpers/CraftingManager.cs"
+InventoryManager="*res://scripts/helpers/InventoryManager.cs"
 
 [display]
 
