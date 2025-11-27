@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD.tscn" id="3_b3faq"]
 [ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="3_h1bdy"]
 [ext_resource type="Script" uid="uid://ddvbtaf4ymjhc" path="res://scripts/World.cs" id="4_ygioq"]
-[ext_resource type="PackedScene" uid="uid://di4w6cxgjeo66" path="res://scenes/Player.tscn" id="5_1lgw5"]
+[ext_resource type="PackedScene" uid="uid://di4w6cxgjeo66" path="res://scenes/player/Player.tscn" id="5_1lgw5"]
 [ext_resource type="Shader" uid="uid://cmpvdcty3aeoe" path="res://resources/shaders/BiomeTint.gdshader" id="5_b3faq"]
 [ext_resource type="Script" uid="uid://jljrsp7sebsl" path="res://scenes/BiomeTintOverlay.gd" id="6_ygioq"]
 [ext_resource type="MeshLibrary" uid="uid://ey4q01wucqbw" path="res://water_meshlibrary.tres" id="8_pdh0q"]
@@ -116,10 +116,3 @@ metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="Player" parent="World/WorldObjects" instance=ExtResource("5_1lgw5")]
 transform = Transform3D(0.7071067, 0, 0.7071067, 0, 0.99999994, 0, -0.7071067, 0, 0.7071067, 0, 0, 0)
-
-[node name="Camera3D" type="Camera3D" parent="World/WorldObjects/Player"]
-transform = Transform3D(1.0000002, 0, 0, 0, 0.8386707, 0.5446391, 0, -0.5446391, 0.83867073, 0, 30.000004, 42.426414)
-projection = 1
-current = true
-size = 23.896
-far = 100.0

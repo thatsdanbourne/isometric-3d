@@ -6,7 +6,12 @@
 
 [resource]
 script = ExtResource("1_2ya17")
+Damage = 2.0
 ToolType = "pickaxe"
+DamageMultipliers = Dictionary[String, float]({
+"stone": 2.0,
+"wood": 0.25
+})
 SwingSounds = Array[AudioStream]([ExtResource("2_beuxc")])
 Id = "stone_pickaxe"
 DisplayName = "Stone Pickaxe"

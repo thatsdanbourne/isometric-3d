@@ -1,10 +1,14 @@
-[gd_scene load_steps=7 format=3 uid="uid://cjrcdkqsl4q3i"]
+[gd_scene load_steps=11 format=3 uid="uid://cjrcdkqsl4q3i"]
 
 [ext_resource type="Texture2D" uid="uid://dy1vncct46nkg" path="res://assets/sprites/tree/tree.png" id="1_2cic4"]
 [ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/world-gen/WorldObject.cs" id="1_874r4"]
 [ext_resource type="Script" uid="uid://dcrpwvqoyfatg" path="res://items/Item.cs" id="2_1gtcl"]
 [ext_resource type="PackedScene" uid="uid://6rj14wxgrsky" path="res://scenes/ShadowCard.tscn" id="3_874r4"]
 [ext_resource type="Resource" uid="uid://bp4c6r2b8t7c6" path="res://items/resources/Wood.tres" id="3_r0kve"]
+[ext_resource type="AudioStream" uid="uid://clmo6bbsomgka" path="res://assets/audio/hit/wood/punch-1.wav" id="4_ego7h"]
+[ext_resource type="AudioStream" uid="uid://p2b6xreyd0w0" path="res://assets/audio/hit/wood/punch-2.wav" id="5_m0q6n"]
+[ext_resource type="AudioStream" uid="uid://cyln77knp16sn" path="res://assets/audio/hit/wood/punch-3.wav" id="6_ummhw"]
+[ext_resource type="AudioStream" uid="uid://dwmg1vju83tfh" path="res://assets/audio/hit/wood/punch-4.wav" id="7_82hvc"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_874r4"]
 size = Vector3(0.8, 0.8, 0.8)
@@ -12,7 +16,10 @@ size = Vector3(0.8, 0.8, 0.8)
 [node name="Tree" type="StaticBody3D"]
 transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 0, 0, 0)
 script = ExtResource("1_874r4")
+ObjectType = "wood"
+MaxHealth = 10.0
 DropItems = Array[ExtResource("2_1gtcl")]([ExtResource("3_r0kve")])
+HitSounds = Array[AudioStream]([ExtResource("4_ego7h"), ExtResource("5_m0q6n"), ExtResource("6_ummhw"), ExtResource("7_82hvc")])
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
 offset = Vector2(-2, 48)

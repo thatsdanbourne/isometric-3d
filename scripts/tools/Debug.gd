@@ -1,6 +1,6 @@
 extends CanvasLayer
 
-const Player = preload("res://scripts/Player.cs")
+const Player = preload("res://scripts/player/Player.cs")
 
 @onready var world: Node3D = $"../World"
 @onready var fps: Label = $FPS

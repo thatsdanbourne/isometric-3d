@@ -8,12 +8,15 @@ public partial class WorldObject : Node3D
     [Export] public Godot.Collections.Array<Item> DropItems { get; set; } = new Godot.Collections.Array<Item>();
     [Export] public int DropCountMin { get; set; } = 2;
     [Export] public int DropCountMax { get; set; } = 4;
+    [Export] public Godot.Collections.Array<AudioStream> HitSounds { get; set; } = new Godot.Collections.Array<AudioStream>();
 
     private static readonly Dictionary<Texture2D, StandardMaterial3D> MaterialCache = new Dictionary<Texture2D, StandardMaterial3D>();
     private static readonly StandardMaterial3D BaseMaterial = GD.Load<StandardMaterial3D>("res://resources/materials/WorldObjectBase.tres");
 
     public World World;
     public Chunk Chunk;
+
+    private GodotObject AudioManager;
 
     private RandomNumberGenerator rng = new RandomNumberGenerator();
     private PackedScene pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
@@ -22,12 +25,18 @@ public partial class WorldObject : Node3D
 
     public override void _Ready()
     {
+        AudioManager = GetNode("/root/AudioManager");
+
+        rng.Randomize();
+        Translate(new Vector3(0f, 0f, rng.RandfRange(-0.01f, 0.01f)));
         currentHealth = MaxHealth;
         ApplySpriteMaterial();
     }
 
-    public virtual void ApplyDamage(float amount)
+    public async virtual void ApplyDamage(float amount)
     {
+        await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
+        AudioManager.Call("play_random_at", HitSounds, GlobalPosition, AudioManager.Get("BUS_WORLD"), 0.1f);
         currentHealth -= amount;
         if (currentHealth <= 0)
         {

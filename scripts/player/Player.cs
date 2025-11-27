@@ -4,6 +4,9 @@ public partial class Player : CharacterBody3D
 {
     [Signal] public delegate void PlayerReadyEventHandler();
 
+    private PackedScene cameraControllerScene = 
+        GD.Load<PackedScene>("res://scenes/player/CameraController.tscn");
+
     public float Speed = 6.0f;
     public ToolItem DefaultTool = ResourceLoader.Load<ToolItem>("res://items/tools/fist/Fist.tres");
     private Item equippedItem;
@@ -24,7 +27,7 @@ public partial class Player : CharacterBody3D
     public Hotbar Hotbar;
     public Inventory Inventory;
 
-    private Camera3D camera;
+    private CameraController cameraController;
 
     public override void _Ready()
     {
@@ -37,7 +40,10 @@ public partial class Player : CharacterBody3D
         HUD = GetNode<HUD>("/root/Game/HUD");
         Hotbar = GetNode<Hotbar>("Hotbar");
         Inventory = GetNode<Inventory>("Inventory");
-        camera = GetNode<Camera3D>("Camera3D");
+        cameraController = cameraControllerScene.Instantiate<CameraController>();
+        cameraController.Player = this;
+
+        world.CallDeferred(Node.MethodName.AddChild, cameraController);
 
         HUD.RefreshUI();
 
@@ -118,10 +124,10 @@ public partial class Player : CharacterBody3D
     public override void _Input(InputEvent e)
     {
         if (Input.IsActionJustPressed("zoom_in"))
-            camera.Size = Mathf.Max(camera.Size - 2, 5);
+            cameraController.Camera.Size = Mathf.Max(cameraController.Camera.Size - 2, 5);
 
         if (Input.IsActionJustPressed("zoom_out"))
-            camera.Size = Mathf.Min(camera.Size + 2, 200);
+            cameraController.Camera.Size = Mathf.Min(cameraController.Camera.Size + 2, 200);
     }
 
     //Movement and tool usage

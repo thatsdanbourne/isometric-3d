@@ -1,18 +1,26 @@
-[gd_scene load_steps=6 format=3 uid="uid://rh0m2ssigb32"]
+[gd_scene load_steps=11 format=3 uid="uid://rh0m2ssigb32"]
 
 [ext_resource type="Texture2D" uid="uid://c5byoo5ptjy8" path="res://assets/sprites/rock/rock.png" id="1_bpoff"]
 [ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/world-gen/WorldObject.cs" id="1_wmx41"]
 [ext_resource type="Script" uid="uid://dcrpwvqoyfatg" path="res://items/Item.cs" id="2_ym0d0"]
 [ext_resource type="Resource" uid="uid://cuaisjoqkn872" path="res://items/resources/Stone.tres" id="3_tl666"]
+[ext_resource type="AudioStream" uid="uid://dc0j62mfqajmt" path="res://assets/audio/hit/stone/mine 1.wav" id="4_osv8b"]
+[ext_resource type="AudioStream" uid="uid://tds41js2umxl" path="res://assets/audio/hit/stone/mine 2.wav" id="5_mtki3"]
+[ext_resource type="AudioStream" uid="uid://1gheblmrm0ol" path="res://assets/audio/hit/stone/mine 3.wav" id="6_etta6"]
+[ext_resource type="AudioStream" uid="uid://bo6oc3pajhtey" path="res://assets/audio/hit/stone/mine 4.wav" id="7_er1nt"]
+[ext_resource type="AudioStream" uid="uid://bxgxy0fbomhuw" path="res://assets/audio/hit/stone/mine 5.wav" id="8_q7av4"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_wmx41"]
 
 [node name="Rock" type="StaticBody3D"]
 transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 0, 0, 0)
 script = ExtResource("1_wmx41")
+ObjectType = "stone"
+MaxHealth = 15.0
 DropItems = Array[ExtResource("2_ym0d0")]([ExtResource("3_tl666")])
 DropCountMin = 3
 DropCountMax = 5
+HitSounds = Array[AudioStream]([ExtResource("4_osv8b"), ExtResource("5_mtki3"), ExtResource("6_etta6"), ExtResource("7_er1nt"), ExtResource("8_q7av4")])
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
 offset = Vector2(0, 13)

@@ -55,7 +55,7 @@ public partial class CraftingUI : Control
             var recipe = entry.Recipe;
 			var canCraft = CraftingManager.Instance.CanCraft(Player, recipe);
 
-			entry.Result.Modulate = canCraft ? Colors.White : new Color(1, 1, 1, 0.75f);
+			entry.Result.Modulate = canCraft ? Colors.White : new Color(1, 1, 1, 0.5f);
 
 			entry.Result.HoldToActivate = canCraft;
 
