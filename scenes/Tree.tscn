@@ -24,7 +24,6 @@ HitSounds = Array[AudioStream]([ExtResource("4_ego7h"), ExtResource("5_m0q6n"), 
 [node name="Sprite3D" type="Sprite3D" parent="."]
 offset = Vector2(-2, 48)
 pixel_size = 0.05
-billboard = 2
 texture_filter = 0
 texture = ExtResource("1_2cic4")
 

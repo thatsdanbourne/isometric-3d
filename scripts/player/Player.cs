@@ -88,21 +88,20 @@ public partial class Player : CharacterBody3D
 
         hitCooldown.Start();
 
-        if (hitRay.IsColliding())
+        if (hitRay.IsColliding() && hitRay.GetCollider() is WorldObject wo)
         {
-            Node3D target = hitRay.GetCollider() as Node3D;
-            if (target is WorldObject wo) 
-            {
-                wo.ObjectBroken -= OnObjectBroken;
-                wo.ObjectBroken += OnObjectBroken;
-                tool.UseOn(wo);
-            }
+            wo.ObjectBroken -= OnObjectBroken;
+            wo.ObjectBroken += OnObjectBroken;
+
+            Vector3 dir = (wo.GlobalPosition - hitRay.GetCollisionPoint()).Normalized();
+            tool.UseOn(wo, dir);
         }
     }
 
     private void OnObjectBroken(WorldObject obj)
     {
-        CameraController.Shake(0.3f, 1f);
+        obj.ObjectBroken -= OnObjectBroken;
+        CameraController?.Shake(0.3f, 1f);
     }
 
     private void OnHitCooldownTimeout()

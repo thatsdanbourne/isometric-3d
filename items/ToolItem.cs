@@ -8,7 +8,7 @@ public partial class ToolItem : Item
     [Export] public Godot.Collections.Dictionary<string, float> DamageMultipliers { get; set; } = new Godot.Collections.Dictionary<string, float>();
     [Export] public Godot.Collections.Array<AudioStream> SwingSounds {get; set; } = new Godot.Collections.Array<AudioStream>();
 
-    public void UseOn(Node3D target)
+    public void UseOn(Node3D target, Vector3 fromDirection)
     {
         if (target is WorldObject wo)
         {
@@ -18,7 +18,7 @@ public partial class ToolItem : Item
                 finalDamage *= multiplier;
 
             
-            wo.ApplyDamage(finalDamage);
+            wo.ApplyDamage(finalDamage, fromDirection);
         }
     }
 }
