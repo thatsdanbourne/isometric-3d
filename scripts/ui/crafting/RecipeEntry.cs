@@ -14,8 +14,8 @@ public partial class RecipeEntry : HBoxContainer
 	public CraftingRecipe Recipe;
 
 	public PackedScene containerSlotScene = GD.Load<PackedScene>("res://scenes/ui/ItemContainerSlot.tscn");
-	public StyleBoxFlat slotDefaultStyle = ResourceLoader.Load<StyleBoxFlat>("res://scenes/ui/ItemContainerSlotStyle.tres");
-	public StyleBoxFlat slotHighlightStyle = ResourceLoader.Load<StyleBoxFlat>("res://scenes/ui/ItemContainerSlotHighlight.tres");
+	public StyleBoxFlat slotDefaultStyle = ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotStyle.tres");
+	public StyleBoxFlat slotHighlightStyle = ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotHighlight.tres");
 	
 
 	public void SetRecipe(CraftingRecipe r, Player player)
@@ -30,6 +30,7 @@ public partial class RecipeEntry : HBoxContainer
 			Ingredients.Add(new IngredientInfo(item, requiredCount));
 			
 			var ingredientSlot = containerSlotScene.Instantiate<ItemContainerSlot>();
+			ingredientSlot.SetStack(new ItemStack(item, requiredCount));
 			ingredientSlot.ReadOnly = true;
 			
 			var ingIcon = ingredientSlot.GetNode<TextureRect>("Icon");
@@ -42,11 +43,13 @@ public partial class RecipeEntry : HBoxContainer
         }
 
 		Recipe = r;
+
 		var resIcon = Result.GetNode<TextureRect>("Icon");
 		var resCount = Result.GetNode<Label>("Label");
 		resIcon.Texture = r.ResultItem.Icon;
 		resCount.Text = r.ResultCount.ToString();
 
+		Result.SetStack(new ItemStack(r.ResultItem, r.ResultCount));
 		Result.HoldToActivate = true;
 		Result.SlotHoldCompleted += OnCraftHoldCompleted;
 		Result.AddThemeStyleboxOverride("panel", slotHighlightStyle);

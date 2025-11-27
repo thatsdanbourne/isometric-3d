@@ -1,6 +1,4 @@
-using System;
 using Godot;
-
 public partial class ItemContainerSlot : Panel
 {
 	[Signal] public delegate void SlotLeftClickedEventHandler(bool isHotbar, int index);
@@ -9,29 +7,75 @@ public partial class ItemContainerSlot : Panel
 	[Signal] public delegate void SlotHoldStartedEventHandler();
 	[Signal] public delegate void SlotHoldCompletedEventHandler();
 
+	private Tooltip tooltip;
+
+	public ItemStack Stack { get; private set; }
+	public IItemContainer Container { get; private set; }
+	public int Index { get; private set; }
+
+	public Label CountLabel;
+	private TextureRect icon;
+
 	public bool IsHotbar = false;
-	public int Index;
 	public bool ReadOnly = false;
 
 	public bool HoldToActivate = false;
 	public float HoldDuration = 1f;
-	public Label CountLabel;
-
 	private bool isHolding = false;
 	private double holdProgress = 0f;
-	private TextureRect icon;
 	private ProgressBar holdProgressBar;
+	private bool isHovered = false;
 
 
 	public override void _Ready()
     {
+		tooltip = GetTree().Root.GetNode<HUD>("Game/HUD").GetNode<Tooltip>("TooltipManager");
         icon = GetNode<TextureRect>("Icon");
 		CountLabel = GetNode<Label>("Label");
 		holdProgressBar = GetNode<ProgressBar>("ProgressBar");
+
+		MouseExited += OnMouseExited;
     }
+
+	public void SetSlot(IItemContainer container, int index)
+    {
+		Container = container;
+		Index = index;
+    }
+
+	public void SetStack(ItemStack stack)
+	{
+		Stack = stack;
+		UpdateDisplay();
+	}
+
+	public void UpdateDisplay()
+	{
+		if (icon == null || CountLabel == null) return;
+
+		if (Stack == null || Stack.Item == null)
+        {
+            icon.Texture = null;
+			CountLabel.Text = "";
+			TooltipText = "";
+			return;
+        }
+
+		icon.Texture = Stack.Item.Icon;
+		CountLabel.Text = Stack.Count > 1 ? Stack.Count.ToString() : "";
+	}
 
     public override void _GuiInput(InputEvent e)
     {
+		if (e is InputEventMouseMotion && Stack != null && Stack.Item != null)
+        {
+			if (!isHovered)
+			{
+				isHovered = true;
+				tooltip.ShowTooltip(Stack.Item, this);
+			}
+        }
+
 		if (ReadOnly) return;
 
 		if (e is InputEventMouseButton mb)
@@ -57,6 +101,7 @@ public partial class ItemContainerSlot : Panel
 		 	// Handle normal clicks
 			if (mb.Pressed)
 			{
+				tooltip.HideTooltip();
 				if(mb.ButtonIndex == MouseButton.Left)
 				{
 					if (Input.IsKeyPressed(Key.Shift))
@@ -97,4 +142,10 @@ public partial class ItemContainerSlot : Panel
 			EmitSignal(SignalName.SlotHoldCompleted);
         }
     }
+
+	private void OnMouseExited()
+	{
+		isHovered = false;
+		tooltip.HideTooltip(this);
+	}
 }

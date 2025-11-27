@@ -17,3 +17,4 @@ Id = "stone_pickaxe"
 DisplayName = "Stone Pickaxe"
 Icon = ExtResource("1_u4evv")
 StackSize = 1
+Description = "Now go find some iron"

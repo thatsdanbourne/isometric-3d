@@ -9,4 +9,5 @@ ResourceType = "stone"
 Id = "stone"
 DisplayName = "Stone"
 Icon = ExtResource("1_xye4g")
+Description = "Time to get stonedTime to get stonedTime to get stoned"
 metadata/_custom_type_script = "uid://cfvnty1di6y3v"

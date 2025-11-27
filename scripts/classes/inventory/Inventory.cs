@@ -7,6 +7,7 @@ public partial class Inventory : Node, IItemContainer
     public int SlotCount { get; private set; } = 27;
     private ItemStack[] slots;
 
+    public ItemStack this[int index] => slots[index];
 
     public Inventory()
     {

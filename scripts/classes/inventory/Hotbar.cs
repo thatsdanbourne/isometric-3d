@@ -10,6 +10,7 @@ public partial class Hotbar : Node, IItemContainer
 
     private ItemStack[] slots;
 
+    public ItemStack this[int index] => slots[index];
 
     public Hotbar()
     {

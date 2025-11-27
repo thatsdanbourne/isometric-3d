@@ -6,8 +6,8 @@ public partial class HUD : CanvasLayer
 	private PackedScene pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
 	public PackedScene slotPanelScene = ResourceLoader.Load<PackedScene>("res://scenes/ui/ItemContainerSlot.tscn");
 
-	private StyleBoxFlat slotStyle = ResourceLoader.Load<StyleBoxFlat>("res://scenes/ui/ItemContainerSlotStyle.tres");
-	private StyleBoxFlat slotHighlightStyle = ResourceLoader.Load<StyleBoxFlat>("res://scenes/ui/ItemContainerSlotHighlight.tres");
+	private StyleBoxFlat slotStyle = ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotStyle.tres");
+	private StyleBoxFlat slotHighlightStyle = ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotHighlight.tres");
 
 	private Inventory inventory;
 	private Hotbar hotbar;
@@ -113,7 +113,8 @@ public partial class HUD : CanvasLayer
 			var slot = slotPanelScene.Instantiate<ItemContainerSlot>();
 			slot.AddThemeStyleboxOverride("panel", slotStyle);
 			slot.IsHotbar = false;
-			slot.Index = i;
+			slot.SetSlot(inventory, i);
+			slot.SetStack(inventory[i]);
 			slot.SlotLeftClicked += OnSlotLeftClick;
 			slot.SlotRightClicked += OnSlotRightClick;
 			slot.SlotShiftClicked += OnSlotShiftLeftClick;
@@ -133,7 +134,8 @@ public partial class HUD : CanvasLayer
             var slot = slotPanelScene.Instantiate<ItemContainerSlot>();
 			slot.AddThemeStyleboxOverride("panel", slotStyle);
 			slot.IsHotbar = true;
-			slot.Index = i;
+			slot.SetSlot(hotbar, i);
+			slot.SetStack(hotbar[i]);
 			slot.SlotLeftClicked += OnSlotLeftClick;
 			slot.SlotRightClicked += OnSlotRightClick;
 			slot.SlotShiftClicked += OnSlotShiftLeftClick;
@@ -160,42 +162,12 @@ public partial class HUD : CanvasLayer
     {
         for (int i = 0; i < inventory.SlotCount; i++)
         {
-            var slot = inventorySlots[i];
-			var stack = inventory.GetSlot(i);
-
-			var icon = slot.GetNode<TextureRect>("Icon");
-			var countLabel = slot.GetNode<Label>("Label");
-
-			if (stack == null)
-            {
-                icon.Texture = null;
-				countLabel.Text = "";
-			}
-			else
-			{
-				icon.Texture = stack.Item.Icon;
-				countLabel.Text = stack.Count > 1 ? stack.Count.ToString() : "";
-            }
+            inventorySlots[i].SetStack(inventory[i]);
         }
 
 		for (int i = 0; i < hotbar.SlotCount; i++)
 		{
-			var slot = hotbarSlots[i];
-			var stack = hotbar.GetSlot(i);
-
-			var icon = slot.GetNode<TextureRect>("Icon");
-			var countLabel = slot.GetNode<Label>("Label");
-
-			if (stack == null)
-			{
-				icon.Texture = null;
-				countLabel.Text = "";
-			}
-			else
-			{
-				icon.Texture = stack.Item.Icon;
-				countLabel.Text = stack.Count > 1 ? stack.Count.ToString() : "";
-			}
+			hotbarSlots[i].SetStack(hotbar[i]);
 		}
     }
 

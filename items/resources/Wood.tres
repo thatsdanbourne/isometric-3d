@@ -9,4 +9,5 @@ ResourceType = "wood"
 Id = "wood"
 DisplayName = "Wood"
 Icon = ExtResource("1_o2asf")
+Description = "It's literally just a piece of wood"
 metadata/_custom_type_script = "uid://cfvnty1di6y3v"

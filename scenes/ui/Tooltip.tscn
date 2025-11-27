@@ -1,0 +1,59 @@
+[gd_scene load_steps=7 format=3 uid="uid://d34hhl3mhgyeh"]
+
+[ext_resource type="Script" uid="uid://1yfvymes6xv6" path="res://scripts/ui/Tooltip.cs" id="1_aloxc"]
+[ext_resource type="StyleBox" uid="uid://bgu6rid7g7ix0" path="res://resources/ui/TooltipStyle.tres" id="2_6dc22"]
+[ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="3_vo124"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_en2e2"]
+font = ExtResource("3_vo124")
+font_size = 24
+
+[sub_resource type="LabelSettings" id="LabelSettings_sci8d"]
+font = ExtResource("3_vo124")
+
+[sub_resource type="LabelSettings" id="LabelSettings_vo124"]
+font = ExtResource("3_vo124")
+font_color = Color(0.3515629, 0.3515629, 0.35156286, 1)
+
+[node name="TooltipManager" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_aloxc")
+
+[node name="Tooltip" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_right = 65.0
+offset_bottom = 134.0
+theme_override_styles/panel = ExtResource("2_6dc22")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Tooltip"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Name" type="Label" parent="Tooltip/VBoxContainer"]
+layout_mode = 2
+label_settings = SubResource("LabelSettings_en2e2")
+horizontal_alignment = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="Tooltip/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_top = 8
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Tooltip/VBoxContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Damage" type="Label" parent="Tooltip/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+label_settings = SubResource("LabelSettings_sci8d")
+
+[node name="Description" type="Label" parent="Tooltip/VBoxContainer/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+label_settings = SubResource("LabelSettings_vo124")
+autowrap_mode = 2
