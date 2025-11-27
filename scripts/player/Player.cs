@@ -7,7 +7,7 @@ public partial class Player : CharacterBody3D
     private PackedScene cameraControllerScene = 
         GD.Load<PackedScene>("res://scenes/player/CameraController.tscn");
 
-    public float Speed = 6.0f;
+    public float Speed = 5.0f;
     public ToolItem DefaultTool = ResourceLoader.Load<ToolItem>("res://items/tools/fist/Fist.tres");
     private Item equippedItem;
 
@@ -27,7 +27,7 @@ public partial class Player : CharacterBody3D
     public Hotbar Hotbar;
     public Inventory Inventory;
 
-    private CameraController cameraController;
+    public CameraController CameraController;
 
     public override void _Ready()
     {
@@ -40,10 +40,10 @@ public partial class Player : CharacterBody3D
         HUD = GetNode<HUD>("/root/Game/HUD");
         Hotbar = GetNode<Hotbar>("Hotbar");
         Inventory = GetNode<Inventory>("Inventory");
-        cameraController = cameraControllerScene.Instantiate<CameraController>();
-        cameraController.Player = this;
+        CameraController = cameraControllerScene.Instantiate<CameraController>();
+        CameraController.Player = this;
 
-        world.CallDeferred(Node.MethodName.AddChild, cameraController);
+        world.CallDeferred(Node.MethodName.AddChild, CameraController);
 
         HUD.RefreshUI();
 
@@ -91,9 +91,18 @@ public partial class Player : CharacterBody3D
         if (hitRay.IsColliding())
         {
             Node3D target = hitRay.GetCollider() as Node3D;
-            if (target != null)
-                tool.UseOn(target);
+            if (target is WorldObject wo) 
+            {
+                wo.ObjectBroken -= OnObjectBroken;
+                wo.ObjectBroken += OnObjectBroken;
+                tool.UseOn(wo);
+            }
         }
+    }
+
+    private void OnObjectBroken(WorldObject obj)
+    {
+        CameraController.Shake(0.3f, 1f);
     }
 
     private void OnHitCooldownTimeout()
@@ -119,15 +128,6 @@ public partial class Player : CharacterBody3D
             else if (mb.ButtonIndex == MouseButton.WheelDown)
                 Hotbar.SelectNext();
         }
-    }
-
-    public override void _Input(InputEvent e)
-    {
-        if (Input.IsActionJustPressed("zoom_in"))
-            cameraController.Camera.Size = Mathf.Max(cameraController.Camera.Size - 2, 5);
-
-        if (Input.IsActionJustPressed("zoom_out"))
-            cameraController.Camera.Size = Mathf.Min(cameraController.Camera.Size + 2, 200);
     }
 
     //Movement and tool usage

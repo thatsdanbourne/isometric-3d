@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 public partial class WorldObject : Node3D
 {
+    [Signal] public delegate void ObjectBrokenEventHandler(WorldObject obj);
+
     [Export] public string ObjectType { get; set; }
     [Export] public float MaxHealth { get; set; } = 3.0f;
     [Export] public Godot.Collections.Array<Item> DropItems { get; set; } = new Godot.Collections.Array<Item>();
@@ -46,6 +48,8 @@ public partial class WorldObject : Node3D
 
     public virtual void BreakObject()
     {
+        EmitSignal(SignalName.ObjectBroken, this);
+        
         if (DropItems == null) return;
 
         for (int i = 0; i < DropItems.Count; i++)
