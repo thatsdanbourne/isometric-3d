@@ -1,8 +1,10 @@
-[gd_resource type="Resource" script_class="BiomePlacementRule" load_steps=5 format=3 uid="uid://cxywbpcuvvoxm"]
+[gd_resource type="Resource" script_class="BiomePlacementRule" load_steps=7 format=3 uid="uid://cxywbpcuvvoxm"]
 
 [ext_resource type="Script" uid="uid://ceg1o86gsc1m1" path="res://scripts/classes/world-gen/BiomeObjectSpawnRule.cs" id="1_rf3vv"]
+[ext_resource type="Script" uid="uid://cworjpl6xr2k0" path="res://scripts/classes/world-gen/DecorPlacementRule.cs" id="1_vy5rm"]
 [ext_resource type="Script" uid="uid://c74vgdr8hc544" path="res://scripts/classes/world-gen/BiomePlacementRule.cs" id="2_2p0pq"]
 [ext_resource type="Resource" uid="uid://d4k65e0iv7pc" path="res://resources/placement-rules/world-objects/TreeRule.tres" id="2_c8p32"]
+[ext_resource type="Resource" uid="uid://b8kdpgt11y1hd" path="res://resources/placement-rules/world-decor/FlowerPoppyRule.tres" id="2_png74"]
 
 [sub_resource type="Resource" id="Resource_vy5rm"]
 script = ExtResource("1_rf3vv")
@@ -18,4 +20,5 @@ MinHumidity = 0.6
 MaxHumidity = 1.0
 GroundTileType = "snow"
 ObjectSpawnRules = Array[ExtResource("1_rf3vv")]([SubResource("Resource_vy5rm")])
+DecorPlacementRules = Array[ExtResource("1_vy5rm")]([ExtResource("2_png74")])
 metadata/_custom_type_script = "uid://c74vgdr8hc544"

@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3 uid="uid://6rlupv02gcvl"]
+
+[ext_resource type="Texture2D" uid="uid://crr0m7p62p7fb" path="res://assets/sprites/terrain/decor/FlowerPoppy.png" id="1_jqawr"]
+[ext_resource type="Script" uid="uid://duds130ujx7s6" path="res://scripts/classes/world-gen/WorldDecor.cs" id="1_tthm0"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tthm0"]
+transparency = 1
+albedo_texture = ExtResource("1_jqawr")
+texture_filter = 0
+
+[node name="FlowerPoppy" type="Node3D"]
+transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 0, 0, 0)
+script = ExtResource("1_tthm0")
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+material_override = SubResource("StandardMaterial3D_tthm0")
+offset = Vector2(0, 16)
+pixel_size = 0.04
+texture_filter = 0
+texture = ExtResource("1_jqawr")

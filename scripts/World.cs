@@ -231,6 +231,14 @@ public partial class World : Node3D
 
             obj.QueueFree();
         }
+		
+		foreach (var decor in chunk.Decors)
+        {
+            if (decor == null || !IsInstanceValid(decor))
+				continue;
+
+			decor.QueueFree();
+        }
 
 		ActiveChunks.Remove(coord);
     }
@@ -261,6 +269,7 @@ public partial class World : Node3D
 		int C = ChunkSize;
 		Tile[,] tiles = new Tile[C, C];
 		var objects = new Godot.Collections.Array<ChunkObject>();
+		var decors = new Godot.Collections.Array<ChunkDecor>();
 
 		for (int x = 0; x < C; x++)
 		{
@@ -277,6 +286,8 @@ public partial class World : Node3D
 				float humidity = AdjustContrast((humidityRaw + 1f) / 2f);
 				float riverDist = Math.Abs(riverVal);
 
+
+				// determine biome
 				BiomePlacementRule biome = ruleRegistry.GetBiome(temp, humidity);
 				string tileType = biome.GroundTileType;
 				int tileId = GetTileId(tileType);
@@ -292,8 +303,10 @@ public partial class World : Node3D
 
 				tiles[x, y] = new Tile(tileId, tileType, biome.Name, temp, humidity);
 
+
 				if (!isRiver)
 				{
+					// build objects
 					foreach (BiomeObjectSpawnRule spawn in biome.ObjectSpawnRules)
 					{
 						if (spawn.Rule.ShouldPlace(globalX, globalY, spawn.Density))
@@ -304,12 +317,23 @@ public partial class World : Node3D
 							objects.Add(obj);
 						}
 					}
+
+					foreach (DecorPlacementRule decorRule in biome.DecorPlacementRules)
+                    {
+                        if(decorRule.ShouldPlace(globalX, globalY))
+                        {
+                            var dec = new ChunkDecor();
+							dec.Rule = decorRule;
+							dec.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
+							decors.Add(dec);
+                        }
+					}
 				}
 			}
 		}
 
 		sw.Stop();
-		var result = new ChunkData(coord, tiles, objects);
+		var result = new ChunkData(coord, tiles, objects, decors);
 		result.BuildTimeMs = sw.Elapsed.TotalMilliseconds;
 		return result;
 	}
@@ -382,6 +406,15 @@ public partial class World : Node3D
 			chunk.Objects.Add(instance);
 		}
 
+		foreach (ChunkDecor decor in data.Decors)
+		{
+			var scene = decor.Rule.Scene;
+			var instance = scene.Instantiate<Node3D>();
+			instance.Position = decor.Position;
+			WorldObjects.AddChild(instance);
+			chunk.Decors.Add(instance);
+		}
+
 		sw.Stop();
 		data.FinaliseTimeMs = sw.Elapsed.TotalMilliseconds;
 
@@ -431,23 +464,6 @@ public partial class World : Node3D
 	}
 
 
-	// private int PickWeightedTile(string tileName)
-	// {
-	// 	TileType t = tileTypes[tileName];
-	// 	float r = rng.Randf();
-
-	// 	float cumulative = 0f;
-
-	// 	for (int i = 0; i < t.Weights.Length; i++)
-	// 	{
-	// 		cumulative += t.Weights[i];
-	// 		if (r <= cumulative)
-	// 			return i;
-	// 	}
-
-	// 	return t.Weights.Length - 1; // fallback
-	// }
-
 	private int GetTileId(string tileName)
 	{
 		if (tileTypes.TryGetValue(tileName, out var type))
@@ -462,14 +478,16 @@ public partial class ChunkData : RefCounted
 	public Vector2I Coord;
 	public Tile[,] Tiles;
 	public Godot.Collections.Array<ChunkObject> Objects;
+	public Godot.Collections.Array<ChunkDecor> Decors;
 
 	public double BuildTimeMs;
 	public double FinaliseTimeMs;
 
-	public ChunkData(Vector2I coord, Tile[,] tiles, Godot.Collections.Array<ChunkObject> objects)
+	public ChunkData(Vector2I coord, Tile[,] tiles, Godot.Collections.Array<ChunkObject> objects, Godot.Collections.Array<ChunkDecor> decors)
 	{
 		Coord = coord;
 		Tiles = tiles;
 		Objects = objects;
+		Decors = decors;
 	}
 }

@@ -5,6 +5,7 @@ public partial class RuleRegistry : Node
 {
     public List<ObjectPlacementRule> ObjectRules { get; private set; } = new();
     public List<BiomePlacementRule> BiomeRules { get; private set; } = new();
+    public List<DecorPlacementRule> DecorRules { get; private set; } = new();
 
     private int terrainSeed;
 
@@ -13,14 +14,17 @@ public partial class RuleRegistry : Node
         terrainSeed = seed;
         LoadObjectRules("res://resources/placement-rules/world-objects");
         LoadBiomeRules("res://resources/placement-rules/biomes");
+        LoadDecorRules("res://resources/placement-rules/world-decor");
 
         foreach (var rule in ObjectRules)
-        {
             rule.WorldOffset = worldOffset;
-        }
+
+        foreach (var decor in DecorRules)
+            decor.WorldOffset = worldOffset;
 
         GD.Print($"RuleRegistry loaded {ObjectRules.Count} object rules.");
         GD.Print($"RuleRegistry loaded {BiomeRules.Count} biome rules.");
+        GD.Print($"RuleRegistry loaded {DecorRules.Count} decor rules.");
     }
 
     // ---------------------------------------------------------------------
@@ -91,6 +95,38 @@ public partial class RuleRegistry : Node
             // All linked spawn rules... (rest of your original logic)
 
             BiomeRules.Add(biome);
+        }
+    }
+
+    private void LoadDecorRules(string path)
+    {
+        // 💡 New Godot 4.3+ method for listing files in a packaged resource path
+        var files = DirAccess.GetFilesAt(path); 
+
+        if (files == null || files.Length == 0)
+        {
+            GD.PushError("Could not open decor rule folder or folder is empty: " + path);
+            return;
+        }
+
+        foreach (var file in files)
+        {
+            if (!file.EndsWith(".tres"))
+                continue;
+
+            string resPath = path + "/" + file;
+
+            var rule = ResourceLoader.Load<DecorPlacementRule>(resPath);
+            if (rule == null)
+            {
+                GD.PushWarning($"Skipping invalid decor rule: {resPath}");
+                continue;
+            }
+
+            int ruleSeed = terrainSeed + resPath.GetHashCode();
+            rule.Init(ruleSeed);
+
+            DecorRules.Add(rule);
         }
     }
 

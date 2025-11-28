@@ -7,7 +7,7 @@ extends Node
 var MIDNIGHT_COLOR := Color(0.1, 0.1, 0.3) 
 var SUNRISE_COLOR := Color(0.8, 0.7, 0.55) 
 var MIDDAY_COLOR := Color(0.9, 0.9, 0.85) 
-var DUSK_COLOR := Color(0.9, 0.4, 0.3)
+var DUSK_COLOR := Color(0.7, 0.4, 0.3)
 
 # --- Camera/World Constants ---
 const ISOMETRIC_Y_ROTATION = deg_to_rad(-45) # The rotation of the camera around Y (45 degrees)

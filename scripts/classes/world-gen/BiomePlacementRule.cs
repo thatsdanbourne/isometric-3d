@@ -12,10 +12,13 @@ public partial class BiomePlacementRule : Resource
     [Export] public float MinHumidity;
     [Export] public float MaxHumidity;
 
-    [Export]public string GroundTileType;
+    [Export] public string GroundTileType;
 
-    [Export]public Godot.Collections.Array<BiomeObjectSpawnRule> ObjectSpawnRules { get; set; }
+    [Export] public Godot.Collections.Array<BiomeObjectSpawnRule> ObjectSpawnRules { get; set; }
         = new Godot.Collections.Array<BiomeObjectSpawnRule>();
+
+    [Export] public Godot.Collections.Array<DecorPlacementRule> DecorPlacementRules { get; set; }
+        = new Godot.Collections.Array<DecorPlacementRule>(); 
 
     public bool Matches(float temp, float humidity)
     {

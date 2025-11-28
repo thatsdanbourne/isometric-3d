@@ -4,5 +4,4 @@
 transparency = 2
 alpha_scissor_threshold = 0.1
 alpha_antialiasing_mode = 0
-depth_draw_mode = 1
 texture_filter = 0
