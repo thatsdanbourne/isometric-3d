@@ -22,7 +22,7 @@ DropItems = Array[ExtResource("2_1gtcl")]([ExtResource("3_r0kve")])
 HitSounds = Array[AudioStream]([ExtResource("4_ego7h"), ExtResource("5_m0q6n"), ExtResource("6_ummhw"), ExtResource("7_82hvc")])
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
-offset = Vector2(-2, 48)
+offset = Vector2(-2, 47)
 pixel_size = 0.05
 texture_filter = 0
 texture = ExtResource("1_2cic4")

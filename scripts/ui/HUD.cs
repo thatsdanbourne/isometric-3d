@@ -24,6 +24,9 @@ public partial class HUD : CanvasLayer
 
 	private Control craftingRoot;
 
+	private Tooltip tooltipManager;
+	private PanelContainer tooltip;
+
 	private List<ItemContainerSlot> hotbarSlots = new List<ItemContainerSlot>();
 	private List<ItemContainerSlot> inventorySlots = new List<ItemContainerSlot>();
 
@@ -45,6 +48,9 @@ public partial class HUD : CanvasLayer
 		hotbarBox = GetNode<HBoxContainer>("MarginContainer/Hotbar");
 
 		craftingRoot = GetNode<Control>("Crafting");
+
+		tooltipManager = GetNode<Tooltip>("TooltipManager");
+		tooltip = tooltipManager.GetNode<PanelContainer>("Tooltip");
 
 		BuildInventorySlots();
 		BuildHotbarSlots();
@@ -85,13 +91,27 @@ public partial class HUD : CanvasLayer
             }
 			
 			craftingRoot.Visible = false;
+			tooltip.Visible = false;
             inventoryRoot.Visible = !inventoryRoot.Visible;
         }
 
 		if (e.IsActionPressed("toggle_crafting"))
         {
             inventoryRoot.Visible = false;
+			tooltip.Visible = false;
 			craftingRoot.Visible = !craftingRoot.Visible;
+        }
+
+		if (e.IsActionPressed("close")) {
+            if (WindowOpen)
+            {
+                inventoryRoot.Visible = false;
+				craftingRoot.Visible = false;
+				tooltip.Visible = false;
+            } else
+            {
+                // settings menu
+            }
         }
     }
 

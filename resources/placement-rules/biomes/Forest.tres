@@ -9,7 +9,7 @@
 [sub_resource type="Resource" id="Resource_2ewg2"]
 script = ExtResource("1_vc3m4")
 Rule = ExtResource("2_8pjlb")
-Density = 1.0
+Density = 0.7
 metadata/_custom_type_script = "uid://ceg1o86gsc1m1"
 
 [resource]

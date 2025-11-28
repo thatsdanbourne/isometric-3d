@@ -7,7 +7,7 @@
 script = ExtResource("1_3gktf")
 Name = "tree"
 Scene = ExtResource("1_ul42u")
-BaseNoiseFrequency = 0.25
+BaseNoiseFrequency = 0.4
 BaseNoiseThreshold = 0.05
 BaseNoiseOctaves = 2
 BaseNoiseGain = 0.6
