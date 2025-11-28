@@ -5,8 +5,7 @@ public partial class ObjectPlacementRule : Resource
 {
     // Inspector Properties ---------------------------------------
 
-    [Export] public string Name { get; set; }
-    [Export] public PackedScene Scene { get; set; }
+    [Export] public Godot.Collections.Array<ObjectVariant> Variants { get; set; }
 
     [Export] public FastNoiseLite.NoiseTypeEnum BaseNoiseType { get; set; } = FastNoiseLite.NoiseTypeEnum.SimplexSmooth;
     [Export] public float BaseNoiseFrequency { get; set; } = 0.01f;

@@ -4,7 +4,8 @@ using Godot;
 public partial class BiomeObjectSpawnRule : Resource
 {
     [Export] public ObjectPlacementRule Rule;
-    [Export] public float Density;
+    [Export] public float Density = 0.5f;
+    [Export] public Godot.Collections.Array<ObjectVariant> AllowedVariants;
 
     public BiomeObjectSpawnRule() {}
 

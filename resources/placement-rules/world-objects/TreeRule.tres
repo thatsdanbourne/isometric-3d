@@ -1,12 +1,24 @@
-[gd_resource type="Resource" script_class="ObjectPlacementRule" load_steps=3 format=3 uid="uid://d4k65e0iv7pc"]
+[gd_resource type="Resource" script_class="ObjectPlacementRule" load_steps=7 format=3 uid="uid://d4k65e0iv7pc"]
 
 [ext_resource type="Script" uid="uid://cskxsiga5ihi8" path="res://scripts/classes/world-gen/ObjectPlacementRule.cs" id="1_3gktf"]
 [ext_resource type="PackedScene" uid="uid://cjrcdkqsl4q3i" path="res://scenes/Tree.tscn" id="1_ul42u"]
+[ext_resource type="Script" uid="uid://clieeiea6p5gw" path="res://scripts/classes/world-gen/ObjectVariant.cs" id="2_kowue"]
+[ext_resource type="PackedScene" uid="uid://boq2xdti1ve4m" path="res://scenes/terrain/objects/TreeBirch.tscn" id="3_1ghp5"]
+
+[sub_resource type="Resource" id="Resource_0i6h1"]
+script = ExtResource("2_kowue")
+Scene = ExtResource("1_ul42u")
+metadata/_custom_type_script = "uid://clieeiea6p5gw"
+
+[sub_resource type="Resource" id="Resource_yxkya"]
+script = ExtResource("2_kowue")
+Scene = ExtResource("3_1ghp5")
+Weight = 0.5
+metadata/_custom_type_script = "uid://clieeiea6p5gw"
 
 [resource]
 script = ExtResource("1_3gktf")
-Name = "tree"
-Scene = ExtResource("1_ul42u")
+Variants = Array[Object]([SubResource("Resource_0i6h1"), SubResource("Resource_yxkya")])
 BaseNoiseFrequency = 0.4
 BaseNoiseThreshold = 0.05
 BaseNoiseOctaves = 2

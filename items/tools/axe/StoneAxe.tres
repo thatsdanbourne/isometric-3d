@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ToolItem" load_steps=3 format=3 uid="uid://c1ecp3j5sn0oj"]
+
+[ext_resource type="Script" uid="uid://bmph2758ofybm" path="res://items/ToolItem.cs" id="1_be6cr"]
+[ext_resource type="Texture2D" uid="uid://c3s6ao3tv1114" path="res://assets/icons/stone_axe.png" id="1_l7uvb"]
+
+[resource]
+script = ExtResource("1_be6cr")
+Damage = 2.0
+ToolType = "axe"
+Id = "stone_axe"
+DisplayName = "Stone Axe"
+Icon = ExtResource("1_l7uvb")
+StackSize = 1
+Description = "Beats punching trees"
+metadata/_custom_type_script = "uid://bmph2758ofybm"

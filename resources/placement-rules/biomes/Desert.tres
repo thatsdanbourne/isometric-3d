@@ -1,7 +1,16 @@
-[gd_resource type="Resource" script_class="BiomePlacementRule" load_steps=3 format=3 uid="uid://cb4eft66jj1lr"]
+[gd_resource type="Resource" script_class="BiomePlacementRule" load_steps=6 format=3 uid="uid://cb4eft66jj1lr"]
 
 [ext_resource type="Script" uid="uid://ceg1o86gsc1m1" path="res://scripts/classes/world-gen/BiomeObjectSpawnRule.cs" id="1_de1oi"]
 [ext_resource type="Script" uid="uid://c74vgdr8hc544" path="res://scripts/classes/world-gen/BiomePlacementRule.cs" id="1_ot8cn"]
+[ext_resource type="Script" uid="uid://cworjpl6xr2k0" path="res://scripts/classes/world-gen/DecorPlacementRule.cs" id="1_rfn0c"]
+[ext_resource type="Resource" uid="uid://n68amumc7git" path="res://resources/placement-rules/world-objects/RockRule.tres" id="3_a2uvp"]
+
+[sub_resource type="Resource" id="Resource_aabfo"]
+script = ExtResource("1_de1oi")
+Rule = ExtResource("3_a2uvp")
+Density = 0.2
+AllowedVariants = null
+metadata/_custom_type_script = "uid://ceg1o86gsc1m1"
 
 [resource]
 script = ExtResource("1_ot8cn")
@@ -10,4 +19,5 @@ MinTemp = 0.7
 MaxTemp = 1.0
 MaxHumidity = 0.3
 GroundTileType = "sand"
+ObjectSpawnRules = Array[ExtResource("1_de1oi")]([SubResource("Resource_aabfo")])
 metadata/_custom_type_script = "uid://c74vgdr8hc544"

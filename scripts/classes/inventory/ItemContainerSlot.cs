@@ -1,5 +1,5 @@
 using Godot;
-public partial class ItemContainerSlot : Panel
+public partial class ItemContainerSlot : PanelContainer
 {
 	[Signal] public delegate void SlotLeftClickedEventHandler(bool isHotbar, int index);
 	[Signal] public delegate void SlotRightClickedEventHandler(bool isHotbar, int index);

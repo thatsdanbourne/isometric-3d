@@ -1,11 +1,17 @@
-[gd_resource type="Resource" script_class="ObjectPlacementRule" load_steps=3 format=3 uid="uid://n68amumc7git"]
+[gd_resource type="Resource" script_class="ObjectPlacementRule" load_steps=5 format=3 uid="uid://n68amumc7git"]
 
 [ext_resource type="Script" uid="uid://cskxsiga5ihi8" path="res://scripts/classes/world-gen/ObjectPlacementRule.cs" id="1_d5ky8"]
 [ext_resource type="PackedScene" uid="uid://rh0m2ssigb32" path="res://scenes/Rock.tscn" id="1_lou4l"]
+[ext_resource type="Script" uid="uid://clieeiea6p5gw" path="res://scripts/classes/world-gen/ObjectVariant.cs" id="2_a83kx"]
+
+[sub_resource type="Resource" id="Resource_j442b"]
+script = ExtResource("2_a83kx")
+Scene = ExtResource("1_lou4l")
+metadata/_custom_type_script = "uid://clieeiea6p5gw"
 
 [resource]
 script = ExtResource("1_d5ky8")
-Scene = ExtResource("1_lou4l")
+Variants = Array[Object]([SubResource("Resource_j442b")])
 BaseNoiseFrequency = 0.14
 BaseNoiseThreshold = 0.6
 BaseNoiseOctaves = 4

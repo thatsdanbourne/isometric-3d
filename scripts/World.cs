@@ -2,7 +2,6 @@ using Godot;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 
 public partial class World : Node3D
@@ -312,7 +311,7 @@ public partial class World : Node3D
 						if (spawn.Rule.ShouldPlace(globalX, globalY, spawn.Density))
 						{
 							var obj = new ChunkObject();
-							obj.Rule = spawn.Rule;
+							obj.BiomeRule = spawn;
 							obj.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
 							objects.Add(obj);
 						}
@@ -389,7 +388,11 @@ public partial class World : Node3D
 
 		foreach (ChunkObject obj in data.Objects)
 		{
-			var scene = obj.Rule.Scene;
+			var rule = obj.BiomeRule.Rule;
+			var AllowedVariants = obj.BiomeRule.AllowedVariants;
+
+			var variant = PickObjectVariant(rule, AllowedVariants, (int)obj.Position.X, (int)obj.Position.Z);
+			var scene = variant.Scene;
 			var instance = scene.Instantiate<Node3D>();
 			
 			if (instance is WorldObject wo)
@@ -471,6 +474,31 @@ public partial class World : Node3D
 		
 		return -1;
 	}
+
+	private ObjectVariant PickObjectVariant(ObjectPlacementRule rule, Godot.Collections.Array<ObjectVariant> allowedVariants, int x, int z)
+    {
+		var valid = allowedVariants.Count > 0 ? allowedVariants : rule.Variants;
+		if (valid.Count == 0) return null;
+
+        int hash = (x * 73856093) ^ (z * 19349663) ^ rule.GetHashCode();
+		rng.Seed = (ulong)hash;
+
+		float total = 0f;
+		foreach (var v in rule.Variants)
+			total += v.Weight;
+
+		float r = rng.Randf() * total;
+
+		foreach (var v in rule.Variants)
+        {
+            if (r <= v.Weight)
+                return v;
+			
+			r -= v.Weight;
+        }
+
+		return rule.Variants[0];
+    }
 }
 
 public partial class ChunkData : RefCounted
