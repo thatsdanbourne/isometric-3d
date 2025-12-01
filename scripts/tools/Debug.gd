@@ -3,21 +3,13 @@ extends CanvasLayer
 const Player = preload("res://scripts/player/Player.cs")
 
 @onready var world: Node3D = $"../World"
-@onready var fps: Label = $FPS
-@onready var position: Label = $Position
-@onready var biome: Label = $Biome
+@onready var fps: Label = $"MarginContainer/VBoxContainer/FPS"
+@onready var position: Label = $"MarginContainer/VBoxContainer/Position"
+@onready var biome: Label = $"MarginContainer/VBoxContainer/Biome"
 @onready var player: Player = $"../World/WorldObjects/Player"
 
 var update_timer := 0.0
 
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	fps.position = Vector2(10, 10)
-	position.position = Vector2(10, 70)
-	biome.position = Vector2(10, 130)
-
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	update_timer += delta
 	if update_timer < 0.3:

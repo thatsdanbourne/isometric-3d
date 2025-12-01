@@ -1,8 +1,8 @@
 [gd_scene load_steps=17 format=3 uid="uid://dtgd4yjkf4awx"]
 
 [ext_resource type="Script" uid="uid://bo5gppxxuljem" path="res://scripts/Game.gd" id="1_0uv0p"]
-[ext_resource type="Script" uid="uid://dqaj5pnbqxlnv" path="res://scripts/tools/Debug.gd" id="1_d1c63"]
 [ext_resource type="MeshLibrary" uid="uid://mdcrqmssv47f" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
+[ext_resource type="Script" uid="uid://ciarma0geh450" path="res://scripts/tools/Debug.cs" id="2_h1bdy"]
 [ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD.tscn" id="3_b3faq"]
 [ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="3_h1bdy"]
 [ext_resource type="Script" uid="uid://ddvbtaf4ymjhc" path="res://scripts/World.cs" id="4_ygioq"]
@@ -39,21 +39,28 @@ volumetric_fog_density = 0.0356
 script = ExtResource("1_0uv0p")
 
 [node name="Debug" type="CanvasLayer" parent="."]
-script = ExtResource("1_d1c63")
+script = ExtResource("2_h1bdy")
 
-[node name="FPS" type="Label" parent="Debug"]
+[node name="MarginContainer" type="MarginContainer" parent="Debug"]
 offset_right = 40.0
-offset_bottom = 23.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Debug/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="FPS" type="Label" parent="Debug/MarginContainer/VBoxContainer"]
+layout_mode = 2
 label_settings = SubResource("LabelSettings_d1c63")
 
-[node name="Position" type="Label" parent="Debug"]
-offset_right = 40.0
-offset_bottom = 23.0
+[node name="Position" type="Label" parent="Debug/MarginContainer/VBoxContainer"]
+layout_mode = 2
 label_settings = SubResource("LabelSettings_1lgw5")
 
-[node name="Biome" type="Label" parent="Debug"]
-offset_right = 40.0
-offset_bottom = 23.0
+[node name="Biome" type="Label" parent="Debug/MarginContainer/VBoxContainer"]
+layout_mode = 2
 label_settings = SubResource("LabelSettings_0uv0p")
 
 [node name="HUD" parent="." instance=ExtResource("3_b3faq")]
