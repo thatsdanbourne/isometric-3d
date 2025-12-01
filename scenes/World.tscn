@@ -1,6 +1,5 @@
-[gd_scene load_steps=17 format=3 uid="uid://dtgd4yjkf4awx"]
+[gd_scene load_steps=16 format=3 uid="uid://dtgd4yjkf4awx"]
 
-[ext_resource type="Script" uid="uid://bo5gppxxuljem" path="res://scripts/Game.gd" id="1_0uv0p"]
 [ext_resource type="MeshLibrary" uid="uid://mdcrqmssv47f" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="Script" uid="uid://ciarma0geh450" path="res://scripts/tools/Debug.cs" id="2_h1bdy"]
 [ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD.tscn" id="3_b3faq"]
@@ -36,7 +35,6 @@ fog_density = 1.0
 volumetric_fog_density = 0.0356
 
 [node name="Game" type="Node3D"]
-script = ExtResource("1_0uv0p")
 
 [node name="Debug" type="CanvasLayer" parent="."]
 script = ExtResource("2_h1bdy")

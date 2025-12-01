@@ -14,6 +14,9 @@ public partial class Player : CharacterBody3D
     private bool canSwing = true;
 
     public string CurrentBiome { get; private set; } = "";
+    private string _lastBiome = "";
+    private Vector3 _lastCheckedPosition;
+    private const float BIOME_CHECK_DISTANCE = 0.5f;
 
     private World world;
     private BiomeTintOverlay tintOverlay;
@@ -57,6 +60,11 @@ public partial class Player : CharacterBody3D
 
     public override void _Process(double delta)
     {
+        if (_lastCheckedPosition.DistanceSquaredTo(GlobalPosition) < BIOME_CHECK_DISTANCE * BIOME_CHECK_DISTANCE)
+            return;
+
+        _lastCheckedPosition = GlobalPosition;
+        
         string biome = world.GetBiomeAtPos(GlobalPosition);
         if (!string.IsNullOrEmpty(biome) && biome != CurrentBiome)
         {

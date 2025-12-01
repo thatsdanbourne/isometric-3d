@@ -423,15 +423,13 @@ public partial class World : Node3D
 
 	public string GetBiomeAtPos(Vector3 worldPos)
 	{
-		int C = ChunkSize;
+		int tileX = (int)worldPos.X;
+		int tileY = (int)worldPos.Z;
 
-		// Convert world pos → tile pos
-		int tileX = Mathf.FloorToInt(worldPos.X);
-		int tileY = Mathf.FloorToInt(worldPos.Z);
+		int shift = (int)Math.Log2(ChunkSize);
 
-		// Convert tile → chunk coords
-		int cx = Mathf.FloorToInt((float)tileX / C);
-		int cy = Mathf.FloorToInt((float)tileY / C);
+		int cx = tileX >> shift;
+		int cy = tileY >> shift;
 
 		Vector2I chunkCoord = new(cx, cy);
 
@@ -439,8 +437,8 @@ public partial class World : Node3D
 			return "";
 
 		// Local tile inside chunk
-		int localX = Mathf.Abs(tileX - chunkCoord.X * C);
-		int localY = Mathf.Abs(tileY - chunkCoord.Y * C);
+		int localX = tileX & (ChunkSize - 1);
+		int localY = tileY & (ChunkSize - 1);
 
 		return chunk.Tiles[localX, localY].Biome;
 	}
@@ -481,12 +479,12 @@ public partial class World : Node3D
 		rng.Seed = (ulong)hash;
 
 		float total = 0f;
-		foreach (var v in rule.Variants)
+		foreach (var v in valid)
 			total += v.Weight;
 
 		float r = rng.Randf() * total;
 
-		foreach (var v in rule.Variants)
+		foreach (var v in valid)
         {
             if (r <= v.Weight)
                 return v;
