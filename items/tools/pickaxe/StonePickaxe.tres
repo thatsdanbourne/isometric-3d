@@ -1,8 +1,7 @@
-[gd_resource type="Resource" script_class="ToolItem" load_steps=4 format=3 uid="uid://dgg17gwj3bcug"]
+[gd_resource type="Resource" script_class="ToolItem" load_steps=3 format=3 uid="uid://dgg17gwj3bcug"]
 
 [ext_resource type="Script" uid="uid://bmph2758ofybm" path="res://items/ToolItem.cs" id="1_2ya17"]
 [ext_resource type="Texture2D" uid="uid://dfi4lcu0svkeq" path="res://assets/icons/stone_pickaxe.png" id="1_u4evv"]
-[ext_resource type="AudioStream" uid="uid://dm1fwnnuqdy4d" path="res://assets/audio/tools/sword/sword_1.mp3" id="2_beuxc"]
 
 [resource]
 script = ExtResource("1_2ya17")
@@ -12,7 +11,7 @@ DamageMultipliers = Dictionary[String, float]({
 "stone": 2.0,
 "wood": 0.25
 })
-SwingSounds = Array[AudioStream]([ExtResource("2_beuxc")])
+SwingSoundsKey = "sword_1"
 Id = "stone_pickaxe"
 DisplayName = "Stone Pickaxe"
 Icon = ExtResource("1_u4evv")

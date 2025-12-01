@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://1gheblmrm0ol"
-path="res://.godot/imported/mine 3.wav-234af29b013cf4dcbc583a705eb47f98.sample"
+uid="uid://bxgxy0fbomhuw"
+path="res://.godot/imported/mine_5.wav-91bc54458e0e7fdf4baab71a3df72a1b.sample"
 
 [deps]
 
-source_file="res://assets/audio/hit/stone/mine 3.wav"
-dest_files=["res://.godot/imported/mine 3.wav-234af29b013cf4dcbc583a705eb47f98.sample"]
+source_file="res://assets/audio/hit/stone/mine_5.wav"
+dest_files=["res://.godot/imported/mine_5.wav-91bc54458e0e7fdf4baab71a3df72a1b.sample"]
 
 [params]
 

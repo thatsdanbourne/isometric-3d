@@ -11,7 +11,6 @@ public partial class DayNightCycle : Node
 	public static void UnregisterShadow(ShadowCard card) => _shadowCards.Remove(card);
 
 	private Environment environment;
-	private GodotObject AudioManager;
 
 	private readonly Color MIDNIGHT_COLOR = new(0.1f, 0.1f, 0.3f);
 	private readonly Color SUNRISE_COLOR = new(0.8f, 0.7f, 0.55f);
@@ -28,10 +27,11 @@ public partial class DayNightCycle : Node
 
 	private float _lastStretch = 999f;
 
+	private string lastAmbience = "";
+
 	public override void _Ready()
 	{
 		environment = WorldEnvironment.Environment;
-		AudioManager = GetNode("/root/AudioManager");
 	}
 
 	public override void _Process(double delta)
@@ -40,11 +40,8 @@ public partial class DayNightCycle : Node
 
 		TimeOfDay = Mathf.PosMod(TimeOfDay + (float)delta / DayLength, 1.0f);
 
-		if (TimeOfDay > 0.1f && TimeOfDay < 0.8f)
-			AudioManager.Call("play_ambient", GD.Load<AudioStream>("res://assets/audio/ambience/forest_day.wav"));
-		else
-			AudioManager.Call("play_ambient", GD.Load<AudioStream>("res://assets/audio/ambience/forest_night.mp3"));
-
+		
+		UpdateAmbience();
 		UpdateSun();
 		UpdateEnvironment();
 	}
@@ -121,4 +118,16 @@ public partial class DayNightCycle : Node
 		for (int i = 0; i < count; i++)
 			_shadowCards[i].ApplyShadow(basis, stretch);
 	}
+
+	private void UpdateAmbience()
+    {
+        string target = (TimeOfDay > 0.1f && TimeOfDay < 0.8f)
+			?"forest_day"
+			: "forest_night";
+
+		if (target == lastAmbience) return;
+
+		lastAmbience = target;
+		AudioManager.Instance.PlayAmbience(target);
+    }
 }

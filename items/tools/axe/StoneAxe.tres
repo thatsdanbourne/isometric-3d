@@ -7,6 +7,7 @@
 script = ExtResource("1_be6cr")
 Damage = 2.0
 ToolType = "axe"
+SwingSoundsKey = "sword_1"
 Id = "stone_axe"
 DisplayName = "Stone Axe"
 Icon = ExtResource("1_l7uvb")

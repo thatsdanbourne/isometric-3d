@@ -6,7 +6,7 @@ public partial class ToolItem : Item
     [Export] public float Damage { get; set; } = 1.0f;
     [Export] public string ToolType { get; set; } = "";
     [Export] public Godot.Collections.Dictionary<string, float> DamageMultipliers { get; set; } = new Godot.Collections.Dictionary<string, float>();
-    [Export] public Godot.Collections.Array<AudioStream> SwingSounds {get; set; } = new Godot.Collections.Array<AudioStream>();
+    [Export] public string SwingSoundsKey { get; set; } = "";
 
     public void UseOn(Node3D target, Vector3 fromDirection)
     {

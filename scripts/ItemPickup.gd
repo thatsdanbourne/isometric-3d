@@ -137,7 +137,7 @@ func _collect():
 	$Area3D.monitorable = false
 
 	target.CollectItem(item, count)
-	AudioManager.play_at(preload("res://assets/audio/sfx-pop.wav"), global_position, AudioManager.BUS_WORLD, 0.1, -12.0)
+	# AudioManager.Instance.PlayAt("sfx_pop", global_position, 0.1);
 
 	var t := create_tween().set_parallel()
 	t.tween_property(sprite, "pixel_size", 0.001, 0.1)

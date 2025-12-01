@@ -30,6 +30,10 @@ shader_parameter/strength = 0.0
 
 [sub_resource type="Environment" id="Environment_1lgw5"]
 ambient_light_source = 2
+ssao_enabled = true
+ssao_radius = 5.0
+ssao_intensity = 2.5
+sdfgi_energy = 12.21
 fog_mode = 1
 fog_density = 1.0
 volumetric_fog_density = 0.0356

@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://clmo6bbsomgka"
-path="res://.godot/imported/punch-1.wav-1130650e5dd0a875ceaf848089aa6341.sample"
+uid="uid://p2b6xreyd0w0"
+path="res://.godot/imported/wood_2.wav-bf5b7409588631930abc8446dbbc194c.sample"
 
 [deps]
 
-source_file="res://assets/audio/hit/wood/punch-1.wav"
-dest_files=["res://.godot/imported/punch-1.wav-1130650e5dd0a875ceaf848089aa6341.sample"]
+source_file="res://assets/audio/hit/wood/wood_2.wav"
+dest_files=["res://.godot/imported/wood_2.wav-bf5b7409588631930abc8446dbbc194c.sample"]
 
 [params]
 

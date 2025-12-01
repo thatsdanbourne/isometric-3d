@@ -20,7 +20,6 @@ public partial class Player : CharacterBody3D
 
     private World world;
     private BiomeTintOverlay tintOverlay;
-    private GodotObject AudioManager;
 
     private AnimatedSprite3D sprite;
     private Timer hitCooldown;
@@ -34,7 +33,6 @@ public partial class Player : CharacterBody3D
 
     public override void _Ready()
     {
-        AudioManager = GetNode("/root/AudioManager");
         world = GetNode<World>("../../");
         tintOverlay = world.GetNode<BiomeTintOverlay>("BiomeTint/BiomeOverlay");
         sprite = GetNode<AnimatedSprite3D>("AnimatedSprite3D");
@@ -92,7 +90,8 @@ public partial class Player : CharacterBody3D
         ToolItem tool = GetActiveTool();
         if (tool == null) return;
 
-        AudioManager.Call("play_random_at", tool.SwingSounds, GlobalPosition, AudioManager.Get("BUS_TOOLS"), 0.1f, -12);
+        AudioManager.Instance.PlayAt(tool.SwingSoundsKey,GlobalPosition, 0.1f);
+        // AudioManager.Call("play_random_at", tool.SwingSounds, GlobalPosition, AudioManager.Get("BUS_TOOLS"), 0.1f, -12);
 
         hitCooldown.Start();
 

@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://cyw5ygft1vb4h"
-path="res://.godot/imported/sfx-pop.wav-7ad82c235c7786b6f7ef0dfd2077dbf9.sample"
+uid="uid://1gheblmrm0ol"
+path="res://.godot/imported/mine_3.wav-d0eeafb3497304fa47ca1c65820144b2.sample"
 
 [deps]
 
-source_file="res://assets/audio/sfx-pop.wav"
-dest_files=["res://.godot/imported/sfx-pop.wav-7ad82c235c7786b6f7ef0dfd2077dbf9.sample"]
+source_file="res://assets/audio/hit/stone/mine_3.wav"
+dest_files=["res://.godot/imported/mine_3.wav-d0eeafb3497304fa47ca1c65820144b2.sample"]
 
 [params]
 

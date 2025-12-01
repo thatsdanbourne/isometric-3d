@@ -5,10 +5,10 @@
 [ext_resource type="Script" uid="uid://dcrpwvqoyfatg" path="res://items/Item.cs" id="2_1gtcl"]
 [ext_resource type="PackedScene" uid="uid://bfufo5te5o1lo" path="res://scenes/ShadowCard.tscn" id="3_874r4"]
 [ext_resource type="Resource" uid="uid://bp4c6r2b8t7c6" path="res://items/resources/Wood.tres" id="3_r0kve"]
-[ext_resource type="AudioStream" uid="uid://clmo6bbsomgka" path="res://assets/audio/hit/wood/punch-1.wav" id="4_ego7h"]
-[ext_resource type="AudioStream" uid="uid://p2b6xreyd0w0" path="res://assets/audio/hit/wood/punch-2.wav" id="5_m0q6n"]
-[ext_resource type="AudioStream" uid="uid://cyln77knp16sn" path="res://assets/audio/hit/wood/punch-3.wav" id="6_ummhw"]
-[ext_resource type="AudioStream" uid="uid://dwmg1vju83tfh" path="res://assets/audio/hit/wood/punch-4.wav" id="7_82hvc"]
+[ext_resource type="AudioStream" uid="uid://clmo6bbsomgka" path="res://assets/audio/hit/wood/wood_1.wav" id="4_ego7h"]
+[ext_resource type="AudioStream" uid="uid://p2b6xreyd0w0" path="res://assets/audio/hit/wood/wood_2.wav" id="5_m0q6n"]
+[ext_resource type="AudioStream" uid="uid://cyln77knp16sn" path="res://assets/audio/hit/wood/wood_3.wav" id="6_ummhw"]
+[ext_resource type="AudioStream" uid="uid://dwmg1vju83tfh" path="res://assets/audio/hit/wood/wood_4.wav" id="7_82hvc"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_874r4"]
 size = Vector3(0.8, 0.8, 0.8)

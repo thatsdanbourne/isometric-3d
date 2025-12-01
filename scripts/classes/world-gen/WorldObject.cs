@@ -11,7 +11,7 @@ public partial class WorldObject : Node3D
     [Export] public Godot.Collections.Array<Item> DropItems { get; set; } = new Godot.Collections.Array<Item>();
     [Export] public int DropCountMin { get; set; } = 2;
     [Export] public int DropCountMax { get; set; } = 4;
-    [Export] public Godot.Collections.Array<AudioStream> HitSounds { get; set; } = new Godot.Collections.Array<AudioStream>();
+    [Export] public string HitSoundsKey { get; set; } = "hit_wood";
 
     private static readonly Dictionary<Texture2D, StandardMaterial3D> MaterialCache = new Dictionary<Texture2D, StandardMaterial3D>();
     private static readonly StandardMaterial3D BaseMaterial = GD.Load<StandardMaterial3D>("res://resources/materials/WorldObjectBase.tres");
@@ -23,8 +23,6 @@ public partial class WorldObject : Node3D
     public World World;
     public Chunk Chunk;
 
-    private GodotObject AudioManager;
-
     private RandomNumberGenerator rng = new RandomNumberGenerator();
     private PackedScene pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
 
@@ -34,7 +32,6 @@ public partial class WorldObject : Node3D
     public override void _Ready()
     {
         visual = GetNode<Node3D>("Sprite3D") ?? GetNode<Node3D>("AnimatedSprite3D");
-        AudioManager = GetNode("/root/AudioManager");
 
         rng.Randomize();
         Translate(new Vector3(0f, 0f, rng.RandfRange(-0.01f, 0.01f)));
@@ -46,7 +43,7 @@ public partial class WorldObject : Node3D
     public async virtual void ApplyDamage(float amount, Vector3 fromDirection)
     {
         await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
-        AudioManager.Call("play_random_at", HitSounds, GlobalPosition, AudioManager.Get("BUS_WORLD"), 0.1f);
+        AudioManager.Instance.PlayVariantAt(HitSoundsKey, GlobalPosition, 0.1f);
         ApplyHitShake(fromDirection);
         currentHealth -= amount;
         if (currentHealth <= 0)
@@ -79,8 +76,8 @@ public partial class WorldObject : Node3D
             
             for (int n = 0; n < quantity; n++)
             {
-                var pickup = pickupScene.Instantiate<Node3D>();
-                pickup.Set("item", item);
+                ItemPickup pickup = pickupScene.Instantiate<ItemPickup>();
+                pickup.Item = item;
 
                 GetParent().AddChild(pickup);
                 pickup.GlobalPosition = GlobalPosition;

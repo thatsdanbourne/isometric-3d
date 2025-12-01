@@ -17,10 +17,10 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-AudioManager="*res://scripts/helpers/AudioManager.gd"
 CraftingRegistry="*res://scripts/registries/CraftingRegistry.cs"
 CraftingManager="*res://scripts/helpers/CraftingManager.cs"
 InventoryManager="*res://scripts/helpers/InventoryManager.cs"
+AudioManager="*res://scripts/helpers/AudioManager.cs"
 
 [display]
 
@@ -98,4 +98,4 @@ common/physics_interpolation=true
 
 textures/canvas_textures/default_texture_filter=0
 textures/vram_compression/import_etc2_astc=true
-environment/defaults/default_clear_color=Color(0.15487596, 0.154876, 0.1548759, 1)
+environment/defaults/default_clear_color=Color(0.106236584, 0.106236584, 0.106236555, 1)
