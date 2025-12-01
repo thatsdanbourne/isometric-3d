@@ -1,7 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://6rj14wxgrsky"]
+[gd_scene load_steps=3 format=3 uid="uid://bfufo5te5o1lo"]
 
 [ext_resource type="Texture2D" uid="uid://cgvtrt5qt4y8s" path="res://assets/sprites/tree/tree_shadow.png" id="1_ugxfi"]
-[ext_resource type="Script" uid="uid://diwq7xko3q1hq" path="res://scripts/ShadowCard.gd" id="2_qmvqi"]
+[ext_resource type="Script" uid="uid://cmwcp3h7g8yii" path="res://scripts/ShadowCard.cs" id="2_qmvqi"]
 
 [node name="ShadowCard" type="Sprite3D"]
 cast_shadow = 3

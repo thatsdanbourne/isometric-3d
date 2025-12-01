@@ -2,15 +2,15 @@
 
 [ext_resource type="Script" uid="uid://bo5gppxxuljem" path="res://scripts/Game.gd" id="1_0uv0p"]
 [ext_resource type="Script" uid="uid://dqaj5pnbqxlnv" path="res://scripts/tools/Debug.gd" id="1_d1c63"]
-[ext_resource type="MeshLibrary" uid="uid://8k2cbn1jtmco" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
-[ext_resource type="Script" uid="uid://clha2a03grojb" path="res://scripts/DayNightCycle.gd" id="3_1lgw5"]
+[ext_resource type="MeshLibrary" uid="uid://mdcrqmssv47f" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD.tscn" id="3_b3faq"]
 [ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="3_h1bdy"]
 [ext_resource type="Script" uid="uid://ddvbtaf4ymjhc" path="res://scripts/World.cs" id="4_ygioq"]
 [ext_resource type="PackedScene" uid="uid://di4w6cxgjeo66" path="res://scenes/player/Player.tscn" id="5_1lgw5"]
 [ext_resource type="Shader" uid="uid://cmpvdcty3aeoe" path="res://resources/shaders/BiomeTint.gdshader" id="5_b3faq"]
 [ext_resource type="Script" uid="uid://jljrsp7sebsl" path="res://scenes/BiomeTintOverlay.gd" id="6_ygioq"]
-[ext_resource type="MeshLibrary" uid="uid://ey4q01wucqbw" path="res://water_meshlibrary.tres" id="8_pdh0q"]
+[ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/DayNightCycle.cs" id="8_nrtoj"]
+[ext_resource type="MeshLibrary" uid="uid://6xr0lwa0vfbh" path="res://water_meshlibrary.tres" id="8_pdh0q"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_d1c63"]
 font = ExtResource("3_h1bdy")
@@ -78,8 +78,10 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0)
 script = ExtResource("6_ygioq")
 
-[node name="DayNightCycle" type="Node" parent="World"]
-script = ExtResource("3_1lgw5")
+[node name="DayNightCycle" type="Node" parent="World" node_paths=PackedStringArray("Sun", "WorldEnvironment")]
+script = ExtResource("8_nrtoj")
+Sun = NodePath("../Sun")
+WorldEnvironment = NodePath("../WorldEnvironment")
 
 [node name="Sun" type="DirectionalLight3D" parent="World"]
 transform = Transform3D(-0.036643866, 0.54427326, -0.8381073, 0, 0.83867055, 0.54463905, 0.9993283, 0.019957682, -0.030732134, 0, 20, 0)
