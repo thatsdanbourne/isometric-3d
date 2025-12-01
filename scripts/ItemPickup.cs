@@ -58,12 +58,6 @@ public partial class ItemPickup : Node3D
 
 			mat.AlbedoTexture = Item.Icon;
 			mat.BillboardMode = BaseMaterial3D.BillboardModeEnum.Enabled;
-			mat.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
-			mat.DisableReceiveShadows = true;
-			mat.Transparency = BaseMaterial3D.TransparencyEnum.AlphaScissor;
-			mat.AlphaScissorThreshold = 0.1f;
-			mat.TextureFilter = BaseMaterial3D.TextureFilterEnum.Nearest;
-
 			MaterialCache[Item.Icon] = mat;
 		}
 

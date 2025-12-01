@@ -1,10 +1,16 @@
-[gd_scene load_steps=8 format=3 uid="uid://nf3wsg32yh2f"]
+[gd_scene load_steps=15 format=3 uid="uid://nf3wsg32yh2f"]
 
 [ext_resource type="Script" uid="uid://drg8a4mhwswat" path="res://scripts/ui/HUD.cs" id="1_kw0id"]
 [ext_resource type="StyleBox" uid="uid://cnx8lp71uqiyw" path="res://resources/ui/WindowStyle.tres" id="2_4ed8p"]
 [ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="2_atyv1"]
 [ext_resource type="Script" uid="uid://dud8rgc0ebwfn" path="res://scripts/ui/crafting/CraftingUI.cs" id="3_6ll6g"]
-[ext_resource type="PackedScene" uid="uid://d34hhl3mhgyeh" path="res://scenes/ui/Tooltip.tscn" id="4_ig75s"]
+[ext_resource type="PackedScene" uid="uid://d34hhl3mhgyeh" path="res://scenes/ui/HUD/Tooltip.tscn" id="4_ig75s"]
+[ext_resource type="Script" uid="uid://rr6jn3yd21q8" path="res://scripts/menus/MenuManager.cs" id="6_3d81a"]
+[ext_resource type="Script" uid="uid://r4poqy53payu" path="res://scripts/menus/BlurOverlay.cs" id="6_cfen4"]
+[ext_resource type="PackedScene" uid="uid://uva5v2hjcxj2" path="res://scenes/menus/PauseMenu.tscn" id="6_tsn87"]
+[ext_resource type="Shader" uid="uid://s43uv6dsqi6r" path="res://resources/shaders/UIBlur.gdshader" id="6_yggh4"]
+[ext_resource type="PackedScene" uid="uid://c35jmhuadbjjf" path="res://scenes/menus/settings/SettingsMenu.tscn" id="10_2d5vn"]
+[ext_resource type="PackedScene" uid="uid://cxwbi3kugkjk2" path="res://scenes/menus/settings/SettingsVideo.tscn" id="11_5j4hk"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_6ll6g"]
 font = ExtResource("2_atyv1")
@@ -14,7 +20,12 @@ font_size = 32
 font = ExtResource("2_atyv1")
 font_size = 32
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2d5vn"]
+shader = ExtResource("6_yggh4")
+shader_parameter/lod = 1.0
+
 [node name="HUD" type="CanvasLayer"]
+process_mode = 3
 script = ExtResource("1_kw0id")
 
 [node name="CursorItem" type="Control" parent="."]
@@ -150,3 +161,32 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="TooltipManager" parent="." instance=ExtResource("4_ig75s")]
+
+[node name="MenuManager" type="Node" parent="."]
+script = ExtResource("6_3d81a")
+
+[node name="BlurOverlay" type="Control" parent="MenuManager"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("6_cfen4")
+
+[node name="ColorRect" type="ColorRect" parent="MenuManager/BlurOverlay"]
+material = SubResource("ShaderMaterial_2d5vn")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 1, 1, 0)
+
+[node name="PauseMenu" parent="MenuManager" instance=ExtResource("6_tsn87")]
+visible = false
+
+[node name="SettingsMenu" parent="MenuManager" instance=ExtResource("10_2d5vn")]
+
+[node name="SettingsVideo" parent="MenuManager" instance=ExtResource("11_5j4hk")]

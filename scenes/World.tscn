@@ -2,13 +2,13 @@
 
 [ext_resource type="MeshLibrary" uid="uid://mdcrqmssv47f" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="Script" uid="uid://ciarma0geh450" path="res://scripts/tools/Debug.cs" id="2_h1bdy"]
-[ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD.tscn" id="3_b3faq"]
+[ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD/HUD.tscn" id="3_b3faq"]
 [ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="3_h1bdy"]
 [ext_resource type="Script" uid="uid://ddvbtaf4ymjhc" path="res://scripts/World.cs" id="4_ygioq"]
 [ext_resource type="PackedScene" uid="uid://di4w6cxgjeo66" path="res://scenes/player/Player.tscn" id="5_1lgw5"]
 [ext_resource type="Shader" uid="uid://cmpvdcty3aeoe" path="res://resources/shaders/BiomeTint.gdshader" id="5_b3faq"]
 [ext_resource type="Script" uid="uid://c6er6so1dhf3" path="res://scripts/helpers/BiomeTintOverlay.cs" id="7_h1bdy"]
-[ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/DayNightCycle.cs" id="8_nrtoj"]
+[ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/helpers/DayNightCycle.cs" id="8_nrtoj"]
 [ext_resource type="MeshLibrary" uid="uid://6xr0lwa0vfbh" path="res://water_meshlibrary.tres" id="8_pdh0q"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_d1c63"]

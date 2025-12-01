@@ -13,7 +13,7 @@ public partial class RecipeEntry : HBoxContainer
 	public List<IngredientInfo> Ingredients = new();
 	public CraftingRecipe Recipe;
 
-	public PackedScene containerSlotScene = GD.Load<PackedScene>("res://scenes/ui/ItemContainerSlot.tscn");
+	public PackedScene containerSlotScene = GD.Load<PackedScene>("res://scenes/ui/HUD/ItemContainerSlot.tscn");
 	public StyleBoxFlat slotDefaultStyle = ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotStyle.tres");
 	public StyleBoxFlat slotHighlightStyle = ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotHighlight.tres");
 	

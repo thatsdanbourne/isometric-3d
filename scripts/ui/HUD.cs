@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public partial class HUD : CanvasLayer
 {
 	private PackedScene pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
-	public PackedScene slotPanelScene = ResourceLoader.Load<PackedScene>("res://scenes/ui/ItemContainerSlot.tscn");
+	public PackedScene slotPanelScene = ResourceLoader.Load<PackedScene>("res://scenes/ui/HUD/ItemContainerSlot.tscn");
 
 	private StyleBoxFlat slotStyle = ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotStyle.tres");
 	private StyleBoxFlat slotHighlightStyle = ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotHighlight.tres");
@@ -102,15 +102,30 @@ public partial class HUD : CanvasLayer
 			craftingRoot.Visible = !craftingRoot.Visible;
         }
 
-		if (e.IsActionPressed("close")) {
+		if (e.IsActionPressed("ui_cancel")) {
             if (WindowOpen)
             {
                 inventoryRoot.Visible = false;
 				craftingRoot.Visible = false;
 				tooltip.Visible = false;
-            } else
+            } 
+			else
             {
-                // settings menu
+				if (MenuManager.Instance.HasMenus)
+                {
+                    var top = MenuManager.Instance.Peek();
+
+					if (top is PauseMenu pm){
+                        pm.Close();
+						return;
+                    }
+
+					MenuManager.Instance.Pop();
+					return;
+                }
+
+                var pauseMenu = GetNode<PauseMenu>("MenuManager/PauseMenu");
+				pauseMenu.Open();
             }
         }
     }
