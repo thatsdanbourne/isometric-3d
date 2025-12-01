@@ -46,9 +46,6 @@ public partial class World : Node3D
 
 	public override void _Ready()
 	{
-		var worldUtils = GetNode<GodotObject>("/root/WorldUtils");
-		worldUtils.Set("world", this);
-
 		rng = new RandomNumberGenerator();
 		rng.Randomize();
 

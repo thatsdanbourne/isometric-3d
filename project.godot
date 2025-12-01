@@ -17,7 +17,6 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-WorldUtils="*res://scripts/helpers/WorldUtils.gd"
 AudioManager="*res://scripts/helpers/AudioManager.gd"
 CraftingRegistry="*res://scripts/registries/CraftingRegistry.cs"
 CraftingManager="*res://scripts/helpers/CraftingManager.cs"

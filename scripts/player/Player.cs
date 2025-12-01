@@ -16,7 +16,7 @@ public partial class Player : CharacterBody3D
     public string CurrentBiome { get; private set; } = "";
 
     private World world;
-    private GodotObject WorldUtils;
+    private BiomeTintOverlay tintOverlay;
     private GodotObject AudioManager;
 
     private AnimatedSprite3D sprite;
@@ -31,9 +31,9 @@ public partial class Player : CharacterBody3D
 
     public override void _Ready()
     {
-        WorldUtils = GetNode("/root/WorldUtils");
         AudioManager = GetNode("/root/AudioManager");
         world = GetNode<World>("../../");
+        tintOverlay = world.GetNode<BiomeTintOverlay>("BiomeTint/BiomeOverlay");
         sprite = GetNode<AnimatedSprite3D>("AnimatedSprite3D");
         hitCooldown = GetNode<Timer>("HitCooldown");
         hitRay = GetNode<RayCast3D>("HitRay");
@@ -61,7 +61,7 @@ public partial class Player : CharacterBody3D
         if (!string.IsNullOrEmpty(biome) && biome != CurrentBiome)
         {
             CurrentBiome = biome;
-            WorldUtils.Call("update_biome_tint", CurrentBiome);
+            tintOverlay.SetTintForBiome(biome);
         }
     }
 

@@ -8,7 +8,7 @@
 [ext_resource type="Script" uid="uid://ddvbtaf4ymjhc" path="res://scripts/World.cs" id="4_ygioq"]
 [ext_resource type="PackedScene" uid="uid://di4w6cxgjeo66" path="res://scenes/player/Player.tscn" id="5_1lgw5"]
 [ext_resource type="Shader" uid="uid://cmpvdcty3aeoe" path="res://resources/shaders/BiomeTint.gdshader" id="5_b3faq"]
-[ext_resource type="Script" uid="uid://jljrsp7sebsl" path="res://scenes/BiomeTintOverlay.gd" id="6_ygioq"]
+[ext_resource type="Script" uid="uid://c6er6so1dhf3" path="res://scripts/helpers/BiomeTintOverlay.cs" id="7_h1bdy"]
 [ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/DayNightCycle.cs" id="8_nrtoj"]
 [ext_resource type="MeshLibrary" uid="uid://6xr0lwa0vfbh" path="res://water_meshlibrary.tres" id="8_pdh0q"]
 
@@ -76,7 +76,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0)
-script = ExtResource("6_ygioq")
+script = ExtResource("7_h1bdy")
 
 [node name="DayNightCycle" type="Node" parent="World" node_paths=PackedStringArray("Sun", "WorldEnvironment")]
 script = ExtResource("8_nrtoj")
