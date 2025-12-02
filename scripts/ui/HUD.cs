@@ -124,8 +124,7 @@ public partial class HUD : CanvasLayer
 					return;
                 }
 
-                var pauseMenu = GetNode<PauseMenu>("MenuManager/PauseMenu");
-				pauseMenu.Open();
+               	MenuManager.Instance.GetNode<PauseMenu>("PauseMenu").Open();
             }
         }
     }

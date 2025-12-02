@@ -16,14 +16,14 @@ public partial class SettingsVideo : Control
 	public override void _Ready()
     {
 		Visible = false;
-		
-        fullscreen = GetNode<CheckBox>("VBoxContainer/Fullscreen");
-        borderless = GetNode<CheckBox>("VBoxContainer/Borderless");
-        vsync = GetNode<CheckBox>("VBoxContainer/VSync");
-        ssao = GetNode<CheckBox>("VBoxContainer/SSAO");
 
-		applyButton = GetNode<Button>("VBoxContainer/Apply");
-		backButton = GetNode<Button>("VBoxContainer/Back");
+        fullscreen = GetNode<CheckBox>("VBoxContainer/MarginContainer/VBoxContainer/Fullscreen");
+        borderless = GetNode<CheckBox>("VBoxContainer/MarginContainer/VBoxContainer/Borderless");
+        vsync = GetNode<CheckBox>("VBoxContainer/MarginContainer/VBoxContainer/VSync");
+        ssao = GetNode<CheckBox>("VBoxContainer/MarginContainer/VBoxContainer/SSAO");
+
+		applyButton = GetNode<Button>("VBoxContainer/HBoxContainer/Apply");
+		backButton = GetNode<Button>("VBoxContainer/HBoxContainer/Back");
 
 		applyButton.Pressed += OnApply;
 		backButton.Pressed += OnBack;

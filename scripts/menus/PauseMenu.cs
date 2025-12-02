@@ -6,19 +6,16 @@ public partial class PauseMenu : Control
 	private Button settings;
 	private Button quitDesktop;
 
-	private BlurOverlay blur;
-
 	public bool IsOpen { get; private set; } = false;
+
 
 	public override void _Ready()
 	{
 		Visible = false;
 
-		resume = GetNode<Button>("VBoxContainer/Resume");
-		settings = GetNode<Button>("VBoxContainer/Settings");
-		quitDesktop = GetNode<Button>("VBoxContainer/QuitDesktop");
-
-		blur = GetNode<BlurOverlay>("../BlurOverlay");
+		resume = GetNode<Button>("VBoxContainer/MarginContainer/VBoxContainer/Resume");
+		settings = GetNode<Button>("VBoxContainer/MarginContainer/VBoxContainer/Settings");
+		quitDesktop = GetNode<Button>("VBoxContainer/MarginContainer/VBoxContainer/QuitDesktop");
 
 		resume.Pressed += OnResume;
 		settings.Pressed += OnSettings;
@@ -27,12 +24,9 @@ public partial class PauseMenu : Control
 
 	public void Open()
     {
-        MenuManager.Instance.ClearStack();
         MenuManager.Instance.Push(this);
 
         GetTree().Paused = true;
-        blur.FadeIn();
-
         IsOpen = true;
     }
 
@@ -40,9 +34,7 @@ public partial class PauseMenu : Control
     {
         MenuManager.Instance.ClearStack();
 
-        blur.FadeOut();
         GetTree().Paused = false;
-
         Visible = false;
         IsOpen = false;
     }
@@ -51,7 +43,7 @@ public partial class PauseMenu : Control
 
 	private void OnSettings()
     {
-        var menu = GetNode<Control>("../SettingsMenu");
+        var menu = MenuManager.Instance.GetNode<SettingsMenu>("SettingsMenu");
         MenuManager.Instance.Push(menu);
     }
 

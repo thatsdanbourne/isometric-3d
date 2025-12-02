@@ -1,13 +1,18 @@
-[gd_scene load_steps=16 format=3 uid="uid://dtgd4yjkf4awx"]
+[gd_scene load_steps=22 format=3 uid="uid://dtgd4yjkf4awx"]
 
 [ext_resource type="MeshLibrary" uid="uid://mdcrqmssv47f" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="Script" uid="uid://ciarma0geh450" path="res://scripts/tools/Debug.cs" id="2_h1bdy"]
 [ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD/HUD.tscn" id="3_b3faq"]
 [ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="3_h1bdy"]
+[ext_resource type="PackedScene" uid="uid://uva5v2hjcxj2" path="res://scenes/menus/PauseMenu.tscn" id="4_7c4bj"]
+[ext_resource type="Script" uid="uid://rr6jn3yd21q8" path="res://scripts/menus/MenuManager.cs" id="4_i4b1j"]
 [ext_resource type="Script" uid="uid://ddvbtaf4ymjhc" path="res://scripts/World.cs" id="4_ygioq"]
 [ext_resource type="PackedScene" uid="uid://di4w6cxgjeo66" path="res://scenes/player/Player.tscn" id="5_1lgw5"]
 [ext_resource type="Shader" uid="uid://cmpvdcty3aeoe" path="res://resources/shaders/BiomeTint.gdshader" id="5_b3faq"]
+[ext_resource type="Shader" uid="uid://cbwi8c1npa1k3" path="res://resources/shaders/Blur.gdshader" id="5_c0d7e"]
+[ext_resource type="PackedScene" uid="uid://c35jmhuadbjjf" path="res://scenes/menus/settings/SettingsMenu.tscn" id="6_c0d7e"]
 [ext_resource type="Script" uid="uid://c6er6so1dhf3" path="res://scripts/helpers/BiomeTintOverlay.cs" id="7_h1bdy"]
+[ext_resource type="PackedScene" uid="uid://cxwbi3kugkjk2" path="res://scenes/menus/settings/SettingsVideo.tscn" id="7_o1tcx"]
 [ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/helpers/DayNightCycle.cs" id="8_nrtoj"]
 [ext_resource type="MeshLibrary" uid="uid://6xr0lwa0vfbh" path="res://water_meshlibrary.tres" id="8_pdh0q"]
 
@@ -22,6 +27,10 @@ font_size = 32
 [sub_resource type="LabelSettings" id="LabelSettings_0uv0p"]
 font = ExtResource("3_h1bdy")
 font_size = 32
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_o1tcx"]
+shader = ExtResource("5_c0d7e")
+shader_parameter/blur_amount = 1.5
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ygioq"]
 shader = ExtResource("5_b3faq")
@@ -67,6 +76,27 @@ label_settings = SubResource("LabelSettings_0uv0p")
 
 [node name="HUD" parent="." instance=ExtResource("3_b3faq")]
 layer = 2
+
+[node name="Menus" type="CanvasLayer" parent="."]
+process_mode = 3
+layer = 4
+
+[node name="MenuManager" type="Node" parent="Menus"]
+script = ExtResource("4_i4b1j")
+
+[node name="BlurOverlay" type="ColorRect" parent="Menus/MenuManager"]
+material = SubResource("ShaderMaterial_o1tcx")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PauseMenu" parent="Menus/MenuManager" instance=ExtResource("4_7c4bj")]
+
+[node name="SettingsMenu" parent="Menus/MenuManager" instance=ExtResource("6_c0d7e")]
+
+[node name="SettingsVideo" parent="Menus/MenuManager" instance=ExtResource("7_o1tcx")]
 
 [node name="World" type="Node3D" parent="." node_paths=PackedStringArray("WorldObjects", "GroundMap", "WaterMap", "Player")]
 script = ExtResource("4_ygioq")

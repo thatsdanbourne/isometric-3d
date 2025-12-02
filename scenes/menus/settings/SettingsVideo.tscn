@@ -1,6 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://cxwbi3kugkjk2"]
+[gd_scene load_steps=4 format=3 uid="uid://cxwbi3kugkjk2"]
 
 [ext_resource type="Script" uid="uid://behq8g1ks401h" path="res://scripts/menus/SettingsVideo.cs" id="1_yaa60"]
+[ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="2_8x7v5"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_j5d2o"]
+font = ExtResource("2_8x7v5")
+font_size = 64
 
 [node name="SettingsVideo" type="Control"]
 layout_mode = 3
@@ -13,9 +18,9 @@ script = ExtResource("1_yaa60")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = -1
 anchor_left = 0.5
-anchor_top = 0.5
+anchor_top = 0.3
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -20.0
@@ -24,28 +29,68 @@ offset_right = 20.0
 offset_bottom = 20.0
 grow_horizontal = 2
 grow_vertical = 2
+alignment = 1
 
-[node name="Fullscreen" type="CheckBox" parent="VBoxContainer"]
+[node name="Label" type="Label" parent="VBoxContainer"]
 layout_mode = 2
+text = "Video Settings"
+label_settings = SubResource("LabelSettings_j5d2o")
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 64
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 64
+theme_override_constants/margin_bottom = 32
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Fullscreen" type="CheckBox" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_8x7v5")
+theme_override_font_sizes/font_size = 32
 text = "Fullscreen"
+icon_alignment = 2
 
-[node name="Borderless" type="CheckBox" parent="VBoxContainer"]
+[node name="Borderless" type="CheckBox" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_8x7v5")
+theme_override_font_sizes/font_size = 32
 text = "Borderless"
+icon_alignment = 2
 
-[node name="VSync" type="CheckBox" parent="VBoxContainer"]
+[node name="VSync" type="CheckBox" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_8x7v5")
+theme_override_font_sizes/font_size = 32
 text = "VSync"
+icon_alignment = 2
 
-[node name="SSAO" type="CheckBox" parent="VBoxContainer"]
+[node name="SSAO" type="CheckBox" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_8x7v5")
+theme_override_font_sizes/font_size = 32
 text = "SSAO"
+icon_alignment = 2
 
-[node name="Apply" type="Button" parent="VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
-text = "Apply"
+theme_override_constants/separation = 16
+alignment = 1
 
-[node name="Back" type="Button" parent="VBoxContainer"]
+[node name="Back" type="Button" parent="VBoxContainer/HBoxContainer"]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_8x7v5")
+theme_override_font_sizes/font_size = 32
 text = "Back
 "
+flat = true
+
+[node name="Apply" type="Button" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_8x7v5")
+theme_override_font_sizes/font_size = 32
+text = "Apply"
+flat = true
