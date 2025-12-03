@@ -56,7 +56,9 @@ public partial class World : Node3D
 
 		InitTileTypes();
 		SetupNoise();
+
 		ruleRegistry = new RuleRegistry(terrainSeed, worldOffset);
+		
 		StartWorkerThread();
 	}
 

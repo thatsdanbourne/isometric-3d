@@ -52,28 +52,24 @@ layout_mode = 2
 theme_override_fonts/font = ExtResource("2_8x7v5")
 theme_override_font_sizes/font_size = 32
 text = "Fullscreen"
-icon_alignment = 2
 
 [node name="Borderless" type="CheckBox" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_8x7v5")
 theme_override_font_sizes/font_size = 32
 text = "Borderless"
-icon_alignment = 2
 
 [node name="VSync" type="CheckBox" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_8x7v5")
 theme_override_font_sizes/font_size = 32
 text = "VSync"
-icon_alignment = 2
 
 [node name="SSAO" type="CheckBox" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_8x7v5")
 theme_override_font_sizes/font_size = 32
 text = "SSAO"
-icon_alignment = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -82,6 +78,7 @@ alignment = 1
 
 [node name="Back" type="Button" parent="VBoxContainer/HBoxContainer"]
 layout_mode = 2
+focus_mode = 0
 theme_override_fonts/font = ExtResource("2_8x7v5")
 theme_override_font_sizes/font_size = 32
 text = "Back
@@ -90,6 +87,7 @@ flat = true
 
 [node name="Apply" type="Button" parent="VBoxContainer/HBoxContainer"]
 layout_mode = 2
+focus_mode = 0
 theme_override_fonts/font = ExtResource("2_8x7v5")
 theme_override_font_sizes/font_size = 32
 text = "Apply"

@@ -46,6 +46,7 @@ layout_mode = 2
 
 [node name="Video" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
 theme_override_fonts/font = ExtResource("2_5x3ak")
 theme_override_font_sizes/font_size = 32
 text = "Video"
@@ -53,6 +54,7 @@ flat = true
 
 [node name="Audio" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
 theme_override_fonts/font = ExtResource("2_5x3ak")
 theme_override_font_sizes/font_size = 32
 text = "Audio"
@@ -60,6 +62,7 @@ flat = true
 
 [node name="Gameplay" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
 theme_override_fonts/font = ExtResource("2_5x3ak")
 theme_override_font_sizes/font_size = 32
 text = "Gameplay"
@@ -67,6 +70,7 @@ flat = true
 
 [node name="Back" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
 theme_override_fonts/font = ExtResource("2_5x3ak")
 theme_override_font_sizes/font_size = 32
 text = "Back"

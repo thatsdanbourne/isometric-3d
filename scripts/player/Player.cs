@@ -8,7 +8,7 @@ public partial class Player : CharacterBody3D
         GD.Load<PackedScene>("res://scenes/player/CameraController.tscn");
 
     public float Speed = 5.0f;
-    public ToolItem DefaultTool = ResourceLoader.Load<ToolItem>("res://items/tools/fist/Fist.tres");
+    public ToolItem DefaultTool;
     private Item equippedItem;
 
     private bool canSwing = true;
@@ -47,11 +47,14 @@ public partial class Player : CharacterBody3D
         world.CallDeferred(Node.MethodName.AddChild, CameraController);
 
         HUD.RefreshUI();
+        Hotbar.SelectedSlotChanged += OnSelectedSlotChanged;
 
         var mat = (StandardMaterial3D)ResourceLoader.Load<Material>("res://resources/materials/WorldObjectBase.tres").Duplicate();
         mat.AlbedoTexture = sprite.SpriteFrames.GetFrameTexture("idle", 0);
         sprite.MaterialOverride = mat;
         sprite.CastShadow = GeometryInstance3D.ShadowCastingSetting.On;
+
+        DefaultTool = ItemRegistry.GetItem("fist") as ToolItem;
 
         EmitSignal(SignalName.PlayerReady);
     }
@@ -73,6 +76,15 @@ public partial class Player : CharacterBody3D
 
     // tool handling   
 
+    private void OnSelectedSlotChanged(int selectedSlot)
+    {
+        var stack = Hotbar.GetSlot(selectedSlot);
+        if (stack != null)
+            equippedItem = stack.Item ?? null;
+
+        // if (equippedItem is PlaceableItem)
+        //     StartPlacementMode();
+    }
     private ToolItem GetActiveTool()
     {
         var stack = Hotbar.GetSlot(Hotbar.SelectedSlot);
@@ -84,16 +96,11 @@ public partial class Player : CharacterBody3D
 
     private void UseActiveTool()
     {
-        if (!canSwing) return;
-        canSwing = false;
-
         ToolItem tool = GetActiveTool();
         if (tool == null) return;
 
-        AudioManager.Instance.PlayAt(tool.SwingSoundsKey,GlobalPosition, 0.1f);
+        AudioManager.Instance.PlayAt(tool.SwingSoundsKey, GlobalPosition, 0.1f);
         // AudioManager.Call("play_random_at", tool.SwingSounds, GlobalPosition, AudioManager.Get("BUS_TOOLS"), 0.1f, -12);
-
-        hitCooldown.Start();
 
         if (hitRay.IsColliding() && hitRay.GetCollider() is WorldObject wo)
         {
@@ -105,10 +112,20 @@ public partial class Player : CharacterBody3D
         }
     }
 
+    private void PlaceItem()
+    {
+        PlaceableItem item = equippedItem as PlaceableItem;
+        WorldObject obj = item.PlaceableScene.Instantiate<WorldObject>();
+        GetParent().AddChild(obj);
+        obj.GlobalPosition = GlobalPosition + hitRay.TargetPosition.Normalized();
+        InventoryManager.Instance.RemoveItem(this, item, 1);
+        equippedItem = null;
+    }
+
     private void OnObjectBroken(WorldObject obj)
     {
         obj.ObjectBroken -= OnObjectBroken;
-        CameraController?.Shake(0.3f, 1f);
+        CameraController?.Shake(0.3f, 0.7f);
     }
 
     private void OnHitCooldownTimeout()
@@ -162,6 +179,16 @@ public partial class Player : CharacterBody3D
         }
 
         if (Input.IsActionPressed("use_tool") && !HUD.WindowOpen)
-            UseActiveTool();
+        {   
+            if (!canSwing) return;
+            canSwing = false;
+            hitCooldown.Start();
+
+
+            if (equippedItem is PlaceableItem)
+                PlaceItem();
+            else
+                UseActiveTool();
+        }
     }
 }

@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="ObjectPlacementRule" load_steps=7 format=3 uid="uid://d4k65e0iv7pc"]
 
 [ext_resource type="Script" uid="uid://cskxsiga5ihi8" path="res://scripts/classes/world-gen/ObjectPlacementRule.cs" id="1_3gktf"]
-[ext_resource type="PackedScene" uid="uid://cjrcdkqsl4q3i" path="res://scenes/terrain/objects/Tree.tscn" id="1_ul42u"]
+[ext_resource type="PackedScene" uid="uid://cjrcdkqsl4q3i" path="res://scenes/terrain/objects/TreePine.tscn" id="1_ul42u"]
 [ext_resource type="Script" uid="uid://clieeiea6p5gw" path="res://scripts/classes/world-gen/ObjectVariant.cs" id="2_kowue"]
 [ext_resource type="PackedScene" uid="uid://boq2xdti1ve4m" path="res://scenes/terrain/objects/TreeBirch.tscn" id="3_1ghp5"]
 

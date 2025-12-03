@@ -48,6 +48,7 @@ layout_mode = 2
 
 [node name="Resume" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_fonts/font = ExtResource("2_i7533")
 theme_override_font_sizes/font_size = 32
@@ -56,6 +57,7 @@ flat = true
 
 [node name="Settings" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_fonts/font = ExtResource("2_i7533")
 theme_override_font_sizes/font_size = 32
@@ -64,6 +66,7 @@ flat = true
 
 [node name="QuitDesktop" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_fonts/font = ExtResource("2_i7533")
 theme_override_font_sizes/font_size = 32

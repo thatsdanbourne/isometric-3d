@@ -1,5 +1,4 @@
 using Godot;
-using System;
 using System.Collections.Generic;
 
 public partial class WorldObject : Node3D
@@ -8,9 +7,7 @@ public partial class WorldObject : Node3D
 
     [Export] public string ObjectType { get; set; }
     [Export] public float MaxHealth { get; set; } = 3.0f;
-    [Export] public Godot.Collections.Array<Item> DropItems { get; set; } = new Godot.Collections.Array<Item>();
-    [Export] public int DropCountMin { get; set; } = 2;
-    [Export] public int DropCountMax { get; set; } = 4;
+    [Export] public Godot.Collections.Array<DropEntry> DropItems { get; set; } = new Godot.Collections.Array<DropEntry>();
     [Export] public string HitSoundsKey { get; set; } = "hit_wood";
 
     private static readonly Dictionary<Texture2D, StandardMaterial3D> MaterialCache = new Dictionary<Texture2D, StandardMaterial3D>();
@@ -67,12 +64,15 @@ public partial class WorldObject : Node3D
 
         if (DropItems == null) return;
 
-        for (int i = 0; i < DropItems.Count; i++)
+        foreach (var entry in DropItems)
         {
-            var item = DropItems[i];
+            if (GD.Randf() > entry.Chance)
+                continue;
+            
+            var item =ItemRegistry.GetItem(entry.ItemId);
             if (item == null) continue;
 
-            int quantity = rng.RandiRange(DropCountMin, DropCountMax);
+            int quantity = rng.RandiRange(entry.MinQuantity, entry.MaxQuantity);
             
             for (int n = 0; n < quantity; n++)
             {

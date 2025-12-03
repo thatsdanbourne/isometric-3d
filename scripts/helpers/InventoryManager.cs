@@ -119,9 +119,9 @@ public partial class InventoryManager : Node
             int amount = Mathf.Min(item.StackSize, remaining);
             remaining -= amount;
 
-            var drop = itemScene.Instantiate<Node3D>();
-            drop.Set("item", item);
-            drop.Set("count", amount);
+            ItemPickup drop = itemScene.Instantiate<ItemPickup>();
+            drop.Item = item;
+            drop.Count = amount;
 
             var world = player.GetParent();
             world.AddChild(drop);

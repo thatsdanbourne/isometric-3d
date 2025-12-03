@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="ObjectVariant" load_steps=3 format=3 uid="uid://dngcn24uq4jti"]
 
-[ext_resource type="PackedScene" uid="uid://cjrcdkqsl4q3i" path="res://scenes/terrain/objects/Tree.tscn" id="1_8w22t"]
+[ext_resource type="PackedScene" uid="uid://cjrcdkqsl4q3i" path="res://scenes/terrain/objects/TreePine.tscn" id="1_8w22t"]
 [ext_resource type="Script" uid="uid://clieeiea6p5gw" path="res://scripts/classes/world-gen/ObjectVariant.cs" id="1_h7lih"]
 
 [resource]

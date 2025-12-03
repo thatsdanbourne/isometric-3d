@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="ToolItem" load_steps=2 format=3 uid="uid://bqaruhqjb4ygl"]
-
-[ext_resource type="Script" uid="uid://bmph2758ofybm" path="res://items/ToolItem.cs" id="1_e5l3b"]
-
-[resource]
-script = ExtResource("1_e5l3b")
-ToolType = "fist"
-SwingSoundsKey = "fist_1"
-metadata/_custom_type_script = "uid://bmph2758ofybm"

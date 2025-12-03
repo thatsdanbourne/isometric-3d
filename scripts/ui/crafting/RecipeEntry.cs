@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public partial class RecipeEntry : HBoxContainer
 {
-	[Signal] public delegate void CraftItemEventHandler(CraftingRecipe recipe);
+	[Signal] public delegate void CraftItemEventHandler(string resultItemId);
 
 	[Export] public HBoxContainer IngredientsContainer { get; set; }
 	[Export] public ItemContainerSlot Result { get; set; }
@@ -25,7 +25,7 @@ public partial class RecipeEntry : HBoxContainer
 
 		foreach (var ingredient in r.Ingredients)
         {
-			Item item = ingredient.Key;
+			Item item = ItemRegistry.GetItem(ingredient.Key);
 			int requiredCount = ingredient.Value;
 			Ingredients.Add(new IngredientInfo(item, requiredCount));
 			
@@ -35,21 +35,22 @@ public partial class RecipeEntry : HBoxContainer
 			
 			var ingIcon = ingredientSlot.GetNode<TextureRect>("Icon");
 			var ingCount = ingredientSlot.GetNode<Label>("Label");
-			ingIcon.Texture = ingredient.Key.Icon;
-			ingCount.Text = ingredient.Value.ToString();
+			ingIcon.Texture = item.Icon;
+			ingCount.Text = requiredCount.ToString();
 
 			IngredientSlots.Add(ingredientSlot);
 			IngredientsContainer.AddChild(ingredientSlot);
         }
 
 		Recipe = r;
+		Item recipeResultItem = ItemRegistry.GetItem(r.ResultItemId);
 
 		var resIcon = Result.GetNode<TextureRect>("Icon");
 		var resCount = Result.GetNode<Label>("Label");
-		resIcon.Texture = r.ResultItem.Icon;
+		resIcon.Texture = recipeResultItem.Icon;
 		resCount.Text = r.ResultCount.ToString();
 
-		Result.SetStack(new ItemStack(r.ResultItem, r.ResultCount));
+		Result.SetStack(new ItemStack(recipeResultItem, r.ResultCount));
 		Result.HoldToActivate = true;
 		Result.SlotHoldCompleted += OnCraftHoldCompleted;
 		Result.AddThemeStyleboxOverride("panel", slotHighlightStyle);
@@ -57,7 +58,7 @@ public partial class RecipeEntry : HBoxContainer
 
 	private void OnCraftHoldCompleted()
 	{
-		EmitSignal(SignalName.CraftItem, Recipe);
+		EmitSignal(SignalName.CraftItem, Recipe.ResultItemId);
 	}
 }
 

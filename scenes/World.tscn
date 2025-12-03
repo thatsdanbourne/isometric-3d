@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://dtgd4yjkf4awx"]
+[gd_scene load_steps=23 format=3 uid="uid://dtgd4yjkf4awx"]
 
 [ext_resource type="MeshLibrary" uid="uid://mdcrqmssv47f" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="Script" uid="uid://ciarma0geh450" path="res://scripts/tools/Debug.cs" id="2_h1bdy"]
@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" uid="uid://cxwbi3kugkjk2" path="res://scenes/menus/settings/SettingsVideo.tscn" id="7_o1tcx"]
 [ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/helpers/DayNightCycle.cs" id="8_nrtoj"]
 [ext_resource type="MeshLibrary" uid="uid://6xr0lwa0vfbh" path="res://water_meshlibrary.tres" id="8_pdh0q"]
+[ext_resource type="PackedScene" uid="uid://lj1llqg1bjxs" path="res://scenes/Campfire.tscn" id="16_o1tcx"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_d1c63"]
 font = ExtResource("3_h1bdy")
@@ -157,3 +158,6 @@ metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="Player" parent="World/WorldObjects" instance=ExtResource("5_1lgw5")]
 transform = Transform3D(0.7071067, 0, 0.7071067, 0, 0.99999994, 0, -0.7071067, 0, 0.7071067, 0, 0, 0)
+
+[node name="Campfire" parent="World" instance=ExtResource("16_o1tcx")]
+transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 3.365872, 1.1920929e-07, 2.260151)

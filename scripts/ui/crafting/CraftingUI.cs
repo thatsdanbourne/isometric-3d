@@ -31,7 +31,7 @@ public partial class CraftingUI : Control
 
 	private void BuildRecipeList()
 	{
-		foreach (var recipe in CraftingRegistry.Instance.Recipes)
+		foreach (var recipe in CraftingRegistry.AllRecipes())
         {
 			var entry = recipeEntryScene.Instantiate<RecipeEntry>();
 			entry.SetRecipe(recipe, Player);
@@ -42,9 +42,9 @@ public partial class CraftingUI : Control
         }
 	}
 
-	private void CraftItem(CraftingRecipe recipe)
+	private void CraftItem(string resultItemId)
 	{
-		CraftingManager.Instance.CraftItem(Player, recipe);
+		CraftingManager.Instance.CraftItem(Player, resultItemId);
 		RefreshCraftingUI();
 	}
 

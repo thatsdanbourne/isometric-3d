@@ -16,7 +16,7 @@ public partial class CraftingManager : Node
 
         foreach (var ingredient in recipe.Ingredients)
         {
-            Item item = ingredient.Key;
+            Item item = ItemRegistry.GetItem(ingredient.Key);
             int required = ingredient.Value;
 
             totalAvailable = InventoryManager.Instance.GetItemTotalCount(item, player.Inventory, player.Hotbar);
@@ -28,14 +28,16 @@ public partial class CraftingManager : Node
         return true;
     }
 
-    public bool CraftItem(Player player, CraftingRecipe recipe)
+    public bool CraftItem(Player player, string resultItemId)
     {
-        if (!CanCraft(player, recipe))
+        var recipe = CraftingRegistry.GetRecipe(resultItemId);
+        
+        if (recipe == null || !CanCraft(player, recipe))
             return false;
         
         foreach (var ingredient in recipe.Ingredients)
         {
-            Item item = ingredient.Key;
+            Item item = ItemRegistry.GetItem(ingredient.Key);
             int required = ingredient.Value;
 
            int leftover = InventoryManager.Instance.RemoveItem(player, item, required);
@@ -43,7 +45,7 @@ public partial class CraftingManager : Node
                return false; // fallback if CanCraft fails for some reason
         }
 
-        InventoryManager.Instance.AddItem(player, recipe.ResultItem, recipe.ResultCount);
+        InventoryManager.Instance.AddItem(player, ItemRegistry.GetItem(recipe.ResultItemId), recipe.ResultCount);
         return true;
     }
 }

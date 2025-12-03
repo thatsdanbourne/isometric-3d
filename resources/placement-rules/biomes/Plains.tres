@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BiomePlacementRule" load_steps=12 format=3 uid="uid://doa60ksmg3wrm"]
+[gd_resource type="Resource" script_class="BiomePlacementRule" load_steps=13 format=3 uid="uid://doa60ksmg3wrm"]
 
 [ext_resource type="Script" uid="uid://ceg1o86gsc1m1" path="res://scripts/classes/world-gen/BiomeObjectSpawnRule.cs" id="1_3sgl2"]
 [ext_resource type="Script" uid="uid://cworjpl6xr2k0" path="res://scripts/classes/world-gen/DecorPlacementRule.cs" id="1_ibc0p"]
@@ -9,6 +9,7 @@
 [ext_resource type="Resource" uid="uid://70xmpk5qihph" path="res://resources/placement-rules/variants/trees/TreeVariantBirch.tres" id="4_k2eqv"]
 [ext_resource type="Resource" uid="uid://dngcn24uq4jti" path="res://resources/placement-rules/variants/trees/TreeVariantPine.tres" id="5_kcp8g"]
 [ext_resource type="Resource" uid="uid://brml807rwumkr" path="res://resources/placement-rules/variants/rocks/RockVariant.tres" id="7_kcp8g"]
+[ext_resource type="Resource" uid="uid://oemnnihrk87q" path="res://resources/placement-rules/variants/rocks/RockCoalOreVariant.tres" id="8_lsqu6"]
 
 [sub_resource type="Resource" id="Resource_laqtd"]
 script = ExtResource("1_3sgl2")
@@ -21,7 +22,7 @@ metadata/_custom_type_script = "uid://ceg1o86gsc1m1"
 script = ExtResource("1_3sgl2")
 Rule = ExtResource("3_7mxwq")
 Density = 0.3
-AllowedVariants = Array[Object]([ExtResource("7_kcp8g")])
+AllowedVariants = Array[Object]([ExtResource("7_kcp8g"), ExtResource("8_lsqu6")])
 metadata/_custom_type_script = "uid://ceg1o86gsc1m1"
 
 [resource]

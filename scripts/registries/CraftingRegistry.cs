@@ -1,44 +1,20 @@
 using Godot;
 using System.Collections.Generic;
+using System.Linq;
 
-public partial class CraftingRegistry : Node
+public static class CraftingRegistry
 {
-    public static CraftingRegistry Instance { get; private set; }
+    public static List<CraftingRecipe> _recipes = new();
 
-    public List<CraftingRecipe> Recipes = new();
-
-    public override void _Ready()
+    public static void RegisterRecipe(CraftingRecipe recipe)
     {
-        Instance = this;
-        LoadRecipes("res://resources/crafting/recipes");
-        GD.Print($"Loaded {Recipes.Count} crafting recipes.");
+        _recipes.Add(recipe);
     }
 
-    private void LoadRecipes(string path)
+    public static IEnumerable<CraftingRecipe> AllRecipes() => _recipes;
+
+    public static CraftingRecipe GetRecipe(string resultItemId)
     {
-        var files = DirAccess.GetFilesAt(path);
-
-        if (files == null || files.Length == 0)
-        {
-            GD.PushError("Could not open crafting recipes folder or folder is empty: " + path);
-            return;
-        }
-
-        foreach (var file in files)
-        {
-            if (!file.EndsWith(".tres"))
-                continue;
-
-            string resPath = path + "/" + file;
-
-            var recipe = ResourceLoader.Load<CraftingRecipe>(resPath);
-            if (recipe == null)
-            {
-                GD.PushWarning($"Skipping invalid crafting recipe: {resPath}");
-                continue;
-            }
-
-            Recipes.Add(recipe);
-        }
+        return _recipes.FirstOrDefault(r => r.ResultItemId == resultItemId);
     }
 }
