@@ -7,6 +7,7 @@ public partial class Init : Node
         GD.Print("Loading registries...");
         ItemDataLoader.LoadAllItems();
         CraftingRecipeDataLoader.LoadAllCraftingRecipes();
+        WorldObjectRegistry.RegisterDefaults();
         GD.Print("Registries loaded! 🔥");
     }
 }

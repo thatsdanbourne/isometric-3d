@@ -1,7 +1,6 @@
-using Godot;
 using System.Collections.Generic;
 
-public partial class ItemRegistry
+public static class ItemRegistry
 {
     private static Dictionary<string, Item> _items = new();
 

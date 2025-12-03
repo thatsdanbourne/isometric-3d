@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="DecorPlacementRule" load_steps=3 format=3 uid="uid://b8kdpgt11y1hd"]
 
 [ext_resource type="PackedScene" uid="uid://6rlupv02gcvl" path="res://scenes/terrain/decor/FlowerPoppy.tscn" id="1_3jdnt"]
-[ext_resource type="Script" uid="uid://cworjpl6xr2k0" path="res://scripts/classes/world-gen/DecorPlacementRule.cs" id="1_k111t"]
+[ext_resource type="Script" uid="uid://cworjpl6xr2k0" path="res://scripts/classes/world-gen/old/DecorPlacementRule.cs" id="1_k111t"]
 
 [resource]
 script = ExtResource("1_k111t")

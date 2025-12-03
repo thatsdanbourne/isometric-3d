@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="ObjectVariant" load_steps=3 format=3 uid="uid://oemnnihrk87q"]
 
-[ext_resource type="Script" uid="uid://clieeiea6p5gw" path="res://scripts/classes/world-gen/ObjectVariant.cs" id="1_6rrjw"]
+[ext_resource type="Script" uid="uid://clieeiea6p5gw" path="res://scripts/classes/world-gen/old/ObjectVariant.cs" id="1_6rrjw"]
 [ext_resource type="PackedScene" uid="uid://bvgun8dfrob4a" path="res://scenes/terrain/objects/RockCoalOre.tscn" id="1_l8fnk"]
 
 [resource]
