@@ -46,7 +46,7 @@ public class ChunkManager
 
                 if (!_world.ActiveChunks.ContainsKey(coord))
                 {
-                    _world.buildQueue.Enqueue(coord);
+                    _world.ChunkGenerator.RequestBuild(coord);
                 }
             }
         }

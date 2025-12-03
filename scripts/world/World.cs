@@ -18,33 +18,29 @@ public partial class World : Node3D
 	public FastNoiseLite HumidityNoise;
 	public FastNoiseLite RiverNoise;
 
-	private RuleRegistry ruleRegistry;
+	public RuleRegistry ruleRegistry;
 
 	public readonly Dictionary<Vector2I, Chunk> ActiveChunks
 		= new Dictionary<Vector2I, Chunk>();
 	
-	private Thread workerThread;
-	private bool running = true;
-
-	public readonly ConcurrentQueue<Vector2I> buildQueue = new();
-	private readonly ConcurrentQueue<ChunkData> finaliseQueue = new();
 
 	public Vector2I lastPlayerChunk = new(-999, -999);
 
 	private int terrainSeed = 0;
-	private Vector2I worldOffset; // prevents sampling noise at (0,0)
+	public Vector2I worldOffset; // prevents sampling noise at (0,0)
 
 	private Dictionary<string, TileType> tileTypes = new();
 	private RandomNumberGenerator rng;
 
 	public ChunkManager ChunkManager { get; private set; }
-
+	public ChunkGenerator ChunkGenerator { get; private set; }
 
 	private class TileType
 	{
 		public int Id;
 		public string Name;
 	}
+
 
 	public override void _Ready()
 	{
@@ -63,24 +59,20 @@ public partial class World : Node3D
 
 		ChunkManager = new ChunkManager(this, ChunkSize, ChunkRadius);
 		
-		StartWorkerThread();
+		ChunkGenerator = new ChunkGenerator(this, ChunkManager);
+		ChunkGenerator.Start();
 	}
-
 
 	public override void _ExitTree()
 	{
-		running = false;
-		workerThread?.Join();
+		ChunkGenerator?.Stop();
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
 		ChunkManager.UpdateChunks(Player.GlobalPosition);
-
-		while (finaliseQueue.TryDequeue(out var data))
-			FinaliseChunk(data);
+		ChunkGenerator.Update();
 	}
-
 
 	private void SetupNoise()
 	{
@@ -115,193 +107,6 @@ public partial class World : Node3D
 			FractalGain = 0.5f,
 			FractalLacunarity = 2f
         };
-	}
-
-
-	private void StartWorkerThread()
-	{
-		running = true;
-		workerThread = new Thread(WorkerLoop);
-		workerThread.Start();
-	}
-
-	private void WorkerLoop()
-	{
-		while (running)
-		{
-			if (buildQueue.TryDequeue(out Vector2I coord))
-			{
-				var result = BuildChunkData(coord);
-				finaliseQueue.Enqueue(result);
-			}
-			else
-			{
-				Thread.Sleep(1);
-			}
-		}
-	}
-
-	private ChunkData BuildChunkData(Vector2I coord)
-	{
-		var sw = System.Diagnostics.Stopwatch.StartNew();
-
-		int C = ChunkSize;
-		Tile[,] tiles = new Tile[C, C];
-		var objects = new Godot.Collections.Array<ChunkObject>();
-		var decors = new Godot.Collections.Array<ChunkDecor>();
-
-		for (int x = 0; x < C; x++)
-		{
-			for (int y = 0; y < C; y++)
-			{
-				int globalX = coord.X * C + x;
-				int globalY = coord.Y * C + y;
-
-				float tempRaw = TempNoise.GetNoise2D(globalX + worldOffset.X, globalY + worldOffset.Y);
-				float humidityRaw = HumidityNoise.GetNoise2D(globalX + worldOffset.X, globalY + worldOffset.Y);
-				float riverVal = RiverNoise.GetNoise2D(globalX, globalY + worldOffset.Y);
-
-				float temp = AdjustContrast((tempRaw + 1f) / 2f);
-				float humidity = AdjustContrast((humidityRaw + 1f) / 2f);
-				float riverDist = Math.Abs(riverVal);
-
-
-				// determine biome
-				BiomePlacementRule biome = ruleRegistry.GetBiome(temp, humidity);
-				string tileType = biome.GroundTileType;
-				int tileId = GetTileId(tileType);
-
-				bool biomeAllowsRivers = humidity > 0.45f;
-				bool isRiver = riverDist < 0.05f && biomeAllowsRivers;
-
-				if (isRiver)
-                {
-                    tileType = "water";
-					tileId = 0;
-                }
-
-				tiles[x, y] = new Tile(tileId, tileType, biome.Name, temp, humidity);
-
-
-				if (!isRiver)
-				{
-					// build objects
-					foreach (BiomeObjectSpawnRule spawn in biome.ObjectSpawnRules)
-					{
-						if (spawn.Rule.ShouldPlace(globalX, globalY, spawn.Density))
-						{
-							var obj = new ChunkObject();
-							obj.BiomeRule = spawn;
-							obj.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
-							objects.Add(obj);
-						}
-					}
-
-					foreach (DecorPlacementRule decorRule in biome.DecorPlacementRules)
-                    {
-                        if(decorRule.ShouldPlace(globalX, globalY))
-                        {
-                            var dec = new ChunkDecor();
-							dec.Rule = decorRule;
-							dec.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
-							decors.Add(dec);
-                        }
-					}
-				}
-			}
-		}
-
-		sw.Stop();
-		var result = new ChunkData(coord, tiles, objects, decors);
-		result.BuildTimeMs = sw.Elapsed.TotalMilliseconds;
-		return result;
-	}
-
-	private float AdjustContrast(float v)
-	{
-		float contrast = 1.4f;
-		return Mathf.Clamp((v - 0.5f) * contrast + 0.5f, 0f, 1f);
-	}
-
-
-	private void FinaliseChunk(ChunkData data)
-	{
-		var sw = System.Diagnostics.Stopwatch.StartNew();
-
-		Vector2I coord = data.Coord;
-		if (ActiveChunks.ContainsKey(coord))
-			return;
-		
-		int C = ChunkSize;
-
-		Chunk chunk = new Chunk(C)
-		{
-			Coord = coord,
-			Tiles = data.Tiles
-		};
-
-		ActiveChunks[coord] = chunk;
-
-		Vector3I pos = new Vector3I();
-		int baseX = coord.X * C;
-		int baseY = coord.Y * C;
-
-		for (int x = 0; x < C; x++)
-		{
-			for (int y = 0; y < C; y++)
-			{
-				int id = data.Tiles[x, y].Id;
-				pos.X = baseX + x;
-				pos.Y = 0;
-				pos.Z = baseY + y;
-
-				if (data.Tiles[x, y].Type == "water")
-                {
-                    WaterMap.SetCellItem(pos, id);
-                }
-				else
-                {
-					GroundMap.SetCellItem(pos, id);
-                }
-			}
-		}
-
-		foreach (ChunkObject obj in data.Objects)
-		{
-			var rule = obj.BiomeRule.Rule;
-			var AllowedVariants = obj.BiomeRule.AllowedVariants;
-
-			var variant = PickObjectVariant(rule, AllowedVariants, (int)obj.Position.X, (int)obj.Position.Z);
-			var scene = variant.Scene;
-			var instance = scene.Instantiate<Node3D>();
-			
-			if (instance is WorldObject wo)
-            {
-                wo.World = this;
-				wo.Chunk = chunk;
-            }
-
-			if (instance.HasMethod("initialise"))
-				instance.Call("initialise");
-
-			instance.Position = obj.Position;
-			WorldObjects.AddChild(instance);
-			chunk.Objects.Add(instance);
-		}
-
-		foreach (ChunkDecor decor in data.Decors)
-		{
-			var scene = decor.Rule.Scene;
-			var instance = scene.Instantiate<Node3D>();
-			instance.Position = decor.Position;
-			WorldObjects.AddChild(instance);
-			chunk.Decors.Add(instance);
-		}
-
-		sw.Stop();
-		data.FinaliseTimeMs = sw.Elapsed.TotalMilliseconds;
-
-		GD.Print($"Chunk {coord} > Build {data.BuildTimeMs:F3}ms | Finalise {data.FinaliseTimeMs:F3}ms");
 	}
 
 	public string GetBiomeAtPos(Vector3 worldPos)
@@ -345,7 +150,7 @@ public partial class World : Node3D
 	}
 
 
-	private int GetTileId(string tileName)
+	public int GetTileId(string tileName)
 	{
 		if (tileTypes.TryGetValue(tileName, out var type))
 			return type.Id;
@@ -353,7 +158,7 @@ public partial class World : Node3D
 		return -1;
 	}
 
-	private ObjectVariant PickObjectVariant(ObjectPlacementRule rule, Godot.Collections.Array<ObjectVariant> allowedVariants, int x, int z)
+	public ObjectVariant PickObjectVariant(ObjectPlacementRule rule, Godot.Collections.Array<ObjectVariant> allowedVariants, int x, int z)
     {
 		var valid = allowedVariants.Count > 0 ? allowedVariants : rule.Variants;
 		if (valid.Count == 0) return null;
