@@ -92,7 +92,7 @@ public partial class WorldObject : Node3D
     {
         if (World != null)
         {
-            World.RemoveChunkObject(this);
+            World.ChunkManager.RemoveChunkObject(this);
         }
     }
 

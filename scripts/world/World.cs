@@ -20,22 +20,24 @@ public partial class World : Node3D
 
 	private RuleRegistry ruleRegistry;
 
-	public readonly System.Collections.Generic.Dictionary<Vector2I, Chunk> ActiveChunks
-		= new System.Collections.Generic.Dictionary<Vector2I, Chunk>();
+	public readonly Dictionary<Vector2I, Chunk> ActiveChunks
+		= new Dictionary<Vector2I, Chunk>();
 	
 	private Thread workerThread;
 	private bool running = true;
 
-	private readonly ConcurrentQueue<Vector2I> buildQueue = new();
+	public readonly ConcurrentQueue<Vector2I> buildQueue = new();
 	private readonly ConcurrentQueue<ChunkData> finaliseQueue = new();
 
-	private Vector2I lastPlayerChunk = new(-999, -999);
+	public Vector2I lastPlayerChunk = new(-999, -999);
 
 	private int terrainSeed = 0;
-	private Vector2I worldOffset; // prevents samping noise at (0,0)
+	private Vector2I worldOffset; // prevents sampling noise at (0,0)
 
 	private Dictionary<string, TileType> tileTypes = new();
 	private RandomNumberGenerator rng;
+
+	public ChunkManager ChunkManager { get; private set; }
 
 
 	private class TileType
@@ -58,6 +60,8 @@ public partial class World : Node3D
 		SetupNoise();
 
 		ruleRegistry = new RuleRegistry(terrainSeed, worldOffset);
+
+		ChunkManager = new ChunkManager(this, ChunkSize, ChunkRadius);
 		
 		StartWorkerThread();
 	}
@@ -69,12 +73,12 @@ public partial class World : Node3D
 		workerThread?.Join();
 	}
 
-	public override void _Process(double delta)
+	public override void _PhysicsProcess(double delta)
 	{
+		ChunkManager.UpdateChunks(Player.GlobalPosition);
+
 		while (finaliseQueue.TryDequeue(out var data))
 			FinaliseChunk(data);
-		
-		UpdatePlayerChunks();
 	}
 
 
@@ -136,129 +140,6 @@ public partial class World : Node3D
 			}
 		}
 	}
-
-	private void UpdatePlayerChunks()
-	{
-		int C = ChunkSize;
-
-		Vector3 pos = Player.GlobalPosition;
-		Vector2I playerTile = new Vector2I(
-			Mathf.FloorToInt(pos.X),
-			Mathf.FloorToInt(pos.Z)
-		);
-
-		Vector2I playerChunk = new Vector2I(
-			Mathf.FloorToInt((float)playerTile.X / C),
-			Mathf.FloorToInt((float)playerTile.Y / C)
-		);
-
-		if (playerChunk == lastPlayerChunk)
-			return;
-
-		lastPlayerChunk = playerChunk;
-
-		RequestChunksAround(playerChunk);
-		UnloadChunksOutside(playerChunk);
-	}
-
-	private void RequestChunksAround(Vector2I center)
-    {
-        int r = ChunkRadius;
-
-		for (int x = -r; x <= r; x++)
-        {
-            for (int y = -r; y <= r; y++)
-			{
-				Vector2I coord = new Vector2I(center.X + x, center.Y + y);
-
-				if (!ActiveChunks.ContainsKey(coord))
-					buildQueue.Enqueue(coord);
-			}
-        }
-    }
-
-	private void UnloadChunksOutside(Vector2I center)
-    {
-        int r = ChunkRadius;
-		var toRemove = new List<Vector2I>();
-
-		foreach(var kv in ActiveChunks)
-        {
-            Vector2I c = kv.Key;
-			if(Math.Abs(c.X - center.X) > r || Math.Abs(c.Y - center.Y) > r)
-				toRemove.Add(c);
-        }
-
-		foreach (var coord in toRemove)
-        {
-            RemoveChunk(coord);
-        }
-    }
-
-	private void RemoveChunk(Vector2I coord)
-    {
-        if (!ActiveChunks.TryGetValue(coord, out Chunk chunk))
-			return;
-		
-		int C = ChunkSize;
-		int baseX = coord.X * C;
-		int baseY = coord.Y * C;
-
-		Vector3I pos = new Vector3I();
-		for (int x = 0; x < C; x++)
-        {
-            for (int y = 0; y < C; y++)
-            {
-                pos.X = baseX + x;
-				pos.Y = 0;
-				pos.Z = baseY + y;
-
-				var tile = chunk.Tiles[x, y];
-
-				if(tile.Type == "water")
-					WaterMap.SetCellItem(pos, -1);
-				else
-					GroundMap.SetCellItem(pos, -1);	
-            }
-        }
-
-		foreach(var obj in chunk.Objects)
-        {
-			if (obj == null || !IsInstanceValid(obj))
-				continue;
-
-            obj.QueueFree();
-        }
-		
-		foreach (var decor in chunk.Decors)
-        {
-            if (decor == null || !IsInstanceValid(decor))
-				continue;
-
-			decor.QueueFree();
-        }
-
-		ActiveChunks.Remove(coord);
-    }
-
-	public void RemoveChunkObject(Node3D obj)
-    {
-        if (obj is WorldObject wo && wo.Chunk != null)
-        {
-            wo.Chunk.Objects.Remove(obj);
-        }
-		else
-        {
-            foreach (var chunk in ActiveChunks.Values)
-            {
-                if (chunk.Objects.Contains(obj))
-                {
-                    chunk.Objects.Remove(obj);
-					break;
-                }
-            }
-        }
-    }
 
 	private ChunkData BuildChunkData(Vector2I coord)
 	{

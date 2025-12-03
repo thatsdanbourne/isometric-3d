@@ -47,7 +47,8 @@ public partial class Player : CharacterBody3D
         world.CallDeferred(Node.MethodName.AddChild, CameraController);
 
         HUD.RefreshUI();
-        Hotbar.SelectedSlotChanged += OnSelectedSlotChanged;
+        Hotbar.SelectedSlotChanged += _ => UpdateEquippedItem();
+        Hotbar.ContainerChanged += UpdateEquippedItem;
 
         var mat = (StandardMaterial3D)ResourceLoader.Load<Material>("res://resources/materials/WorldObjectBase.tres").Duplicate();
         mat.AlbedoTexture = sprite.SpriteFrames.GetFrameTexture("idle", 0);
@@ -76,19 +77,22 @@ public partial class Player : CharacterBody3D
 
     // tool handling   
 
-    private void OnSelectedSlotChanged(int selectedSlot)
-    {
-        var stack = Hotbar.GetSlot(selectedSlot);
-        if (stack != null)
-            equippedItem = stack.Item ?? null;
-
-        // if (equippedItem is PlaceableItem)
-        //     StartPlacementMode();
-    }
-    private ToolItem GetActiveTool()
+    private void UpdateEquippedItem()
     {
         var stack = Hotbar.GetSlot(Hotbar.SelectedSlot);
-        if (stack != null && stack.Item is ToolItem tool)
+
+        if (stack == null || stack.Item == null)
+        {
+            equippedItem = DefaultTool;
+            return;
+        }
+
+        equippedItem = stack.Item;
+    }
+
+    private ToolItem GetActiveTool()
+    {
+        if (equippedItem is ToolItem tool)
             return tool;
         
         return DefaultTool;
@@ -119,7 +123,7 @@ public partial class Player : CharacterBody3D
         GetParent().AddChild(obj);
         obj.GlobalPosition = GlobalPosition + hitRay.TargetPosition.Normalized();
         InventoryManager.Instance.RemoveItem(this, item, 1);
-        equippedItem = null;
+        UpdateEquippedItem();
     }
 
     private void OnObjectBroken(WorldObject obj)

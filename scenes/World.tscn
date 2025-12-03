@@ -6,7 +6,7 @@
 [ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="3_h1bdy"]
 [ext_resource type="PackedScene" uid="uid://uva5v2hjcxj2" path="res://scenes/menus/PauseMenu.tscn" id="4_7c4bj"]
 [ext_resource type="Script" uid="uid://rr6jn3yd21q8" path="res://scripts/menus/MenuManager.cs" id="4_i4b1j"]
-[ext_resource type="Script" uid="uid://ddvbtaf4ymjhc" path="res://scripts/World.cs" id="4_ygioq"]
+[ext_resource type="Script" uid="uid://ddvbtaf4ymjhc" path="res://scripts/world/World.cs" id="4_ygioq"]
 [ext_resource type="PackedScene" uid="uid://di4w6cxgjeo66" path="res://scenes/player/Player.tscn" id="5_1lgw5"]
 [ext_resource type="Shader" uid="uid://cmpvdcty3aeoe" path="res://resources/shaders/BiomeTint.gdshader" id="5_b3faq"]
 [ext_resource type="Shader" uid="uid://cbwi8c1npa1k3" path="res://resources/shaders/Blur.gdshader" id="5_c0d7e"]
