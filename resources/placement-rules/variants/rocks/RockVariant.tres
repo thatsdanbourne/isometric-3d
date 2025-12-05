@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="ObjectVariant" load_steps=3 format=3 uid="uid://brml807rwumkr"]
-
-[ext_resource type="PackedScene" uid="uid://rh0m2ssigb32" path="res://scenes/terrain/objects/Rock.tscn" id="1_tth8b"]
-[ext_resource type="Script" uid="uid://clieeiea6p5gw" path="res://scripts/classes/world-gen/old/ObjectVariant.cs" id="2_5kp5a"]
-
-[resource]
-script = ExtResource("2_5kp5a")
-Scene = ExtResource("1_tth8b")
-metadata/_custom_type_script = "uid://clieeiea6p5gw"

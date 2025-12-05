@@ -16,12 +16,29 @@ public static class BiomeDefinitions
 			{
 				new ObjectSpawnRule
 				{
-					Density = 0.32f,
-					Algorithm = new NoiseAlgorithm(seed, worldOffset),
+					Density = 0.3f,
+					Algorithm = NoisePresets.PlainsTrees(seed, worldOffset),
 					Variants =
 					{
 						new SpawnVariant { Id = "tree_pine", Weight = 1f },
 						new SpawnVariant { Id = "tree_birch", Weight = 1f },
+					}
+				},
+				new ObjectSpawnRule
+				{
+					Density = 0.3f,
+					Algorithm = new NoiseAlgorithm(seed, 
+						worldOffset, 
+						FastNoiseLite.NoiseTypeEnum.SimplexSmooth,
+						0.14f, 0.6f, 4, 0.45f, 2.2f, 
+						true, 
+						FastNoiseLite.NoiseTypeEnum.Perlin, 
+						0.25f, 0.6f, 5, 0.3f, 2f
+					),
+					Variants =
+					{
+						new SpawnVariant { Id = "rock", Weight = 0.75f },
+						new SpawnVariant { Id = "rock_coal", Weight = 0.25f },
 					}
 				}
 			},
@@ -29,9 +46,9 @@ public static class BiomeDefinitions
 			{
 				new DecorSpawnRule
 				{
-					DecorId = "poppy",
+					DecorId = "flower_poppy",
 					Density = 0.3f,
-					Algorithm = new NoiseAlgorithm(seed, worldOffset)
+					Algorithm = NoisePresets.Flowers(seed, worldOffset)
 				}
 			}
 		});
@@ -48,8 +65,8 @@ public static class BiomeDefinitions
 			{
 				new ObjectSpawnRule
 				{
-					Density = 0.6f,
-					Algorithm = new NoiseAlgorithm(seed, worldOffset),
+					Density = 0.65f,
+					Algorithm = NoisePresets.ForestTrees(seed, worldOffset),
 					Variants =
 					{
 						new SpawnVariant { Id = "tree_pine", Weight = 1f },
@@ -61,11 +78,34 @@ public static class BiomeDefinitions
 			{
 				new DecorSpawnRule
 				{
-					DecorId = "poppy",
+					DecorId = "flower_poppy",
 					Density = 0.3f,
-					Algorithm = new NoiseAlgorithm(seed, worldOffset)
+					Algorithm = NoisePresets.Flowers(seed, worldOffset)
 				}
 			}
+		});
+
+		RuleRegistry.RegisterBiome(new BiomeDefinition
+        {
+            Name = "Desert",
+			GroundTileType = "sand",
+			MinTemp = 0.7f,
+			MaxTemp = 1.0f,
+			MinHumidity = 0.0f,
+			MaxHumidity = 0.35f,
+			ObjectRules =
+			{
+				new ObjectSpawnRule
+				{
+					Density = 0.25f,
+					Algorithm = NoisePresets.DesertSparse(seed, worldOffset),
+					Variants =
+                    {
+                        new SpawnVariant { Id = "rock", Weight = 0.8f },
+						new SpawnVariant { Id = "rock_coal", Weight = 0.2f },
+                    },
+				}
+			},
 		});
 
 		RuleRegistry.RegisterBiome(new BiomeDefinition
@@ -73,31 +113,46 @@ public static class BiomeDefinitions
 			Name = "Tundra",
 			GroundTileType = "snow",
 			MinTemp = 0.0f,
-			MaxTemp = 0.3f,
-			MinHumidity = 0.0f,
+			MaxTemp = 0.25f,
+			MinHumidity = 0.2f,
 			MaxHumidity = 0.6f,
+
 			ObjectRules =
 			{
 				new ObjectSpawnRule
 				{
-					Density = 0.32f,
-					Algorithm = new NoiseAlgorithm(seed, worldOffset),
+					Density = 0.15f,
+					Algorithm = NoisePresets.TundraTrees(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "tree_pine", Weight = 1f },
-						new SpawnVariant { Id = "tree_birch", Weight = 1f },
+						new SpawnVariant { Id = "rock", Weight = 1f }
+					}
+				}
+			}
+		});
+
+		RuleRegistry.RegisterBiome(new BiomeDefinition
+		{
+			Name = "Taiga",
+			GroundTileType = "snow",
+			MinTemp = 0.15f,
+			MaxTemp = 0.45f,
+			MinHumidity = 0.4f,
+			MaxHumidity = 1f,
+
+			ObjectRules =
+			{
+				new ObjectSpawnRule
+				{
+					Density = 0.55f,
+					Algorithm = NoisePresets.TaigaTrees(seed, worldOffset),
+					Variants =
+					{
+						new SpawnVariant { Id = "tree_pine", Weight = 2f },
+						new SpawnVariant { Id = "tree_birch", Weight = 0.5f }
 					}
 				}
 			},
-			DecorRules =
-			{
-				new DecorSpawnRule
-				{
-					DecorId = "poppy",
-					Density = 0.3f,
-					Algorithm = new NoiseAlgorithm(seed, worldOffset)
-				}
-			}
 		});
 	}
 }

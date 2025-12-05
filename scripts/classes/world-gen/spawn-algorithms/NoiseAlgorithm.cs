@@ -2,20 +2,20 @@ using Godot;
 
 public class NoiseAlgorithm : SpawnAlgorithm
 {
-	public FastNoiseLite.NoiseTypeEnum BaseNoiseType { get; }
-	public float BaseNoiseFrequency { get; }
-	public float BaseNoiseThreshold { get; }
-	public int BaseNoiseOctaves { get; }
-	public float BaseNoiseGain { get; }
-	public float BaseNoiseLacunarity { get; }
+	public FastNoiseLite.NoiseTypeEnum BaseNoiseType { get; set; }
+	public float BaseNoiseFrequency { get; set; }
+	public float BaseNoiseThreshold { get; set; }
+	public int BaseNoiseOctaves { get; set; }
+	public float BaseNoiseGain { get; set; }
+	public float BaseNoiseLacunarity { get; set; }
 
-	public bool UseDetailNoise { get; }
-	public FastNoiseLite.NoiseTypeEnum DetailNoiseType { get; }
-	public float DetailNoiseFrequency { get; }
-	public float DetailNoiseThreshold { get; }
-	public int DetailNoiseOctaves { get; }
-	public float DetailNoiseGain { get; }
-	public float DetailNoiseLacunarity { get; }
+	public bool UseDetailNoise { get; set; }
+	public FastNoiseLite.NoiseTypeEnum DetailNoiseType { get; set; }
+	public float DetailNoiseFrequency { get; set; }
+	public float DetailNoiseThreshold { get; set; }
+	public int DetailNoiseOctaves { get; set; }
+	public float DetailNoiseGain { get; set; }
+	public float DetailNoiseLacunarity { get; set; }
 
 	public Vector2I WorldOffset { get; set; }
 

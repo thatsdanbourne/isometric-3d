@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="ObjectVariant" load_steps=3 format=3 uid="uid://70xmpk5qihph"]
-
-[ext_resource type="Script" uid="uid://clieeiea6p5gw" path="res://scripts/classes/world-gen/old/ObjectVariant.cs" id="1_7hea1"]
-[ext_resource type="PackedScene" uid="uid://boq2xdti1ve4m" path="res://scenes/terrain/objects/TreeBirch.tscn" id="1_q42po"]
-
-[resource]
-script = ExtResource("1_7hea1")
-Scene = ExtResource("1_q42po")
-metadata/_custom_type_script = "uid://clieeiea6p5gw"

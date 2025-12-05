@@ -119,16 +119,16 @@ public class ChunkGenerator
 						}
 					}
 
-					// foreach (DecorPlacementRule decorRule in biome.DecorPlacementRules)
-					// {
-					//     if(decorRule.ShouldPlace(globalX, globalY))
-					//     {
-					//         var dec = new ChunkDecor();
-					// 		dec.Rule = decorRule;
-					// 		dec.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
-					// 		decors.Add(dec);
-					//     }
-					// }
+					foreach (DecorSpawnRule decorRule in biome.DecorRules)
+					{
+					    if(decorRule.ShouldPlace(globalX, globalY))
+					    {
+					        var dec = new ChunkDecor();
+							dec.DecorRule = decorRule;
+							dec.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
+							decors.Add(dec);
+					    }
+					}
 				}
 			}
 		}
@@ -212,7 +212,7 @@ public class ChunkGenerator
 
 		foreach (ChunkDecor decor in data.Decors)
 		{
-			var scene = decor.Rule.Scene;
+			var scene = WorldObjectRegistry.GetScene(decor.DecorRule.DecorId);
 			var instance = scene.Instantiate<Node3D>();
 			instance.Position = decor.Position;
 			_world.WorldObjects.AddChild(instance);

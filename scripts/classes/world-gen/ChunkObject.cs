@@ -9,5 +9,5 @@ public partial class ChunkObject : RefCounted
 public partial class ChunkDecor : RefCounted
 {
     public Vector3 Position;
-    public DecorPlacementRule Rule;
+    public DecorSpawnRule DecorRule;
 }

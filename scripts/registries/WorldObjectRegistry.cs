@@ -25,5 +25,6 @@ public static class WorldObjectRegistry
 		Register("tree_birch", GD.Load<PackedScene>("res://scenes/terrain/objects/TreeBirch.tscn"));
 		Register("rock", GD.Load<PackedScene>("res://scenes/terrain/objects/Rock.tscn"));
 		Register("rock_coal", GD.Load<PackedScene>("res://scenes/terrain/objects/RockCoalOre.tscn"));
+		Register("flower_poppy", GD.Load<PackedScene>("res://scenes/terrain/decor/FlowerPoppy.tscn"));
 	}
 }
