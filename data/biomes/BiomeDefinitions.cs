@@ -72,7 +72,17 @@ public static class BiomeDefinitions
 						new SpawnVariant { Id = "tree_pine", Weight = 1f },
 						new SpawnVariant { Id = "tree_birch", Weight = 1f },
 					}
-				}
+				},
+				new ObjectSpawnRule
+                {
+                    Density = 0.25f,
+					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
+					Variants =
+					{
+						new SpawnVariant { Id = "rock", Weight = 1f },
+						new SpawnVariant { Id = "rock_coal", Weight = 0.15f },
+					}
+                }
 			},
 			DecorRules =
 			{
@@ -98,7 +108,7 @@ public static class BiomeDefinitions
 				new ObjectSpawnRule
 				{
 					Density = 0.25f,
-					Algorithm = NoisePresets.DesertSparse(seed, worldOffset),
+					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
 					Variants =
                     {
                         new SpawnVariant { Id = "rock", Weight = 0.8f },
@@ -125,9 +135,20 @@ public static class BiomeDefinitions
 					Algorithm = NoisePresets.TundraTrees(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "rock", Weight = 1f }
+						new SpawnVariant { Id = "tree_pine", Weight = 1f },
+						new SpawnVariant { Id = "tree_birch", Weight = 1f }
 					}
-				}
+				},
+				new ObjectSpawnRule
+                {
+                    Density = 0.25f,
+					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
+					Variants =
+                    {
+                        new SpawnVariant { Id = "rock", Weight = 1f },
+						new SpawnVariant { Id = "rock_coal", Weight = 0.15f },
+					},
+				},
 			}
 		});
 
@@ -151,7 +172,17 @@ public static class BiomeDefinitions
 						new SpawnVariant { Id = "tree_pine", Weight = 2f },
 						new SpawnVariant { Id = "tree_birch", Weight = 0.5f }
 					}
-				}
+				},
+				new ObjectSpawnRule
+                {
+                    Density = 0.25f,
+					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
+					Variants =
+                    {
+                        new SpawnVariant { Id = "rock", Weight = 1f },
+						new SpawnVariant { Id = "rock_coal", Weight = 0.15f },
+					},
+				},
 			},
 		});
 	}
