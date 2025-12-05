@@ -3,7 +3,7 @@ using Godot;
 public partial class ChunkObject : RefCounted
 {
     public Vector3 Position;
-    public BiomeObjectSpawnRule BiomeRule;
+    public ObjectSpawnRule ObjectRule;
 }
 
 public partial class ChunkDecor : RefCounted

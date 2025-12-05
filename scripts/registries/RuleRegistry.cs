@@ -1,146 +1,32 @@
-using Godot;
 using System.Collections.Generic;
+using Godot;
 
-public partial class RuleRegistry : Node
+public static class RuleRegistry
 {
-    public List<ObjectPlacementRule> ObjectRules { get; private set; } = new();
-    public List<BiomePlacementRule> BiomeRules { get; private set; } = new();
-    public List<DecorPlacementRule> DecorRules { get; private set; } = new();
+    private static readonly List<BiomeDefinition> _biomes = new();
 
-    private int terrainSeed;
+    public static IReadOnlyList<BiomeDefinition> Biomes => _biomes;
 
-    public RuleRegistry(int seed, Vector2I worldOffset)
+
+    public static void RegisterBiome(BiomeDefinition biome)
     {
-        terrainSeed = seed;
-        LoadObjectRules("res://resources/placement-rules/world-objects");
-        LoadBiomeRules("res://resources/placement-rules/biomes");
-        LoadDecorRules("res://resources/placement-rules/world-decor");
-
-        foreach (var rule in ObjectRules)
-            rule.WorldOffset = worldOffset;
-
-        foreach (var decor in DecorRules)
-            decor.WorldOffset = worldOffset;
-
-        GD.Print($"RuleRegistry loaded {ObjectRules.Count} object rules.");
-        GD.Print($"RuleRegistry loaded {BiomeRules.Count} biome rules.");
-        GD.Print($"RuleRegistry loaded {DecorRules.Count} decor rules.");
+        _biomes.Add(biome);
     }
 
-    // ---------------------------------------------------------------------
-    // OBJECT RULES
-    // ---------------------------------------------------------------------
-    private void LoadObjectRules(string path)
+    public static void LoadAll(int seed, Vector2I worldOffset)
     {
-        // 💡 New Godot 4.3+ method for listing files in a packaged resource path
-        var files = DirAccess.GetFilesAt(path); 
-
-        if (files == null || files.Length == 0)
-        {
-            // This will now correctly trigger if the folder is empty or not found in the PCK
-            GD.PushError("Could not open object rule folder or folder is empty: " + path);
-            return;
-        }
-
-        foreach (var file in files)
-        {
-            // Check to ensure you only load .tres files
-            if (!file.EndsWith(".tres"))
-                continue;
-
-            string resPath = path + "/" + file;
-
-            var rule = ResourceLoader.Load<ObjectPlacementRule>(resPath);
-            if (rule == null)
-            {
-                GD.PushWarning($"Skipping invalid object rule: {resPath}");
-                continue;
-            }
-
-            int ruleSeed = terrainSeed + resPath.GetHashCode();
-            rule.Init(ruleSeed);
-
-            ObjectRules.Add(rule);
-        }
+        _biomes.Clear();
+        BiomeDefinitions.RegisterAll(seed, worldOffset);
     }
 
-    // ---------------------------------------------------------------------
-    // BIOME RULES
-    // ---------------------------------------------------------------------
-    private void LoadBiomeRules(string path)
+    public static BiomeDefinition GetBiome(float temp, float humidity)
     {
-        // 💡 New Godot 4.3+ method for listing files in a packaged resource path
-        var files = DirAccess.GetFilesAt(path); 
-
-        if (files == null || files.Length == 0)
-        {
-            GD.PushError("Could not open biome rule folder or folder is empty: " + path);
-            return;
-        }
-
-        foreach (var file in files)
-        {
-            if (!file.EndsWith(".tres"))
-                continue;
-
-            string resPath = path + "/" + file;
-
-            var biome = ResourceLoader.Load<BiomePlacementRule>(resPath);
-            if (biome == null)
-            {
-                GD.PushWarning($"Skipping invalid biome rule: {resPath}");
-                continue;
-            }
-
-            // All linked spawn rules... (rest of your original logic)
-
-            BiomeRules.Add(biome);
-        }
-    }
-
-    private void LoadDecorRules(string path)
-    {
-        // 💡 New Godot 4.3+ method for listing files in a packaged resource path
-        var files = DirAccess.GetFilesAt(path); 
-
-        if (files == null || files.Length == 0)
-        {
-            GD.PushError("Could not open decor rule folder or folder is empty: " + path);
-            return;
-        }
-
-        foreach (var file in files)
-        {
-            if (!file.EndsWith(".tres"))
-                continue;
-
-            string resPath = path + "/" + file;
-
-            var rule = ResourceLoader.Load<DecorPlacementRule>(resPath);
-            if (rule == null)
-            {
-                GD.PushWarning($"Skipping invalid decor rule: {resPath}");
-                continue;
-            }
-
-            int ruleSeed = terrainSeed + resPath.GetHashCode();
-            rule.Init(ruleSeed);
-
-            DecorRules.Add(rule);
-        }
-    }
-
-    // ---------------------------------------------------------
-    // BIOME LOOKUP
-    // ---------------------------------------------------------
-    public BiomePlacementRule GetBiome(float temp, float humidity)
-    {
-        foreach (var biome in BiomeRules)
+        foreach (var biome in _biomes)
         {
             if (biome.Matches(temp, humidity))
                 return biome;
         }
-        
-        return BiomeRules.Find(b => b.Name.ToLower() == "plains");
+
+        return _biomes[0];
     }
 }

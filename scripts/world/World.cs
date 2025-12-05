@@ -18,11 +18,9 @@ public partial class World : Node3D
 	public FastNoiseLite HumidityNoise;
 	public FastNoiseLite RiverNoise;
 
-	public RuleRegistry ruleRegistry;
-
 	public readonly Dictionary<Vector2I, Chunk> ActiveChunks
 		= new Dictionary<Vector2I, Chunk>();
-	
+
 
 	public Vector2I lastPlayerChunk = new(-999, -999);
 
@@ -55,10 +53,10 @@ public partial class World : Node3D
 		InitTileTypes();
 		SetupNoise();
 
-		ruleRegistry = new RuleRegistry(terrainSeed, worldOffset);
+		RuleRegistry.LoadAll(terrainSeed, worldOffset);
 
 		ChunkManager = new ChunkManager(this, ChunkSize, ChunkRadius);
-		
+
 		ChunkGenerator = new ChunkGenerator(this, ChunkManager);
 		ChunkGenerator.Start();
 	}
@@ -99,14 +97,14 @@ public partial class World : Node3D
 		};
 
 		RiverNoise = new FastNoiseLite()
-        {
-            Seed = terrainSeed + 3000,
+		{
+			Seed = terrainSeed + 3000,
 			NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
 			Frequency = 0.0025f,
 			FractalOctaves = 3,
 			FractalGain = 0.5f,
 			FractalLacunarity = 2f
-        };
+		};
 	}
 
 	public string GetBiomeAtPos(Vector3 worldPos)
@@ -133,17 +131,20 @@ public partial class World : Node3D
 
 	private void InitTileTypes()
 	{
-		tileTypes["grass"] = new TileType {
+		tileTypes["grass"] = new TileType
+		{
 			Id = 0,
 			Name = "grass",
 		};
 
-		tileTypes["sand"] = new TileType {
+		tileTypes["sand"] = new TileType
+		{
 			Id = 1,
 			Name = "sand",
 		};
 
-		tileTypes["snow"] = new TileType {
+		tileTypes["snow"] = new TileType
+		{
 			Id = 2,
 			Name = "snow",
 		};
@@ -154,16 +155,16 @@ public partial class World : Node3D
 	{
 		if (tileTypes.TryGetValue(tileName, out var type))
 			return type.Id;
-		
+
 		return -1;
 	}
 
-	public ObjectVariant PickObjectVariant(ObjectPlacementRule rule, Godot.Collections.Array<ObjectVariant> allowedVariants, int x, int z)
-    {
+	public SpawnVariant PickObjectVariant(ObjectSpawnRule rule, List<SpawnVariant> allowedVariants, int x, int z)
+	{
 		var valid = allowedVariants.Count > 0 ? allowedVariants : rule.Variants;
 		if (valid.Count == 0) return null;
 
-        int hash = (x * 73856093) ^ (z * 19349663) ^ rule.GetHashCode();
+		int hash = (x * 73856093) ^ (z * 19349663) ^ rule.GetHashCode();
 		rng.Seed = (ulong)hash;
 
 		float total = 0f;
@@ -173,15 +174,15 @@ public partial class World : Node3D
 		float r = rng.Randf() * total;
 
 		foreach (var v in valid)
-        {
-            if (r <= v.Weight)
-                return v;
-			
+		{
+			if (r <= v.Weight)
+				return v;
+
 			r -= v.Weight;
-        }
+		}
 
 		return rule.Variants[0];
-    }
+	}
 }
 
 public partial class ChunkData : RefCounted
