@@ -60,8 +60,7 @@ spread = 7.0
 initial_velocity_min = 2000.0
 initial_velocity_max = 2400.0
 gravity = Vector3(0, 0, 0)
-scale_min = 0.79999995
-scale_max = 1.1999999
+scale_min = 0.5
 turbulence_noise_strength = 20.0
 turbulence_noise_speed = Vector3(0, 8, 0)
 
@@ -70,15 +69,14 @@ particle_flag_disable_z = true
 emission_shape = 3
 emission_box_extents = Vector3(1, 1, 1)
 direction = Vector3(0, 1, 0)
-initial_velocity_min = 900.0
-initial_velocity_max = 1200.0
+initial_velocity_min = 200.0
+initial_velocity_max = 500.0
 angular_velocity_min = -200.00002
 angular_velocity_max = 199.99998
 gravity = Vector3(0, 2400, 0)
 scale_max = 2.0
 turbulence_enabled = true
-turbulence_noise_strength = 10.0
-turbulence_noise_speed = Vector3(0, 8, 0)
+turbulence_noise_strength = 20.0
 
 [node name="Game" type="Node3D"]
 
@@ -200,16 +198,16 @@ layer = 9
 
 [node name="RainParticles" type="GPUParticles2D" parent="World/Weather/ParticleAnchor/ScreenWeather"]
 visible = false
-amount = 350
+amount = 600
 texture = ExtResource("16_rpuxp")
 preprocess = 0.2
 process_material = SubResource("ParticleProcessMaterial_rpuxp")
 
 [node name="SnowParticles" type="GPUParticles2D" parent="World/Weather/ParticleAnchor/ScreenWeather"]
 visible = false
-amount = 200
+amount = 300
 texture = ExtResource("17_nthub")
-lifetime = 2.0
+lifetime = 3.0
 process_material = SubResource("ParticleProcessMaterial_nthub")
 
 [node name="WorldObjects" type="Node3D" parent="World"]
