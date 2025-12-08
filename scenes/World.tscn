@@ -46,8 +46,10 @@ ssao_enabled = true
 ssao_radius = 5.0
 ssao_intensity = 2.5
 sdfgi_energy = 12.21
+fog_enabled = true
 fog_mode = 1
 fog_density = 1.0
+fog_sky_affect = 0.0
 volumetric_fog_density = 0.0356
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_rpuxp"]
@@ -184,12 +186,13 @@ cell_center_y = false
 cell_center_z = false
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
-[node name="Weather" type="Node3D" parent="World" node_paths=PackedStringArray("ParticleAnchor", "RainParticles", "SnowParticles", "Player")]
+[node name="Weather" type="Node3D" parent="World" node_paths=PackedStringArray("ParticleAnchor", "RainParticles", "SnowParticles", "Player", "WorldEnvironment")]
 script = ExtResource("15_nthub")
 ParticleAnchor = NodePath("ParticleAnchor")
 RainParticles = NodePath("ParticleAnchor/ScreenWeather/RainParticles")
 SnowParticles = NodePath("ParticleAnchor/ScreenWeather/SnowParticles")
 Player = NodePath("../WorldObjects/Player")
+WorldEnvironment = NodePath("../WorldEnvironment")
 
 [node name="ParticleAnchor" type="Node3D" parent="World/Weather"]
 
@@ -198,14 +201,14 @@ layer = 9
 
 [node name="RainParticles" type="GPUParticles2D" parent="World/Weather/ParticleAnchor/ScreenWeather"]
 visible = false
-amount = 600
+amount = 800
 texture = ExtResource("16_rpuxp")
 preprocess = 0.2
 process_material = SubResource("ParticleProcessMaterial_rpuxp")
 
 [node name="SnowParticles" type="GPUParticles2D" parent="World/Weather/ParticleAnchor/ScreenWeather"]
 visible = false
-amount = 300
+amount = 500
 texture = ExtResource("17_nthub")
 lifetime = 3.0
 process_material = SubResource("ParticleProcessMaterial_nthub")

@@ -8,9 +8,10 @@ public partial class WeatherManager : Node
     [Export] public GpuParticles2D RainParticles;
     [Export] public GpuParticles2D SnowParticles;
     [Export] public Player Player;
+    [Export] public WorldEnvironment WorldEnvironment;
 
-    public WeatherType CurrentWeather = WeatherType.Clear;
-    public float Intensity = 0f;
+    public WeatherType CurrentWeather = WeatherType.Rain;
+    public float Intensity = 0.5f;
 
     private WeatherType targetWeather;
     private float targetIntensity = 0f;
@@ -22,6 +23,17 @@ public partial class WeatherManager : Node
 
     private float RainFade = 0f;
     private float SnowFade = 0f;
+
+    public float RainSunDim = 0.75f;
+    public float SnowSunDim = 0.85f;
+
+    public float BaseFog = 0f;
+    public float RainFog = 0.25f;
+    public float SnowFog = 0.30f;
+
+    public float SunlightMultiplier { get; private set; } = 1f;
+
+    private float currentFog = 0f;
 
     private RandomNumberGenerator rng = new();
 
@@ -43,13 +55,14 @@ public partial class WeatherManager : Node
         if (weatherTimer >= nextWeatherChange)
         {
             weatherTimer = 0f;
-            nextWeatherChange = rng.RandfRange(60f, 120f);
+            nextWeatherChange = rng.RandfRange(10f, 30f);
             ChooseWeatherForBiome(Player.CurrentBiome);
         }
 
         Intensity = Mathf.Lerp(Intensity, targetIntensity, dt * weatherTransitionSpeed);
 
         UpdateWeather();
+        UpdateLightingAndFog(dt);
     }
 
     private void UpdateWeather()
@@ -87,6 +100,54 @@ public partial class WeatherManager : Node
             CurrentWeather = WeatherType.Rain;
         else
             CurrentWeather = WeatherType.Snow;
+    }
+
+    private void UpdateLightingAndFog(float dt)
+    {
+        float targetMultiplier;
+
+        switch (targetWeather)
+        {
+            case WeatherType.Rain:
+                targetMultiplier = Mathf.Lerp(1f, RainSunDim, targetIntensity);
+                break;
+
+            case WeatherType.Snow:
+                targetMultiplier = Mathf.Lerp(1f, SnowSunDim, targetIntensity);
+                break;
+
+            case WeatherType.Clear:
+            default:
+                targetMultiplier = 1f;
+                break;
+        }
+
+        SunlightMultiplier = Mathf.Lerp(SunlightMultiplier, targetMultiplier, dt * 0.5f);
+
+        if (WorldEnvironment == null) return;
+
+        float targetFog;
+
+        switch (targetWeather)
+        {
+            case WeatherType.Rain:
+                targetFog = Mathf.Lerp(BaseFog, RainFog, targetIntensity);
+                break;
+
+            case WeatherType.Snow:
+                targetFog = Mathf.Lerp(BaseFog, SnowFog, targetIntensity);
+                break;
+
+            case WeatherType.Clear:
+            default:
+                targetFog = BaseFog;
+                break;
+        }
+
+        currentFog = Mathf.Lerp(currentFog, targetFog, fadeLerpSpeed * 0.75f); // fog lags behind a bit
+
+        var env = WorldEnvironment.Environment;
+        env.FogDensity = currentFog;
     }
 
     public void ChooseWeatherForBiome(string biome)
