@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://dtgd4yjkf4awx"]
+[gd_scene load_steps=27 format=3 uid="uid://dtgd4yjkf4awx"]
 
 [ext_resource type="MeshLibrary" uid="uid://mdcrqmssv47f" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="Script" uid="uid://ciarma0geh450" path="res://scripts/tools/Debug.cs" id="2_h1bdy"]
@@ -15,7 +15,9 @@
 [ext_resource type="PackedScene" uid="uid://cxwbi3kugkjk2" path="res://scenes/menus/settings/SettingsVideo.tscn" id="7_o1tcx"]
 [ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/helpers/DayNightCycle.cs" id="8_nrtoj"]
 [ext_resource type="MeshLibrary" uid="uid://6xr0lwa0vfbh" path="res://water_meshlibrary.tres" id="8_pdh0q"]
-[ext_resource type="PackedScene" uid="uid://lj1llqg1bjxs" path="res://scenes/Campfire.tscn" id="16_o1tcx"]
+[ext_resource type="Script" uid="uid://dgarnp7014d6a" path="res://scripts/helpers/WeatherManager.cs" id="15_nthub"]
+[ext_resource type="Texture2D" uid="uid://cxxnlf6fco4uc" path="res://assets/sprites/weather/raindrop.png" id="16_rpuxp"]
+[ext_resource type="Texture2D" uid="uid://b0rvrpykafb60" path="res://assets/sprites/weather/snowflake.png" id="17_nthub"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_d1c63"]
 font = ExtResource("3_h1bdy")
@@ -47,6 +49,36 @@ sdfgi_energy = 12.21
 fog_mode = 1
 fog_density = 1.0
 volumetric_fog_density = 0.0356
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_rpuxp"]
+lifetime_randomness = 0.5
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(500, 1, 1)
+direction = Vector3(0, 1, 0)
+spread = 7.0
+initial_velocity_min = 2000.0
+initial_velocity_max = 2400.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.79999995
+scale_max = 1.1999999
+turbulence_noise_strength = 20.0
+turbulence_noise_speed = Vector3(0, 8, 0)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_nthub"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(1, 1, 1)
+direction = Vector3(0, 1, 0)
+initial_velocity_min = 900.0
+initial_velocity_max = 1200.0
+angular_velocity_min = -200.00002
+angular_velocity_max = 199.99998
+gravity = Vector3(0, 2400, 0)
+scale_max = 2.0
+turbulence_enabled = true
+turbulence_noise_strength = 10.0
+turbulence_noise_speed = Vector3(0, 8, 0)
 
 [node name="Game" type="Node3D"]
 
@@ -154,10 +186,33 @@ cell_center_y = false
 cell_center_z = false
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
+[node name="Weather" type="Node3D" parent="World" node_paths=PackedStringArray("ParticleAnchor", "RainParticles", "SnowParticles", "Player")]
+script = ExtResource("15_nthub")
+ParticleAnchor = NodePath("ParticleAnchor")
+RainParticles = NodePath("ParticleAnchor/ScreenWeather/RainParticles")
+SnowParticles = NodePath("ParticleAnchor/ScreenWeather/SnowParticles")
+Player = NodePath("../WorldObjects/Player")
+
+[node name="ParticleAnchor" type="Node3D" parent="World/Weather"]
+
+[node name="ScreenWeather" type="CanvasLayer" parent="World/Weather/ParticleAnchor"]
+layer = 9
+
+[node name="RainParticles" type="GPUParticles2D" parent="World/Weather/ParticleAnchor/ScreenWeather"]
+visible = false
+amount = 350
+texture = ExtResource("16_rpuxp")
+preprocess = 0.2
+process_material = SubResource("ParticleProcessMaterial_rpuxp")
+
+[node name="SnowParticles" type="GPUParticles2D" parent="World/Weather/ParticleAnchor/ScreenWeather"]
+visible = false
+amount = 200
+texture = ExtResource("17_nthub")
+lifetime = 2.0
+process_material = SubResource("ParticleProcessMaterial_nthub")
+
 [node name="WorldObjects" type="Node3D" parent="World"]
 
 [node name="Player" parent="World/WorldObjects" instance=ExtResource("5_1lgw5")]
 transform = Transform3D(0.7071067, 0, 0.7071067, 0, 0.99999994, 0, -0.7071067, 0, 0.7071067, 0, 0, 0)
-
-[node name="Campfire" parent="World" instance=ExtResource("16_o1tcx")]
-transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 3.365872, 1.1920929e-07, 2.260151)

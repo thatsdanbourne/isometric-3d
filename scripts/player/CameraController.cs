@@ -12,7 +12,7 @@ public partial class CameraController : Node3D
     
     public float MaxVelocity = 30.0f;
     
-    private Camera3D camera;
+    public Camera3D camera;
 	private Vector3 camVelocity = Vector3.Zero;
 
 	// Follow settings
