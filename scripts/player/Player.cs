@@ -3,8 +3,9 @@ using Godot;
 public partial class Player : CharacterBody3D
 {
     [Signal] public delegate void PlayerReadyEventHandler();
+    [Signal] public delegate void BiomeChangedEventHandler(string newBiome);
 
-    private PackedScene cameraControllerScene = 
+    private PackedScene cameraControllerScene =
         GD.Load<PackedScene>("res://scenes/player/CameraController.tscn");
 
     public float Speed = 5.0f;
@@ -14,7 +15,6 @@ public partial class Player : CharacterBody3D
     private bool canSwing = true;
 
     public string CurrentBiome { get; private set; } = "";
-    private string _lastBiome = "";
     private Vector3 _lastCheckedPosition;
     private const float BIOME_CHECK_DISTANCE = 0.5f;
 
@@ -33,6 +33,8 @@ public partial class Player : CharacterBody3D
 
     public override void _Ready()
     {
+        GameManager.Instance.SetLocalPlayer(this);
+
         world = GetNode<World>("../../");
         tintOverlay = world.GetNode<BiomeTintOverlay>("BiomeTint/BiomeOverlay");
         sprite = GetNode<AnimatedSprite3D>("AnimatedSprite3D");
@@ -66,13 +68,10 @@ public partial class Player : CharacterBody3D
             return;
 
         _lastCheckedPosition = GlobalPosition;
-        
+
         string biome = world.GetBiomeAtPos(GlobalPosition);
         if (!string.IsNullOrEmpty(biome) && biome != CurrentBiome)
-        {
-            CurrentBiome = biome;
-            tintOverlay.SetTintForBiome(biome);
-        }
+            OnBiomeChanged(biome);
     }
 
     // tool handling   
@@ -94,7 +93,7 @@ public partial class Player : CharacterBody3D
     {
         if (equippedItem is ToolItem tool)
             return tool;
-        
+
         return DefaultTool;
     }
 
@@ -183,7 +182,7 @@ public partial class Player : CharacterBody3D
         }
 
         if (Input.IsActionPressed("use_tool") && !HUD.WindowOpen)
-        {   
+        {
             if (!canSwing) return;
             canSwing = false;
             hitCooldown.Start();
@@ -194,5 +193,14 @@ public partial class Player : CharacterBody3D
             else
                 UseActiveTool();
         }
+    }
+
+
+    // biome updates
+    public void OnBiomeChanged(string newBiome)
+    {
+        CurrentBiome = newBiome;
+        tintOverlay.SetTintForBiome(newBiome);
+        EmitSignal(SignalName.BiomeChanged, newBiome);
     }
 }

@@ -17,10 +17,11 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-CraftingManager="*res://scripts/helpers/CraftingManager.cs"
-InventoryManager="*res://scripts/helpers/InventoryManager.cs"
-AudioManager="*res://scripts/helpers/AudioManager.cs"
-SettingsManager="*res://scripts/helpers/SettingsManager.cs"
+GameManager="*res://scripts/managers/GameManager.cs"
+CraftingManager="*res://scripts/managers/CraftingManager.cs"
+InventoryManager="*res://scripts/managers/InventoryManager.cs"
+AudioManager="*res://scripts/managers/AudioManager.cs"
+SettingsManager="*res://scripts/managers/SettingsManager.cs"
 Init="*res://scripts/systems/Init.cs"
 
 [display]

@@ -48,6 +48,8 @@ public partial class AudioRegistry
     {
         Ambiance["forest_day"] = GD.Load<AudioStream>("res://assets/audio/ambience/forest_day.wav");
         Ambiance["forest_night"] = GD.Load<AudioStream>("res://assets/audio/ambience/forest_night.mp3");
+        Ambiance["cold_wind"] = GD.Load<AudioStream>("res://assets/audio/ambience/cold_wind.wav");
+        Ambiance["rain"] = GD.Load<AudioStream>("res://assets/audio/ambience/rain.wav");
     }
 
     private void LoadMusic()

@@ -11,11 +11,11 @@
 [ext_resource type="Shader" uid="uid://cmpvdcty3aeoe" path="res://resources/shaders/BiomeTint.gdshader" id="5_b3faq"]
 [ext_resource type="Shader" uid="uid://cbwi8c1npa1k3" path="res://resources/shaders/Blur.gdshader" id="5_c0d7e"]
 [ext_resource type="PackedScene" uid="uid://c35jmhuadbjjf" path="res://scenes/menus/settings/SettingsMenu.tscn" id="6_c0d7e"]
-[ext_resource type="Script" uid="uid://c6er6so1dhf3" path="res://scripts/helpers/BiomeTintOverlay.cs" id="7_h1bdy"]
+[ext_resource type="Script" uid="uid://c6er6so1dhf3" path="res://scripts/managers/BiomeTintOverlay.cs" id="7_h1bdy"]
 [ext_resource type="PackedScene" uid="uid://cxwbi3kugkjk2" path="res://scenes/menus/settings/SettingsVideo.tscn" id="7_o1tcx"]
-[ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/helpers/DayNightCycle.cs" id="8_nrtoj"]
+[ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/managers/DayNightCycle.cs" id="8_nrtoj"]
 [ext_resource type="MeshLibrary" uid="uid://6xr0lwa0vfbh" path="res://water_meshlibrary.tres" id="8_pdh0q"]
-[ext_resource type="Script" uid="uid://dgarnp7014d6a" path="res://scripts/helpers/WeatherManager.cs" id="15_nthub"]
+[ext_resource type="Script" uid="uid://dgarnp7014d6a" path="res://scripts/managers/WeatherManager.cs" id="15_nthub"]
 [ext_resource type="Texture2D" uid="uid://cxxnlf6fco4uc" path="res://assets/sprites/weather/raindrop.png" id="16_rpuxp"]
 [ext_resource type="Texture2D" uid="uid://b0rvrpykafb60" path="res://assets/sprites/weather/snowflake.png" id="17_nthub"]
 
@@ -186,7 +186,7 @@ cell_center_y = false
 cell_center_z = false
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
-[node name="Weather" type="Node3D" parent="World" node_paths=PackedStringArray("ParticleAnchor", "RainParticles", "SnowParticles", "Player", "WorldEnvironment")]
+[node name="WeatherManager" type="Node3D" parent="World" node_paths=PackedStringArray("ParticleAnchor", "RainParticles", "SnowParticles", "Player", "WorldEnvironment")]
 script = ExtResource("15_nthub")
 ParticleAnchor = NodePath("ParticleAnchor")
 RainParticles = NodePath("ParticleAnchor/ScreenWeather/RainParticles")
@@ -194,21 +194,21 @@ SnowParticles = NodePath("ParticleAnchor/ScreenWeather/SnowParticles")
 Player = NodePath("../WorldObjects/Player")
 WorldEnvironment = NodePath("../WorldEnvironment")
 
-[node name="ParticleAnchor" type="Node3D" parent="World/Weather"]
+[node name="ParticleAnchor" type="Node3D" parent="World/WeatherManager"]
 
-[node name="ScreenWeather" type="CanvasLayer" parent="World/Weather/ParticleAnchor"]
+[node name="ScreenWeather" type="CanvasLayer" parent="World/WeatherManager/ParticleAnchor"]
 layer = 9
 
-[node name="RainParticles" type="GPUParticles2D" parent="World/Weather/ParticleAnchor/ScreenWeather"]
+[node name="RainParticles" type="GPUParticles2D" parent="World/WeatherManager/ParticleAnchor/ScreenWeather"]
 visible = false
 amount = 800
 texture = ExtResource("16_rpuxp")
 preprocess = 0.2
 process_material = SubResource("ParticleProcessMaterial_rpuxp")
 
-[node name="SnowParticles" type="GPUParticles2D" parent="World/Weather/ParticleAnchor/ScreenWeather"]
+[node name="SnowParticles" type="GPUParticles2D" parent="World/WeatherManager/ParticleAnchor/ScreenWeather"]
 visible = false
-amount = 500
+amount = 800
 texture = ExtResource("17_nthub")
 lifetime = 3.0
 process_material = SubResource("ParticleProcessMaterial_nthub")
