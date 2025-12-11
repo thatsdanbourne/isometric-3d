@@ -11,6 +11,7 @@ public partial class AudioManager : Node
     public const string BUS_UI = "UI";
     public const string BUS_FOOTSTEPS = "Footsteps";
     public const string BUS_AMBIENCE = "Ambience";
+    public const string BUS_WEATHER = "Weather";
     public const string BUS_MUSIC = "Music";
 
     private AudioStreamPlayer musicPlayer;
@@ -24,6 +25,11 @@ public partial class AudioManager : Node
     private float fadeSpeed = 5f;
     private string currentAmbient = "";
     private string currentWeather = "";
+    private float currentIntensity = 0f;
+    private Tween weatherTween;
+
+    private float weatherMaxVolumeDb = 0f;
+    private float weatherMinVolumeDb = -10f;
 
     private AudioStreamPlayer3D[] pool;
     private int poolIndex = 0;
@@ -56,24 +62,23 @@ public partial class AudioManager : Node
 
         AddChild(musicPlayer);
 
-        ambientA = CreateAmbientPlayer();
-        ambientB = CreateAmbientPlayer();
-        weatherPlayer = CreateAmbientPlayer();
+        ambientA = CreateAmbientPlayer(BUS_AMBIENCE);
+        ambientB = CreateAmbientPlayer(BUS_AMBIENCE);
+        weatherPlayer = CreateAmbientPlayer(BUS_WEATHER);
 
         AddChild(ambientA);
         AddChild(ambientB);
         AddChild(weatherPlayer);
     }
 
-    private AudioStreamPlayer CreateAmbientPlayer()
+    private AudioStreamPlayer CreateAmbientPlayer(string bus)
     {
         return new AudioStreamPlayer()
         {
-            Bus = BUS_AMBIENCE,
+            Bus = bus,
             VolumeDb = -80,
             StreamPaused = true,
-            Autoplay = false,
-            ProcessMode = ProcessModeEnum.Always
+            Autoplay = false
         };
     }
 
@@ -150,7 +155,7 @@ public partial class AudioManager : Node
 
     // Ambience
 
-    public async void PlayAmbience(string key, float fadeTime = 15f)
+    public void PlayAmbience(string key, float fadeTime = 8f)
     {
         if (currentAmbient == key) return;
         currentAmbient = key;
@@ -161,17 +166,18 @@ public partial class AudioManager : Node
         ambientB = old;
 
         ambientB.Stream = stream;
-        ambientB.VolumeDb = -80;
+        ambientB.VolumeDb = -40f;
         ambientB.StreamPaused = false;
         ambientB.Play();
 
-        var fadeOut = CreateTween();
-        fadeOut.TweenProperty(ambientA, "volume_db", -80, fadeTime);
+        var tween = CreateTween();
+        tween.TweenProperty(ambientA, "volume_db", -40f, fadeTime)
+            .SetTrans(Tween.TransitionType.Sine)
+            .SetEase(Tween.EaseType.InOut);
 
-        var fadeIn = CreateTween();
-        fadeIn.TweenProperty(ambientB, "volume_db", 0, fadeTime);
-
-        await ToSignal(fadeOut, "finished");
+        tween.Parallel().TweenProperty(ambientB, "volume_db", 0f, fadeTime)
+            .SetTrans(Tween.TransitionType.Sine)
+            .SetEase(Tween.EaseType.InOut);
     }
 
     public void UpdateBiomeAmbience(string biome, bool isDaytime)
@@ -185,29 +191,58 @@ public partial class AudioManager : Node
 
     // Weather
 
-    public void PlayWeatherAmbience(string key, float fadeTime = 5f)
+    public void PlayWeatherAmbience(string key, float intensity = 0f, float fadeTime = 8f)
     {
-        if (key == null)
+        currentIntensity = intensity;
+
+        if (string.IsNullOrEmpty(key))
         {
-            var fadeOut = CreateTween();
-            fadeOut.TweenProperty(weatherPlayer, "volume_db", -80, fadeTime);
+            if (weatherTween != null && weatherTween.IsRunning())
+                weatherTween.Kill();
+
+            weatherTween = CreateTween();
+            weatherTween.TweenProperty(weatherPlayer, "volume_db", -80, fadeTime * 2f)
+                .SetTrans(Tween.TransitionType.Sine)
+                .SetEase(Tween.EaseType.InOut);
+
+            currentWeather = "";
+
             return;
         }
 
         if (!audioRegistry.Ambiance.TryGetValue(key, out var stream))
             return;
 
-        if (currentWeather == key) return;
+        if (currentWeather == key)
+        {
+            UpdateWeatherVolume(intensity, fadeTime * 0.5f);
+            return;
+        }
+
         currentWeather = key;
 
+        if (weatherTween != null && weatherTween.IsRunning())
+            weatherTween.Kill();
 
         weatherPlayer.Stream = stream;
         weatherPlayer.VolumeDb = -80;
         weatherPlayer.StreamPaused = false;
         weatherPlayer.Play();
 
-        var fadeIn = CreateTween();
-        fadeIn.TweenProperty(weatherPlayer, "volume_db", 0, fadeTime);
+        UpdateWeatherVolume(intensity, fadeTime);
+    }
+
+    private void UpdateWeatherVolume(float intensity, float fadeTime)
+    {
+        float targetVolume = Mathf.Lerp(weatherMinVolumeDb, weatherMaxVolumeDb, intensity);
+
+        if (weatherTween != null && weatherTween.IsRunning())
+            weatherTween.Kill();
+
+        weatherTween = CreateTween();
+        weatherTween.TweenProperty(weatherPlayer, "volume_db", targetVolume, fadeTime)
+            .SetTrans(Tween.TransitionType.Sine)
+            .SetEase(Tween.EaseType.InOut);
     }
 
     // SFX
