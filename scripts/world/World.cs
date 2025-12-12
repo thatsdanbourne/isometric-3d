@@ -6,10 +6,13 @@ using System.Threading;
 
 public partial class World : Node3D
 {
+	[Signal] public delegate void WorldReadyEventHandler();
 	[Export] public Node3D WorldObjects;
 	[Export] public GridMap GroundMap;
 	[Export] public GridMap WaterMap;
-	[Export] public Node3D Player;
+	[Export] public Node3D PlayerContainer;
+
+	public Player Player;
 
 	public int ChunkSize = 16;
 	public int ChunkRadius = 3;
@@ -59,6 +62,17 @@ public partial class World : Node3D
 
 		ChunkGenerator = new ChunkGenerator(this, ChunkManager);
 		ChunkGenerator.Start();
+
+		GameManager.Instance.RegisterWorld(this);
+		EmitSignal(SignalName.WorldReady);
+
+		GameManager.Instance.LocalPlayerChanged += (p) =>
+		{
+			Player = p;
+		};
+
+		GameManager.Instance.SpawnLocalPlayer();
+
 	}
 
 	public override void _ExitTree()

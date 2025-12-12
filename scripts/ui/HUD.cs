@@ -30,17 +30,30 @@ public partial class HUD : CanvasLayer
 	private List<ItemContainerSlot> hotbarSlots = new List<ItemContainerSlot>();
 	private List<ItemContainerSlot> inventorySlots = new List<ItemContainerSlot>();
 
+	private Player player;
+
 	public bool WindowOpen => inventoryRoot.Visible || craftingRoot.Visible;
 
 	public override void _Ready()
-    {
+	{
 		cursorItem = GetNode<Control>("CursorItem");
 		cursorIcon = cursorItem.GetNode<TextureRect>("Icon");
 		cursorCount = cursorItem.GetNode<Label>("Label");
 
-		var player = GetNode<Player>("/root/Game/World/WorldObjects/Player");
-        inventory = player.GetNode<Inventory>("Inventory");
+		GameManager.Instance.LocalPlayerChanged += (Player p) =>
+		{
+			player = p;
+			player.PlayerReady += OnPlayerReady;
+		};
+
+		GetWindow().ContentScaleFactor = 1.25f;
+	}
+
+	private void OnPlayerReady()
+	{
+		inventory = player.GetNode<Inventory>("Inventory");
 		hotbar = player.GetNode<Hotbar>("Hotbar");
+
 
 		inventoryRoot = GetNode<Control>("Inventory");
 		inventoryWindow = inventoryRoot.GetNode<PanelContainer>("InventoryWindow");
@@ -55,95 +68,96 @@ public partial class HUD : CanvasLayer
 		BuildInventorySlots();
 		BuildHotbarSlots();
 		UpdateHotbarHighlight();
-		
+
 		inventory.ContainerChanged += RefreshUI;
 		hotbar.ContainerChanged += RefreshUI;
 		hotbar.SelectedSlotChanged += OnHotbarSelectionChanged;
-		
+
 		inventoryRoot.Visible = false;
 		craftingRoot.Visible = false;
 
-		GetWindow().ContentScaleFactor = 1.25f;
 		RefreshUI();
-    }
+	}
 
 	public override void _Process(double delta)
-    {
-        if (draggedStack != null)
+	{
+		if (draggedStack != null)
 		{
 			var mousePos = GetViewport().GetMousePosition();
 			cursorItem.GlobalPosition = mousePos + new Vector2(6, 6);
 		}
-    }
+	}
 
-    public override void _UnhandledInput(InputEvent e)
-    {
+	public override void _UnhandledInput(InputEvent e)
+	{
 		if (draggedStack != null && IsCursorOutsideInventory() && e is InputEventMouseButton mb && mb.Pressed)
-        {
+		{
 			DropStack();
-        }
-		
-       	if (e.IsActionPressed("toggle_inventory"))
-        {
-			if(inventoryRoot.Visible && draggedStack != null)
-            {
-                DropStack();
-            }
-			
+		}
+
+		if (e.IsActionPressed("toggle_inventory"))
+		{
+			if (inventoryRoot.Visible && draggedStack != null)
+			{
+				DropStack();
+			}
+
 			craftingRoot.Visible = false;
 			tooltip.Visible = false;
-            inventoryRoot.Visible = !inventoryRoot.Visible;
-        }
+			inventoryRoot.Visible = !inventoryRoot.Visible;
+		}
 
 		if (e.IsActionPressed("toggle_crafting"))
-        {
-            inventoryRoot.Visible = false;
+		{
+			inventoryRoot.Visible = false;
 			tooltip.Visible = false;
 			craftingRoot.Visible = !craftingRoot.Visible;
-        }
+		}
 
-		if (e.IsActionPressed("ui_cancel")) {
-            if (WindowOpen)
-            {
-                inventoryRoot.Visible = false;
+		if (e.IsActionPressed("ui_cancel"))
+		{
+			if (WindowOpen)
+			{
+				inventoryRoot.Visible = false;
 				craftingRoot.Visible = false;
 				tooltip.Visible = false;
-            } 
+			}
 			else
-            {
+			{
 				if (MenuManager.Instance.HasMenus)
-                {
-                    var top = MenuManager.Instance.Peek();
+				{
+					var top = MenuManager.Instance.Peek();
 
-					if (top is PauseMenu pm){
-                        pm.Close();
+					if (top is PauseMenu pm)
+					{
+						pm.Close();
 						return;
-                    }
+					}
 
 					MenuManager.Instance.Pop();
 					return;
-                }
+				}
 
-               	MenuManager.Instance.GetNode<PauseMenu>("PauseMenu").Open();
-            }
-        }
-    }
+				MenuManager.Instance.GetNode<PauseMenu>("PauseMenu").Open();
+			}
+		}
+	}
 
 	private void ClearChildren(Node parent)
-    {
-        while(parent.GetChildCount() > 0)
+	{
+		while (parent.GetChildCount() > 0)
 		{
 			parent.GetChild(0).QueueFree();
 		}
-    }
+	}
 
 	private void BuildInventorySlots()
-    {
+	{
 		ClearChildren(slotGrid);
 		inventorySlots.Clear();
 
 		for (int i = 0; i < inventory.SlotCount; i++)
-        {
+		{
 			var slot = slotPanelScene.Instantiate<ItemContainerSlot>();
 			slot.AddThemeStyleboxOverride("panel", slotStyle);
 			slot.IsHotbar = false;
@@ -155,17 +169,17 @@ public partial class HUD : CanvasLayer
 
 			slotGrid.AddChild(slot);
 			inventorySlots.Add(slot);
-        }
-    }
+		}
+	}
 
 	private void BuildHotbarSlots()
-    {
+	{
 		ClearChildren(hotbarBox);
 		hotbarSlots.Clear();
 
 		for (int i = 0; i < hotbar.SlotCount; i++)
-        {
-            var slot = slotPanelScene.Instantiate<ItemContainerSlot>();
+		{
+			var slot = slotPanelScene.Instantiate<ItemContainerSlot>();
 			slot.AddThemeStyleboxOverride("panel", slotStyle);
 			slot.IsHotbar = true;
 			slot.SetSlot(hotbar, i);
@@ -176,13 +190,13 @@ public partial class HUD : CanvasLayer
 
 			hotbarBox.AddChild(slot);
 			hotbarSlots.Add(slot);
-        }
+		}
 	}
 
 	public ItemStack GetStack(bool isHotbar, int index)
-    {
+	{
 		return isHotbar ? hotbar.GetSlot(index) : inventory.GetSlot(index);
-    }
+	}
 
 	public void SetStack(bool isHotbar, int index, ItemStack stack)
 	{
@@ -193,38 +207,40 @@ public partial class HUD : CanvasLayer
 	}
 
 	public void RefreshUI()
-    {
-        for (int i = 0; i < inventory.SlotCount; i++)
-        {
-            inventorySlots[i].SetStack(inventory[i]);
-        }
+	{
+		if (inventory == null || hotbar == null) return;
+
+		for (int i = 0; i < inventory.SlotCount; i++)
+		{
+			inventorySlots[i].SetStack(inventory[i]);
+		}
 
 		for (int i = 0; i < hotbar.SlotCount; i++)
 		{
 			hotbarSlots[i].SetStack(hotbar[i]);
 		}
-    }
+	}
 
 	private void OnHotbarSelectionChanged(int selectedIndex)
-    {
-        UpdateHotbarHighlight();
-    }
+	{
+		UpdateHotbarHighlight();
+	}
 
 	private void UpdateHotbarHighlight()
 	{
 		for (int i = 0; i < hotbarSlots.Count; i++)
-        {
-            var slot = hotbarSlots[i];
+		{
+			var slot = hotbarSlots[i];
 
 			if (i == hotbar.SelectedSlot)
-            {
-                slot.AddThemeStyleboxOverride("panel", slotHighlightStyle);
-            }
+			{
+				slot.AddThemeStyleboxOverride("panel", slotHighlightStyle);
+			}
 			else
 			{
 				slot.AddThemeStyleboxOverride("panel", slotStyle);
 			}
-        }
+		}
 	}
 
 	public void OnSlotLeftClick(bool isHotbar, int index)
@@ -241,7 +257,7 @@ public partial class HUD : CanvasLayer
 			hotbar.SetSlot(index, remaining);
 		else
 			inventory.SetSlot(index, remaining);
-			
+
 		RefreshUI();
 	}
 
@@ -254,35 +270,34 @@ public partial class HUD : CanvasLayer
 
 
 	private void DropStack()
-    {
-        var player = GetNode<Player>("/root/Game/World/WorldObjects/Player");
+	{
 		InventoryManager.Instance.DropItem(player, draggedStack.Item, draggedStack.Count);
 		draggedStack = null;
 		UpdateCursor();
 		RefreshUI();
-    }
+	}
 
 	private void UpdateCursor()
-    {
-        if (draggedStack == null)
-        {
-            cursorItem.Visible = false;
+	{
+		if (draggedStack == null)
+		{
+			cursorItem.Visible = false;
 			return;
-        }
+		}
 
 		cursorItem.Visible = true;
 		cursorIcon.Texture = draggedStack.Item.Icon;
 		cursorCount.Text = draggedStack.Count > 1 ? draggedStack.Count.ToString() : "";
-    }
+	}
 
 	private bool IsCursorOutsideInventory()
-    {
-        if (!inventoryRoot.Visible)
+	{
+		if (!inventoryRoot.Visible)
 			return false;
-		
+
 
 		var mousePos = GetViewport().GetMousePosition();
 		return !inventoryWindow.GetGlobalRect().HasPoint(mousePos);
-    }
+	}
 }
 

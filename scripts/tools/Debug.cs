@@ -14,15 +14,21 @@ public partial class Debug : CanvasLayer
 	public override void _Ready()
 	{
 		world = GetNode<Node3D>("../World");
-		player = world.GetNode<Player>("WorldObjects/Player");
 		fpsLabel = GetNode<Label>("MarginContainer/VBoxContainer/FPS");
 		positionLabel = GetNode<Label>("MarginContainer/VBoxContainer/Position");
 		biomeLabel = GetNode<Label>("MarginContainer/VBoxContainer/Biome");
+
+		GameManager.Instance.LocalPlayerChanged += (Player p) =>
+		{
+			player = p;
+		};
 	}
 
 	public override void _Process(double delta)
-    {
-        updateTimer += (float)delta;
+	{
+		if (player == null) return;
+
+		updateTimer += (float)delta;
 		if (updateTimer < 0.3f) return;
 
 		updateTimer = 0f;
@@ -35,7 +41,7 @@ public partial class Debug : CanvasLayer
 		string biomeName = player.CurrentBiome;
 		if (!string.IsNullOrEmpty(biomeName))
 			biomeName = char.ToUpper(biomeName[0]) + biomeName.Substring(1);
-		
+
 		biomeLabel.Text = $"Biome: {biomeName}";
-    }
+	}
 }

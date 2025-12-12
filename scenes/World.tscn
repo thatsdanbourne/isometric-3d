@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://dtgd4yjkf4awx"]
+[gd_scene load_steps=26 format=3 uid="uid://dtgd4yjkf4awx"]
 
 [ext_resource type="MeshLibrary" uid="uid://mdcrqmssv47f" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="Script" uid="uid://ciarma0geh450" path="res://scripts/tools/Debug.cs" id="2_h1bdy"]
@@ -7,7 +7,6 @@
 [ext_resource type="PackedScene" uid="uid://uva5v2hjcxj2" path="res://scenes/menus/PauseMenu.tscn" id="4_7c4bj"]
 [ext_resource type="Script" uid="uid://rr6jn3yd21q8" path="res://scripts/menus/MenuManager.cs" id="4_i4b1j"]
 [ext_resource type="Script" uid="uid://ddvbtaf4ymjhc" path="res://scripts/world/World.cs" id="4_ygioq"]
-[ext_resource type="PackedScene" uid="uid://di4w6cxgjeo66" path="res://scenes/player/Player.tscn" id="5_1lgw5"]
 [ext_resource type="Shader" uid="uid://cmpvdcty3aeoe" path="res://resources/shaders/BiomeTint.gdshader" id="5_b3faq"]
 [ext_resource type="Shader" uid="uid://cbwi8c1npa1k3" path="res://resources/shaders/Blur.gdshader" id="5_c0d7e"]
 [ext_resource type="PackedScene" uid="uid://c35jmhuadbjjf" path="res://scenes/menus/settings/SettingsMenu.tscn" id="6_c0d7e"]
@@ -131,12 +130,12 @@ grow_vertical = 2
 
 [node name="SettingsVideo" parent="Menus/MenuManager" instance=ExtResource("7_o1tcx")]
 
-[node name="World" type="Node3D" parent="." node_paths=PackedStringArray("WorldObjects", "GroundMap", "WaterMap", "Player")]
+[node name="World" type="Node3D" parent="." node_paths=PackedStringArray("WorldObjects", "GroundMap", "WaterMap", "PlayerContainer")]
 script = ExtResource("4_ygioq")
 WorldObjects = NodePath("WorldObjects")
 GroundMap = NodePath("GroundMap")
 WaterMap = NodePath("WaterMap")
-Player = NodePath("WorldObjects/Player")
+PlayerContainer = NodePath("PlayerContainer")
 
 [node name="BiomeTint" type="CanvasLayer" parent="World"]
 
@@ -191,7 +190,7 @@ script = ExtResource("15_nthub")
 ParticleAnchor = NodePath("ParticleAnchor")
 RainParticles = NodePath("ParticleAnchor/ScreenWeather/RainParticles")
 SnowParticles = NodePath("ParticleAnchor/ScreenWeather/SnowParticles")
-Player = NodePath("../WorldObjects/Player")
+Player = NodePath("")
 WorldEnvironment = NodePath("../WorldEnvironment")
 
 [node name="ParticleAnchor" type="Node3D" parent="World/WeatherManager"]
@@ -215,5 +214,4 @@ process_material = SubResource("ParticleProcessMaterial_nthub")
 
 [node name="WorldObjects" type="Node3D" parent="World"]
 
-[node name="Player" parent="World/WorldObjects" instance=ExtResource("5_1lgw5")]
-transform = Transform3D(0.7071067, 0, 0.7071067, 0, 0.99999994, 0, -0.7071067, 0, 0.7071067, 0, 0, 0)
+[node name="PlayerContainer" type="Node3D" parent="World"]

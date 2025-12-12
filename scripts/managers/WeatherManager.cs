@@ -1,5 +1,5 @@
 using Godot;
-
+using System;
 public partial class WeatherManager : Node
 {
     public enum WeatherType { Clear, Rain, Snow }
@@ -7,7 +7,6 @@ public partial class WeatherManager : Node
     [Export] public Node3D ParticleAnchor;
     [Export] public GpuParticles2D RainParticles;
     [Export] public GpuParticles2D SnowParticles;
-    [Export] public Player Player;
     [Export] public WorldEnvironment WorldEnvironment;
 
     public WeatherType CurrentWeather = WeatherType.Rain;
@@ -35,6 +34,8 @@ public partial class WeatherManager : Node
 
     private float currentFog = 0f;
 
+    private string currentBiome = "";
+
     private RandomNumberGenerator rng = new();
 
 
@@ -47,6 +48,7 @@ public partial class WeatherManager : Node
         GetViewport().Connect("size_changed", new Callable(this, nameof(UpdateOverlay)));
     }
 
+
     public override void _Process(double delta)
     {
         float dt = (float)delta;
@@ -56,13 +58,26 @@ public partial class WeatherManager : Node
         {
             weatherTimer = 0f;
             nextWeatherChange = rng.RandfRange(10f, 30f);
-            ChooseWeatherForBiome(Player.CurrentBiome);
+
+            if (!string.IsNullOrEmpty(currentBiome))
+                ChooseWeatherForBiome(currentBiome);
         }
 
         Intensity = Mathf.Lerp(Intensity, targetIntensity, dt * weatherTransitionSpeed);
 
         UpdateWeather();
         UpdateLightingAndFog(dt);
+    }
+
+    public void SetBiome(string biome)
+    {
+        if (biome == currentBiome) return;
+
+        currentBiome = biome;
+        weatherTimer = 0f;
+        nextWeatherChange = rng.RandfRange(10f, 30f);
+
+        ChooseWeatherForBiome(biome);
     }
 
     private void UpdateWeather()
