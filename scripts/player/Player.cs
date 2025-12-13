@@ -24,6 +24,7 @@ public partial class Player : CharacterBody3D
     private AnimatedSprite3D sprite;
     private Timer hitCooldown;
     private RayCast3D hitRay;
+    private Vector3 aimDirection = Vector3.Forward;
 
     public HUD HUD;
     public Hotbar Hotbar;
@@ -172,8 +173,6 @@ public partial class Player : CharacterBody3D
 
         if (inputDir != Vector2.Zero)
         {
-            hitRay.TargetPosition = new Vector3(inputDir.X, 0, inputDir.Y) * 2f;
-
             Vector3 moveVec = new Vector3(inputDir.X, 0, inputDir.Y)
                 .Rotated(Vector3.Up, Mathf.DegToRad(45));
 
@@ -185,6 +184,9 @@ public partial class Player : CharacterBody3D
             Velocity = Vector3.Zero;
             sprite.Play("idle");
         }
+
+        aimDirection = GetAimDirection();
+        hitRay.TargetPosition = aimDirection * 2.0f;
 
         if (Input.IsActionPressed("use_tool") && !HUD.WindowOpen)
         {
@@ -207,5 +209,32 @@ public partial class Player : CharacterBody3D
         CurrentBiome = newBiome;
         tintOverlay.SetTintForBiome(newBiome);
         EmitSignal(SignalName.BiomeChanged, newBiome);
+    }
+
+    // helpers
+    private Vector3 GetAimDirection()
+    {
+        var viewport = GetViewport();
+        var camera = viewport.GetCamera3D();
+        if (camera == null) return aimDirection;
+
+        Vector2 mousePos = viewport.GetMousePosition();
+
+        Vector3 rayOrigin = camera.ProjectRayOrigin(mousePos);
+        Vector3 rayDir = camera.ProjectRayNormal(mousePos);
+
+        float t = (GlobalPosition.Y - rayOrigin.Y) / rayDir.Y;
+        if (t < 0) return aimDirection;
+
+        Vector3 hitPoint = rayOrigin + rayDir * t;
+        Vector3 dir = hitPoint - GlobalPosition;
+        dir.Y = 0;
+
+        if (dir.LengthSquared() < 0.01f)
+            return aimDirection;
+
+        dir = dir.Rotated(Vector3.Up, Mathf.DegToRad(-45));
+
+        return dir.Normalized();
     }
 }
