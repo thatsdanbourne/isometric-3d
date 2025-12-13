@@ -1,7 +1,7 @@
-[gd_resource type="MeshLibrary" load_steps=5 format=4 uid="uid://6xr0lwa0vfbh"]
+[gd_resource type="MeshLibrary" load_steps=5 format=4]
 
-[ext_resource type="Shader" uid="uid://b0n6cccg7px32" path="res://resources/shaders/Water.gdshader" id="1_t75e4"]
-[ext_resource type="Texture2D" uid="uid://b0i3w6cdey405" path="res://assets/sprites/ground/water.png" id="2_jhlx1"]
+[ext_resource type="Shader" path="res://resources/shaders/Water.gdshader" id="1_t75e4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ground/water.png" id="2_jhlx1"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_qeqkn"]
 render_priority = 0

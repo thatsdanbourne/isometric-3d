@@ -1,8 +1,14 @@
 extends Node3D
 
 @export var atlas: Texture2D
-@export var tile_size: Vector2i = Vector2i(32, 32)
+@export var tile_size: int = 32
 @export var output_path: String = "res://tiles_meshlibrary.tres"
+
+var grassOverlayAtlas: Texture2D = preload("res://assets/sprites/ground/overlays/grass_overlays.png")
+
+var overlays_by_row := {
+	TileType.GRASS: [Rect2i(0, 0, tile_size, tile_size)]
+}
 
 func _ready():
 	if atlas == null:
@@ -10,8 +16,8 @@ func _ready():
 		return
 
 	var atlas_px := atlas.get_size()
-	var tiles_x := int(atlas_px.x / tile_size.x) # should be 2
-	var tiles_y := int(atlas_px.y / tile_size.y) # should be 3
+	var tiles_x := int(atlas_px.x / tile_size)
+	var tiles_y := int(atlas_px.y / tile_size)
 
 	if tiles_x < 2:
 		push_error("Atlas must have at least 2 columns (top + side).")
@@ -26,16 +32,41 @@ func _ready():
 	var lib := MeshLibrary.new()
 	var id := 0
 
-	# We create ONE item per row:
-	# row 0: grass_top + grass_side
-	# row 1: sand_top  + sand_side
-	# row 2: snow_top  + snow_side
 	for row in range(tiles_y):
-		var mesh = _make_tile_mesh(atlas, row, tiles_x, tiles_y)
+		# --- extract base images ---
+		var base_top_img := extract_image(atlas, top_rect(row))
+		var base_side_img := extract_image(atlas, side_rect(row))
+
+		var base_top_tex := ImageTexture.create_from_image(base_top_img)
+		var base_side_tex := ImageTexture.create_from_image(base_side_img)
+
+		# --- base tile ---
+		var base_mesh := _make_tile_mesh(base_top_tex, base_side_tex)
 		lib.create_item(id)
-		lib.set_item_name(id, "tile_row_%d" % row)
-		lib.set_item_mesh(id, mesh)
+		lib.set_item_name(id, "tile_%d_base" % row)
+		lib.set_item_mesh(id, base_mesh)
 		id += 1
+
+		# --- overlay variants (if any for this row) ---
+		if overlays_by_row.has(row):
+			for overlay_rect in overlays_by_row[row]:
+				var overlay_img := extract_image(grassOverlayAtlas, overlay_rect)
+				var composed_top := compose_top_with_overlay(
+					base_top_img,
+					overlay_img
+				)
+
+				var composed_top_tex := ImageTexture.create_from_image(composed_top)
+
+				var overlay_mesh := _make_tile_mesh(
+					composed_top_tex,
+					base_side_tex
+				)
+
+				lib.create_item(id)
+				lib.set_item_name(id, "tile_%d_overlay_%d" % [row, id])
+				lib.set_item_mesh(id, overlay_mesh)
+				id += 1
 
 	var ok := ResourceSaver.save(lib, output_path)
 	if ok != OK:
@@ -44,148 +75,201 @@ func _ready():
 		print("✅ Saved MeshLibrary:", output_path)
 
 
-func _make_tile_mesh(tex: Texture2D, row: int, tiles_x: int, tiles_y: int) -> Mesh:
+func _make_tile_mesh(top_tex: Texture2D, side_tex: Texture2D) -> Mesh:
 	var half := 0.5
 	var h := 1.0
 
-	# --- VERTICES ---
-	var verts := PackedVector3Array()
+	# =====================
+	# TOP SURFACE
+	# =====================
+	var top_verts := PackedVector3Array([
+		Vector3(-half, 0.0, -half),
+		Vector3( half, 0.0, -half),
+		Vector3( half, 0.0,  half),
+		Vector3(-half, 0.0,  half)
+	])
 
-	# Top quad (y = 0)
-	# 0: NW, 1: NE, 2: SE, 3: SW
-	verts.append(Vector3(-half, 0.0, -half))
-	verts.append(Vector3( half, 0.0, -half))
-	verts.append(Vector3( half, 0.0,  half))
-	verts.append(Vector3(-half, 0.0,  half))
+	var top_norms := PackedVector3Array([
+		Vector3.UP, Vector3.UP, Vector3.UP, Vector3.UP
+	])
 
-	# Side quads (full height downwards)
-	# North (-Z)
-	verts.append(Vector3(-half, 0.0, -half))
-	verts.append(Vector3( half, 0.0, -half))
-	verts.append(Vector3( half, -h, -half))
-	verts.append(Vector3(-half, -h, -half))
+	var top_uvs := PackedVector2Array([
+		Vector2(0, 0),
+		Vector2(1, 0),
+		Vector2(1, 1),
+		Vector2(0, 1)
+	])
 
-	# East (+X)
-	verts.append(Vector3( half, 0.0, -half))
-	verts.append(Vector3( half, 0.0,  half))
-	verts.append(Vector3( half, -h,  half))
-	verts.append(Vector3( half, -h, -half))
+	var top_indices := PackedInt32Array([0, 1, 2, 0, 2, 3])
 
-	# South (+Z)
-	verts.append(Vector3( half, 0.0,  half))
-	verts.append(Vector3(-half, 0.0,  half))
-	verts.append(Vector3(-half, -h,  half))
-	verts.append(Vector3( half, -h,  half))
-
-	# West (-X)
-	verts.append(Vector3(-half, 0.0,  half))
-	verts.append(Vector3(-half, 0.0, -half))
-	verts.append(Vector3(-half, -h, -half))
-	verts.append(Vector3(-half, -h,  half))
-
-	# --- NORMALS ---
-	var norms := PackedVector3Array()
-
-	# Top
-	for i in range(4):
-		norms.append(Vector3.UP)
+	# =====================
+	# SIDE SURFACE
+	# =====================
+	var side_verts := PackedVector3Array()
+	var side_norms := PackedVector3Array()
+	var side_uvs := PackedVector2Array()
+	var side_indices := PackedInt32Array()
 
 	# North
-	for i in range(4):
-		norms.append(Vector3(0, 0, -1))
+	_add_side(
+		side_verts, side_norms, side_uvs, side_indices,
+		Vector3(-half, 0, -half),
+		Vector3( half, 0, -half),
+		Vector3( half, -h, -half),
+		Vector3(-half, -h, -half),
+		Vector3(0, 0, -1)
+	)
 
 	# East
-	for i in range(4):
-		norms.append(Vector3(1, 0, 0))
+	_add_side(
+		side_verts, side_norms, side_uvs, side_indices,
+		Vector3( half, 0, -half),
+		Vector3( half, 0,  half),
+		Vector3( half, -h,  half),
+		Vector3( half, -h, -half),
+		Vector3(1, 0, 0)
+	)
 
 	# South
-	for i in range(4):
-		norms.append(Vector3(0, 0, 1))
+	_add_side(
+		side_verts, side_norms, side_uvs, side_indices,
+		Vector3( half, 0,  half),
+		Vector3(-half, 0,  half),
+		Vector3(-half, -h,  half),
+		Vector3( half, -h,  half),
+		Vector3(0, 0, 1)
+	)
 
 	# West
-	for i in range(4):
-		norms.append(Vector3(-1, 0, 0))
+	_add_side(
+		side_verts, side_norms, side_uvs, side_indices,
+		Vector3(-half, 0,  half),
+		Vector3(-half, 0, -half),
+		Vector3(-half, -h, -half),
+		Vector3(-half, -h,  half),
+		Vector3(-1, 0, 0)
+	)
 
-	# --- UVs ---
-	var u_step := 1.0 / float(tiles_x) # 0..1 horizontally
-	var v_step := 1.0 / float(tiles_y) # 0..1 vertically
-
-	var top_tx := 0 # column 0 = top
-	var side_tx := 1 # column 1 = side
-
-	var top_u0 := float(top_tx) * u_step
-	var top_v0 := float(row) * v_step
-	var top_u1 := top_u0 + u_step
-	var top_v1 := top_v0 + v_step
-
-	var side_u0 := float(side_tx) * u_step
-	var side_v0 := float(row) * v_step
-	var side_u1 := side_u0 + u_step
-	var side_v1 := side_v0 + v_step
-
-	var uvs := PackedVector2Array()
-
-	# Top UVs (match full top tile region)
-	uvs.append(Vector2(top_u0, top_v0)) # 0
-	uvs.append(Vector2(top_u1, top_v0)) # 1
-	uvs.append(Vector2(top_u1, top_v1)) # 2
-	uvs.append(Vector2(top_u0, top_v1)) # 3
-
-	# North side UVs
-	uvs.append(Vector2(side_u0, side_v0))
-	uvs.append(Vector2(side_u1, side_v0))
-	uvs.append(Vector2(side_u1, side_v1))
-	uvs.append(Vector2(side_u0, side_v1))
-
-	# East side UVs
-	uvs.append(Vector2(side_u0, side_v0))
-	uvs.append(Vector2(side_u1, side_v0))
-	uvs.append(Vector2(side_u1, side_v1))
-	uvs.append(Vector2(side_u0, side_v1))
-
-	# South side UVs
-	uvs.append(Vector2(side_u0, side_v0))
-	uvs.append(Vector2(side_u1, side_v0))
-	uvs.append(Vector2(side_u1, side_v1))
-	uvs.append(Vector2(side_u0, side_v1))
-
-	# West side UVs
-	uvs.append(Vector2(side_u0, side_v0))
-	uvs.append(Vector2(side_u1, side_v0))
-	uvs.append(Vector2(side_u1, side_v1))
-	uvs.append(Vector2(side_u0, side_v1))
-
-	# --- INDICES ---
-	var indices := PackedInt32Array()
-
-	# Top face (0..3)
-	indices.append_array([0, 1, 2, 0, 2, 3])
-
-	# Each side face: 4 verts each
-	for face in range(4):
-		var base := 4 + face * 4
-		indices.append_array([
-			base + 0, base + 1, base + 2,
-			base + 0, base + 2, base + 3
-		])
-
-	# --- BUILD MESH ---
-	var arrays := []
-	arrays.resize(Mesh.ARRAY_MAX)
-	arrays[Mesh.ARRAY_VERTEX] = verts
-	arrays[Mesh.ARRAY_NORMAL] = norms
-	arrays[Mesh.ARRAY_TEX_UV] = uvs
-	arrays[Mesh.ARRAY_INDEX] = indices
-
+	# =====================
+	# BUILD MESH
+	# =====================
 	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 
-	var mat := StandardMaterial3D.new()
-	mat.albedo_texture = tex
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
-	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mesh.add_surface_from_arrays(
+		Mesh.PRIMITIVE_TRIANGLES,
+		_make_arrays(top_verts, top_norms, top_uvs, top_indices)
+	)
 
-	mesh.surface_set_material(0, mat)
+	mesh.add_surface_from_arrays(
+		Mesh.PRIMITIVE_TRIANGLES,
+		_make_arrays(side_verts, side_norms, side_uvs, side_indices)
+	)
+
+	# Materials
+
+	var top_mat := StandardMaterial3D.new()
+	top_mat.albedo_texture = top_tex
+	top_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	top_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+
+	# var top_shader := load("res://resources/shaders/TileOverlay.gdshader")
+	# var top_mat := ShaderMaterial.new()
+	# top_mat.shader = top_shader
+	# top_mat.set_shader_parameter("albedo_tex", top_tex)
+
+	var side_mat := StandardMaterial3D.new()
+	side_mat.albedo_texture = side_tex
+	side_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	side_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+
+	mesh.surface_set_material(0, top_mat)
+	mesh.surface_set_material(1, side_mat)
+
 	return mesh
+
+
+func compose_top_with_overlay(base: Image, overlay: Image) -> Image:
+	if base.is_compressed():
+		base.decompress()
+	if overlay.is_compressed():
+		overlay.decompress()
+
+	var result := base.duplicate(true)
+	for y in overlay.get_height():
+		for x in overlay.get_width():
+			var o := overlay.get_pixel(x, y)
+			if o.a > 0.01:
+				var b = result.get_pixel(x, y)
+				result.set_pixel(x, y, b.blend(o))
+
+	return result
+
+
+func extract_image(tex: Texture2D, rect: Rect2i) -> Image:
+	var img := tex.get_image()
+
+	if img.is_compressed():
+		img.decompress()
+
+	var sub := Image.create(
+		rect.size.x,
+		rect.size.y,
+		false,
+		img.get_format()
+	)
+
+	sub.blit_rect(img, rect, Vector2i.ZERO)
+	return sub
+
+
+func _add_side(verts, norms, uvs, indices, a, b, c, d, normal):
+	var start = verts.size()
+
+	verts.append_array([a, b, c, d])
+	for i in 4:
+		norms.append(normal)
+
+	uvs.append_array([
+		Vector2(0, 0),
+		Vector2(1, 0),
+		Vector2(1, 1),
+		Vector2(0, 1)
+	])
+
+	indices.append_array([
+		start, start + 1, start + 2,
+		start, start + 2, start + 3
+	])
+
+
+func _make_arrays(verts, norms, uvs, indices):
+	var arr := []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = verts
+	arr[Mesh.ARRAY_NORMAL] = norms
+	arr[Mesh.ARRAY_TEX_UV] = uvs
+	arr[Mesh.ARRAY_INDEX] = indices
+	return arr
+
+
+enum TileType {
+	GRASS,
+	SAND,
+	SNOW
+}
+
+func top_rect(row: int) -> Rect2i:
+	return Rect2i(
+		0, 
+		row * tile_size,
+		tile_size,
+		tile_size
+	)
+
+func side_rect(row: int) -> Rect2i:
+	return Rect2i(
+		tile_size, 
+		row * tile_size,
+		tile_size,
+		tile_size
+	)

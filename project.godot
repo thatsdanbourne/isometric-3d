@@ -24,6 +24,10 @@ AudioManager="*res://scripts/managers/AudioManager.cs"
 SettingsManager="*res://scripts/managers/SettingsManager.cs"
 Init="*res://scripts/systems/Init.cs"
 
+[debug_draw_3d]
+
+settings/addon_root_folder="res://addons/debug_draw_3d"
+
 [display]
 
 window/size/viewport_width=2304

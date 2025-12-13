@@ -161,13 +161,13 @@ public partial class World : Node3D
 
 		tileTypes["sand"] = new TileType
 		{
-			Id = 1,
+			Id = 2,
 			Name = "sand",
 		};
 
 		tileTypes["snow"] = new TileType
 		{
-			Id = 2,
+			Id = 3,
 			Name = "snow",
 		};
 	}
