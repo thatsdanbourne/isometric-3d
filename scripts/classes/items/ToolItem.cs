@@ -7,6 +7,9 @@ public class ToolItem : Item
     public string ToolType { get; set; } = "";
     public string SwingSoundsKey { get; set; } = "fist_1";
     public Dictionary<string, float> DamageMultipliers { get; set; } = new();
+    public float HitArcDegress { get; set; } = 70f;
+    public int HitRayCount { get; set; } = 5;
+    public float HitRange { get; set; } = 2.0f;
 
     public void UseOn(Node3D target, Vector3 fromDirection)
     {
@@ -14,10 +17,10 @@ public class ToolItem : Item
         {
             float finalDamage = Damage;
 
-            if(DamageMultipliers.TryGetValue(wo.ObjectType, out float multiplier))
+            if (DamageMultipliers.TryGetValue(wo.ObjectType, out float multiplier))
                 finalDamage *= multiplier;
 
-            
+
             wo.ApplyDamage(finalDamage, fromDirection);
         }
     }

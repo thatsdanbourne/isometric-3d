@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 
 public partial class Player : CharacterBody3D
 {
@@ -111,13 +112,42 @@ public partial class Player : CharacterBody3D
         AudioManager.Instance.PlayAt(tool.SwingSoundsKey, GlobalPosition, 0.1f);
         // AudioManager.Call("play_random_at", tool.SwingSounds, GlobalPosition, AudioManager.Get("BUS_TOOLS"), 0.1f, -12);
 
-        if (hitRay.IsColliding() && hitRay.GetCollider() is WorldObject wo)
+        var space = GetWorld3D().DirectSpaceState;
+        Vector3 swingDir = aimDirection;
+        foreach (var dir in GetHitArcDirections(swingDir, tool.HitArcDegress, tool.HitRayCount))
         {
-            wo.ObjectBroken -= OnObjectBroken;
-            wo.ObjectBroken += OnObjectBroken;
+            DebugDraw3D.DrawLine(
+                GlobalPosition,
+                GlobalPosition + dir * 2f,
+                Colors.Red,
+                0.5f
+            );
+        }
 
-            Vector3 dir = (wo.GlobalPosition - hitRay.GetCollisionPoint()).Normalized();
-            tool.UseOn(wo, dir);
+        foreach (var dir in GetHitArcDirections(swingDir, tool.HitArcDegress, tool.HitRayCount))
+        {
+            var query = PhysicsRayQueryParameters3D.Create(
+                GlobalPosition,
+                GlobalPosition + dir * tool.HitRange
+            );
+
+            query.Exclude = new Godot.Collections.Array<Rid> { GetRid() };
+
+            var result = space.IntersectRay(query);
+            if (result.Count == 0)
+                continue;
+
+            var collider = result["collider"].As<Node>();
+            if (collider is WorldObject wo)
+            {
+                wo.ObjectBroken -= OnObjectBroken;
+                wo.ObjectBroken += OnObjectBroken;
+
+                Vector3 hitPoint = (Vector3)result["position"];
+                Vector3 hitDir = (wo.GlobalPosition - hitPoint).Normalized();
+                tool.UseOn(wo, hitDir);
+                return;
+            }
         }
     }
 
@@ -186,7 +216,6 @@ public partial class Player : CharacterBody3D
         }
 
         aimDirection = GetAimDirection();
-        hitRay.TargetPosition = aimDirection * 2.0f;
 
         if (Input.IsActionPressed("use_tool") && !HUD.WindowOpen)
         {
@@ -236,5 +265,18 @@ public partial class Player : CharacterBody3D
         dir = dir.Rotated(Vector3.Up, Mathf.DegToRad(-45));
 
         return dir.Normalized();
+    }
+
+    private IEnumerable<Vector3> GetHitArcDirections(Vector3 centerDir, float arcDegrees, int rayCount)
+    {
+        centerDir = centerDir.Rotated(Vector3.Up, Mathf.DegToRad(45)).Normalized();
+        float halfArc = arcDegrees * 0.5f;
+        float step = rayCount > 1 ? arcDegrees / (rayCount - 1) : 0f;
+
+        for (int i = 0; i < rayCount; i++)
+        {
+            float angle = -halfArc + step * i;
+            yield return centerDir.Rotated(Vector3.Up, Mathf.DegToRad(angle)).Normalized();
+        }
     }
 }

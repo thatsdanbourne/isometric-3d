@@ -5,14 +5,19 @@ public static class ToolItems
 {
     public static void Register()
     {
-        ItemRegistry.RegisterItem(new ToolItem {
+        ItemRegistry.RegisterItem(new ToolItem
+        {
             Id = "fist",
             DisplayName = "",
             Description = "",
             Damage = 1.0f,
+            HitArcDegress = 90f,
+            HitRayCount = 7,
+            HitRange = 1.1f
         });
 
-        ItemRegistry.RegisterItem(new ToolItem {
+        ItemRegistry.RegisterItem(new ToolItem
+        {
             Id = "stone_pickaxe",
             ToolType = "pickaxe",
             DisplayName = "Stone Pickaxe",
@@ -24,9 +29,13 @@ public static class ToolItems
                 { "stone", 2.0f },
                 { "wood", 0.25f }
             },
+            HitArcDegress = 35f,
+            HitRayCount = 3,
+            HitRange = 1.8f
         });
 
-        ItemRegistry.RegisterItem(new ToolItem {
+        ItemRegistry.RegisterItem(new ToolItem
+        {
             Id = "stone_axe",
             ToolType = "axe",
             DisplayName = "Stone Axe",
@@ -38,6 +47,9 @@ public static class ToolItems
                 { "stone", 0.25f },
                 { "wood", 2.0f }
             },
+            HitArcDegress = 75f,
+            HitRayCount = 5,
+            HitRange = 2.2f
         });
     }
 

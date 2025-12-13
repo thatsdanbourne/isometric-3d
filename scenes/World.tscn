@@ -196,7 +196,7 @@ WorldEnvironment = NodePath("../WorldEnvironment")
 [node name="ParticleAnchor" type="Node3D" parent="World/WeatherManager"]
 
 [node name="ScreenWeather" type="CanvasLayer" parent="World/WeatherManager/ParticleAnchor"]
-layer = 9
+layer = 0
 
 [node name="RainParticles" type="GPUParticles2D" parent="World/WeatherManager/ParticleAnchor/ScreenWeather"]
 visible = false
