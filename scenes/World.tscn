@@ -153,6 +153,7 @@ script = ExtResource("7_h1bdy")
 script = ExtResource("8_nrtoj")
 Sun = NodePath("../Sun")
 WorldEnvironment = NodePath("../WorldEnvironment")
+TimeOfDay = 0.26
 
 [node name="Sun" type="DirectionalLight3D" parent="World"]
 transform = Transform3D(-0.036643866, 0.54427326, -0.8381073, 0, 0.83867055, 0.54463905, 0.9993283, 0.019957682, -0.030732134, 0, 20, 0)
@@ -185,12 +186,11 @@ cell_center_y = false
 cell_center_z = false
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
-[node name="WeatherManager" type="Node3D" parent="World" node_paths=PackedStringArray("ParticleAnchor", "RainParticles", "SnowParticles", "Player", "WorldEnvironment")]
+[node name="WeatherManager" type="Node3D" parent="World" node_paths=PackedStringArray("ParticleAnchor", "RainParticles", "SnowParticles", "WorldEnvironment")]
 script = ExtResource("15_nthub")
 ParticleAnchor = NodePath("ParticleAnchor")
 RainParticles = NodePath("ParticleAnchor/ScreenWeather/RainParticles")
 SnowParticles = NodePath("ParticleAnchor/ScreenWeather/SnowParticles")
-Player = NodePath("")
 WorldEnvironment = NodePath("../WorldEnvironment")
 
 [node name="ParticleAnchor" type="Node3D" parent="World/WeatherManager"]

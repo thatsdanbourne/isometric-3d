@@ -27,7 +27,7 @@ public partial class DayNightCycle : Node
 	[Export] public float DayLength = 300.0f;
 	[Export] public float TimeOfDay = 0.25f;
 	private bool lastDaytimeState = true;
-	public bool isDaytime { get; private set; }
+	public bool isDaytime { get; private set; } = true;
 
 	private float _lastStretch = 999f;
 

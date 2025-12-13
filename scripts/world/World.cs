@@ -69,6 +69,11 @@ public partial class World : Node3D
 		GameManager.Instance.LocalPlayerChanged += (p) =>
 		{
 			Player = p;
+			p.PlayerReady += () =>
+			{
+				ChunkManager.ForceInitialChunks(p.GlobalPosition);
+				ChunkGenerator.InitialChunksReady += () => p.CheckBiome();
+			};
 		};
 
 		GameManager.Instance.SpawnLocalPlayer();
@@ -82,6 +87,9 @@ public partial class World : Node3D
 
 	public override void _PhysicsProcess(double delta)
 	{
+		if (Player == null || !IsInstanceValid(Player) || !Player.IsInsideTree())
+			return;
+
 		ChunkManager.UpdateChunks(Player.GlobalPosition);
 		ChunkGenerator.Update();
 	}

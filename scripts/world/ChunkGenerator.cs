@@ -3,8 +3,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 
-public class ChunkGenerator
+public partial class ChunkGenerator : Node
 {
+	[Signal] public delegate void InitialChunksReadyEventHandler();
+
 	private readonly World _world;
 	private readonly ChunkManager _chunkManager;
 
@@ -121,13 +123,13 @@ public class ChunkGenerator
 
 					foreach (DecorSpawnRule decorRule in biome.DecorRules)
 					{
-					    if(decorRule.ShouldPlace(globalX, globalY))
-					    {
-					        var dec = new ChunkDecor();
+						if (decorRule.ShouldPlace(globalX, globalY))
+						{
+							var dec = new ChunkDecor();
 							dec.DecorRule = decorRule;
 							dec.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
 							decors.Add(dec);
-					    }
+						}
 					}
 				}
 			}
@@ -162,6 +164,14 @@ public class ChunkGenerator
 		};
 
 		_world.ActiveChunks[coord] = chunk;
+
+		if (!_chunkManager.InitialChunksReady &&
+			_chunkManager.PendingInitialChunks.Remove(coord) &&
+			_chunkManager.PendingInitialChunks.Count == 0)
+		{
+			_chunkManager.InitialChunksReady = true;
+			EmitSignal(SignalName.InitialChunksReady);
+		}
 
 		Vector3I pos = new Vector3I();
 		int baseX = coord.X * C;

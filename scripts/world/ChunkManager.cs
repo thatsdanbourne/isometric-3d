@@ -10,6 +10,9 @@ public class ChunkManager
     public int ChunkSize { get; set; }
     public int ChunkRadius { get; set; }
 
+    public HashSet<Vector2I> PendingInitialChunks = new();
+    public bool InitialChunksReady = false;
+
     public ChunkManager(World world, int chunkSize, int chunkRadius)
     {
         _world = world;
@@ -18,6 +21,26 @@ public class ChunkManager
     }
 
 
+    public void ForceInitialChunks(Vector3 playerPos)
+    {
+        Vector2I playerChunk = TileManager.WorldToChunk(playerPos);
+        _world.lastPlayerChunk = playerChunk;
+
+        PendingInitialChunks.Clear();
+        InitialChunksReady = false;
+
+        int r = ChunkRadius;
+        for (int x = -r; x <= r; x++)
+        {
+            for (int y = -r; y <= r; y++)
+            {
+                Vector2I coord = new(playerChunk.X + x, playerChunk.Y + y);
+                PendingInitialChunks.Add(coord);
+            }
+        }
+
+        RequestChunksAround(playerChunk);
+    }
 
     public void UpdateChunks(Vector3 playerPos)
     {
@@ -78,7 +101,7 @@ public class ChunkManager
     {
         if (!ActiveChunks.TryGetValue(coord, out Chunk chunk))
             return;
-        
+
         int C = ChunkSize;
         int baseX = coord.X * C;
         int baseY = coord.Y * C;

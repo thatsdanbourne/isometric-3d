@@ -69,6 +69,11 @@ public partial class Player : CharacterBody3D
 
         _lastCheckedPosition = GlobalPosition;
 
+        CheckBiome();
+    }
+
+    public void CheckBiome()
+    {
         string biome = world.GetBiomeAtPos(GlobalPosition);
         if (!string.IsNullOrEmpty(biome) && biome != CurrentBiome)
             OnBiomeChanged(biome);
