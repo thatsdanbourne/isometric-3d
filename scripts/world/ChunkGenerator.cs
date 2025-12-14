@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 
 public partial class ChunkGenerator : Node
@@ -9,17 +10,35 @@ public partial class ChunkGenerator : Node
 
 	private readonly World _world;
 	private readonly ChunkManager _chunkManager;
+	private readonly int terrainSeed;
 
 	private Thread workerThread;
 	private bool running;
 
 	private readonly ConcurrentQueue<Vector2I> buildQueue = new();
 	private readonly ConcurrentQueue<ChunkData> finaliseQueue = new();
+	private RandomNumberGenerator rng = new();
 
-	public ChunkGenerator(World world, ChunkManager chunkManager)
+	private Dictionary<string, int[]> tileVariants = new()
+	{
+		{ "grass", new[] { 0, 1 } },
+		{ "sand", new[] { 2 } },
+		{ "snow", new[] { 3 } },
+	};
+
+	private Dictionary<string, float[]> tileVariantWeights = new()
+	{
+		{ "grass", new[] { 0.995f, 0.005f } },
+		{ "sand", new[] { 1f } },
+		{ "snow", new[] { 1f } },
+	};
+
+
+	public ChunkGenerator(World world, ChunkManager chunkManager, int seed)
 	{
 		_world = world;
 		_chunkManager = chunkManager;
+		this.terrainSeed = seed;
 	}
 
 	// start/stop/update
@@ -93,7 +112,7 @@ public partial class ChunkGenerator : Node
 				// determine biome
 				var biome = RuleRegistry.GetBiome(temp, humidity);
 				string tileType = biome.GroundTileType;
-				int tileId = _world.GetTileId(tileType);
+				int tileId = PickWeightedVariant(tileType, globalX, globalY);
 
 				bool biomeAllowsRivers = humidity > 0.45f;
 				bool isRiver = riverDist < 0.05f && biomeAllowsRivers;
@@ -233,5 +252,14 @@ public partial class ChunkGenerator : Node
 		data.FinaliseTimeMs = sw.Elapsed.TotalMilliseconds;
 
 		GD.Print($"Chunk {coord} > Build {data.BuildTimeMs:F3}ms | Finalise {data.FinaliseTimeMs:F3}ms");
+	}
+
+	private int PickWeightedVariant(string tileType, int x, int y)
+	{
+		ulong seed = (ulong)HashCode.Combine(terrainSeed, x, y);
+		rng.Seed = seed;
+
+		long index = rng.RandWeighted(tileVariantWeights[tileType]);
+		return tileVariants[tileType][(int)index];
 	}
 }

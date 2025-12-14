@@ -51,6 +51,8 @@ func _ready():
 		if overlays_by_row.has(row):
 			for overlay_rect in overlays_by_row[row]:
 				var overlay_img := extract_image(grassOverlayAtlas, overlay_rect)
+				overlay_img = rotate_image_nearest(overlay_img, deg_to_rad(-45))
+
 				var composed_top := compose_top_with_overlay(
 					base_top_img,
 					overlay_img
@@ -75,18 +77,20 @@ func _ready():
 		print("✅ Saved MeshLibrary:", output_path)
 
 
-func _make_tile_mesh(top_tex: Texture2D, side_tex: Texture2D) -> Mesh:
+func _make_tile_mesh(base_top_tex: Texture2D, side_tex: Texture2D) -> Mesh:
 	var half := 0.5
 	var h := 1.0
 
 	# =====================
 	# TOP SURFACE
 	# =====================
+	var eps := 0.001
+
 	var top_verts := PackedVector3Array([
-		Vector3(-half, 0.0, -half),
-		Vector3( half, 0.0, -half),
-		Vector3( half, 0.0,  half),
-		Vector3(-half, 0.0,  half)
+		Vector3(-half - eps, 0.0, -half - eps),
+		Vector3( half + eps, 0.0, -half - eps),
+		Vector3( half + eps, 0.0,  half + eps),
+		Vector3(-half - eps, 0.0,  half + eps)
 	])
 
 	var top_norms := PackedVector3Array([
@@ -167,20 +171,18 @@ func _make_tile_mesh(top_tex: Texture2D, side_tex: Texture2D) -> Mesh:
 
 	# Materials
 
-	var top_mat := StandardMaterial3D.new()
-	top_mat.albedo_texture = top_tex
-	top_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	top_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-
-	# var top_shader := load("res://resources/shaders/TileOverlay.gdshader")
-	# var top_mat := ShaderMaterial.new()
-	# top_mat.shader = top_shader
-	# top_mat.set_shader_parameter("albedo_tex", top_tex)
-
 	var side_mat := StandardMaterial3D.new()
 	side_mat.albedo_texture = side_tex
 	side_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	side_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+
+	var top_mat: Material
+	var mat := StandardMaterial3D.new()
+	mat.albedo_texture = base_top_tex
+	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	top_mat = mat
 
 	mesh.surface_set_material(0, top_mat)
 	mesh.surface_set_material(1, side_mat)
@@ -250,6 +252,35 @@ func _make_arrays(verts, norms, uvs, indices):
 	arr[Mesh.ARRAY_TEX_UV] = uvs
 	arr[Mesh.ARRAY_INDEX] = indices
 	return arr
+
+
+func rotate_image_nearest(src: Image, angle: float) -> Image:
+	var w := src.get_width()
+	var h := src.get_height()
+	var cx := w * 0.5
+	var cy := h * 0.5
+
+	var dst := Image.create(w, h, false, src.get_format())
+	dst.fill(Color(0, 0, 0, 0))
+
+	var c := cos(angle)
+	var s := sin(angle)
+
+	for y in range(h):
+		for x in range(w):
+			var dx := x - cx
+			var dy := y - cy
+
+			var sx :=  c * dx + s * dy + cx
+			var sy := -s * dx + c * dy + cy
+
+			var ix := int(round(sx))
+			var iy := int(round(sy))
+
+			if ix >= 0 and ix < w and iy >= 0 and iy < h:
+				dst.set_pixel(x, y, src.get_pixel(ix, iy))
+
+	return dst
 
 
 enum TileType {

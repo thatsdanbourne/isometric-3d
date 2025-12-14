@@ -60,7 +60,7 @@ public partial class World : Node3D
 
 		ChunkManager = new ChunkManager(this, ChunkSize, ChunkRadius);
 
-		ChunkGenerator = new ChunkGenerator(this, ChunkManager);
+		ChunkGenerator = new ChunkGenerator(this, ChunkManager, terrainSeed);
 		ChunkGenerator.Start();
 
 		GameManager.Instance.RegisterWorld(this);
