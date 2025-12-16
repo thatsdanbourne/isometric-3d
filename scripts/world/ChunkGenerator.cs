@@ -133,7 +133,7 @@ public partial class ChunkGenerator : Node
 					{
 						if (spawn.Algorithm.ShouldPlace(globalX, globalY, spawn.Density))
 						{
-							var variant = spawn.PickVariant(globalX, globalY);
+							var variant = spawn.PickVariant(terrainSeed, globalX, globalY);
 							var def = variant.Definition;
 
 							var obj = new ChunkObject()

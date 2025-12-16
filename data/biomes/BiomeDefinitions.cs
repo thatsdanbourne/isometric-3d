@@ -16,6 +16,7 @@ public static class BiomeDefinitions
 			{
 				new ObjectSpawnRule
 				{
+					Id = "plains_trees",
 					Density = 0.35f,
 					Algorithm = NoisePresets.PlainsTrees(seed, worldOffset),
 					Variants =
@@ -26,6 +27,7 @@ public static class BiomeDefinitions
 				},
 				new ObjectSpawnRule
 				{
+					Id = "plains_rocks",
 					Density = 0.3f,
 					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
 					Variants =
@@ -58,6 +60,7 @@ public static class BiomeDefinitions
 			{
 				new ObjectSpawnRule
 				{
+					Id = "forest_trees",
 					Density = 0.65f,
 					Algorithm = NoisePresets.ForestTrees(seed, worldOffset),
 					Variants =
@@ -68,6 +71,7 @@ public static class BiomeDefinitions
 				},
 				new ObjectSpawnRule
 				{
+					Id = "forest_rocks",
 					Density = 0.25f,
 					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
 					Variants =
@@ -100,6 +104,7 @@ public static class BiomeDefinitions
 			{
 				new ObjectSpawnRule
 				{
+					Id = "desert_rocks",
 					Density = 0.25f,
 					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
 					Variants =
@@ -124,6 +129,7 @@ public static class BiomeDefinitions
 			{
 				new ObjectSpawnRule
 				{
+					Id = "tundra_trees",
 					Density = 0.3f,
 					Algorithm = NoisePresets.TundraTrees(seed, worldOffset),
 					Variants =
@@ -133,6 +139,7 @@ public static class BiomeDefinitions
 				},
 				new ObjectSpawnRule
 				{
+					Id = "tundra_rocks",
 					Density = 0.25f,
 					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
 					Variants =
@@ -157,6 +164,7 @@ public static class BiomeDefinitions
 			{
 				new ObjectSpawnRule
 				{
+					Id = "taiga_trees",
 					Density = 0.55f,
 					Algorithm = NoisePresets.TaigaTrees(seed, worldOffset),
 					Variants =
@@ -167,6 +175,7 @@ public static class BiomeDefinitions
 				},
 				new ObjectSpawnRule
 				{
+					Id = "taiga_rocks",
 					Density = 0.25f,
 					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
 					Variants =
