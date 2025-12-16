@@ -18,8 +18,10 @@ public partial class WorldObject : Node3D
     private Vector3 shakeVelocity = Vector3.Zero;
 
     public World World;
-    public Chunk Chunk;
+    public Vector3 WorldPosition;
     public Vector2I TileCoord;
+    public ChunkObject Data;
+    public bool MarkedForRemoval;
 
     private RandomNumberGenerator rng = new RandomNumberGenerator();
     private PackedScene pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
@@ -85,16 +87,10 @@ public partial class WorldObject : Node3D
             }
         }
 
-        Cleanup();
-        QueueFree();
-    }
+        if (World.ActiveChunks.TryGetValue(Data.ChunkCoord, out var chunk))
+            chunk.Objects.Remove(Data);
 
-    public virtual void Cleanup()
-    {
-        if (World != null)
-        {
-            World.ChunkManager.RemoveChunkObject(this);
-        }
+        World.WorldObjectManager.EnqueueRemoval(Data);
     }
 
     private void ApplySpriteMaterial()

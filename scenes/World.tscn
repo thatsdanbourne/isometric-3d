@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://dtgd4yjkf4awx"]
+[gd_scene load_steps=27 format=3 uid="uid://dtgd4yjkf4awx"]
 
 [ext_resource type="MeshLibrary" uid="uid://lnicha63160s" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="Script" uid="uid://ciarma0geh450" path="res://scripts/tools/Debug.cs" id="2_h1bdy"]
@@ -17,6 +17,7 @@
 [ext_resource type="Script" uid="uid://dgarnp7014d6a" path="res://scripts/managers/WeatherManager.cs" id="15_nthub"]
 [ext_resource type="Texture2D" uid="uid://cxxnlf6fco4uc" path="res://assets/sprites/weather/raindrop.png" id="16_rpuxp"]
 [ext_resource type="Texture2D" uid="uid://b0rvrpykafb60" path="res://assets/sprites/weather/snowflake.png" id="17_nthub"]
+[ext_resource type="Script" uid="uid://biupxf38shvsk" path="res://scripts/managers/WorldObjectManager.cs" id="18_nthub"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_d1c63"]
 font = ExtResource("3_h1bdy")
@@ -210,6 +211,9 @@ amount = 800
 texture = ExtResource("17_nthub")
 lifetime = 3.0
 process_material = SubResource("ParticleProcessMaterial_nthub")
+
+[node name="WorldObjectManager" type="Node" parent="World"]
+script = ExtResource("18_nthub")
 
 [node name="WorldObjects" type="Node3D" parent="World"]
 

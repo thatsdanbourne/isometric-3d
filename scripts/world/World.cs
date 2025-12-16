@@ -37,6 +37,7 @@ public partial class World : Node3D
 
 	public ChunkManager ChunkManager { get; private set; }
 	public ChunkGenerator ChunkGenerator { get; private set; }
+	public WorldObjectManager WorldObjectManager { get; private set; }
 
 	private class TileType
 	{
@@ -61,6 +62,7 @@ public partial class World : Node3D
 		RuleRegistry.LoadAll(terrainSeed, worldOffset);
 
 		ChunkManager = new ChunkManager(this, ChunkSize, ChunkRadius);
+		WorldObjectManager = GetNode<WorldObjectManager>("WorldObjectManager");
 
 		ChunkGenerator = new ChunkGenerator(this, ChunkManager, terrainSeed);
 		ChunkGenerator.Start();
@@ -174,13 +176,18 @@ public partial class World : Node3D
 			return;
 		}
 
-		var obj = item.PlaceableScene.Instantiate<WorldObject>();
-		WorldObjects.AddChild(obj);
-		obj.GlobalPosition = worldPos;
+		var def = item.PlaceableObjectDefinition;
 
-		chunk.Objects.Add(obj);
-		obj.Chunk = chunk;
-		BlockTile(tile);
+		var chunkObj = new ChunkObject()
+		{
+			Definition = def,
+			TileCoord = tile,
+			Position = worldPos,
+			ChunkCoord = chunkCoord,
+		};
+
+		chunk.Objects.Add(chunkObj);
+		WorldObjectManager.EnqueueSpawn(chunkObj);
 	}
 
 	public string GetBiomeAtPos(Vector3 worldPos)
@@ -234,44 +241,19 @@ public partial class World : Node3D
 
 		return -1;
 	}
-
-	public SpawnVariant PickObjectVariant(ObjectSpawnRule rule, List<SpawnVariant> allowedVariants, int x, int z)
-	{
-		var valid = allowedVariants.Count > 0 ? allowedVariants : rule.Variants;
-		if (valid.Count == 0) return null;
-
-		int hash = (x * 73856093) ^ (z * 19349663) ^ rule.GetHashCode();
-		rng.Seed = (ulong)hash;
-
-		float total = 0f;
-		foreach (var v in valid)
-			total += v.Weight;
-
-		float r = rng.Randf() * total;
-
-		foreach (var v in valid)
-		{
-			if (r <= v.Weight)
-				return v;
-
-			r -= v.Weight;
-		}
-
-		return rule.Variants[0];
-	}
 }
 
 public partial class ChunkData : RefCounted
 {
 	public Vector2I Coord;
 	public Tile[,] Tiles;
-	public Godot.Collections.Array<ChunkObject> Objects;
+	public List<ChunkObject> Objects;
 	public Godot.Collections.Array<ChunkDecor> Decors;
 
 	public double BuildTimeMs;
 	public double FinaliseTimeMs;
 
-	public ChunkData(Vector2I coord, Tile[,] tiles, Godot.Collections.Array<ChunkObject> objects, Godot.Collections.Array<ChunkDecor> decors)
+	public ChunkData(Vector2I coord, Tile[,] tiles, List<ChunkObject> objects, Godot.Collections.Array<ChunkDecor> decors)
 	{
 		Coord = coord;
 		Tiles = tiles;

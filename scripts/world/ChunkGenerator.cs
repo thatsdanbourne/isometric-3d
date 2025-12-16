@@ -90,7 +90,7 @@ public partial class ChunkGenerator : Node
 
 		int C = _world.ChunkSize;
 		Tile[,] tiles = new Tile[C, C];
-		var objects = new Godot.Collections.Array<ChunkObject>();
+		var objects = new List<ChunkObject>();
 		var decors = new Godot.Collections.Array<ChunkDecor>();
 
 		for (int x = 0; x < C; x++)
@@ -133,10 +133,17 @@ public partial class ChunkGenerator : Node
 					{
 						if (spawn.Algorithm.ShouldPlace(globalX, globalY, spawn.Density))
 						{
-							var obj = new ChunkObject();
-							obj.ObjectRule = spawn;
-							obj.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
-							obj.TileCoord = new Vector2I(globalX, globalY);
+							var variant = spawn.PickVariant(globalX, globalY);
+							var def = variant.Definition;
+
+							var obj = new ChunkObject()
+							{
+								Definition = def,
+								TileCoord = new Vector2I(globalX, globalY),
+								Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f),
+								ChunkCoord = coord,
+							};
+
 							objects.Add(obj);
 						}
 					}
@@ -151,10 +158,6 @@ public partial class ChunkGenerator : Node
 							decors.Add(dec);
 						}
 					}
-				}
-				else
-				{
-					_world.BlockTile(new Vector2I(globalX, globalY));
 				}
 			}
 		}
@@ -184,7 +187,8 @@ public partial class ChunkGenerator : Node
 		Chunk chunk = new Chunk(C)
 		{
 			Coord = coord,
-			Tiles = data.Tiles
+			Tiles = data.Tiles,
+			Objects = data.Objects,
 		};
 
 		_world.ActiveChunks[coord] = chunk;
@@ -223,33 +227,12 @@ public partial class ChunkGenerator : Node
 
 		foreach (ChunkObject obj in data.Objects)
 		{
-			var rule = obj.ObjectRule;
-			var AllowedVariants = rule.Variants;
-
-			var variant = _world.PickObjectVariant(rule, AllowedVariants, (int)obj.Position.X, (int)obj.Position.Z);
-			var scene = variant.Scene;
-			var instance = scene.Instantiate<Node3D>();
-
-			if (instance is WorldObject wo)
-			{
-				wo.World = _world;
-				wo.Chunk = chunk;
-				wo.TileCoord = obj.TileCoord;
-			}
-
-			if (instance.HasMethod("initialise"))
-				instance.Call("initialise");
-
-			instance.Position = obj.Position;
-			_world.WorldObjects.AddChild(instance);
-			chunk.Objects.Add(instance);
-
-			_world.BlockTile(obj.TileCoord);
+			_world.WorldObjectManager.EnqueueSpawn(obj);
 		}
 
 		foreach (ChunkDecor decor in data.Decors)
 		{
-			var scene = WorldObjectRegistry.GetScene(decor.DecorRule.DecorId);
+			var scene = WorldObjectRegistry.GetDefinition(decor.DecorRule.DecorId).Scene;
 			var instance = scene.Instantiate<Node3D>();
 			instance.Position = decor.Position;
 			_world.WorldObjects.AddChild(instance);

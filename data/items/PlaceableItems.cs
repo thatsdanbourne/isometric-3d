@@ -11,7 +11,7 @@ public static class PlaceableItems
             Description = "A small campfire to keep you warm. Can also be used for cooking and to sleep.",
             Icon = LoadIcon("campfire"),
             StackSize = 1,
-            PlaceableScene = LoadScene("Campfire"),
+            PlaceableObjectDefinition = WorldObjectRegistry.GetDefinition("campfire"),
             PreviewFrames = GD.Load<SpriteFrames>("res://assets/sprites/campfire/campfire_frames.tres"),
         });
     }

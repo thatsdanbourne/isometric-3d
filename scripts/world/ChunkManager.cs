@@ -127,13 +127,7 @@ public class ChunkManager
 
         foreach (var obj in chunk.Objects)
         {
-            if (obj != null && GodotObject.IsInstanceValid(obj))
-            {
-                if (obj is WorldObject wo)
-                    _world.UnblockTile(wo.TileCoord);
-
-                obj.QueueFree();
-            }
+            _world.WorldObjectManager.EnqueueRemoval(obj);
         }
 
         foreach (var decor in chunk.Decors)
@@ -143,26 +137,5 @@ public class ChunkManager
         }
 
         ActiveChunks.Remove(coord);
-    }
-
-    // removing chunk objects
-
-    public void RemoveChunkObject(Node3D obj)
-    {
-        if (obj is WorldObject wo && wo.Chunk != null)
-        {
-            wo.Chunk.Objects.Remove(wo);
-            _world.UnblockTile(wo.TileCoord);
-            return;
-        }
-
-        foreach (var chunk in ActiveChunks.Values)
-        {
-            if (chunk.Objects.Contains(obj))
-            {
-                chunk.Objects.Remove(obj);
-                return;
-            }
-        }
     }
 }
