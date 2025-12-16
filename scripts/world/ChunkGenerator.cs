@@ -21,14 +21,14 @@ public partial class ChunkGenerator : Node
 
 	private Dictionary<string, int[]> tileVariants = new()
 	{
-		{ "grass", new[] { 0, 1 } },
-		{ "sand", new[] { 2 } },
-		{ "snow", new[] { 3 } },
+		{ "grass", new[] { 0, 1, 2 } },
+		{ "sand", new[] { 3 } },
+		{ "snow", new[] { 4 } },
 	};
 
 	private Dictionary<string, float[]> tileVariantWeights = new()
 	{
-		{ "grass", new[] { 0.995f, 0.005f } },
+		{ "grass", new[] { 0.795f, 0.005f, 0.2f } },
 		{ "sand", new[] { 1f } },
 		{ "snow", new[] { 1f } },
 	};

@@ -1,6 +1,6 @@
 [gd_scene load_steps=26 format=3 uid="uid://dtgd4yjkf4awx"]
 
-[ext_resource type="MeshLibrary" uid="uid://bymv77wxkj70m" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
+[ext_resource type="MeshLibrary" uid="uid://82a03yh07o1h" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="Script" uid="uid://ciarma0geh450" path="res://scripts/tools/Debug.cs" id="2_h1bdy"]
 [ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD/HUD.tscn" id="3_b3faq"]
 [ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="3_h1bdy"]
@@ -13,7 +13,7 @@
 [ext_resource type="Script" uid="uid://c6er6so1dhf3" path="res://scripts/managers/BiomeTintOverlay.cs" id="7_h1bdy"]
 [ext_resource type="PackedScene" uid="uid://cxwbi3kugkjk2" path="res://scenes/menus/settings/SettingsVideo.tscn" id="7_o1tcx"]
 [ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/managers/DayNightCycle.cs" id="8_nrtoj"]
-[ext_resource type="MeshLibrary" uid="uid://cal1xuvqgjaa7" path="res://water_meshlibrary.tres" id="8_pdh0q"]
+[ext_resource type="MeshLibrary" uid="uid://hvr6yjpo0ajd" path="res://water_meshlibrary.tres" id="8_pdh0q"]
 [ext_resource type="Script" uid="uid://dgarnp7014d6a" path="res://scripts/managers/WeatherManager.cs" id="15_nthub"]
 [ext_resource type="Texture2D" uid="uid://cxxnlf6fco4uc" path="res://assets/sprites/weather/raindrop.png" id="16_rpuxp"]
 [ext_resource type="Texture2D" uid="uid://b0rvrpykafb60" path="res://assets/sprites/weather/snowflake.png" id="17_nthub"]
@@ -41,6 +41,7 @@ shader_parameter/strength = 0.0
 
 [sub_resource type="Environment" id="Environment_1lgw5"]
 ambient_light_source = 2
+ssao_enabled = true
 ssao_radius = 5.0
 sdfgi_energy = 12.21
 fog_enabled = true

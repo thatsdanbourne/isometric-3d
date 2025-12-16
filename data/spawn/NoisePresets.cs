@@ -2,11 +2,6 @@ using Godot;
 
 public static class NoisePresets
 {
-    // ---------------------------------------------------------------------
-    // BASELINE TREE ALGORITHM — EXACT RECONSTRUCTION OF YOUR OLD SETTINGS
-    // ---------------------------------------------------------------------
-    // All biomes inherit from this unless they explicitly override values.
-    // ---------------------------------------------------------------------
     public static NoiseAlgorithm BaseTree(int seed, Vector2I offset)
     {
         return new NoiseAlgorithm(
@@ -61,10 +56,10 @@ public static class NoisePresets
 
         return Modify(
             algo,
-            baseFreq: 0.5f,          // slightly smaller clusters than forest
-            baseThreshold: 0.08f,    // more trees than forest edges
-            detailFreq: 0.06f,       // more breakup -> more scattered trees
-            detailThreshold: 0.25f
+            baseFreq: 0.45f,          // slightly smaller clusters than forest
+            baseThreshold: 0.15f,    // more trees than forest edges
+            detailFreq: 0.22f,       // more breakup -> more scattered trees
+            detailThreshold: 0.05f
         );
     }
 
@@ -112,10 +107,10 @@ public static class NoisePresets
 
         return Modify(
             algo,
-            baseFreq: 0.5f,
-            baseThreshold: 0.35f,    // high threshold -> very few trees
-            detailFreq: 0.06f,
-            detailThreshold: 0.35f
+            baseFreq: 0.4f,
+            baseThreshold: 0.17f,    // high threshold -> very few trees
+            detailFreq: 0.27f,
+            detailThreshold: 0.09f
         );
     }
 

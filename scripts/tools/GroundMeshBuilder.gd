@@ -7,7 +7,10 @@ extends Node3D
 var grassOverlayAtlas: Texture2D = preload("res://assets/sprites/ground/overlays/grass_overlays.png")
 
 var overlays_by_row := {
-	TileType.GRASS: [Rect2i(0, 0, tile_size, tile_size)]
+	TileType.GRASS: [
+		Rect2i(0, 0, tile_size, tile_size),
+		Rect2i(tile_size, 0, tile_size, tile_size),
+	]
 }
 
 func _ready():
@@ -41,7 +44,7 @@ func _ready():
 		var base_side_tex := ImageTexture.create_from_image(base_side_img)
 
 		# --- base tile ---
-		var base_mesh := _make_tile_mesh(base_top_tex, base_side_tex)
+		var base_mesh := _make_tile_mesh(base_top_tex, base_side_tex, null)
 		lib.create_item(id)
 		lib.set_item_name(id, "tile_%d_base" % row)
 		lib.set_item_mesh(id, base_mesh)
@@ -51,18 +54,12 @@ func _ready():
 		if overlays_by_row.has(row):
 			for overlay_rect in overlays_by_row[row]:
 				var overlay_img := extract_image(grassOverlayAtlas, overlay_rect)
-				overlay_img = rotate_image_nearest(overlay_img, deg_to_rad(-45))
-
-				var composed_top := compose_top_with_overlay(
-					base_top_img,
-					overlay_img
-				)
-
-				var composed_top_tex := ImageTexture.create_from_image(composed_top)
+				var overlay_tex := ImageTexture.create_from_image(overlay_img)
 
 				var overlay_mesh := _make_tile_mesh(
-					composed_top_tex,
-					base_side_tex
+					base_top_tex,
+					base_side_tex,
+					overlay_tex
 				)
 
 				lib.create_item(id)
@@ -77,7 +74,7 @@ func _ready():
 		print("✅ Saved MeshLibrary:", output_path)
 
 
-func _make_tile_mesh(base_top_tex: Texture2D, side_tex: Texture2D) -> Mesh:
+func _make_tile_mesh(base_top_tex: Texture2D, side_tex: Texture2D, overlay_tex: Texture2D) -> Mesh:
 	var half := 0.5
 	var h := 1.0
 
@@ -169,42 +166,97 @@ func _make_tile_mesh(base_top_tex: Texture2D, side_tex: Texture2D) -> Mesh:
 		_make_arrays(side_verts, side_norms, side_uvs, side_indices)
 	)
 
-	# Materials
+	if overlay_tex != null:
+		var w = half  # Half-width
+		
+		# Center the sprite on the tile (0,0,0 is center of top face)
+		var base_verts := PackedVector3Array([
+			Vector3(-w, 0.0, 0.0), # Bottom Left
+			Vector3( w, 0.0, 0.0), # Bottom Right
+			Vector3( w,   h, 0.0), # Top Right
+			Vector3(-w,   h, 0.0)  # Top Left
+		])
 
+		var sprite_verts := PackedVector3Array()
+		var sprite_norms := PackedVector3Array([
+		Vector3.UP, Vector3.UP, Vector3.UP, Vector3.UP
+	])
+
+		const Y_ROTATION = deg_to_rad(45)
+		const X_ROTATION = deg_to_rad(-33)
+
+		for i in range(base_verts.size()):
+			var rotated_vert = rotate_vector_x(base_verts[i], X_ROTATION)
+			rotated_vert = rotate_vector_y(rotated_vert, Y_ROTATION)
+			sprite_verts.append(rotated_vert)
+			
+		
+		# Standard UVs for a full texture
+		var sprite_uvs := PackedVector2Array([
+			Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0)
+		])
+		
+		var sprite_indices := PackedInt32Array([0, 1, 2, 0, 2, 3])
+		
+		# Add the Sprite Surface (Surface Index 2)
+		mesh.add_surface_from_arrays(
+			Mesh.PRIMITIVE_TRIANGLES, 
+			_make_arrays(sprite_verts, sprite_norms, sprite_uvs, sprite_indices)
+		)
+
+	# =========================================
+	# 3. SETUP MATERIALS
+	# =========================================
+	
+	# -- Surface 0: Top Base --
+	var top_mat := StandardMaterial3D.new()
+	top_mat.albedo_texture = base_top_tex
+	top_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	top_mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	top_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mesh.surface_set_material(0, top_mat)
+	
+	# -- Surface 1: Sides --
 	var side_mat := StandardMaterial3D.new()
 	side_mat.albedo_texture = side_tex
 	side_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	side_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-
-	var top_mat: Material
-	var mat := StandardMaterial3D.new()
-	mat.albedo_texture = base_top_tex
-	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	top_mat = mat
-
-	mesh.surface_set_material(0, top_mat)
 	mesh.surface_set_material(1, side_mat)
+	
+	# -- Surface 2: The Pop-up Overlay (Only if we added it) --
+	if overlay_tex != null:
+		var sprite_mat := StandardMaterial3D.new()
+		sprite_mat.albedo_texture = overlay_tex
+		sprite_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		sprite_mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+		
+		# Important settings for the sprite
+		sprite_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		sprite_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		mesh.surface_set_material(2, sprite_mat)
 
 	return mesh
 
 
-func compose_top_with_overlay(base: Image, overlay: Image) -> Image:
-	if base.is_compressed():
-		base.decompress()
-	if overlay.is_compressed():
-		overlay.decompress()
+func rotate_vector_x(v: Vector3, angle: float) -> Vector3:
+	var c = cos(angle)
+	var s = sin(angle)
+	# Rotation matrix applied to (x, y, z) around the X-axis
+	return Vector3(
+		v.x,
+		v.y * c - v.z * s,
+		v.y * s + v.z * c
+	)
 
-	var result := base.duplicate(true)
-	for y in overlay.get_height():
-		for x in overlay.get_width():
-			var o := overlay.get_pixel(x, y)
-			if o.a > 0.01:
-				var b = result.get_pixel(x, y)
-				result.set_pixel(x, y, b.blend(o))
-
-	return result
+func rotate_vector_y(v: Vector3, angle: float) -> Vector3:
+	var c = cos(angle)
+	var s = sin(angle)
+	# Rotation matrix applied to (x, y, z) around the Y-axis
+	return Vector3(
+		v.x * c + v.z * s,
+		v.y,
+		v.z * c - v.x * s
+	)
 
 
 func extract_image(tex: Texture2D, rect: Rect2i) -> Image:
@@ -252,35 +304,6 @@ func _make_arrays(verts, norms, uvs, indices):
 	arr[Mesh.ARRAY_TEX_UV] = uvs
 	arr[Mesh.ARRAY_INDEX] = indices
 	return arr
-
-
-func rotate_image_nearest(src: Image, angle: float) -> Image:
-	var w := src.get_width()
-	var h := src.get_height()
-	var cx := w * 0.5
-	var cy := h * 0.5
-
-	var dst := Image.create(w, h, false, src.get_format())
-	dst.fill(Color(0, 0, 0, 0))
-
-	var c := cos(angle)
-	var s := sin(angle)
-
-	for y in range(h):
-		for x in range(w):
-			var dx := x - cx
-			var dy := y - cy
-
-			var sx :=  c * dx + s * dy + cx
-			var sy := -s * dx + c * dy + cy
-
-			var ix := int(round(sx))
-			var iy := int(round(sy))
-
-			if ix >= 0 and ix < w and iy >= 0 and iy < h:
-				dst.set_pixel(x, y, src.get_pixel(ix, iy))
-
-	return dst
 
 
 enum TileType {
