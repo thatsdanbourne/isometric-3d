@@ -27,14 +27,7 @@ public static class BiomeDefinitions
 				new ObjectSpawnRule
 				{
 					Density = 0.3f,
-					Algorithm = new NoiseAlgorithm(seed,
-						worldOffset,
-						FastNoiseLite.NoiseTypeEnum.SimplexSmooth,
-						0.14f, 0.6f, 4, 0.45f, 2.2f,
-						true,
-						FastNoiseLite.NoiseTypeEnum.Perlin,
-						0.25f, 0.6f, 5, 0.3f, 2f
-					),
+					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
 					Variants =
 					{
 						new SpawnVariant { Id = "rock", Weight = 0.75f },

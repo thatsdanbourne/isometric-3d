@@ -61,6 +61,8 @@ public partial class Player : CharacterBody3D
 
         DefaultTool = ItemRegistry.GetItem("fist") as ToolItem;
 
+        InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("campfire"), 1);
+
         EmitSignal(SignalName.PlayerReady);
     }
 
@@ -156,7 +158,7 @@ public partial class Player : CharacterBody3D
         PlaceableItem item = equippedItem as PlaceableItem;
         WorldObject obj = item.PlaceableScene.Instantiate<WorldObject>();
         GetParent().AddChild(obj);
-        obj.GlobalPosition = GlobalPosition + hitRay.TargetPosition.Normalized();
+        obj.GlobalPosition = GlobalPosition + aimDirection;
         InventoryManager.Instance.RemoveItem(this, item, 1);
         UpdateEquippedItem();
     }
