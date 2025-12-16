@@ -129,6 +129,25 @@ public partial class World : Node3D
 		};
 	}
 
+	public void PlaceItem(Vector2I tile, PlaceableItem item)
+	{
+		Vector3 worldPos = TileManager.TileToWorld(tile);
+		Vector2I chunkCoord = TileManager.WorldToChunk(worldPos);
+
+		if (!ActiveChunks.TryGetValue(chunkCoord, out Chunk chunk))
+		{
+			GD.PrintErr($"Tried to place item in unloaded chunk {chunkCoord}");
+			return;
+		}
+
+		var obj = item.PlaceableScene.Instantiate<WorldObject>();
+		WorldObjects.AddChild(obj);
+		obj.GlobalPosition = worldPos;
+
+		chunk.Objects.Add(obj);
+		obj.Chunk = chunk;
+	}
+
 	public string GetBiomeAtPos(Vector3 worldPos)
 	{
 		int tileX = (int)worldPos.X;

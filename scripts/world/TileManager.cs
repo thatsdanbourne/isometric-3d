@@ -12,7 +12,7 @@ public static class TileManager
     {
         int x = Mathf.FloorToInt(worldPos.X / TileSize);
         int y = Mathf.FloorToInt(worldPos.Z / TileSize);
-        return new Vector2I(x, y);    
+        return new Vector2I(x, y);
     }
 
     public static Vector3 TileToWorld(Vector2I tilePos)
@@ -25,7 +25,8 @@ public static class TileManager
     }
 
     //tile <> chunk conversions
-    public static Vector2I TileToChunk(Vector2I tilePos) {
+    public static Vector2I TileToChunk(Vector2I tilePos)
+    {
         int shift = (int)Math.Log2(ChunkSize);
         return new Vector2I(
             tilePos.X >> shift,
@@ -51,5 +52,29 @@ public static class TileManager
     {
         Vector2I tileOrigin = ChunkToTileOrigin(chunkPos);
         return TileToWorld(tileOrigin);
+    }
+
+    public static Vector3 GetMouseWorldPosition(Camera3D camera, float groundY = -1f)
+    {
+        var viewport = camera.GetViewport();
+        Vector2 mousePos = viewport.GetMousePosition();
+
+        Vector3 rayOrigin = camera.ProjectRayOrigin(mousePos);
+        Vector3 rayDir = camera.ProjectRayNormal(mousePos);
+
+        Vector3 planeNormal = Vector3.Up;
+        float planeD = groundY;
+
+        float denom = planeNormal.Dot(rayDir);
+
+        if (Mathf.Abs(denom) < 0.0001f)
+            return Vector3.Zero;
+
+        float t = (planeD - planeNormal.Dot(rayOrigin)) / denom;
+
+        if (t < 0)
+            return Vector3.Zero;
+
+        return rayOrigin + rayDir * t;
     }
 }

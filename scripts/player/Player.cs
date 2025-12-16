@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using System.Runtime.Versioning;
 
 public partial class Player : CharacterBody3D
 {
@@ -12,6 +13,7 @@ public partial class Player : CharacterBody3D
     public float Speed = 5.0f;
     public ToolItem DefaultTool;
     private Item equippedItem;
+    private Item lastEquippedItem;
 
     private bool canSwing = true;
 
@@ -26,6 +28,11 @@ public partial class Player : CharacterBody3D
     private Timer hitCooldown;
     private RayCast3D hitRay;
     private Vector3 aimDirection = Vector3.Forward;
+
+    private bool placementMode = false;
+    private PlaceableItem currentPlaceable;
+    private PlacementPreview placementPreview;
+    private Vector2I previewTile;
 
     public HUD HUD;
     public Hotbar Hotbar;
@@ -88,14 +95,15 @@ public partial class Player : CharacterBody3D
     private void UpdateEquippedItem()
     {
         var stack = Hotbar.GetSlot(Hotbar.SelectedSlot);
+        Item newItem = stack?.Item ?? DefaultTool;
 
-        if (stack == null || stack.Item == null)
-        {
-            equippedItem = DefaultTool;
+        if (newItem == lastEquippedItem)
             return;
-        }
 
-        equippedItem = stack.Item;
+        lastEquippedItem = newItem;
+        equippedItem = newItem;
+
+        UpdatePlacementState(newItem);
     }
 
     private ToolItem GetActiveTool()
@@ -116,15 +124,6 @@ public partial class Player : CharacterBody3D
 
         var space = GetWorld3D().DirectSpaceState;
         Vector3 swingDir = aimDirection;
-        foreach (var dir in GetHitArcDirections(swingDir, tool.HitArcDegress, tool.HitRayCount))
-        {
-            DebugDraw3D.DrawLine(
-                GlobalPosition,
-                GlobalPosition + dir * 2f,
-                Colors.Red,
-                0.5f
-            );
-        }
 
         foreach (var dir in GetHitArcDirections(swingDir, tool.HitArcDegress, tool.HitRayCount))
         {
@@ -155,11 +154,11 @@ public partial class Player : CharacterBody3D
 
     private void PlaceItem()
     {
-        PlaceableItem item = equippedItem as PlaceableItem;
-        WorldObject obj = item.PlaceableScene.Instantiate<WorldObject>();
-        GetParent().AddChild(obj);
-        obj.GlobalPosition = GlobalPosition + aimDirection;
-        InventoryManager.Instance.RemoveItem(this, item, 1);
+        if (currentPlaceable == null)
+            return;
+
+        world.PlaceItem(previewTile, currentPlaceable);
+        InventoryManager.Instance.RemoveItem(this, currentPlaceable, 1);
         UpdateEquippedItem();
     }
 
@@ -231,6 +230,11 @@ public partial class Player : CharacterBody3D
             else
                 UseActiveTool();
         }
+
+        if (!placementMode || placementPreview == null || !placementPreview.IsInsideTree())
+            return;
+
+        UpdatePlacementPreview();
     }
 
 
@@ -280,5 +284,79 @@ public partial class Player : CharacterBody3D
             float angle = -halfArc + step * i;
             yield return centerDir.Rotated(Vector3.Up, Mathf.DegToRad(angle)).Normalized();
         }
+    }
+
+    // create/remove/update placement preview
+    private void UpdatePlacementState(Item item)
+    {
+        if (item is PlaceableItem placeable)
+            EnterPlacementMode(placeable);
+        else
+            ExitPlacementMode();
+    }
+
+    private void EnterPlacementMode(PlaceableItem placeable)
+    {
+        if (placementMode && currentPlaceable == placeable)
+            return;
+
+        placementMode = true;
+        currentPlaceable = placeable;
+        CreatePlacementPreivew();
+    }
+
+    private void ExitPlacementMode()
+    {
+        if (!placementMode)
+            return;
+
+        placementMode = false;
+        currentPlaceable = null;
+        RemovePlacementPreview();
+    }
+
+    private void CreatePlacementPreivew()
+    {
+        if (placementPreview != null) return;
+
+        placementPreview = GD.Load<PackedScene>("res://scenes/placeables/PlacementPreview.tscn")
+            .Instantiate<PlacementPreview>();
+
+        if (currentPlaceable.IsAnimated)
+            placementPreview.SetAnimatedSprite(currentPlaceable.PreviewFrames);
+        else
+            placementPreview.SetTexture(currentPlaceable.PreviewTexture);
+
+        GetTree().CurrentScene.CallDeferred("add_child", placementPreview);
+    }
+
+    private void UpdatePlacementPreview()
+    {
+        if (!placementMode || placementPreview == null || !placementPreview.IsInsideTree())
+            return;
+
+
+        Camera3D camera = GetViewport().GetCamera3D();
+        if (camera == null)
+            return;
+
+        Vector3 mouseWorld = TileManager.GetMouseWorldPosition(camera, 0f);
+        previewTile = TileManager.WorldToTile(mouseWorld);
+        Vector3 snapped = TileManager.TileToWorld(previewTile);
+
+        placementPreview.GlobalPosition = snapped;
+
+        placementPreview.SetValid(true); // TODO: implement valid placement checking
+    }
+
+    private void RemovePlacementPreview()
+    {
+        if (placementPreview == null)
+            return;
+
+        if (placementPreview.IsInsideTree())
+            placementPreview.Free();
+
+        placementPreview = null;
     }
 }
