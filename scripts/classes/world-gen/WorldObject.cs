@@ -19,6 +19,7 @@ public partial class WorldObject : Node3D
 
     public World World;
     public Chunk Chunk;
+    public Vector2I TileCoord;
 
     private RandomNumberGenerator rng = new RandomNumberGenerator();
     private PackedScene pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
@@ -54,7 +55,7 @@ public partial class WorldObject : Node3D
         float tiltDirection = fromDirection.X >= 0f ? 1f : -1f;
         float intensity = 4f;
         shakeVelocity += new Vector3(tiltDirection * intensity, 0f, 0f);
-        
+
         SetProcess(true);
     }
 
@@ -68,12 +69,12 @@ public partial class WorldObject : Node3D
         {
             if (GD.Randf() > entry.Chance)
                 continue;
-            
-            var item =ItemRegistry.GetItem(entry.ItemId);
+
+            var item = ItemRegistry.GetItem(entry.ItemId);
             if (item == null) continue;
 
             int quantity = rng.RandiRange(entry.MinQuantity, entry.MaxQuantity);
-            
+
             for (int n = 0; n < quantity; n++)
             {
                 ItemPickup pickup = pickupScene.Instantiate<ItemPickup>();

@@ -157,6 +157,9 @@ public partial class Player : CharacterBody3D
         if (currentPlaceable == null)
             return;
 
+        if (!world.CanPlace(previewTile, currentPlaceable))
+            return;
+
         world.PlaceItem(previewTile, currentPlaceable);
         InventoryManager.Instance.RemoveItem(this, currentPlaceable, 1);
         UpdateEquippedItem();
@@ -345,8 +348,8 @@ public partial class Player : CharacterBody3D
         Vector3 snapped = TileManager.TileToWorld(previewTile);
 
         placementPreview.GlobalPosition = snapped;
-
-        placementPreview.SetValid(true); // TODO: implement valid placement checking
+        bool canPlace = world.CanPlace(previewTile, currentPlaceable);
+        placementPreview.SetValid(canPlace);
     }
 
     private void RemovePlacementPreview()

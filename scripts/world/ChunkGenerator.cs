@@ -136,6 +136,7 @@ public partial class ChunkGenerator : Node
 							var obj = new ChunkObject();
 							obj.ObjectRule = spawn;
 							obj.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
+							obj.TileCoord = new Vector2I(globalX, globalY);
 							objects.Add(obj);
 						}
 					}
@@ -150,6 +151,10 @@ public partial class ChunkGenerator : Node
 							decors.Add(dec);
 						}
 					}
+				}
+				else
+				{
+					_world.BlockTile(new Vector2I(globalX, globalY));
 				}
 			}
 		}
@@ -229,6 +234,7 @@ public partial class ChunkGenerator : Node
 			{
 				wo.World = _world;
 				wo.Chunk = chunk;
+				wo.TileCoord = obj.TileCoord;
 			}
 
 			if (instance.HasMethod("initialise"))
@@ -237,6 +243,8 @@ public partial class ChunkGenerator : Node
 			instance.Position = obj.Position;
 			_world.WorldObjects.AddChild(instance);
 			chunk.Objects.Add(instance);
+
+			_world.BlockTile(obj.TileCoord);
 		}
 
 		foreach (ChunkDecor decor in data.Decors)

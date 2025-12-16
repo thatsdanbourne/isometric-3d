@@ -24,6 +24,8 @@ public partial class World : Node3D
 	public readonly Dictionary<Vector2I, Chunk> ActiveChunks
 		= new Dictionary<Vector2I, Chunk>();
 
+	private readonly Dictionary<Vector2I, int> blockedTiles = new();
+
 
 	public Vector2I lastPlayerChunk = new(-999, -999);
 
@@ -129,6 +131,38 @@ public partial class World : Node3D
 		};
 	}
 
+	public void BlockTile(Vector2I tile)
+	{
+		if (blockedTiles.TryGetValue(tile, out int count))
+			blockedTiles[tile] = count + 1;
+		else
+			blockedTiles[tile] = 1;
+	}
+
+	public void UnblockTile(Vector2I tile)
+	{
+		if (!blockedTiles.TryGetValue(tile, out int count)) return;
+
+		count--;
+
+		if (count <= 0)
+			blockedTiles.Remove(tile);
+		else
+			blockedTiles[tile] = count;
+	}
+
+	public bool IsTileBlocked(Vector2I tile)
+	{
+		return blockedTiles.ContainsKey(tile);
+	}
+
+	public bool CanPlace(Vector2I tile, PlaceableItem item)
+	{
+		if (blockedTiles.ContainsKey(tile)) return false;
+
+		return true;
+	}
+
 	public void PlaceItem(Vector2I tile, PlaceableItem item)
 	{
 		Vector3 worldPos = TileManager.TileToWorld(tile);
@@ -146,6 +180,7 @@ public partial class World : Node3D
 
 		chunk.Objects.Add(obj);
 		obj.Chunk = chunk;
+		BlockTile(tile);
 	}
 
 	public string GetBiomeAtPos(Vector3 worldPos)

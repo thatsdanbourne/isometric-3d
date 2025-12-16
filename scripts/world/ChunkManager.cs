@@ -128,7 +128,12 @@ public class ChunkManager
         foreach (var obj in chunk.Objects)
         {
             if (obj != null && GodotObject.IsInstanceValid(obj))
+            {
+                if (obj is WorldObject wo)
+                    _world.UnblockTile(wo.TileCoord);
+
                 obj.QueueFree();
+            }
         }
 
         foreach (var decor in chunk.Decors)
@@ -140,23 +145,6 @@ public class ChunkManager
         ActiveChunks.Remove(coord);
     }
 
-    // adding chunk objects
-
-    public void AddChunkObject(WorldObject obj)
-    {
-        Vector2I coords = TileManager.WorldToChunk(obj.Position);
-
-        if (ActiveChunks.TryGetValue(coords, out Chunk chunk))
-        {
-            chunk.Objects.Add(obj);
-            obj.Chunk = chunk;
-        }
-        else
-        {
-            GD.PrintErr("Tried to add object to non-existent chunk at " + coords);
-        }
-    }
-
     // removing chunk objects
 
     public void RemoveChunkObject(Node3D obj)
@@ -164,6 +152,7 @@ public class ChunkManager
         if (obj is WorldObject wo && wo.Chunk != null)
         {
             wo.Chunk.Objects.Remove(wo);
+            _world.UnblockTile(wo.TileCoord);
             return;
         }
 
