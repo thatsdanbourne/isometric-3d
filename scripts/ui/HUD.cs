@@ -141,6 +141,14 @@ public partial class HUD : CanvasLayer
 				MenuManager.Instance.GetNode<PauseMenu>("PauseMenu").Open();
 			}
 		}
+
+		for (int i = 0; i < 9; i++)
+		{
+			if (e.IsActionPressed($"hotbar_{i + 1}"))
+			{
+				hotbar.SelectSlot(i);
+			}
+		}
 	}
 
 	private void ClearChildren(Node parent)
@@ -235,6 +243,9 @@ public partial class HUD : CanvasLayer
 			if (i == hotbar.SelectedSlot)
 			{
 				slot.AddThemeStyleboxOverride("panel", slotHighlightStyle);
+
+				var tween = CreateTween();
+				tween.TweenProperty(slot, "scale", new Vector2(1.1f, 1.1f), 0.1f).SetTrans(Tween.TransitionType.Back).SetEase(Tween.EaseType.Out);
 			}
 			else
 			{

@@ -13,7 +13,7 @@ font = ExtResource("2_tram2")
 font_size = 20
 
 [node name="ItemContainerSlot" type="PanelContainer"]
-custom_minimum_size = Vector2(64, 64)
+custom_minimum_size = Vector2(66, 66)
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -25,6 +25,7 @@ offset_right = 33.0
 offset_bottom = 33.0
 grow_horizontal = 2
 grow_vertical = 2
+pivot_offset = Vector2(33, 33)
 theme_override_styles/panel = ExtResource("1_tram2")
 script = ExtResource("1_tjon7")
 
@@ -39,7 +40,6 @@ show_percentage = false
 texture_filter = 1
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
-expand_mode = 2
 stretch_mode = 5
 
 [node name="Label" type="Label" parent="."]

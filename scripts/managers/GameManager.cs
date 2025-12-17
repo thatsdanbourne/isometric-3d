@@ -59,4 +59,20 @@ public partial class GameManager : Node
     {
         World = world;
     }
+
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (@event.IsActionPressed("toggle_fullscreen"))
+        {
+            ToggleFullscreen();
+            GetViewport().SetInputAsHandled();
+        }
+    }
+
+    private void ToggleFullscreen()
+    {
+        SettingsManager.Instance.Fullscreen = !SettingsManager.Instance.Fullscreen;
+        SettingsManager.Instance.ApplyAll();
+    }
+
 }
