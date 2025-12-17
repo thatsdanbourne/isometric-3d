@@ -7,11 +7,16 @@ public partial class WorldObjectManager : Node
     public int MaxSpawnsPerFrame = 6;
     public int MaxRemovesPerFrame = 10;
 
-    private readonly Queue<ChunkObject> spawnQueue = new();
+    private readonly Queue<Chunk> spawnChunkQueue = new();
+    private readonly Queue<ChunkObject> activeSpawnQueue = new();
     private readonly Queue<ChunkObject> removeQueue = new();
+
+    private Dictionary<string, Stack<WorldObject>> pools = new();
 
     private World _world;
     private RandomNumberGenerator rng;
+
+    private int maxPoolSizePerType = 64;
 
 
     public override void _Ready()
@@ -27,12 +32,17 @@ public partial class WorldObjectManager : Node
         ProcessRemovals();
     }
 
+    public void EnqueueChunk(Chunk chunk)
+    {
+        spawnChunkQueue.Enqueue(chunk);
+    }
+
     public void EnqueueSpawn(ChunkObject data)
     {
         if (data.RuntimeNode != null || data.MarkedForRemoval)
             return;
 
-        spawnQueue.Enqueue(data);
+        activeSpawnQueue.Enqueue(data);
     }
 
     public void EnqueueRemoval(ChunkObject data)
@@ -48,24 +58,44 @@ public partial class WorldObjectManager : Node
     {
         int count = 0;
 
-        while (spawnQueue.Count > 0 && count < MaxSpawnsPerFrame)
+        if (activeSpawnQueue.Count == 0 && spawnChunkQueue.Count > 0)
         {
-            var data = spawnQueue.Dequeue();
+            var chunk = spawnChunkQueue.Dequeue();
 
-            if (data.MarkedForRemoval)
+            foreach (var obj in chunk.Objects)
+                activeSpawnQueue.Enqueue(obj);
+        }
+
+        while (activeSpawnQueue.Count > 0 && count < MaxSpawnsPerFrame)
+        {
+            var data = activeSpawnQueue.Dequeue();
+
+            if (data.MarkedForRemoval || data.RuntimeNode != null)
                 continue;
 
-            var node = data.Definition.Scene.Instantiate<WorldObject>();
-            node.Data = data;
+            var node = GetPooled(data.Definition.Id);
 
-            _world.WorldObjects.AddChild(node);
-            data.RuntimeNode = node;
-            node.GlobalPosition = data.Position;
+            node.Reset();
+            node.Data = data;
             node.World = _world;
+            data.RuntimeNode = node;
+
+            if (node.GetParent() != null)
+                node.Reparent(_world.WorldObjects);
+            else
+                _world.WorldObjects.AddChild(node);
+
+            node.Visible = true;
+            node.SetPhysicsProcess(true);
+
+            node.GlobalPosition = data.Position;
+            node.Translate(new Vector3(0f, 0f, rng.RandfRange(-0.01f, 0.01f)));
 
             if (data.Definition.BlocksTile)
+            {
                 _world.BlockTile(data.TileCoord);
-
+                node.EnableCollision();
+            }
             count++;
         }
     }
@@ -80,8 +110,10 @@ public partial class WorldObjectManager : Node
 
             if (data.RuntimeNode != null)
             {
-                _world.UnblockTile(data.TileCoord);
-                data.RuntimeNode.QueueFree();
+                if (data.Definition.BlocksTile)
+                    _world.UnblockTile(data.TileCoord);
+
+                Recycle(data.RuntimeNode);
                 data.RuntimeNode = null;
             }
 
@@ -89,28 +121,29 @@ public partial class WorldObjectManager : Node
         }
     }
 
-    // public SpawnVariant PickObjectVariant(ObjectSpawnRule rule, List<SpawnVariant> allowedVariants, int x, int z)
-    // {
-    //     var valid = allowedVariants.Count > 0 ? allowedVariants : rule.Variants;
-    //     if (valid.Count == 0) return null;
+    private WorldObject GetPooled(string sceneId)
+    {
+        if (pools.TryGetValue(sceneId, out var stack) && stack.Count > 0)
+            return stack.Pop();
 
-    //     int hash = (x * 73856093) ^ (z * 19349663) ^ rule.GetHashCode();
-    //     rng.Seed = (ulong)hash;
+        return WorldObjectRegistry.GetScene(sceneId).Instantiate<WorldObject>();
+    }
 
-    //     float total = 0f;
-    //     foreach (var v in valid)
-    //         total += v.Weight;
+    private void Recycle(WorldObject node)
+    {
+        node.DisableCollision();
+        node.Visible = false;
+        node.SetPhysicsProcess(false);
+        node.Reparent(_world.WorldObjectPool);
 
-    //     float r = rng.Randf() * total;
+        var id = node.Data.Definition.Id;
 
-    //     foreach (var v in valid)
-    //     {
-    //         if (r <= v.Weight)
-    //             return v;
+        if (!pools.TryGetValue(id, out var stack))
+            pools[id] = stack = new Stack<WorldObject>();
 
-    //         r -= v.Weight;
-    //     }
-
-    //     return rule.Variants[0];
-    // }
+        if (stack.Count < maxPoolSizePerType)
+            stack.Push(node);
+        else
+            node.QueueFree();
+    }
 }

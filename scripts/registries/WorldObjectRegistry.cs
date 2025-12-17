@@ -19,6 +19,15 @@ public static class WorldObjectRegistry
 		};
 	}
 
+	public static PackedScene GetScene(string id)
+	{
+		if (_defs.TryGetValue(id, out var def))
+			return def.Scene;
+
+		GD.PrintErr($"WorldObjectRegistry: No definition found for id '{id}'");
+		return null;
+	}
+
 	public static WorldObjectDefinition GetDefinition(string id)
 	{
 		if (_defs.TryGetValue(id, out var def))

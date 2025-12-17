@@ -14,6 +14,8 @@ public partial class WorldObject : Node3D
     private static readonly StandardMaterial3D BaseMaterial = GD.Load<StandardMaterial3D>("res://resources/materials/WorldObjectBase.tres");
 
     private Node3D visual;
+    private CollisionShape3D collisionShape;
+
     private Vector3 shakeOffset = Vector3.Zero;
     private Vector3 shakeVelocity = Vector3.Zero;
 
@@ -32,11 +34,20 @@ public partial class WorldObject : Node3D
     public override void _Ready()
     {
         visual = GetNode<Node3D>("Sprite3D") ?? GetNode<Node3D>("AnimatedSprite3D");
+        collisionShape = GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
 
         rng.Randomize();
-        Translate(new Vector3(0f, 0f, rng.RandfRange(-0.01f, 0.01f)));
         currentHealth = MaxHealth;
         ApplySpriteMaterial();
+        SetProcess(false);
+    }
+
+    public void Reset()
+    {
+        MarkedForRemoval = false;
+        currentHealth = MaxHealth;
+        shakeOffset = Vector3.Zero;
+        shakeVelocity = Vector3.Zero;
         SetProcess(false);
     }
 
@@ -154,5 +165,19 @@ public partial class WorldObject : Node3D
             SetProcess(false);
             return;
         }
+    }
+
+    public void EnableCollision()
+    {
+        if (collisionShape == null) return;
+
+        collisionShape.Disabled = false;
+    }
+
+    public void DisableCollision()
+    {
+        if (collisionShape == null) return;
+
+        collisionShape.Disabled = true;
     }
 }

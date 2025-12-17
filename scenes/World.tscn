@@ -217,4 +217,6 @@ script = ExtResource("18_nthub")
 
 [node name="WorldObjects" type="Node3D" parent="World"]
 
+[node name="WorldObjectPool" type="Node3D" parent="World"]
+
 [node name="PlayerContainer" type="Node3D" parent="World"]

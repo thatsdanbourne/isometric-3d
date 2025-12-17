@@ -38,6 +38,7 @@ public partial class World : Node3D
 	public ChunkManager ChunkManager { get; private set; }
 	public ChunkGenerator ChunkGenerator { get; private set; }
 	public WorldObjectManager WorldObjectManager { get; private set; }
+	public Node3D WorldObjectPool;
 
 	private class TileType
 	{
@@ -63,6 +64,7 @@ public partial class World : Node3D
 
 		ChunkManager = new ChunkManager(this, ChunkSize, ChunkRadius);
 		WorldObjectManager = GetNode<WorldObjectManager>("WorldObjectManager");
+		WorldObjectPool = GetNode<Node3D>("WorldObjectPool");
 
 		ChunkGenerator = new ChunkGenerator(this, ChunkManager, terrainSeed);
 		ChunkGenerator.Start();

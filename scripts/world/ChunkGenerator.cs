@@ -225,11 +225,6 @@ public partial class ChunkGenerator : Node
 			}
 		}
 
-		foreach (ChunkObject obj in data.Objects)
-		{
-			_world.WorldObjectManager.EnqueueSpawn(obj);
-		}
-
 		foreach (ChunkDecor decor in data.Decors)
 		{
 			var scene = WorldObjectRegistry.GetDefinition(decor.DecorRule.DecorId).Scene;
@@ -238,6 +233,8 @@ public partial class ChunkGenerator : Node
 			_world.WorldObjects.AddChild(instance);
 			chunk.Decors.Add(instance);
 		}
+
+		_world.WorldObjectManager.EnqueueChunk(chunk);
 
 		sw.Stop();
 		data.FinaliseTimeMs = sw.Elapsed.TotalMilliseconds;
