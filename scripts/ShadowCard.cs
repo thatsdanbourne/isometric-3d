@@ -8,8 +8,6 @@ public partial class ShadowCard : Sprite3D
 
 	public override void _Ready()
 	{
-		DayNightCycle.RegisterShadow(this);
-
 		Texture2D tex = Texture;
 		float px = PixelSize;
 
@@ -37,6 +35,11 @@ public partial class ShadowCard : Sprite3D
 		GlobalTransform = xf;
 
 		Scale = new Vector3(Scale.X, Scale.Y * stretch, Scale.Z);
+	}
+
+	public override void _EnterTree()
+	{
+		DayNightCycle.RegisterShadow(this);
 	}
 
 	public override void _ExitTree()

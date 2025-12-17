@@ -92,6 +92,7 @@ public partial class ChunkGenerator : Node
 		Tile[,] tiles = new Tile[C, C];
 		var objects = new List<ChunkObject>();
 		var decors = new Godot.Collections.Array<ChunkDecor>();
+		bool[,] blocked = new bool[C, C];
 
 		for (int x = 0; x < C; x++)
 		{
@@ -133,6 +134,9 @@ public partial class ChunkGenerator : Node
 					{
 						if (spawn.Algorithm.ShouldPlace(globalX, globalY, spawn.Density))
 						{
+							if (blocked[x, y])
+								continue;
+
 							var variant = spawn.PickVariant(terrainSeed, globalX, globalY);
 							var def = variant.Definition;
 
@@ -145,6 +149,9 @@ public partial class ChunkGenerator : Node
 							};
 
 							objects.Add(obj);
+
+							if (def.BlocksTile)
+								blocked[x, y] = true;
 						}
 					}
 
