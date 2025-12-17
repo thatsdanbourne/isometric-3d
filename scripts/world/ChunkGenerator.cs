@@ -116,12 +116,18 @@ public partial class ChunkGenerator : Node
 				int tileId = PickWeightedVariant(tileType, globalX, globalY);
 
 				bool biomeAllowsRivers = humidity > 0.45f;
-				bool isRiver = riverDist < 0.05f && biomeAllowsRivers;
+				bool isRiver = riverDist < 0.035f && biomeAllowsRivers;
+				bool isRiverBank = riverDist < 0.085f && biomeAllowsRivers;
 
 				if (isRiver)
 				{
 					tileType = "water";
 					tileId = 0;
+				}
+				else if (isRiverBank)
+				{
+					tileType = "sand";
+					tileId = 3;
 				}
 
 				tiles[x, y] = new Tile(tileId, tileType, biome.Name, temp, humidity);

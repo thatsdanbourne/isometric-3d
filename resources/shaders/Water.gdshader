@@ -1,6 +1,6 @@
 shader_type spatial;
 
-render_mode blend_mix, depth_draw_opaque, cull_back;
+render_mode blend_mix, depth_draw_never, cull_back;
 
 uniform sampler2D water_tex;
 uniform float speed = 0.5;

@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://b0i3w6cdey405" path="res://assets/sprites/ground/water.png" id="2_jhlx1"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_qeqkn"]
-render_priority = 0
+render_priority = -1
 shader = ExtResource("1_t75e4")
 shader_parameter/water_tex = ExtResource("2_jhlx1")
 shader_parameter/speed = 0.5
