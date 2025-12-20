@@ -13,7 +13,8 @@ public static class ToolItems
             Damage = 1.0f,
             HitArcDegress = 90f,
             HitRayCount = 7,
-            HitRange = 1.1f
+            HitRange = 1.1f,
+            Tier = ToolTier.Fist
         });
 
         ItemRegistry.RegisterItem(new ToolItem
@@ -31,7 +32,8 @@ public static class ToolItems
             },
             HitArcDegress = 35f,
             HitRayCount = 3,
-            HitRange = 1.8f
+            HitRange = 1.8f,
+            Tier = ToolTier.Stone
         });
 
         ItemRegistry.RegisterItem(new ToolItem
@@ -49,7 +51,8 @@ public static class ToolItems
             },
             HitArcDegress = 75f,
             HitRayCount = 5,
-            HitRange = 2.2f
+            HitRange = 2.2f,
+            Tier = ToolTier.Stone
         });
     }
 

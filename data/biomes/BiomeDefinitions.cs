@@ -33,7 +33,8 @@ public static class BiomeDefinitions
 					Variants =
 					{
 						new SpawnVariant { Id = "rock", Weight = 0.75f },
-						new SpawnVariant { Id = "rock_coal", Weight = 0.25f },
+						new SpawnVariant { Id = "rock_coal", Weight = 0.2f },
+						new SpawnVariant { Id = "rock_copper", Weight = 0.05f }
 					}
 				}
 			},
@@ -76,8 +77,9 @@ public static class BiomeDefinitions
 					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "rock", Weight = 1f },
+						new SpawnVariant { Id = "rock", Weight = 0.8f },
 						new SpawnVariant { Id = "rock_coal", Weight = 0.15f },
+						new SpawnVariant { Id = "rock_copper", Weight = 0.05f }
 					}
 				}
 			},
@@ -146,6 +148,7 @@ public static class BiomeDefinitions
 					{
 						new SpawnVariant { Id = "rock", Weight = 1f },
 						new SpawnVariant { Id = "rock_coal", Weight = 0.15f },
+						new SpawnVariant { Id = "rock_copper", Weight = 0.02f }
 					},
 				},
 			}
@@ -182,6 +185,7 @@ public static class BiomeDefinitions
 					{
 						new SpawnVariant { Id = "rock", Weight = 1f },
 						new SpawnVariant { Id = "rock_coal", Weight = 0.15f },
+						new SpawnVariant { Id = "rock_copper", Weight = 0.025f }
 					},
 				},
 			},

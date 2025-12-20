@@ -78,6 +78,7 @@ public partial class WorldObjectManager : Node
             node.Reset();
             node.Data = data;
             node.World = _world;
+            node.RequiredTier = data.Definition.ToolTier;
             data.RuntimeNode = node;
 
             if (node.GetParent() != null)

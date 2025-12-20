@@ -4,7 +4,8 @@ public static class ResourceItems
 {
     public static void Register()
     {
-        ItemRegistry.RegisterItem(new ResourceItem {
+        ItemRegistry.RegisterItem(new ResourceItem
+        {
             Id = "wood",
             DisplayName = "Wood",
             ResourceType = "wood",
@@ -13,7 +14,8 @@ public static class ResourceItems
             StackSize = 99,
         });
 
-        ItemRegistry.RegisterItem(new ResourceItem {
+        ItemRegistry.RegisterItem(new ResourceItem
+        {
             Id = "stone",
             DisplayName = "Stone",
             ResourceType = "stone",
@@ -22,12 +24,23 @@ public static class ResourceItems
             StackSize = 99,
         });
 
-        ItemRegistry.RegisterItem(new ResourceItem {
+        ItemRegistry.RegisterItem(new ResourceItem
+        {
             Id = "coal",
             DisplayName = "Coal",
             ResourceType = "ore",
             Description = "A common ore used as fuel for fires and smelting.",
             Icon = LoadTexture("coal"),
+            StackSize = 99,
+        });
+
+        ItemRegistry.RegisterItem(new ResourceItem
+        {
+            Id = "copper_ore",
+            DisplayName = "Copper Ore",
+            ResourceType = "ore",
+            Description = "A common ore used for crafting basic tools.",
+            Icon = LoadTexture("copper_ore"),
             StackSize = 99,
         });
     }

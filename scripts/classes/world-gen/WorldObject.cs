@@ -25,6 +25,8 @@ public partial class WorldObject : Node3D
     public ChunkObject Data;
     public bool MarkedForRemoval;
 
+    public ToolTier RequiredTier;
+
     private RandomNumberGenerator rng = new RandomNumberGenerator();
     private PackedScene pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
 
