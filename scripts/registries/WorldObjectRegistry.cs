@@ -5,7 +5,7 @@ public static class WorldObjectRegistry
 {
 	private static Dictionary<string, WorldObjectDefinition> _defs = new();
 
-	public static void Register(string id, PackedScene scene, ToolTier ToolTier = ToolTier.Fist,
+	public static void Register(string id, PackedScene scene, float MaxHealth = 10, ToolTier ToolTier = ToolTier.Fist,
 		bool blocksTile = true, bool canBeBroken = true, bool isDecor = false
 	)
 	{
@@ -13,6 +13,7 @@ public static class WorldObjectRegistry
 		{
 			Id = id,
 			Scene = scene,
+			MaxHealth = MaxHealth,
 			ToolTier = ToolTier,
 			BlocksTile = blocksTile,
 			CanBeBroken = canBeBroken,
@@ -42,9 +43,9 @@ public static class WorldObjectRegistry
 	{
 		Register("tree_pine", GD.Load<PackedScene>("res://scenes/terrain/objects/TreePine.tscn"));
 		Register("tree_birch", GD.Load<PackedScene>("res://scenes/terrain/objects/TreeBirch.tscn"));
-		Register("rock", GD.Load<PackedScene>("res://scenes/terrain/objects/Rock.tscn"));
-		Register("rock_coal", GD.Load<PackedScene>("res://scenes/terrain/objects/RockCoalOre.tscn"));
-		Register("rock_copper", GD.Load<PackedScene>("res://scenes/terrain/objects/RockCopperOre.tscn"), ToolTier.Stone);
+		Register("rock", GD.Load<PackedScene>("res://scenes/terrain/objects/Rock.tscn"), 15f);
+		Register("rock_coal", GD.Load<PackedScene>("res://scenes/terrain/objects/RockCoalOre.tscn"), 18f);
+		Register("rock_copper", GD.Load<PackedScene>("res://scenes/terrain/objects/RockCopperOre.tscn"), 20f, ToolTier.Stone);
 		Register("flower_poppy", GD.Load<PackedScene>("res://scenes/terrain/decor/FlowerPoppy.tscn"), blocksTile: false, isDecor: true);
 		Register("campfire", GD.Load<PackedScene>("res://scenes/placeables/Campfire.tscn"));
 	}
@@ -55,7 +56,7 @@ public class WorldObjectDefinition
 	public string Id;
 	public PackedScene Scene;
 	public ToolTier ToolTier;
-
+	public float MaxHealth;
 	public bool BlocksTile = true;
 	public bool CanBeBroken = true;
 	public bool IsDecor = false;

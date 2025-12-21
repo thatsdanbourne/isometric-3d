@@ -6,7 +6,6 @@ public partial class WorldObject : Node3D
     [Signal] public delegate void ObjectBrokenEventHandler(WorldObject obj);
 
     [Export] public string ObjectType { get; set; }
-    [Export] public float MaxHealth { get; set; } = 3.0f;
     [Export] public Godot.Collections.Array<DropEntry> DropItems { get; set; } = new Godot.Collections.Array<DropEntry>();
     [Export] public string HitSoundsKey { get; set; } = "hit_wood";
 
@@ -26,22 +25,30 @@ public partial class WorldObject : Node3D
     public bool MarkedForRemoval;
 
     public ToolTier RequiredTier;
+    public float MaxHealth;
 
     private RandomNumberGenerator rng = new RandomNumberGenerator();
     private PackedScene pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
 
-    public float currentHealth { get; set; }
+    public float currentHealth;
 
 
     public override void _Ready()
     {
-        visual = GetNode<Node3D>("Sprite3D") ?? GetNode<Node3D>("AnimatedSprite3D");
+        visual = GetNodeOrNull<Node3D>("Sprite3D") ?? GetNodeOrNull<Node3D>("AnimatedSprite3D");
         collisionShape = GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
 
         rng.Randomize();
         currentHealth = MaxHealth;
         ApplySpriteMaterial();
         SetProcess(false);
+    }
+
+    public void Initialize(WorldObjectDefinition definition)
+    {
+        RequiredTier = definition.ToolTier;
+        MaxHealth = definition.MaxHealth;
+        currentHealth = MaxHealth;
     }
 
     public void Reset()
@@ -117,7 +124,7 @@ public partial class WorldObject : Node3D
         if (visual is Sprite3D sprite3D)
             tex = sprite3D.Texture;
         else if (visual is AnimatedSprite3D animSprite)
-            tex = animSprite.SpriteFrames.GetFrameTexture("idle", 0);
+            tex = animSprite.SpriteFrames.GetFrameTexture("default", 0);
 
         if (tex == null)
             return;
