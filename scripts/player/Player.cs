@@ -119,7 +119,7 @@ public partial class Player : CharacterBody3D
         ToolItem tool = GetActiveTool();
         if (tool == null) return;
 
-        AudioManager.Instance.PlayAt(tool.SwingSoundsKey, GlobalPosition, 0.1f);
+        AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, 0.1f);
         // AudioManager.Call("play_random_at", tool.SwingSounds, GlobalPosition, AudioManager.Get("BUS_TOOLS"), 0.1f, -12);
 
         var space = GetWorld3D().DirectSpaceState;
@@ -143,6 +143,9 @@ public partial class Player : CharacterBody3D
             {
                 wo.ObjectBroken -= OnObjectBroken;
                 wo.ObjectBroken += OnObjectBroken;
+
+                wo.ObjectHitFailed -= OnHitFailed;
+                wo.ObjectHitFailed += OnHitFailed;
 
                 Vector3 hitPoint = (Vector3)result["position"];
                 Vector3 hitDir = (wo.GlobalPosition - hitPoint).Normalized();
@@ -169,6 +172,13 @@ public partial class Player : CharacterBody3D
     {
         obj.ObjectBroken -= OnObjectBroken;
         CameraController?.Shake(0.3f, 0.7f);
+    }
+
+    private void OnHitFailed(WorldObject obj)
+    {
+        obj.ObjectHitFailed -= OnHitFailed;
+        AudioManager.Instance.PlayAt("hit_fail", obj.GlobalPosition, 0.1f);
+        CameraController?.Shake(0.1f, 0.3f);
     }
 
     private void OnHitCooldownTimeout()

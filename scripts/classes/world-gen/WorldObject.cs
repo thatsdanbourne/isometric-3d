@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public partial class WorldObject : Node3D
 {
     [Signal] public delegate void ObjectBrokenEventHandler(WorldObject obj);
+    [Signal] public delegate void ObjectHitFailedEventHandler(WorldObject obj);
 
     [Export] public string ObjectType { get; set; }
     [Export] public Godot.Collections.Array<DropEntry> DropItems { get; set; } = new Godot.Collections.Array<DropEntry>();
@@ -58,6 +59,11 @@ public partial class WorldObject : Node3D
         shakeOffset = Vector3.Zero;
         shakeVelocity = Vector3.Zero;
         SetProcess(false);
+    }
+
+    public void HitFailed()
+    {
+        EmitSignal(SignalName.ObjectHitFailed, this);
     }
 
     public async virtual void ApplyDamage(float amount, Vector3 fromDirection)

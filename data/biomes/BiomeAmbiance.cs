@@ -18,8 +18,8 @@ public static class BiomeAmbiances
     {
         { "Plains", new BiomeAmbiance("forest_day", "forest_night") },
         { "Forest", new BiomeAmbiance("forest_day", "forest_night") },
-        { "Desert", new BiomeAmbiance("desert_wind", "desert_wind") },
-        { "Tundra", new BiomeAmbiance("cold_wind", "cold_wind") },
-        { "Taiga", new BiomeAmbiance("cold_wind", "cold_wind") },
+        { "Desert", new BiomeAmbiance("desert", "desert") },
+        { "Tundra", new BiomeAmbiance("snowstorm", "snowstorm") },
+        { "Taiga", new BiomeAmbiance("snowstorm", "snowstorm") },
     };
 }

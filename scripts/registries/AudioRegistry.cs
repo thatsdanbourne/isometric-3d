@@ -26,21 +26,43 @@ public partial class AudioRegistry
             GD.Load<AudioStream>("res://assets/audio/hit/wood/wood_2.wav"),
             GD.Load<AudioStream>("res://assets/audio/hit/wood/wood_3.wav"),
             GD.Load<AudioStream>("res://assets/audio/hit/wood/wood_4.wav"),
+            GD.Load<AudioStream>("res://assets/audio/hit/wood/wood_5.wav"),
+            GD.Load<AudioStream>("res://assets/audio/hit/wood/wood_6.wav"),
         ];
 
         // Stone hit sounds
         SfxVariants["hit_stone"] =
         [
-            GD.Load<AudioStream>("res://assets/audio/hit/stone/mine_1.wav"),
-            GD.Load<AudioStream>("res://assets/audio/hit/stone/mine_2.wav"),
-            GD.Load<AudioStream>("res://assets/audio/hit/stone/mine_3.wav"),
-            GD.Load<AudioStream>("res://assets/audio/hit/stone/mine_4.wav"),
-            GD.Load<AudioStream>("res://assets/audio/hit/stone/mine_5.wav"),
+            GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_1.wav"),
+            GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_2.wav"),
+            GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_3.wav"),
+            GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_4.wav"),
+            GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_5.wav"),
+            GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_6.wav"),
+            GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_7.wav"),
         ];
 
+        Sfx["hit_fail"] = GD.Load<AudioStream>("res://assets/audio/hit/hit_fail.wav");
+
         // Swing sounds
-        Sfx["fist_1"] = GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_1.wav");
-        Sfx["sword_1"] = GD.Load<AudioStream>("res://assets/audio/tools/sword/sword_1.mp3");
+        SfxVariants["swing_fist"] =
+        [
+            GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_1.wav"),
+            GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_2.wav"),
+            GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_3.wav"),
+            GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_4.wav"),
+            GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_5.wav"),
+            GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_6.wav"),
+            GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_7.wav"),
+        ];
+
+        SfxVariants["swing_sword"] =
+        [
+            GD.Load<AudioStream>("res://assets/audio/tools/sword/sword_1.wav"),
+            GD.Load<AudioStream>("res://assets/audio/tools/sword/sword_2.wav"),
+            GD.Load<AudioStream>("res://assets/audio/tools/sword/sword_3.wav"),
+            GD.Load<AudioStream>("res://assets/audio/tools/sword/sword_4.wav"),
+        ];
 
     }
 
@@ -48,9 +70,9 @@ public partial class AudioRegistry
     {
         Ambiance["forest_day"] = GD.Load<AudioStream>("res://assets/audio/ambience/forest_day.wav");
         Ambiance["forest_night"] = GD.Load<AudioStream>("res://assets/audio/ambience/forest_night.wav");
-        Ambiance["cold_wind"] = GD.Load<AudioStream>("res://assets/audio/ambience/cold_wind.wav");
+        Ambiance["snowstorm"] = GD.Load<AudioStream>("res://assets/audio/ambience/snowstorm.wav");
         Ambiance["rain"] = GD.Load<AudioStream>("res://assets/audio/ambience/rain.wav");
-        Ambiance["desert_wind"] = GD.Load<AudioStream>("res://assets/audio/ambience/desert_wind.wav");
+        Ambiance["desert"] = GD.Load<AudioStream>("res://assets/audio/ambience/desert.wav");
     }
 
     private void LoadMusic()

@@ -18,7 +18,7 @@ public class ToolItem : Item
         {
             if (wo.RequiredTier > Tier)
             {
-                GD.PrintErr("ToolItem.UseOn: Tool tier too low to damage this object");
+                wo.HitFailed();
                 return;
             }
 
