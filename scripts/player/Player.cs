@@ -34,6 +34,10 @@ public partial class Player : CharacterBody3D
     private PlacementPreview placementPreview;
     private Vector2I previewTile;
 
+    public IInteractable FocusedInteractable { get; private set; }
+    private StationType currentCraftingContext = StationType.None;
+
+
     public HUD HUD;
     public Hotbar Hotbar;
     public Inventory Inventory;
@@ -68,7 +72,7 @@ public partial class Player : CharacterBody3D
 
         DefaultTool = ItemRegistry.GetItem("fist") as ToolItem;
 
-        InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("campfire"), 1);
+        InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
 
         EmitSignal(SignalName.PlayerReady);
     }
@@ -168,6 +172,7 @@ public partial class Player : CharacterBody3D
         UpdateEquippedItem();
     }
 
+    // event handlers
     private void OnObjectBroken(WorldObject obj)
     {
         obj.ObjectBroken -= OnObjectBroken;
@@ -187,14 +192,12 @@ public partial class Player : CharacterBody3D
     }
 
     // inventory interaction
-
     public void CollectItem(Item item, int count)
     {
         InventoryManager.Instance.AddItem(this, item, count);
     }
 
     // input 
-
     public override void _UnhandledInput(InputEvent e)
     {
         if (e is InputEventMouseButton mb && mb.Pressed)
@@ -203,6 +206,32 @@ public partial class Player : CharacterBody3D
                 Hotbar.SelectPrev();
             else if (mb.ButtonIndex == MouseButton.WheelDown)
                 Hotbar.SelectNext();
+        }
+
+        if (e.IsActionPressed("toggle_inventory"))
+        {
+            if (HUD.isInventoryOpen)
+                HUD.CloseInventoryUI();
+            else
+                HUD.OpenInventoryUI();
+        }
+
+        if (e.IsActionPressed("toggle_crafting"))
+        {
+            if (HUD.isCraftingOpen)
+            {
+                HUD.CloseCraftingUI();
+                currentCraftingContext = StationType.None;
+            }
+            else
+            {
+                if (FocusedInteractable is StationObject station)
+                    currentCraftingContext = station.StationType;
+                else
+                    currentCraftingContext = StationType.None;
+
+                HUD.OpenCraftingUI(currentCraftingContext);
+            }
         }
     }
 
@@ -244,10 +273,10 @@ public partial class Player : CharacterBody3D
                 UseActiveTool();
         }
 
-        if (!placementMode || placementPreview == null || !placementPreview.IsInsideTree())
-            return;
-
-        UpdatePlacementPreview();
+        if (placementMode && placementPreview != null && placementPreview.IsInsideTree())
+            UpdatePlacementPreview();
+        else
+            UpdateFocusedObject();
     }
 
 
@@ -371,5 +400,44 @@ public partial class Player : CharacterBody3D
             placementPreview.Free();
 
         placementPreview = null;
+    }
+
+    private void UpdateFocusedObject()
+    {
+        Camera3D camera = GetViewport().GetCamera3D();
+        if (camera == null)
+            return;
+
+        Vector2 mousePos = GetViewport().GetMousePosition();
+        Vector3 rayOrigin = camera.ProjectRayOrigin(mousePos);
+        Vector3 rayDir = camera.ProjectRayNormal(mousePos);
+
+        var space = GetWorld3D().DirectSpaceState;
+
+        var query = PhysicsRayQueryParameters3D.Create(
+            rayOrigin,
+            rayOrigin + rayDir * 100f
+        );
+
+        query.CollideWithAreas = false;
+        query.CollideWithBodies = true;
+
+        var result = space.IntersectRay(query);
+
+        IInteractable newFocus = null;
+
+        if (result.Count > 0)
+        {
+            var collider = result["collider"].As<Node>();
+            if (collider is IInteractable interactable)
+                newFocus = interactable;
+        }
+
+        if (newFocus == FocusedInteractable)
+            return;
+
+        FocusedInteractable?.OnFocusLost();
+        FocusedInteractable = newFocus;
+        FocusedInteractable?.OnFocusGained();
     }
 }

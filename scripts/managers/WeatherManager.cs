@@ -2,8 +2,6 @@ using Godot;
 using System;
 public partial class WeatherManager : Node
 {
-    public enum WeatherType { Clear, Rain, Snow }
-
     [Export] public Node3D ParticleAnchor;
     [Export] public GpuParticles2D RainParticles;
     [Export] public GpuParticles2D SnowParticles;

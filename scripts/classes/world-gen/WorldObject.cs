@@ -13,7 +13,7 @@ public partial class WorldObject : Node3D
     private static readonly Dictionary<Texture2D, StandardMaterial3D> MaterialCache = new Dictionary<Texture2D, StandardMaterial3D>();
     private static readonly StandardMaterial3D BaseMaterial = GD.Load<StandardMaterial3D>("res://resources/materials/WorldObjectBase.tres");
 
-    private Node3D visual;
+    protected Node3D visual;
     private CollisionShape3D collisionShape;
 
     private Vector3 shakeOffset = Vector3.Zero;
@@ -195,4 +195,7 @@ public partial class WorldObject : Node3D
 
         collisionShape.Disabled = true;
     }
+
+    public virtual void Interact(Player player) { }
+    public virtual void SetHighlighted(bool highlighted) { }
 }

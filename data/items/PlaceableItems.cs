@@ -14,6 +14,17 @@ public static class PlaceableItems
             PlaceableObjectDefinition = WorldObjectRegistry.GetDefinition("campfire"),
             PreviewFrames = GD.Load<SpriteFrames>("res://assets/sprites/campfire/campfire_frames.tres"),
         });
+
+        ItemRegistry.RegisterItem(new PlaceableItem
+        {
+            Id = "crafting_table",
+            DisplayName = "Crafting Table",
+            Description = "A basic crafting table for creating simple items and tools.",
+            Icon = LoadIcon("crafting_table"),
+            StackSize = 1,
+            PlaceableObjectDefinition = WorldObjectRegistry.GetDefinition("crafting_table"),
+            PreviewTexture = GD.Load<Texture2D>("res://assets/sprites/crafting-table/crafting_table.png"),
+        });
     }
 
     private static Texture2D LoadIcon(string name) =>

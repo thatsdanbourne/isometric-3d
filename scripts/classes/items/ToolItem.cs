@@ -32,12 +32,3 @@ public class ToolItem : Item
         }
     }
 }
-
-public enum ToolTier
-{
-    Fist,
-    Stone,
-    Copper,
-    Iron,
-    Steel
-}

@@ -22,7 +22,7 @@ public partial class HUD : CanvasLayer
 	private GridContainer slotGrid;
 	private HBoxContainer hotbarBox;
 
-	private Control craftingRoot;
+	private CraftingUI craftingRoot;
 
 	private Tooltip tooltipManager;
 	private PanelContainer tooltip;
@@ -33,6 +33,8 @@ public partial class HUD : CanvasLayer
 	private Player player;
 
 	public bool WindowOpen => inventoryRoot.Visible || craftingRoot.Visible;
+	public bool isCraftingOpen => craftingRoot.Visible;
+	public bool isInventoryOpen => inventoryRoot.Visible;
 
 	public override void _Ready()
 	{
@@ -60,7 +62,7 @@ public partial class HUD : CanvasLayer
 		slotGrid = inventoryWindow.GetNode<GridContainer>("MarginContainer/SlotGrid");
 		hotbarBox = GetNode<HBoxContainer>("MarginContainer/Hotbar");
 
-		craftingRoot = GetNode<Control>("Crafting");
+		craftingRoot = GetNode<CraftingUI>("Crafting");
 
 		tooltipManager = GetNode<Tooltip>("TooltipManager");
 		tooltip = tooltipManager.GetNode<PanelContainer>("Tooltip");
@@ -88,30 +90,45 @@ public partial class HUD : CanvasLayer
 		}
 	}
 
+	public void OpenInventoryUI()
+	{
+		CloseCraftingUI();
+		inventoryRoot.Visible = true;
+	}
+
+	public void CloseInventoryUI()
+	{
+		if (draggedStack != null)
+		{
+			DropStack();
+		}
+
+		inventoryRoot.Visible = false;
+		craftingRoot.Visible = false;
+		tooltip.Visible = false;
+	}
+
+	public void OpenCraftingUI(StationType context)
+	{
+		CloseInventoryUI();
+		craftingRoot.Visible = true;
+		craftingRoot.currentStationContext = context;
+		craftingRoot.BuildRecipeList();
+
+	}
+
+	public void CloseCraftingUI()
+	{
+		craftingRoot.Visible = false;
+		inventoryRoot.Visible = false;
+		tooltip.Visible = false;
+	}
+
 	public override void _UnhandledInput(InputEvent e)
 	{
 		if (draggedStack != null && IsCursorOutsideInventory() && e is InputEventMouseButton mb && mb.Pressed)
 		{
 			DropStack();
-		}
-
-		if (e.IsActionPressed("toggle_inventory"))
-		{
-			if (inventoryRoot.Visible && draggedStack != null)
-			{
-				DropStack();
-			}
-
-			craftingRoot.Visible = false;
-			tooltip.Visible = false;
-			inventoryRoot.Visible = !inventoryRoot.Visible;
-		}
-
-		if (e.IsActionPressed("toggle_crafting"))
-		{
-			inventoryRoot.Visible = false;
-			tooltip.Visible = false;
-			craftingRoot.Visible = !craftingRoot.Visible;
 		}
 
 		if (e.IsActionPressed("ui_cancel"))

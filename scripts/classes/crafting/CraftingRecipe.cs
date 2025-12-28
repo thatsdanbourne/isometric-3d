@@ -3,10 +3,8 @@ public class CraftingRecipe
 {
     public string ResultItemId;
     public int ResultCount = 1;
-
     public Dictionary<string, int> Ingredients { get; set; } = new();
-
-    public string RequiredStationId = "";
+    public StationType RequiredStation = StationType.None;
 
     public CraftingRecipe(string resultItemId, int resultCount = 1)
     {
