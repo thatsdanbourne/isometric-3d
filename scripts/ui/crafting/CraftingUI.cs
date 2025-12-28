@@ -4,8 +4,9 @@ using System.Collections.Generic;
 public partial class CraftingUI : Control
 {
 	public Player Player;
-	public StationType currentStationContext = StationType.None;
+	private StationType currentStationContext = StationType.None;
 
+	private Label titleLabel;
 	private VBoxContainer recipeList;
 	private List<RecipeEntry> recipeEntries = new();
 
@@ -27,20 +28,27 @@ public partial class CraftingUI : Control
 			};
 		};
 
+		titleLabel = GetNode<Label>("CraftingWindow/VBoxContainer/TitleLabel");
 		recipeList = GetNode<VBoxContainer>("CraftingWindow/VBoxContainer/MarginContainer/ScrollContainer/RecipeList");
 
 		BuildRecipeList();
 	}
 
+	public void SetStationContext(StationType stationType)
+	{
+		currentStationContext = stationType;
+	}
+
 	public void BuildRecipeList()
 	{
 		recipeEntries.Clear();
-		foreach (Node child in recipeList.GetChildren())
-		{
-			child.QueueFree();
-		}
 
-		foreach (var recipe in CraftingRegistry.GetRecipesByStation(currentStationContext))
+		foreach (Node child in recipeList.GetChildren())
+			child.QueueFree();
+
+		var recipes = CraftingRegistry.GetRecipesByStation(currentStationContext);
+
+		foreach (var recipe in recipes)
 		{
 			var entry = recipeEntryScene.Instantiate<RecipeEntry>();
 			entry.SetRecipe(recipe, Player);
@@ -49,6 +57,10 @@ public partial class CraftingUI : Control
 			recipeEntries.Add(entry);
 			recipeList.AddChild(entry);
 		}
+
+		titleLabel.Text = currentStationContext == StationType.None
+			? "Crafting"
+		  	: $"Crafting - {currentStationContext}";
 
 		RefreshCraftingUI();
 	}

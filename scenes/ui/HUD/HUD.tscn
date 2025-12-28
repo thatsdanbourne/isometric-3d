@@ -131,7 +131,7 @@ theme_override_styles/panel = ExtResource("2_4ed8p")
 layout_mode = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="Crafting/CraftingWindow/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="Crafting/CraftingWindow/VBoxContainer"]
 layout_mode = 2
 text = "Crafting"
 label_settings = SubResource("LabelSettings_4ed8p")

@@ -22,7 +22,7 @@ public partial class HUD : CanvasLayer
 	private GridContainer slotGrid;
 	private HBoxContainer hotbarBox;
 
-	private CraftingUI craftingRoot;
+	private CraftingUI craftingUI;
 
 	private Tooltip tooltipManager;
 	private PanelContainer tooltip;
@@ -32,8 +32,8 @@ public partial class HUD : CanvasLayer
 
 	private Player player;
 
-	public bool WindowOpen => inventoryRoot.Visible || craftingRoot.Visible;
-	public bool isCraftingOpen => craftingRoot.Visible;
+	public bool WindowOpen => inventoryRoot.Visible || craftingUI.Visible;
+	public bool isCraftingOpen => craftingUI.Visible;
 	public bool isInventoryOpen => inventoryRoot.Visible;
 
 	public override void _Ready()
@@ -62,7 +62,7 @@ public partial class HUD : CanvasLayer
 		slotGrid = inventoryWindow.GetNode<GridContainer>("MarginContainer/SlotGrid");
 		hotbarBox = GetNode<HBoxContainer>("MarginContainer/Hotbar");
 
-		craftingRoot = GetNode<CraftingUI>("Crafting");
+		craftingUI = GetNode<CraftingUI>("Crafting");
 
 		tooltipManager = GetNode<Tooltip>("TooltipManager");
 		tooltip = tooltipManager.GetNode<PanelContainer>("Tooltip");
@@ -76,7 +76,7 @@ public partial class HUD : CanvasLayer
 		hotbar.SelectedSlotChanged += OnHotbarSelectionChanged;
 
 		inventoryRoot.Visible = false;
-		craftingRoot.Visible = false;
+		craftingUI.Visible = false;
 
 		RefreshUI();
 	}
@@ -104,22 +104,21 @@ public partial class HUD : CanvasLayer
 		}
 
 		inventoryRoot.Visible = false;
-		craftingRoot.Visible = false;
+		craftingUI.Visible = false;
 		tooltip.Visible = false;
 	}
 
 	public void OpenCraftingUI(StationType context)
 	{
 		CloseInventoryUI();
-		craftingRoot.Visible = true;
-		craftingRoot.currentStationContext = context;
-		craftingRoot.BuildRecipeList();
-
+		craftingUI.Visible = true;
+		craftingUI.SetStationContext(context);
+		craftingUI.BuildRecipeList();
 	}
 
 	public void CloseCraftingUI()
 	{
-		craftingRoot.Visible = false;
+		craftingUI.Visible = false;
 		inventoryRoot.Visible = false;
 		tooltip.Visible = false;
 	}
@@ -136,7 +135,7 @@ public partial class HUD : CanvasLayer
 			if (WindowOpen)
 			{
 				inventoryRoot.Visible = false;
-				craftingRoot.Visible = false;
+				craftingUI.Visible = false;
 				tooltip.Visible = false;
 			}
 			else

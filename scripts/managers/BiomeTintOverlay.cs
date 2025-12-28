@@ -5,11 +5,11 @@ public partial class BiomeTintOverlay : ColorRect
 {
     private readonly Dictionary<string, (Color color, float strength)> BIOME_TINTS = new()
     {
-        ["plains"] = (new Color(1.08f, 1.02f, 0.92f), 0.3f),
-        ["forest"] = (new Color(0.9f, 1.1f, 0.90f), 0.4f),
-        ["taiga"] = (new Color(0.82f, 0.92f, 1.18f), 0.55f),
-        ["tundra"] = (new Color(0.88f, 0.9f, 1.20f), 0.5f),
-        ["desert"] = (new Color(1.22f, 1.12f, 0.82f), 0.7f),
+        ["Plains"] = (new Color(1.08f, 1.02f, 0.92f), 0.3f),
+        ["Forest"] = (new Color(0.9f, 1.1f, 0.90f), 0.4f),
+        ["Taiga"] = (new Color(0.82f, 0.92f, 1.18f), 0.55f),
+        ["Tundra"] = (new Color(0.88f, 0.9f, 1.20f), 0.5f),
+        ["Desert"] = (new Color(1.22f, 1.12f, 0.82f), 0.7f),
     };
 
     private string currentBiome = "";
