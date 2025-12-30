@@ -49,6 +49,7 @@ public static class WorldObjectRegistry
 		Register("flower_poppy", GD.Load<PackedScene>("res://scenes/terrain/decor/FlowerPoppy.tscn"), blocksTile: false, isDecor: true);
 		Register("campfire", GD.Load<PackedScene>("res://scenes/placeables/Campfire.tscn"));
 		Register("crafting_table", GD.Load<PackedScene>("res://scenes/placeables/CraftingTable.tscn"));
+		Register("kiln", GD.Load<PackedScene>("res://scenes/placeables/Kiln.tscn"));
 	}
 }
 

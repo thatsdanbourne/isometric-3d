@@ -5,3 +5,4 @@ transparency = 2
 alpha_scissor_threshold = 0.1
 alpha_antialiasing_mode = 0
 texture_filter = 0
+billboard_mode = 1

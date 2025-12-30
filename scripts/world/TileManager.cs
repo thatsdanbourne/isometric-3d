@@ -77,4 +77,11 @@ public static class TileManager
 
         return rayOrigin + rayDir * t;
     }
+
+    public static Vector3 GetMouseTilePosition(Camera3D camera, float groundY = 0f)
+    {
+        Vector3 worldPos = GetMouseWorldPosition(camera, groundY);
+        Vector2I tilePos = WorldToTile(worldPos);
+        return TileToWorld(tilePos);
+    }
 }

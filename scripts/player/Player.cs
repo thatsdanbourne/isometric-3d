@@ -73,6 +73,7 @@ public partial class Player : CharacterBody3D
         DefaultTool = ItemRegistry.GetItem("fist") as ToolItem;
 
         InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
+        InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("kiln"), 1);
 
         EmitSignal(SignalName.PlayerReady);
     }
@@ -359,7 +360,8 @@ public partial class Player : CharacterBody3D
 
     private void CreatePlacementPreivew()
     {
-        if (placementPreview != null) return;
+        if (placementPreview != null)
+            placementPreview.Free();
 
         placementPreview = GD.Load<PackedScene>("res://scenes/placeables/PlacementPreview.tscn")
             .Instantiate<PlacementPreview>();
@@ -370,6 +372,13 @@ public partial class Player : CharacterBody3D
             placementPreview.SetTexture(currentPlaceable.PreviewTexture);
 
         GetTree().CurrentScene.CallDeferred("add_child", placementPreview);
+
+        Camera3D camera = GetViewport().GetCamera3D();
+        if (camera == null)
+            return;
+
+        placementPreview.SetDeferred("global_position", TileManager.GetMouseTilePosition(camera, 0f));
+        placementPreview.CallDeferred("force_update_transform");
     }
 
     private void UpdatePlacementPreview()
@@ -382,11 +391,10 @@ public partial class Player : CharacterBody3D
         if (camera == null)
             return;
 
-        Vector3 mouseWorld = TileManager.GetMouseWorldPosition(camera, 0f);
-        previewTile = TileManager.WorldToTile(mouseWorld);
-        Vector3 snapped = TileManager.TileToWorld(previewTile);
+        Vector3 mouseTile = TileManager.GetMouseTilePosition(camera, 0f);
+        previewTile = TileManager.WorldToTile(mouseTile);
 
-        placementPreview.GlobalPosition = snapped;
+        placementPreview.GlobalPosition = mouseTile;
         bool canPlace = world.CanPlace(previewTile, currentPlaceable);
         placementPreview.SetValid(canPlace);
     }

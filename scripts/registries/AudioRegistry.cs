@@ -53,7 +53,7 @@ public partial class AudioRegistry
             GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_4.wav"),
             GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_5.wav"),
             GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_6.wav"),
-            GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_7.wav"),
+            // GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_7.wav"),
         ];
 
         SfxVariants["swing_sword"] =
