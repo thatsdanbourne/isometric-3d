@@ -31,7 +31,7 @@ public partial class CraftingUI : Control
 		titleLabel = GetNode<Label>("CraftingWindow/VBoxContainer/TitleLabel");
 		recipeList = GetNode<VBoxContainer>("CraftingWindow/VBoxContainer/MarginContainer/ScrollContainer/RecipeList");
 
-		BuildRecipeList();
+		CallDeferred("BuildRecipeList");
 	}
 
 	public void SetStationContext(StationType stationType)

@@ -1,10 +1,10 @@
 [gd_scene load_steps=6 format=3 uid="uid://d3dyd6pooi1af"]
 
-[ext_resource type="Script" uid="uid://7cu8bawyavvb" path="res://scripts/objects/Campfire.cs" id="1_ybkfo"]
+[ext_resource type="Script" uid="uid://cbxayhcp5d58n" path="res://scripts/classes/world-gen/StationObject.cs" id="1_whd3a"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/classes/drops/DropEntry.cs" id="2_7qu8f"]
 [ext_resource type="Texture2D" uid="uid://b2dwganichn1" path="res://assets/sprites/kiln/kiln.png" id="3_ybkfo"]
 
-[sub_resource type="Resource" id="Resource_1b37d"]
+[sub_resource type="Resource" id="Resource_ybkfo"]
 script = ExtResource("2_7qu8f")
 ItemId = "kiln"
 metadata/_custom_type_script = "uid://2hhyer4i1q1g"
@@ -13,14 +13,15 @@ metadata/_custom_type_script = "uid://2hhyer4i1q1g"
 
 [node name="Kiln" type="StaticBody3D"]
 transform = Transform3D(0.7071067, 0, 0.7071067, 0, 1, 0, -0.7071067, 0, 0.7071067, 0, 0, 0)
-script = ExtResource("1_ybkfo")
-ObjectType = "kiln"
-DropItems = Array[ExtResource("2_7qu8f")]([SubResource("Resource_1b37d")])
+script = ExtResource("1_whd3a")
+StationType = 2
+DropItems = Array[ExtResource("2_7qu8f")]([SubResource("Resource_ybkfo")])
 HitSoundsKey = "hit_stone"
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
 offset = Vector2(0, 15)
-pixel_size = 0.06
+pixel_size = 0.05
+billboard = 1
 shaded = true
 texture_filter = 0
 texture = ExtResource("3_ybkfo")
