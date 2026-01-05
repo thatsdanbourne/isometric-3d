@@ -153,14 +153,15 @@ script = ExtResource("7_h1bdy")
 script = ExtResource("8_nrtoj")
 Sun = NodePath("../Sun")
 WorldEnvironment = NodePath("../WorldEnvironment")
+DayLength = 1200.0
 TimeOfDay = 0.26
 
 [node name="Sun" type="DirectionalLight3D" parent="World"]
 transform = Transform3D(-0.036643866, 0.54427326, -0.8381073, 0, 0.83867055, 0.54463905, 0.9993283, 0.019957682, -0.030732134, 0, 20, 0)
 light_color = Color(1, 0.9776916, 0.9063318, 1)
 shadow_enabled = true
-shadow_bias = 0.0
-shadow_blur = 2.0
+shadow_bias = 0.05
+shadow_normal_bias = 8.5
 directional_shadow_mode = 0
 directional_shadow_max_distance = 300.0
 

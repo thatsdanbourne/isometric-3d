@@ -7,6 +7,8 @@ public partial class Player : CharacterBody3D
     [Signal] public delegate void PlayerReadyEventHandler();
     [Signal] public delegate void BiomeChangedEventHandler(string newBiome);
 
+    private static readonly StandardMaterial3D BaseMaterial = GD.Load<StandardMaterial3D>("res://resources/materials/WorldObjectBase.tres");
+
     private PackedScene cameraControllerScene =
         GD.Load<PackedScene>("res://scenes/player/CameraController.tscn");
 
@@ -28,6 +30,7 @@ public partial class Player : CharacterBody3D
     private Timer hitCooldown;
     private RayCast3D hitRay;
     private Vector3 aimDirection = Vector3.Forward;
+    private FacingDir lastFacing = FacingDir.SW;
 
     private bool placementMode = false;
     private PlaceableItem currentPlaceable;
@@ -36,7 +39,6 @@ public partial class Player : CharacterBody3D
 
     public IInteractable FocusedInteractable { get; private set; }
     private StationType currentCraftingContext = StationType.None;
-
 
     public HUD HUD;
     public Hotbar Hotbar;
@@ -65,10 +67,8 @@ public partial class Player : CharacterBody3D
         Hotbar.SelectedSlotChanged += _ => UpdateEquippedItem();
         Hotbar.ContainerChanged += UpdateEquippedItem;
 
-        var mat = (StandardMaterial3D)ResourceLoader.Load<Material>("res://resources/materials/WorldObjectBase.tres").Duplicate();
-        mat.AlbedoTexture = sprite.SpriteFrames.GetFrameTexture("idle", 0);
-        sprite.MaterialOverride = mat;
-        sprite.CastShadow = GeometryInstance3D.ShadowCastingSetting.On;
+        // var mat = (StandardMaterial3D)BaseMaterial.Duplicate();
+        // sprite.MaterialOverride = mat;
 
         DefaultTool = ItemRegistry.GetItem("fist") as ToolItem;
 
@@ -129,6 +129,11 @@ public partial class Player : CharacterBody3D
 
         var space = GetWorld3D().DirectSpaceState;
         Vector3 swingDir = aimDirection;
+        Vector2 faceDir = new Vector2(swingDir.X, swingDir.Z).Normalized();
+
+        FacingDir facing = AnimationManager.GetFacingFromInput(faceDir);
+        lastFacing = facing;
+        sprite.Play("idle_" + facing.ToString().ToLower());
 
         foreach (var dir in GetHitArcDirections(swingDir, tool.HitArcDegress, tool.HitRayCount))
         {
@@ -252,11 +257,15 @@ public partial class Player : CharacterBody3D
 
             Velocity = moveVec * Speed;
             MoveAndSlide();
+
+            FacingDir facing = AnimationManager.GetFacingFromInput(inputDir);
+            lastFacing = facing;
+            sprite.Play("run_" + facing.ToString().ToLower());
         }
         else
         {
             Velocity = Vector3.Zero;
-            sprite.Play("idle");
+            sprite.Play("idle_" + lastFacing.ToString().ToLower());
         }
 
         aimDirection = GetAimDirection();

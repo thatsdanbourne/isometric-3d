@@ -55,7 +55,7 @@ public partial class WeatherManager : Node
         if (weatherTimer >= nextWeatherChange)
         {
             weatherTimer = 0f;
-            nextWeatherChange = rng.RandfRange(10f, 30f);
+            nextWeatherChange = rng.RandfRange(60f, 180f);
 
             if (!string.IsNullOrEmpty(currentBiome))
                 ChooseWeatherForBiome(currentBiome);

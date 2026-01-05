@@ -3,10 +3,14 @@
 [ext_resource type="Texture2D" uid="uid://cgvtrt5qt4y8s" path="res://assets/sprites/tree/tree_shadow.png" id="1_ugxfi"]
 [ext_resource type="Script" uid="uid://cmwcp3h7g8yii" path="res://scripts/ShadowCard.cs" id="2_qmvqi"]
 
-[node name="ShadowCard" type="Sprite3D"]
+[node name="Node3D" type="Node3D"]
+
+[node name="ShadowCard" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)
 cast_shadow = 3
 offset = Vector2(-2, 48)
 pixel_size = 0.05
+alpha_cut = 1
 texture_filter = 0
 texture = ExtResource("1_ugxfi")
 script = ExtResource("2_qmvqi")
