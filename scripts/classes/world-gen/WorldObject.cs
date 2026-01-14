@@ -195,7 +195,4 @@ public partial class WorldObject : Node3D
 
         collisionShape.Disabled = true;
     }
-
-    public virtual void Interact(Player player) { }
-    public virtual void SetHighlighted(bool highlighted) { }
 }

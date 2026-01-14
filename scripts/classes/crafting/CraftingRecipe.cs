@@ -5,6 +5,7 @@ public class CraftingRecipe
     public int ResultCount = 1;
     public Dictionary<string, int> Ingredients { get; set; } = new();
     public StationType RequiredStation = StationType.None;
+    public float CraftTime = 0f;
 
     public CraftingRecipe(string resultItemId, int resultCount = 1)
     {

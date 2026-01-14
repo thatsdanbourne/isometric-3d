@@ -43,6 +43,16 @@ public static class ResourceItems
             Icon = LoadTexture("copper_ore"),
             StackSize = 99,
         });
+
+        ItemRegistry.RegisterItem(new ResourceItem
+        {
+            Id = "copper_ingot",
+            DisplayName = "Copper Ingot",
+            ResourceType = "ingot",
+            Description = "Refined copper used for crafting tools and equipment.",
+            Icon = LoadTexture("copper_ingot"),
+            StackSize = 99,
+        });
     }
 
     private static Texture2D LoadTexture(string name) =>

@@ -1,8 +1,7 @@
 using Godot;
 
-public partial class StationObject : WorldObject, IInteractable
+public abstract partial class StationObject : WorldObject, IInteractable
 {
-    [Export] public StationType StationType;
     private ShaderMaterial outlineMaterial;
 
     public override void _Ready()
@@ -24,17 +23,30 @@ public partial class StationObject : WorldObject, IInteractable
         baseMat.NextPass = outlineMaterial;
     }
 
-    public void OnFocusGained()
+    public virtual T GetCapability<T>() where T : class
+    {
+        return this as T;
+    }
+
+    public virtual void Interact(Player player)
+    {
+        if (this is ICraftingStation station)
+        {
+            player.OpenCraftingUI(station);
+        }
+    }
+
+    public virtual void OnFocusGained()
     {
         SetHighlighted(true);
     }
 
-    public void OnFocusLost()
+    public virtual void OnFocusLost()
     {
         SetHighlighted(false);
     }
 
-    public override void SetHighlighted(bool highlighted)
+    public void SetHighlighted(bool highlighted)
     {
         outlineMaterial.SetShaderParameter("enabled", highlighted);
     }

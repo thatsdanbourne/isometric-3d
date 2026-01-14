@@ -4,5 +4,6 @@ public static class CraftingRecipeDataLoader
     {
         ToolRecipes.Register();
         PlaceableRecipes.Register();
+        ResourceRecipes.Register();
     }
 }

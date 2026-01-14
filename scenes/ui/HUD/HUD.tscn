@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=3 uid="uid://nf3wsg32yh2f"]
+[gd_scene load_steps=9 format=3 uid="uid://nf3wsg32yh2f"]
 
 [ext_resource type="Script" uid="uid://drg8a4mhwswat" path="res://scripts/ui/HUD.cs" id="1_kw0id"]
 [ext_resource type="StyleBox" uid="uid://cnx8lp71uqiyw" path="res://resources/ui/WindowStyle.tres" id="2_4ed8p"]
 [ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="2_atyv1"]
 [ext_resource type="Script" uid="uid://dud8rgc0ebwfn" path="res://scripts/ui/crafting/CraftingUI.cs" id="3_6ll6g"]
 [ext_resource type="PackedScene" uid="uid://d34hhl3mhgyeh" path="res://scenes/ui/HUD/Tooltip.tscn" id="4_ig75s"]
+[ext_resource type="PackedScene" uid="uid://b5jqdxgjquxim" path="res://scenes/ui/HUD/ItemContainerSlot.tscn" id="5_tsn87"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_6ll6g"]
 font = ExtResource("2_atyv1")
@@ -142,11 +143,44 @@ layout_mode = 2
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="StationStatus" type="Control" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/StationStatus"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -33.0
+offset_top = -48.5
+offset_right = 33.0
+offset_bottom = 48.5
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="ItemContainerSlot" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/StationStatus/VBoxContainer" instance=ExtResource("5_tsn87")]
+layout_mode = 2
+
+[node name="ProgressBar" type="ProgressBar" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/StationStatus/VBoxContainer"]
+layout_mode = 2
+
+[node name="CollectButton" type="Button" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/StationStatus/VBoxContainer"]
+layout_mode = 2
+text = "Collect"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(500, 500)
 layout_mode = 2
 
-[node name="RecipeList" type="VBoxContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/ScrollContainer"]
+[node name="RecipeList" type="VBoxContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

@@ -108,12 +108,11 @@ public partial class HUD : CanvasLayer
 		tooltip.Visible = false;
 	}
 
-	public void OpenCraftingUI(StationType context)
+	public void OpenCraftingUI(ICraftingStation station = null)
 	{
 		CloseInventoryUI();
+		craftingUI.OpenForStation(station);
 		craftingUI.Visible = true;
-		craftingUI.SetStationContext(context);
-		craftingUI.BuildRecipeList();
 	}
 
 	public void CloseCraftingUI()

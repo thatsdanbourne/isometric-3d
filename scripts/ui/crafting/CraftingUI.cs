@@ -1,14 +1,20 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 
 public partial class CraftingUI : Control
 {
 	public Player Player;
-	private StationType currentStationContext = StationType.None;
+	private ICraftingStation currentStation;
 
 	private Label titleLabel;
 	private VBoxContainer recipeList;
 	private List<RecipeEntry> recipeEntries = new();
+
+	private Control stationStatusRoot;
+	private ItemContainerSlot resultSlot;
+	private ProgressBar craftProgressBar;
+	private Button collectOutputButton;
 
 	private PackedScene recipeEntryScene =
 		GD.Load<PackedScene>("res://scenes/ui/crafting/RecipeEntry.tscn");
@@ -29,14 +35,29 @@ public partial class CraftingUI : Control
 		};
 
 		titleLabel = GetNode<Label>("CraftingWindow/VBoxContainer/TitleLabel");
-		recipeList = GetNode<VBoxContainer>("CraftingWindow/VBoxContainer/MarginContainer/ScrollContainer/RecipeList");
+		recipeList = GetNode<VBoxContainer>("CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/ScrollContainer/RecipeList");
+
+		stationStatusRoot = GetNode<Control>("CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/StationStatus");
+		resultSlot = stationStatusRoot.GetNode<ItemContainerSlot>("VBoxContainer/ItemContainerSlot");
+		craftProgressBar = stationStatusRoot.GetNode<ProgressBar>("VBoxContainer/ProgressBar");
+		collectOutputButton = stationStatusRoot.GetNode<Button>("VBoxContainer/CollectButton");
+
+		resultSlot.IsCraftingSlot = true;
+		collectOutputButton.Pressed += OnCollectPressed;
+		stationStatusRoot.Visible = false;
 
 		CallDeferred("BuildRecipeList");
 	}
 
-	public void SetStationContext(StationType stationType)
+	public override void _Process(double delta)
 	{
-		currentStationContext = stationType;
+		UpdateStationUI();
+	}
+
+	public void OpenForStation(ICraftingStation station)
+	{
+		currentStation = station;
+		BuildRecipeList();
 	}
 
 	public void BuildRecipeList()
@@ -46,29 +67,63 @@ public partial class CraftingUI : Control
 		foreach (Node child in recipeList.GetChildren())
 			child.QueueFree();
 
-		var recipes = CraftingRegistry.GetRecipesByStation(currentStationContext);
+		var recipes = CraftingRegistry.GetRecipesByStation(currentStation?.StationType ?? StationType.None);
 
 		foreach (var recipe in recipes)
 		{
 			var entry = recipeEntryScene.Instantiate<RecipeEntry>();
-			entry.SetRecipe(recipe, Player);
-			entry.CraftItem += CraftItem;
+			entry.SetRecipe(recipe);
+			entry.OnCraftRequested = CraftItem;
 
 			recipeEntries.Add(entry);
 			recipeList.AddChild(entry);
 		}
 
-		titleLabel.Text = currentStationContext == StationType.None
-			? "Crafting"
-		  	: $"Crafting - {currentStationContext}";
+		titleLabel.Text = currentStation != null ? currentStation.Label : "Hand Crafting";
 
 		RefreshCraftingUI();
 	}
 
-	private void CraftItem(string resultItemId)
+	private void CraftItem(CraftingRecipe recipe)
 	{
-		CraftingManager.Instance.CraftItem(Player, resultItemId);
-		RefreshCraftingUI();
+		if (CraftingManager.Instance.CanCraft(Player, recipe))
+		{
+			if (currentStation != null)
+				currentStation.StartCraft(recipe, Player);
+			else
+				CraftingManager.Instance.CraftItem(Player, recipe.ResultItemId);
+		}
+	}
+
+	private void OnCollectPressed()
+	{
+		currentStation?.CollectOutput(Player);
+	}
+
+	public void UpdateStationUI()
+	{
+		if (stationStatusRoot == null)
+			return;
+
+		if (currentStation == null || !currentStation.IsTimed)
+		{
+			stationStatusRoot.Visible = false;
+			return;
+		}
+
+		stationStatusRoot.Visible = true;
+
+		var recipe = currentStation.GetActiveRecipe();
+
+		craftProgressBar.Value = currentStation.GetProgress() * 100f;
+
+		if (recipe != null)
+			resultSlot.SetCraftingStack(
+				ItemRegistry.GetItem(recipe.ResultItemId),
+				currentStation.CompletedCount,
+				currentStation.TotalCount);
+		else
+			resultSlot.SetStack(null);
 	}
 
 	public void RefreshCraftingUI()

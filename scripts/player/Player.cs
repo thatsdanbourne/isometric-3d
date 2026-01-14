@@ -38,7 +38,7 @@ public partial class Player : CharacterBody3D
     private Vector2I previewTile;
 
     public IInteractable FocusedInteractable { get; private set; }
-    private StationType currentCraftingContext = StationType.None;
+    public ICraftingStation FocusedStation => FocusedInteractable?.GetCapability<ICraftingStation>();
 
     public HUD HUD;
     public Hotbar Hotbar;
@@ -74,6 +74,8 @@ public partial class Player : CharacterBody3D
 
         InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
         InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("kiln"), 1);
+        InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("copper_ore"), 20);
+        InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("coal"), 20);
 
         EmitSignal(SignalName.PlayerReady);
     }
@@ -203,6 +205,11 @@ public partial class Player : CharacterBody3D
         InventoryManager.Instance.AddItem(this, item, count);
     }
 
+    public void OpenCraftingUI(ICraftingStation station)
+    {
+        HUD.OpenCraftingUI(station);
+    }
+
     // input 
     public override void _UnhandledInput(InputEvent e)
     {
@@ -227,16 +234,13 @@ public partial class Player : CharacterBody3D
             if (HUD.isCraftingOpen)
             {
                 HUD.CloseCraftingUI();
-                currentCraftingContext = StationType.None;
             }
             else
             {
-                if (FocusedInteractable is StationObject station)
-                    currentCraftingContext = station.StationType;
+                if (FocusedStation != null)
+                    HUD.OpenCraftingUI(FocusedStation);
                 else
-                    currentCraftingContext = StationType.None;
-
-                HUD.OpenCraftingUI(currentCraftingContext);
+                    HUD.OpenCraftingUI();
             }
         }
     }
@@ -429,8 +433,6 @@ public partial class Player : CharacterBody3D
         Vector3 rayOrigin = camera.ProjectRayOrigin(mousePos);
         Vector3 rayDir = camera.ProjectRayNormal(mousePos);
 
-        var space = GetWorld3D().DirectSpaceState;
-
         var query = PhysicsRayQueryParameters3D.Create(
             rayOrigin,
             rayOrigin + rayDir * 100f
@@ -439,15 +441,14 @@ public partial class Player : CharacterBody3D
         query.CollideWithAreas = false;
         query.CollideWithBodies = true;
 
-        var result = space.IntersectRay(query);
+        var result = GetWorld3D().DirectSpaceState.IntersectRay(query);
 
         IInteractable newFocus = null;
 
         if (result.Count > 0)
         {
             var collider = result["collider"].As<Node>();
-            if (collider is IInteractable interactable)
-                newFocus = interactable;
+            newFocus = FindAncestor<IInteractable>(collider);
         }
 
         if (newFocus == FocusedInteractable)
@@ -456,5 +457,18 @@ public partial class Player : CharacterBody3D
         FocusedInteractable?.OnFocusLost();
         FocusedInteractable = newFocus;
         FocusedInteractable?.OnFocusGained();
+    }
+
+    private static T FindAncestor<T>(Node node) where T : class
+    {
+        while (node != null)
+        {
+            if (node is T match)
+                return match;
+
+            node = node.GetParent();
+        }
+
+        return null;
     }
 }
