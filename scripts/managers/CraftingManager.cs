@@ -28,6 +28,7 @@ public partial class CraftingManager : Node
         return true;
     }
 
+    // called for instant craft stations like crafting tables
     public bool CraftItem(Player player, string resultItemId)
     {
         var recipe = CraftingRegistry.GetRecipe(resultItemId);
@@ -35,6 +36,15 @@ public partial class CraftingManager : Node
         if (recipe == null || !CanCraft(player, recipe))
             return false;
 
+        ConsumeIngredients(player, recipe);
+
+        InventoryManager.Instance.AddItem(player, ItemRegistry.GetItem(recipe.ResultItemId), recipe.ResultCount);
+        return true;
+    }
+
+    // called to consume ingredients when starting a craft in timed stations
+    public bool ConsumeIngredients(Player player, CraftingRecipe recipe)
+    {
         foreach (var ingredient in recipe.Ingredients)
         {
             Item item = ItemRegistry.GetItem(ingredient.Key);
@@ -42,21 +52,9 @@ public partial class CraftingManager : Node
 
             int leftover = InventoryManager.Instance.RemoveItem(player, item, required);
             if (leftover > 0)
-                return false; // fallback if CanCraft fails for some reason
+                return false;
         }
 
-        InventoryManager.Instance.AddItem(player, ItemRegistry.GetItem(recipe.ResultItemId), recipe.ResultCount);
         return true;
-    }
-
-    public void ConsumeIngredients(Player player, CraftingRecipe recipe)
-    {
-        foreach (var ingredient in recipe.Ingredients)
-        {
-            Item item = ItemRegistry.GetItem(ingredient.Key);
-            int required = ingredient.Value;
-
-            InventoryManager.Instance.RemoveItem(player, item, required);
-        }
     }
 }

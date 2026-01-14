@@ -165,6 +165,9 @@ public partial class ChunkGenerator : Node
 					{
 						if (decorRule.ShouldPlace(globalX, globalY))
 						{
+							if (blocked[x, y])
+								continue;
+
 							var dec = new ChunkDecor();
 							dec.DecorRule = decorRule;
 							dec.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
