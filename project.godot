@@ -151,6 +151,6 @@ common/physics_interpolation=true
 
 textures/canvas_textures/default_texture_filter=0
 textures/vram_compression/import_etc2_astc=true
-lights_and_shadows/directional_shadow/soft_shadow_filter_quality=1
+lights_and_shadows/directional_shadow/16_bits=false
 lights_and_shadows/positional_shadow/soft_shadow_filter_quality=1
 environment/defaults/default_clear_color=Color(0.106236584, 0.106236584, 0.106236555, 1)

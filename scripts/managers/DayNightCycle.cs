@@ -54,12 +54,12 @@ public partial class DayNightCycle : Node
 
 		UpdateSun();
 		UpdateEnvironment();
-	}
-
-	public override void _PhysicsProcess(double delta)
-	{
 		UpdateShadows();
 	}
+
+	// public override void _PhysicsProcess(double delta)
+	// {
+	// }
 
 	public void UpdateSun()
 	{

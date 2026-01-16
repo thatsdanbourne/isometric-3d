@@ -1,0 +1,26 @@
+[gd_scene load_steps=6 format=3 uid="uid://b2ayfgywmmiry"]
+
+[ext_resource type="ArrayMesh" uid="uid://cv5s0kjgqj350" path="res://assets/meshes/tree.obj" id="1_i8f0y"]
+[ext_resource type="Script" uid="uid://dbgrrxygscndg" path="res://scenes/terrain/objects/Tree3d.cs" id="1_nvaqx"]
+[ext_resource type="QuadMesh" uid="uid://cahohtipie2a8" path="res://assets/meshes/LeafMesh.tres" id="3_sdp0c"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nvaqx"]
+albedo_color = Color(0.1517849, 0.14729217, 0, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sdp0c"]
+transparency = 1
+albedo_color = Color(1, 1, 1, 0)
+
+[node name="Tree" type="Node3D"]
+transform = Transform3D(0.25, 0, 0, 0, 0.25, 0, 0, 0, 0.25, 0, 0, 0)
+script = ExtResource("1_nvaqx")
+LeafCount = 1200
+LeafMesh = ExtResource("3_sdp0c")
+
+[node name="TreeMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15640163, 0, 0.14718556)
+mesh = ExtResource("1_i8f0y")
+surface_material_override/0 = SubResource("StandardMaterial3D_nvaqx")
+surface_material_override/1 = SubResource("StandardMaterial3D_sdp0c")
+
+[node name="Leaves" type="MultiMeshInstance3D" parent="."]

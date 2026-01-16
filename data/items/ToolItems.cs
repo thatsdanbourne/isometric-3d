@@ -54,6 +54,25 @@ public static class ToolItems
             HitRange = 2.2f,
             Tier = ToolTier.Stone
         });
+
+        ItemRegistry.RegisterItem(new ToolItem
+        {
+            Id = "copper_pickaxe",
+            ToolType = "pickaxe",
+            DisplayName = "Copper Pickaxe",
+            Description = "A decent starter pickaxe.",
+            Icon = LoadTexture("copper_pickaxe"),
+            StackSize = 1,
+            Damage = 1.5f,
+            DamageMultipliers = new Dictionary<string, float> {
+                { "stone", 2.5f },
+                { "wood", 0.5f }
+            },
+            HitArcDegress = 35f,
+            HitRayCount = 3,
+            HitRange = 2.0f,
+            Tier = ToolTier.Copper
+        });
     }
 
     private static Texture2D LoadTexture(string name) =>

@@ -13,5 +13,11 @@ public static class ToolRecipes
         stonePickaxeRecipe.Ingredients.Add("stone", 4);
         stonePickaxeRecipe.RequiredStation = StationType.CraftingTable;
         CraftingRegistry.RegisterRecipe(stonePickaxeRecipe);
+
+        var copperPickaxeRecipe = new CraftingRecipe("copper_pickaxe", 1);
+        copperPickaxeRecipe.Ingredients.Add("wood", 2);
+        copperPickaxeRecipe.Ingredients.Add("copper_ingot", 4);
+        copperPickaxeRecipe.RequiredStation = StationType.CraftingTable;
+        CraftingRegistry.RegisterRecipe(copperPickaxeRecipe);
     }
 }
