@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://cpggtjxmvn85v"]
+
+[ext_resource type="ArrayMesh" uid="uid://c5hng18pmceso" path="res://assets/meshes/rockl.obj" id="1_3tshc"]
+
+[node name="Rock3d" type="Node3D"]
+transform = Transform3D(0.25, 0, 0, 0, 0.25, 0, 0, 0, 0.25, 0, 0.20911986, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = ExtResource("1_3tshc")

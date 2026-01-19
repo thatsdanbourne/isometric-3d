@@ -35,7 +35,7 @@ public partial class SettingsManager : Node
 
         if (err != Error.Ok)
             return;
-        
+
         Fullscreen = (bool)cfg.GetValue("video", "fullscreen", Fullscreen);
         Borderless = (bool)cfg.GetValue("video", "borderless", Borderless);
         VSync = (bool)cfg.GetValue("video", "vsync", VSync);
@@ -54,7 +54,7 @@ public partial class SettingsManager : Node
         DisplayServer.WindowSetMode(Fullscreen
         ? DisplayServer.WindowMode.Fullscreen
         : DisplayServer.WindowMode.Windowed);
-    
+
         DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.Borderless, Borderless);
 
         DisplayServer.WindowSetVsyncMode(VSync
@@ -64,9 +64,9 @@ public partial class SettingsManager : Node
 
     private void ApplyRendering()
     {
-        var environment = GetNode<WorldEnvironment>("/root/Game/World/WorldEnvironment").Environment;
+        var environment = GetNode<WorldEnvironment>("/root/Game/SubViewportContainer/SubViewport/World/WorldEnvironment").Environment;
         if (environment == null) return;
 
-       environment.SsaoEnabled = SSAOEnabled;
+        environment.SsaoEnabled = SSAOEnabled;
     }
 }
