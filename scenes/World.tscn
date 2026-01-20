@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://dtgd4yjkf4awx"]
+[gd_scene load_steps=31 format=3 uid="uid://dtgd4yjkf4awx"]
 
 [ext_resource type="MeshLibrary" uid="uid://lnicha63160s" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="Script" uid="uid://ciarma0geh450" path="res://scripts/tools/Debug.cs" id="2_h1bdy"]
@@ -18,12 +18,8 @@
 [ext_resource type="Texture2D" uid="uid://cxxnlf6fco4uc" path="res://assets/sprites/weather/raindrop.png" id="16_rpuxp"]
 [ext_resource type="Texture2D" uid="uid://b0rvrpykafb60" path="res://assets/sprites/weather/snowflake.png" id="17_nthub"]
 [ext_resource type="Script" uid="uid://biupxf38shvsk" path="res://scripts/managers/WorldObjectManager.cs" id="18_nthub"]
-[ext_resource type="PackedScene" uid="uid://b2ayfgywmmiry" path="res://scenes/terrain/objects/tree3d.tscn" id="19_44lqw"]
-[ext_resource type="PackedScene" uid="uid://cpggtjxmvn85v" path="res://scenes/terrain/objects/Rock3d.tscn" id="20_dwmkc"]
 [ext_resource type="Shader" uid="uid://kx4pg5qq8dw4" path="res://resources/shaders/Upscaler.gdshader" id="21_30fn3"]
 [ext_resource type="Script" uid="uid://bt35wqfusytbe" path="res://scripts/Display.cs" id="21_dgldv"]
-[ext_resource type="PackedScene" uid="uid://bvgun8dfrob4a" path="res://scenes/terrain/objects/RockCoalOre.tscn" id="23_yncth"]
-[ext_resource type="PackedScene" uid="uid://buutci4b6cgwk" path="res://scenes/terrain/objects/RockCopperOre.tscn" id="24_jgbtq"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_d1c63"]
 font = ExtResource("3_h1bdy")
@@ -143,20 +139,21 @@ grow_vertical = 2
 [node name="SettingsVideo" parent="Menus/MenuManager" instance=ExtResource("7_o1tcx")]
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+texture_filter = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 stretch = true
-stretch_shrink = 2
+mouse_target = true
 
 [node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
 transparent_bg = true
 handle_input_locally = false
 canvas_item_default_texture_filter = 0
 audio_listener_enable_3d = true
-size = Vector2i(1152, 648)
+size = Vector2i(2304, 1296)
 render_target_update_mode = 4
 
 [node name="World" type="Node3D" parent="SubViewportContainer/SubViewport" node_paths=PackedStringArray("WorldObjects", "GroundMap", "WaterMap", "PlayerContainer")]
@@ -249,20 +246,6 @@ metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="WorldObjects" type="Node3D" parent="SubViewportContainer/SubViewport/World"]
 
-[node name="Tree" parent="SubViewportContainer/SubViewport/World/WorldObjects" instance=ExtResource("19_44lqw")]
-
-[node name="Tree2" parent="SubViewportContainer/SubViewport/World/WorldObjects" instance=ExtResource("19_44lqw")]
-transform = Transform3D(0.25, 0, 0, 0, 0.25, 0, 0, 0, 0.25, 4.4973035, 0.10829544, 0.17603779)
-
-[node name="Tree3" parent="SubViewportContainer/SubViewport/World/WorldObjects" instance=ExtResource("19_44lqw")]
-transform = Transform3D(0.25, 0, 0, 0, 0.25, 0, 0, 0, 0.25, -3.591881, 0.008926332, 1.6164908)
-
-[node name="Rock3d" parent="SubViewportContainer/SubViewport/World/WorldObjects" instance=ExtResource("20_dwmkc")]
-transform = Transform3D(0.23894826, 0, -0.07351008, 0, 0.25, 0, 0.07351008, 0, 0.23894826, 1.2616429, 0.12387359, 0.6019423)
-
-[node name="Rock3d2" parent="SubViewportContainer/SubViewport/World/WorldObjects" instance=ExtResource("20_dwmkc")]
-transform = Transform3D(0.38231722, 0, -0.11761613, 0, 0.4, 0, 0.11761613, 0, 0.38231722, -1.8349688, 0.36778292, 2.3475635)
-
 [node name="PlayerContainer" type="Node3D" parent="SubViewportContainer/SubViewport/World"]
 
 [node name="Display" type="Control" parent="." node_paths=PackedStringArray("viewport")]
@@ -280,9 +263,3 @@ viewport = NodePath("../SubViewportContainer/SubViewport")
 material = SubResource("ShaderMaterial_dgldv")
 texture = SubResource("ViewportTexture_dwmkc")
 centered = false
-
-[node name="RockCoalOre" parent="." instance=ExtResource("23_yncth")]
-transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 5.1041265, 0, 2.7988753)
-
-[node name="Rock" parent="." instance=ExtResource("24_jgbtq")]
-transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 2.4643307, 0, 4.5802836)
