@@ -64,7 +64,7 @@ public partial class SettingsManager : Node
 
     private void ApplyRendering()
     {
-        var environment = GetNode<WorldEnvironment>("/root/Game/SubViewportContainer/SubViewport/World/WorldEnvironment").Environment;
+        var environment = GetNode<WorldEnvironment>("/root/Game/World/WorldEnvironment").Environment;
         if (environment == null) return;
 
         environment.SsaoEnabled = SSAOEnabled;

@@ -41,8 +41,9 @@ public static class WorldObjectRegistry
 
 	public static void RegisterDefaults()
 	{
-		Register("tree_pine", GD.Load<PackedScene>("res://scenes/terrain/objects/tree_2.tscn"));
-		Register("tree_birch", GD.Load<PackedScene>("res://scenes/terrain/objects/tree_2.tscn"));
+		Register("tree_oak", GD.Load<PackedScene>("res://scenes/terrain/objects/TreeOak.tscn"));
+		Register("tree_birch", GD.Load<PackedScene>("res://scenes/terrain/objects/TreeBirch.tscn"));
+		Register("tree_pine", GD.Load<PackedScene>("res://scenes/terrain/objects/TreePine.tscn"));
 		Register("rock", GD.Load<PackedScene>("res://scenes/terrain/objects/Rock3d.tscn"), 15f);
 		Register("rock_coal", GD.Load<PackedScene>("res://scenes/terrain/objects/Rock3d.tscn"), 18f);
 		Register("rock_copper", GD.Load<PackedScene>("res://scenes/terrain/objects/Rock3d.tscn"), 20f, ToolTier.Stone);

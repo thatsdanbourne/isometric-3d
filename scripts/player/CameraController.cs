@@ -14,7 +14,7 @@ public partial class CameraController : Node3D
 
     public float MaxVelocity = 30.0f;
     public float Acceleration = 14.0f;
-    public float Deceleration = 16.0f;
+    public float Deceleration = 20.0f;
 
     public Vector3 CameraOffset = new Vector3(0, 0, 65);
 
@@ -67,10 +67,14 @@ public partial class CameraController : Node3D
     public override void _PhysicsProcess(double delta)
     {
         float d = (float)delta;
-
-        UpdateFollow(d);
-        UpdateShake(d);
         UpdateZoom(d);
+        UpdateShake(d);
+    }
+
+    public override void _Process(double delta)
+    {
+        float d = (float)delta;
+        UpdateFollow(d);
         ApplyPixelSnap();
     }
 

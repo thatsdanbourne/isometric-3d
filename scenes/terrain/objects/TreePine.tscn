@@ -1,35 +1,32 @@
-[gd_scene load_steps=7 format=3 uid="uid://cjrcdkqsl4q3i"]
+[gd_scene load_steps=8 format=3 uid="uid://dtfybita6mscg"]
 
-[ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/world-gen/WorldObject.cs" id="1_qio87"]
-[ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/classes/drops/DropEntry.cs" id="2_11iem"]
-[ext_resource type="Texture2D" uid="uid://dy1vncct46nkg" path="res://assets/sprites/tree/tree.png" id="4_bafl6"]
-[ext_resource type="PackedScene" uid="uid://bfufo5te5o1lo" path="res://scenes/terrain/ShadowCard.tscn" id="5_qdjx2"]
+[ext_resource type="PackedScene" uid="uid://bykksc3manbtm" path="res://assets/meshes/Pine.glb" id="1_u4uva"]
+[ext_resource type="Shader" uid="uid://dgkxl5jho041u" path="res://resources/shaders/CellShade.gdshader" id="2_u4uva"]
+[ext_resource type="Texture2D" uid="uid://biw08dq8o6nnr" path="res://assets/sprites/tree/oak_trunk.png" id="3_cye4l"]
+[ext_resource type="Shader" uid="uid://5e6g7fva4pcn" path="res://resources/shaders/Tree.gdshader" id="4_dqv2m"]
+[ext_resource type="Texture2D" uid="uid://du32la2gi2lf0" path="res://assets/meshes/pine_leaf_alpha.png" id="5_u4uva"]
 
-[sub_resource type="Resource" id="Resource_u4uva"]
-script = ExtResource("2_11iem")
-ItemId = "wood"
-MinQuantity = 2
-MaxQuantity = 4
-metadata/_custom_type_script = "uid://2hhyer4i1q1g"
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wpald"]
+render_priority = 0
+shader = ExtResource("2_u4uva")
+shader_parameter/light_steps = 3.0
+shader_parameter/color_texture = ExtResource("3_cye4l")
+shader_parameter/uv_scale = Vector2(2, 1)
+shader_parameter/outline_mask = 1.0
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_874r4"]
-size = Vector3(0.8, 0.8, 0.8)
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_u4uva"]
+render_priority = 0
+shader = ExtResource("4_dqv2m")
+shader_parameter/color = Color(0, 0.2046678, 0, 1)
+shader_parameter/alpha = ExtResource("5_u4uva")
+shader_parameter/leaves_scale = 0.1
+shader_parameter/leaf_bend_amount = 0.105
+shader_parameter/light_steps = 5.0
 
-[node name="Tree" type="StaticBody3D"]
-transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 0, 0, 0)
-script = ExtResource("1_qio87")
-ObjectType = "wood"
-DropItems = Array[ExtResource("2_11iem")]([SubResource("Resource_u4uva")])
+[node name="Pine" instance=ExtResource("1_u4uva")]
 
-[node name="Sprite3D" type="Sprite3D" parent="."]
-offset = Vector2(-2, 47)
-pixel_size = 0.05
-texture_filter = 0
-texture = ExtResource("4_bafl6")
+[node name="Trunk" parent="." index="0"]
+surface_material_override/0 = SubResource("ShaderMaterial_wpald")
 
-[node name="ShadowCard" parent="." instance=ExtResource("5_qdjx2")]
-transform = Transform3D(0.9999939, 0, -0.0034906515, 0, 1, 0, 0.0034906515, 0, 0.9999939, 0, 0, 0)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
-shape = SubResource("BoxShape3D_874r4")
+[node name="Canopy" parent="." index="1"]
+surface_material_override/0 = SubResource("ShaderMaterial_u4uva")

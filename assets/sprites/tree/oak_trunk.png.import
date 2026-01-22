@@ -2,9 +2,9 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b3xhpwswi6r4s"
-path.s3tc="res://.godot/imported/leaf.png-e01a80ef8c23f59dd63507775209c06b.s3tc.ctex"
-path.etc2="res://.godot/imported/leaf.png-e01a80ef8c23f59dd63507775209c06b.etc2.ctex"
+uid="uid://biw08dq8o6nnr"
+path.s3tc="res://.godot/imported/oak_trunk.png-f0b1ab6a997394127c3d6334f4c2a107.s3tc.ctex"
+path.etc2="res://.godot/imported/oak_trunk.png-f0b1ab6a997394127c3d6334f4c2a107.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/meshes/leaf.png"
-dest_files=["res://.godot/imported/leaf.png-e01a80ef8c23f59dd63507775209c06b.s3tc.ctex", "res://.godot/imported/leaf.png-e01a80ef8c23f59dd63507775209c06b.etc2.ctex"]
+source_file="res://assets/sprites/tree/oak_trunk.png"
+dest_files=["res://.godot/imported/oak_trunk.png-f0b1ab6a997394127c3d6334f4c2a107.s3tc.ctex", "res://.godot/imported/oak_trunk.png-f0b1ab6a997394127c3d6334f4c2a107.etc2.ctex"]
 
 [params]
 

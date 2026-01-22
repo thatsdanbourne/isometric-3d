@@ -21,7 +21,7 @@ public static class BiomeDefinitions
 					Algorithm = NoisePresets.PlainsTrees(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "tree_pine", Weight = 1f },
+						new SpawnVariant { Id = "tree_oak", Weight = 1f },
 						new SpawnVariant { Id = "tree_birch", Weight = 1f },
 					}
 				},
@@ -66,7 +66,7 @@ public static class BiomeDefinitions
 					Algorithm = NoisePresets.ForestTrees(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "tree_pine", Weight = 1f },
+						new SpawnVariant { Id = "tree_oak", Weight = 1f },
 						new SpawnVariant { Id = "tree_birch", Weight = 1f },
 					}
 				},

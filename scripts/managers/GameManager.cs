@@ -19,8 +19,8 @@ public partial class GameManager : Node
     {
         Instance = this;
 
-        DayNightCycle = GetNode<DayNightCycle>("/root/Game/SubViewportContainer/SubViewport/World/DayNightCycle");
-        WeatherManager = GetNode<WeatherManager>("/root/Game/SubViewportContainer/SubViewport/World/WeatherManager");
+        DayNightCycle = GetNode<DayNightCycle>("/root/Game//World/DayNightCycle");
+        WeatherManager = GetNode<WeatherManager>("/root/Game//World/WeatherManager");
 
         GD.Print("GameManager initialized.");
     }

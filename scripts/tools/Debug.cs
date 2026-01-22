@@ -13,7 +13,7 @@ public partial class Debug : CanvasLayer
 
 	public override void _Ready()
 	{
-		world = GetNode<Node3D>("../SubViewportContainer/SubViewport/World");
+		world = GetNode<Node3D>("../World");
 		fpsLabel = GetNode<Label>("MarginContainer/VBoxContainer/FPS");
 		positionLabel = GetNode<Label>("MarginContainer/VBoxContainer/Position");
 		biomeLabel = GetNode<Label>("MarginContainer/VBoxContainer/Biome");

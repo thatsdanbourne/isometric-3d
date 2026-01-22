@@ -44,6 +44,10 @@ project/assembly_name="isometric 3d"
 
 export/convert_text_resources_to_binary=false
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/collapse_folders/plugin.cfg")
+
 [input]
 
 move_right={
@@ -143,10 +147,6 @@ toggle_fullscreen={
 ]
 }
 
-[physics]
-
-common/physics_interpolation=true
-
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
@@ -154,3 +154,26 @@ textures/vram_compression/import_etc2_astc=true
 lights_and_shadows/directional_shadow/16_bits=false
 lights_and_shadows/positional_shadow/soft_shadow_filter_quality=1
 environment/defaults/default_clear_color=Color(0.106236584, 0.106236584, 0.106236555, 1)
+
+[shader_globals]
+
+wind_direction={
+"type": "vec3",
+"value": Vector3(0, 0, 1)
+}
+wind_noise={
+"type": "sampler2D",
+"value": "res://resources/materials/WindNoise.tres"
+}
+wind_scale={
+"type": "float",
+"value": 0.015
+}
+wind_speed={
+"type": "float",
+"value": 0.05
+}
+wind_strength={
+"type": "float",
+"value": 0.25
+}

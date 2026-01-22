@@ -50,7 +50,7 @@ public partial class Player : CharacterBody3D
     {
         GameManager.Instance.SetLocalPlayer(this);
 
-        world = GetNode<World>("../../");
+        world = GetNode<World>("/root/Game/World");
         tintOverlay = world.GetNode<BiomeTintOverlay>("BiomeTint/BiomeOverlay");
         sprite = GetNode<AnimatedSprite3D>("AnimatedSprite3D");
         hitCooldown = GetNode<Timer>("HitCooldown");
@@ -60,9 +60,9 @@ public partial class Player : CharacterBody3D
         Inventory = GetNode<Inventory>("Inventory");
         CameraController = cameraControllerScene.Instantiate<CameraController>();
         CameraController.Player = this;
-
-        world.CallDeferred(Node.MethodName.AddChild, CameraController);
         GetNode<Display>("/root/Game/Display").SetCameraController(CameraController);
+
+        world.GetNode<Node3D>("SubViewportContainer/SubViewport/WorldObjects").CallDeferred(Node.MethodName.AddChild, CameraController);
 
         HUD.RefreshUI();
         Hotbar.SelectedSlotChanged += _ => UpdateEquippedItem();
@@ -216,14 +216,6 @@ public partial class Player : CharacterBody3D
     // input 
     public override void _UnhandledInput(InputEvent e)
     {
-        if (e is InputEventMouseButton mb && mb.Pressed)
-        {
-            if (mb.ButtonIndex == MouseButton.WheelUp)
-                Hotbar.SelectPrev();
-            else if (mb.ButtonIndex == MouseButton.WheelDown)
-                Hotbar.SelectNext();
-        }
-
         if (e.IsActionPressed("toggle_inventory"))
         {
             if (HUD.isInventoryOpen)

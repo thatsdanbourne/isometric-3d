@@ -1,9 +1,26 @@
-[gd_scene load_steps=2 format=3 uid="uid://br6m3vppme1hy"]
+[gd_scene load_steps=6 format=3 uid="uid://br6m3vppme1hy"]
 
 [ext_resource type="ArrayMesh" uid="uid://c5hng18pmceso" path="res://assets/meshes/rockl.obj" id="1_3tshc"]
+[ext_resource type="Shader" uid="uid://dgkxl5jho041u" path="res://resources/shaders/CellShade.gdshader" id="2_d4gln"]
+
+[sub_resource type="Gradient" id="Gradient_k6fop"]
+offsets = PackedFloat32Array(0, 0.99122804)
+colors = PackedColorArray(0, 0, 0, 1, 0.50534403, 0.5053441, 0.50534403, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_wy0dr"]
+gradient = SubResource("Gradient_k6fop")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wtqbi"]
+render_priority = 0
+shader = ExtResource("2_d4gln")
+shader_parameter/light_steps = 3.0
+shader_parameter/color_texture = SubResource("GradientTexture1D_wy0dr")
+shader_parameter/uv_scale = Vector2(1, 1)
+shader_parameter/outline_mask = 1.0
 
 [node name="Rock3d" type="Node3D"]
 transform = Transform3D(0.25, 0, 0, 0, 0.25, 0, 0, 0, 0.25, 0, 0.20911986, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 mesh = ExtResource("1_3tshc")
+surface_material_override/0 = SubResource("ShaderMaterial_wtqbi")

@@ -124,9 +124,17 @@ public partial class HUD : CanvasLayer
 
 	public override void _UnhandledInput(InputEvent e)
 	{
-		if (draggedStack != null && IsCursorOutsideInventory() && e is InputEventMouseButton mb && mb.Pressed)
+		if (e is InputEventMouseButton mb && mb.Pressed)
 		{
-			DropStack();
+			if (mb.ButtonIndex == MouseButton.WheelUp)
+				hotbar.SelectPrev();
+			else if (mb.ButtonIndex == MouseButton.WheelDown)
+				hotbar.SelectNext();
+
+			if (draggedStack != null && IsCursorOutsideInventory())
+			{
+				DropStack();
+			}
 		}
 
 		if (e.IsActionPressed("ui_cancel"))
