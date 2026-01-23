@@ -241,16 +241,16 @@ public partial class ChunkGenerator : Node
 			}
 		}
 
-		foreach (ChunkObject obj in data.Objects)
-		{
-			var scene = WorldObjectRegistry.GetDefinition(obj.Definition.Id).Scene;
-			var instance = scene.Instantiate<Node3D>();
-			var rot = rng.RandiRange(0, 360);
-			instance.RotationDegrees = new Vector3(0, rot, 0);
-			instance.Position = obj.Position;
-			_world.WorldObjects.AddChild(instance);
-			chunk.Decors.Add(instance);
-		}
+		// foreach (ChunkObject obj in data.Objects)
+		// {
+		// 	var scene = WorldObjectRegistry.GetDefinition(obj.Definition.Id).Scene;
+		// 	var instance = scene.Instantiate<Node3D>();
+		// 	var rot = rng.RandiRange(0, 360);
+		// 	instance.RotationDegrees = new Vector3(0, rot, 0);
+		// 	instance.Position = obj.Position;
+		// 	_world.WorldObjects.AddChild(instance);
+		// 	chunk.Decors.Add(instance);
+		// }
 
 		foreach (ChunkDecor decor in data.Decors)
 		{
@@ -261,7 +261,7 @@ public partial class ChunkGenerator : Node
 			chunk.Decors.Add(instance);
 		}
 
-		// _world.WorldObjectManager.EnqueueChunk(chunk);
+		_world.WorldObjectManager.EnqueueChunk(chunk);
 
 		sw.Stop();
 		data.FinaliseTimeMs = sw.Elapsed.TotalMilliseconds;

@@ -154,19 +154,31 @@ public partial class Player : CharacterBody3D
                 continue;
 
             var collider = result["collider"].As<Node>();
-            if (collider is WorldObject wo)
+
+            WorldObjectBase worldObject = null;
+            Node current = collider;
+
+            while (current != null)
             {
-                wo.ObjectBroken -= OnObjectBroken;
-                wo.ObjectBroken += OnObjectBroken;
+                if (current is WorldObjectBase wo)
+                {
+                    worldObject = wo;
+                    break;
+                }
 
-                wo.ObjectHitFailed -= OnHitFailed;
-                wo.ObjectHitFailed += OnHitFailed;
-
-                Vector3 hitPoint = (Vector3)result["position"];
-                Vector3 hitDir = (wo.GlobalPosition - hitPoint).Normalized();
-                tool.UseOn(wo, hitDir);
-                return;
+                current = current.GetParent();
             }
+
+            worldObject.ObjectBroken -= OnObjectBroken;
+            worldObject.ObjectBroken += OnObjectBroken;
+
+            worldObject.ObjectHitFailed -= OnHitFailed;
+            worldObject.ObjectHitFailed += OnHitFailed;
+
+            Vector3 hitPoint = (Vector3)result["position"];
+            Vector3 hitDir = (worldObject.GlobalPosition - hitPoint).Normalized();
+            tool.UseOn(worldObject, hitDir);
+            return;
         }
     }
 
@@ -184,13 +196,13 @@ public partial class Player : CharacterBody3D
     }
 
     // event handlers
-    private void OnObjectBroken(WorldObject obj)
+    private void OnObjectBroken(WorldObjectBase obj)
     {
         obj.ObjectBroken -= OnObjectBroken;
         CameraController?.Shake(0.3f, 0.7f);
     }
 
-    private void OnHitFailed(WorldObject obj)
+    private void OnHitFailed(WorldObjectBase obj)
     {
         obj.ObjectHitFailed -= OnHitFailed;
         AudioManager.Instance.PlayAt("hit_fail", obj.GlobalPosition, 0.1f);

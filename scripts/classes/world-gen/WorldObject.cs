@@ -1,12 +1,8 @@
 using Godot;
 using System.Collections.Generic;
 
-public partial class WorldObject : Node3D
+public partial class WorldObject : WorldObjectBase
 {
-    [Signal] public delegate void ObjectBrokenEventHandler(WorldObject obj);
-    [Signal] public delegate void ObjectHitFailedEventHandler(WorldObject obj);
-
-    [Export] public string ObjectType { get; set; }
     [Export] public Godot.Collections.Array<DropEntry> DropItems { get; set; } = new Godot.Collections.Array<DropEntry>();
     [Export] public string HitSoundsKey { get; set; } = "hit_wood";
 
@@ -19,14 +15,10 @@ public partial class WorldObject : Node3D
     private Vector3 shakeOffset = Vector3.Zero;
     private Vector3 shakeVelocity = Vector3.Zero;
 
-    public World World;
     public Vector3 WorldPosition;
     public Vector2I TileCoord;
-    public ChunkObject Data;
-    public bool MarkedForRemoval;
 
-    public ToolTier RequiredTier;
-    public float MaxHealth;
+    public bool MarkedForRemoval;
 
     private RandomNumberGenerator rng = new RandomNumberGenerator();
     private PackedScene pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
@@ -45,14 +37,14 @@ public partial class WorldObject : Node3D
         SetProcess(false);
     }
 
-    public void Initialize(WorldObjectDefinition definition)
+    public override void Initialise(WorldObjectDefinition definition)
     {
         RequiredTier = definition.ToolTier;
         MaxHealth = definition.MaxHealth;
         currentHealth = MaxHealth;
     }
 
-    public void Reset()
+    public override void Reset()
     {
         MarkedForRemoval = false;
         currentHealth = MaxHealth;
@@ -61,12 +53,12 @@ public partial class WorldObject : Node3D
         SetProcess(false);
     }
 
-    public void HitFailed()
+    public override void HitFailed()
     {
         EmitSignal(SignalName.ObjectHitFailed, this);
     }
 
-    public async virtual void ApplyDamage(float amount, Vector3 fromDirection)
+    public override async void ApplyDamage(float amount, Vector3 fromDirection)
     {
         await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
         AudioManager.Instance.PlayVariantAt(HitSoundsKey, GlobalPosition, 0.1f);
@@ -87,7 +79,7 @@ public partial class WorldObject : Node3D
         SetProcess(true);
     }
 
-    public virtual void BreakObject()
+    public void BreakObject()
     {
         EmitSignal(SignalName.ObjectBroken, this);
 

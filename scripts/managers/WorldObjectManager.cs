@@ -11,7 +11,7 @@ public partial class WorldObjectManager : Node
     private readonly Queue<ChunkObject> activeSpawnQueue = new();
     private readonly Queue<ChunkObject> removeQueue = new();
 
-    private Dictionary<string, Stack<WorldObject>> pools = new();
+    private Dictionary<string, Stack<WorldObjectBase>> pools = new();
 
     private World _world;
     private RandomNumberGenerator rng;
@@ -73,14 +73,20 @@ public partial class WorldObjectManager : Node
             if (data.MarkedForRemoval || data.RuntimeNode != null)
                 continue;
 
-            var node = GetPooled(data.Definition.Id);
+            WorldObjectBase node;
+            bool is3D = WorldObjectRegistry.GetDefinition(data.Definition.Id).Is3D;
+
+            if (!is3D)
+                node = WorldObjectRegistry.GetScene(data.Definition.Id).Instantiate<WorldObject>();
+            else
+                node = WorldObjectRegistry.GetScene(data.Definition.Id).Instantiate<WorldObject3D>();
 
             node.Reset();
             node.Data = data;
             node.World = _world;
             data.RuntimeNode = node;
 
-            node.Initialize(data.Definition);
+            node.Initialise(data.Definition);
 
             if (node.GetParent() != null)
                 node.Reparent(_world.WorldObjects);
@@ -96,7 +102,7 @@ public partial class WorldObjectManager : Node
             if (data.Definition.BlocksTile)
             {
                 _world.BlockTile(data.TileCoord);
-                node.EnableCollision();
+                // node.EnableCollision();
             }
             count++;
         }
@@ -123,29 +129,30 @@ public partial class WorldObjectManager : Node
         }
     }
 
-    private WorldObject GetPooled(string sceneId)
+    private WorldObjectBase GetPooled(string sceneId)
     {
         if (pools.TryGetValue(sceneId, out var stack) && stack.Count > 0)
             return stack.Pop();
 
-        return WorldObjectRegistry.GetScene(sceneId).Instantiate<WorldObject>();
+        return WorldObjectRegistry.GetScene(sceneId).Instantiate<WorldObjectBase>();
     }
 
-    private void Recycle(WorldObject node)
+    private void Recycle(WorldObjectBase node)
     {
-        node.DisableCollision();
-        node.Visible = false;
-        node.SetPhysicsProcess(false);
-        node.Reparent(_world.WorldObjectPool);
+        // node.Visible = false;
+        // node.SetPhysicsProcess(false);
+        // node.Reparent(_world.WorldObjectPool);
 
-        var id = node.Data.Definition.Id;
+        // var id = node.Data.Definition.Id;
 
-        if (!pools.TryGetValue(id, out var stack))
-            pools[id] = stack = new Stack<WorldObject>();
+        // if (!pools.TryGetValue(id, out var stack))
+        //     pools[id] = stack = new Stack<WorldObjectBase>();
 
-        if (stack.Count < maxPoolSizePerType)
-            stack.Push(node);
-        else
-            node.QueueFree();
+        // if (stack.Count < maxPoolSizePerType)
+        //     stack.Push(node);
+        // else
+        //     node.QueueFree();
+
+        node.QueueFree();
     }
 }

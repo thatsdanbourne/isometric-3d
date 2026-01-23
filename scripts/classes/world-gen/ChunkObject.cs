@@ -8,7 +8,7 @@ public partial class ChunkObject : RefCounted
     public Vector3 Position;
 
     // runtime
-    public WorldObject RuntimeNode;
+    public WorldObjectBase RuntimeNode;
     public bool MarkedForRemoval;
 }
 
