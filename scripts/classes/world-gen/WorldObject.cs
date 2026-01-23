@@ -34,7 +34,6 @@ public partial class WorldObject : WorldObjectBase
         rng.Randomize();
         currentHealth = MaxHealth;
         ApplySpriteMaterial();
-        SetProcess(false);
     }
 
     public override void Initialise(WorldObjectDefinition definition)
@@ -50,7 +49,6 @@ public partial class WorldObject : WorldObjectBase
         currentHealth = MaxHealth;
         shakeOffset = Vector3.Zero;
         shakeVelocity = Vector3.Zero;
-        SetProcess(false);
     }
 
     public override void HitFailed()
@@ -75,8 +73,6 @@ public partial class WorldObject : WorldObjectBase
         float tiltDirection = fromDirection.X >= 0f ? 1f : -1f;
         float intensity = 4f;
         shakeVelocity += new Vector3(tiltDirection * intensity, 0f, 0f);
-
-        SetProcess(true);
     }
 
     public void BreakObject()
@@ -169,7 +165,6 @@ public partial class WorldObject : WorldObjectBase
         {
             visual.RotationDegrees = Vector3.Zero;
             shakeOffset = Vector3.Zero;
-            SetProcess(false);
             return;
         }
     }

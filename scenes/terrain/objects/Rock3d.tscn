@@ -22,7 +22,7 @@ gradient = SubResource("Gradient_k6fop")
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_wtqbi"]
 render_priority = 0
 shader = ExtResource("2_d4gln")
-shader_parameter/light_steps = 3.0
+shader_parameter/light_steps = 5.0
 shader_parameter/color_texture = SubResource("GradientTexture1D_wy0dr")
 shader_parameter/uv_scale = Vector2(1, 1)
 shader_parameter/outline_mask = 1.0

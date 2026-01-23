@@ -1,6 +1,6 @@
 [gd_scene load_steps=31 format=3 uid="uid://dtgd4yjkf4awx"]
 
-[ext_resource type="MeshLibrary" uid="uid://nnjtn8vob5te" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
+[ext_resource type="MeshLibrary" uid="uid://crawy4x5h3g1u" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="Script" uid="uid://ciarma0geh450" path="res://scripts/tools/Debug.cs" id="2_h1bdy"]
 [ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD/HUD.tscn" id="3_b3faq"]
 [ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="3_h1bdy"]
@@ -13,7 +13,7 @@
 [ext_resource type="Script" uid="uid://c6er6so1dhf3" path="res://scripts/managers/BiomeTintOverlay.cs" id="7_h1bdy"]
 [ext_resource type="PackedScene" uid="uid://cxwbi3kugkjk2" path="res://scenes/menus/settings/SettingsVideo.tscn" id="7_o1tcx"]
 [ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/managers/DayNightCycle.cs" id="8_nrtoj"]
-[ext_resource type="MeshLibrary" uid="uid://6xr0lwa0vfbh" path="res://water_meshlibrary.tres" id="8_pdh0q"]
+[ext_resource type="MeshLibrary" uid="uid://hvr6yjpo0ajd" path="res://water_meshlibrary.tres" id="8_pdh0q"]
 [ext_resource type="Script" uid="uid://dgarnp7014d6a" path="res://scripts/managers/WeatherManager.cs" id="15_nthub"]
 [ext_resource type="Texture2D" uid="uid://cxxnlf6fco4uc" path="res://assets/sprites/weather/raindrop.png" id="16_rpuxp"]
 [ext_resource type="Texture2D" uid="uid://b0rvrpykafb60" path="res://assets/sprites/weather/snowflake.png" id="17_nthub"]
@@ -72,10 +72,9 @@ turbulence_noise_strength = 20.0
 
 [sub_resource type="Environment" id="Environment_1lgw5"]
 ambient_light_source = 2
+ambient_light_sky_contribution = 0.52
 ssao_enabled = true
 ssao_radius = 5.0
-sdfgi_energy = 12.21
-fog_enabled = true
 fog_mode = 1
 fog_density = 1.0
 fog_sky_affect = 0.0
@@ -162,7 +161,7 @@ script = ExtResource("8_nrtoj")
 Sun = NodePath("../Sun")
 WorldEnvironment = NodePath("../WorldEnvironment")
 DayLength = 1200.0
-TimeOfDay = 0.5
+TimeOfDay = 0.45
 
 [node name="WeatherManager" type="Node3D" parent="World" node_paths=PackedStringArray("ParticleAnchor", "RainParticles", "SnowParticles", "WorldEnvironment")]
 script = ExtResource("15_nthub")
@@ -200,6 +199,8 @@ transform = Transform3D(-0.03664387, 0.54427326, -0.83810735, 0, 0.83867055, 0.5
 light_color = Color(1, 0.9776916, 0.9063318, 1)
 shadow_enabled = true
 shadow_bias = 0.05
+shadow_normal_bias = 0.0
+shadow_blur = 0.5
 directional_shadow_mode = 0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="World"]

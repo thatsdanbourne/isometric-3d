@@ -25,8 +25,8 @@ public partial class WeatherManager : Node
     public float SnowSunDim = 0.85f;
 
     public float BaseFog = 0f;
-    public float RainFog = 0.25f;
-    public float SnowFog = 0.30f;
+    public float RainFog = 0.15f;
+    public float SnowFog = 0.25f;
 
     public float SunlightMultiplier { get; private set; } = 1f;
 

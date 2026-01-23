@@ -81,13 +81,12 @@ func _make_tile_mesh(base_top_tex: Texture2D, side_tex: Texture2D, overlay_tex: 
 	# =====================
 	# TOP SURFACE
 	# =====================
-	var eps := 0.001
 
 	var top_verts := PackedVector3Array([
-		Vector3(-half - eps, 0.0, -half - eps),
-		Vector3( half + eps, 0.0, -half - eps),
-		Vector3( half + eps, 0.0,  half + eps),
-		Vector3(-half - eps, 0.0,  half + eps)
+		Vector3(-half, 0.0, -half),
+		Vector3( half, 0.0, -half),
+		Vector3( half, 0.0,  half),
+		Vector3(-half, 0.0,  half)
 	])
 
 	var top_norms := PackedVector3Array([
@@ -179,8 +178,8 @@ func _make_tile_mesh(base_top_tex: Texture2D, side_tex: Texture2D, overlay_tex: 
 
 		var sprite_verts := PackedVector3Array()
 		var sprite_norms := PackedVector3Array([
-		Vector3.UP, Vector3.UP, Vector3.UP, Vector3.UP
-	])
+			Vector3.UP, Vector3.UP, Vector3.UP, Vector3.UP
+		])
 
 		const Y_ROTATION = deg_to_rad(45)
 		const X_ROTATION = deg_to_rad(-33)
@@ -209,11 +208,19 @@ func _make_tile_mesh(base_top_tex: Texture2D, side_tex: Texture2D, overlay_tex: 
 	# =========================================
 	
 	# -- Surface 0: Top Base --
-	var top_mat := StandardMaterial3D.new()
-	top_mat.albedo_texture = base_top_tex
-	top_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	top_mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
-	top_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	# var top_mat := StandardMaterial3D.new()
+	# top_mat.albedo_texture = base_top_tex
+	# top_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	# top_mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	# top_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	# mesh.surface_set_material(0, top_mat)
+
+	var top_mat := ShaderMaterial.new()
+	top_mat.shader = preload("res://resources/shaders/GroundNoise.gdshader");
+	top_mat.set_shader_parameter("tile_tex", base_top_tex)
+
+	var noise_tex := preload("res://resources/noise/GroundNoiseTexture.tres")
+	top_mat.set_shader_parameter("noise_tex", noise_tex)
 	mesh.surface_set_material(0, top_mat)
 	
 	# -- Surface 1: Sides --

@@ -152,8 +152,10 @@ toggle_fullscreen={
 textures/canvas_textures/default_texture_filter=0
 textures/vram_compression/import_etc2_astc=true
 lights_and_shadows/directional_shadow/16_bits=false
-lights_and_shadows/positional_shadow/soft_shadow_filter_quality=1
+lights_and_shadows/positional_shadow/soft_shadow_filter_quality=5
+lights_and_shadows/positional_shadow/atlas_16_bits=false
 environment/defaults/default_clear_color=Color(0.106236584, 0.106236584, 0.106236555, 1)
+anti_aliasing/quality/use_debanding=true
 
 [shader_globals]
 
@@ -163,7 +165,7 @@ wind_direction={
 }
 wind_noise={
 "type": "sampler2D",
-"value": "res://resources/materials/WindNoise.tres"
+"value": "res://resources/noise/WindNoise.tres"
 }
 wind_scale={
 "type": "float",
