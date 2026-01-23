@@ -21,14 +21,14 @@ public partial class ChunkGenerator : Node
 
 	private Dictionary<string, int[]> tileVariants = new()
 	{
-		{ "grass", new[] { 0, 1, 2 } },
+		{ "grass", new[] { 0, 1 } },
 		{ "sand", new[] { 3 } },
 		{ "snow", new[] { 4 } },
 	};
 
 	private Dictionary<string, float[]> tileVariantWeights = new()
 	{
-		{ "grass", new[] { 0.795f, 0.005f, 0.2f } },
+		{ "grass", new[] { 0.795f, 0.005f } },
 		{ "sand", new[] { 1f } },
 		{ "snow", new[] { 1f } },
 	};
@@ -89,7 +89,7 @@ public partial class ChunkGenerator : Node
 		var sw = System.Diagnostics.Stopwatch.StartNew();
 
 		int C = _world.ChunkSize;
-		Tile[,] tiles = new Tile[C, C];
+		TileInstance[,] tiles = new TileInstance[C, C];
 		var objects = new List<ChunkObject>();
 		var decors = new List<ChunkDecor>();
 		bool[,] blocked = new bool[C, C];
@@ -112,8 +112,8 @@ public partial class ChunkGenerator : Node
 
 				// determine biome
 				var biome = RuleRegistry.GetBiome(temp, humidity);
-				string tileType = biome.GroundTileType;
-				int tileId = PickWeightedVariant(tileType, globalX, globalY);
+				// int tileId = PickWeightedVariant(biome.GroundTileType, globalX, globalY);
+				TileDefinition tileDef = TileRegistry.GetByName(biome.GroundTileType);
 
 				bool biomeAllowsRivers = humidity > 0.45f;
 				bool isRiver = riverDist < 0.035f && biomeAllowsRivers;
@@ -121,16 +121,14 @@ public partial class ChunkGenerator : Node
 
 				if (isRiver)
 				{
-					tileType = "water";
-					tileId = 0;
+					tileDef = TileRegistry.GetByName("water");
 				}
 				else if (isRiverBank)
 				{
-					tileType = "sand";
-					tileId = 3;
+					tileDef = TileRegistry.GetByName("sand");
 				}
 
-				tiles[x, y] = new Tile(tileId, tileType, biome.Name, temp, humidity);
+				tiles[x, y] = new TileInstance(tileDef, biome.Name, temp, humidity);
 
 
 				if (!isRiver)
@@ -200,13 +198,6 @@ public partial class ChunkGenerator : Node
 
 		int C = _world.ChunkSize;
 
-		// Chunk chunk = new Chunk(C)
-		// {
-		// 	Coord = coord,
-		// 	Tiles = data.Tiles,
-		// 	Objects = data.Objects,
-		// };
-
 		_world.ActiveChunks[coord] = chunk;
 
 		if (!_chunkManager.InitialChunksReady &&
@@ -225,12 +216,12 @@ public partial class ChunkGenerator : Node
 		{
 			for (int y = 0; y < C; y++)
 			{
-				int id = chunk.Tiles[x, y].Id;
+				int id = chunk.Tiles[x, y].Definition.GridTileId;
 				pos.X = baseX + x;
 				pos.Y = 0;
 				pos.Z = baseY + y;
 
-				if (chunk.Tiles[x, y].Type == "water")
+				if (chunk.Tiles[x, y].Definition.Name == "water")
 				{
 					_world.WaterMap.SetCellItem(pos, id);
 				}

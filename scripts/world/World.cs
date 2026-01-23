@@ -7,6 +7,7 @@ using System.Threading;
 public partial class World : Node3D
 {
 	[Signal] public delegate void WorldReadyEventHandler();
+
 	[Export] public Node3D WorldObjects;
 	[Export] public GridMap GroundMap;
 	[Export] public GridMap WaterMap;
@@ -32,19 +33,12 @@ public partial class World : Node3D
 	private int terrainSeed = 0;
 	public Vector2I worldOffset; // prevents sampling noise at (0,0)
 
-	private Dictionary<string, TileType> tileTypes = new();
 	private RandomNumberGenerator rng;
 
 	public ChunkManager ChunkManager { get; private set; }
 	public ChunkGenerator ChunkGenerator { get; private set; }
 	public WorldObjectManager WorldObjectManager { get; private set; }
 	public Node3D WorldObjectPool;
-
-	private class TileType
-	{
-		public int Id;
-		public string Name;
-	}
 
 
 	public override void _Ready()
@@ -57,7 +51,6 @@ public partial class World : Node3D
 			(int)rng.Randi() % 100000
 		);
 
-		InitTileTypes();
 		SetupNoise();
 
 		RuleRegistry.LoadAll(terrainSeed, worldOffset);
@@ -212,35 +205,5 @@ public partial class World : Node3D
 		int localY = tileY & (ChunkSize - 1);
 
 		return chunk.Tiles[localX, localY].Biome;
-	}
-
-	private void InitTileTypes()
-	{
-		tileTypes["grass"] = new TileType
-		{
-			Id = 0,
-			Name = "grass",
-		};
-
-		tileTypes["sand"] = new TileType
-		{
-			Id = 2,
-			Name = "sand",
-		};
-
-		tileTypes["snow"] = new TileType
-		{
-			Id = 3,
-			Name = "snow",
-		};
-	}
-
-
-	public int GetTileId(string tileName)
-	{
-		if (tileTypes.TryGetValue(tileName, out var type))
-			return type.Id;
-
-		return -1;
 	}
 }

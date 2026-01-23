@@ -118,7 +118,7 @@ public class ChunkManager
 
                 var tile = chunk.Tiles[x, y];
 
-                if (tile.Type == "water")
+                if (tile.Definition.Name == "water")
                     _world.WaterMap.SetCellItem(pos, -1);
                 else
                     _world.GroundMap.SetCellItem(pos, -1);

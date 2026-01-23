@@ -3,7 +3,6 @@ using System.Collections.Generic;
 public class BiomeDefinition
 {
 	public string Name { get; set; }
-
 	public string GroundTileType { get; set; }
 
 	public float MinTemp { get; set; }
