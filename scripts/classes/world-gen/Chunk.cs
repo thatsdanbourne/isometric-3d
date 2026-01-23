@@ -5,11 +5,17 @@ public partial class Chunk : RefCounted
 {
     public Vector2I Coord;
     public Tile[,] Tiles;
-    public List<ChunkObject> Objects = new();
-    public Godot.Collections.Array<Node3D> Decors = new();
+    public List<ChunkObject> Objects;
+    public List<ChunkDecor> Decors;
 
-    public Chunk(int size)
+    public double BuildTimeMs;
+    public double FinaliseTimeMs;
+
+    public Chunk(Vector2I coord, Tile[,] tiles, List<ChunkObject> objects, List<ChunkDecor> decors)
     {
-        Tiles = new Tile[size, size];
+        Coord = coord;
+        Tiles = tiles;
+        Objects = objects;
+        Decors = decors;
     }
 }

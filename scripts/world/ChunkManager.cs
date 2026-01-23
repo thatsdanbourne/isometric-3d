@@ -130,11 +130,11 @@ public class ChunkManager
             _world.WorldObjectManager.EnqueueRemoval(obj);
         }
 
-        foreach (var decor in chunk.Decors)
-        {
-            if (decor != null && GodotObject.IsInstanceValid(decor))
-                decor.QueueFree();
-        }
+        // foreach (var decor in chunk.Decors)
+        // {
+        //     if (decor != null && GodotObject.IsInstanceValid(decor))
+        //         decor.QueueFree();
+        // }
 
         ActiveChunks.Remove(coord);
     }

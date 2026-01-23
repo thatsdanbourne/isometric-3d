@@ -244,22 +244,3 @@ public partial class World : Node3D
 		return -1;
 	}
 }
-
-public partial class ChunkData : RefCounted
-{
-	public Vector2I Coord;
-	public Tile[,] Tiles;
-	public List<ChunkObject> Objects;
-	public Godot.Collections.Array<ChunkDecor> Decors;
-
-	public double BuildTimeMs;
-	public double FinaliseTimeMs;
-
-	public ChunkData(Vector2I coord, Tile[,] tiles, List<ChunkObject> objects, Godot.Collections.Array<ChunkDecor> decors)
-	{
-		Coord = coord;
-		Tiles = tiles;
-		Objects = objects;
-		Decors = decors;
-	}
-}

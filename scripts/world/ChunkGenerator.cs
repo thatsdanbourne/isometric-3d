@@ -16,7 +16,7 @@ public partial class ChunkGenerator : Node
 	private bool running;
 
 	private readonly ConcurrentQueue<Vector2I> buildQueue = new();
-	private readonly ConcurrentQueue<ChunkData> finaliseQueue = new();
+	private readonly ConcurrentQueue<Chunk> finaliseQueue = new();
 	private RandomNumberGenerator rng = new();
 
 	private Dictionary<string, int[]> tileVariants = new()
@@ -74,7 +74,7 @@ public partial class ChunkGenerator : Node
 		{
 			if (buildQueue.TryDequeue(out Vector2I coord))
 			{
-				var result = BuildChunkData(coord);
+				var result = BuildChunk(coord);
 				finaliseQueue.Enqueue(result);
 			}
 			else
@@ -84,14 +84,14 @@ public partial class ChunkGenerator : Node
 		}
 	}
 
-	private ChunkData BuildChunkData(Vector2I coord)
+	private Chunk BuildChunk(Vector2I coord)
 	{
 		var sw = System.Diagnostics.Stopwatch.StartNew();
 
 		int C = _world.ChunkSize;
 		Tile[,] tiles = new Tile[C, C];
 		var objects = new List<ChunkObject>();
-		var decors = new Godot.Collections.Array<ChunkDecor>();
+		var decors = new List<ChunkDecor>();
 		bool[,] blocked = new bool[C, C];
 
 		for (int x = 0; x < C; x++)
@@ -179,7 +179,7 @@ public partial class ChunkGenerator : Node
 		}
 
 		sw.Stop();
-		var result = new ChunkData(coord, tiles, objects, decors);
+		var result = new Chunk(coord, tiles, objects, decors);
 		result.BuildTimeMs = sw.Elapsed.TotalMilliseconds;
 		return result;
 	}
@@ -190,22 +190,22 @@ public partial class ChunkGenerator : Node
 		return Mathf.Clamp((v - 0.5f) * contrast + 0.5f, 0f, 1f);
 	}
 
-	private void FinaliseChunk(ChunkData data)
+	private void FinaliseChunk(Chunk chunk)
 	{
 		var sw = System.Diagnostics.Stopwatch.StartNew();
 
-		Vector2I coord = data.Coord;
+		Vector2I coord = chunk.Coord;
 		if (_world.ActiveChunks.ContainsKey(coord))
 			return;
 
 		int C = _world.ChunkSize;
 
-		Chunk chunk = new Chunk(C)
-		{
-			Coord = coord,
-			Tiles = data.Tiles,
-			Objects = data.Objects,
-		};
+		// Chunk chunk = new Chunk(C)
+		// {
+		// 	Coord = coord,
+		// 	Tiles = data.Tiles,
+		// 	Objects = data.Objects,
+		// };
 
 		_world.ActiveChunks[coord] = chunk;
 
@@ -225,12 +225,12 @@ public partial class ChunkGenerator : Node
 		{
 			for (int y = 0; y < C; y++)
 			{
-				int id = data.Tiles[x, y].Id;
+				int id = chunk.Tiles[x, y].Id;
 				pos.X = baseX + x;
 				pos.Y = 0;
 				pos.Z = baseY + y;
 
-				if (data.Tiles[x, y].Type == "water")
+				if (chunk.Tiles[x, y].Type == "water")
 				{
 					_world.WaterMap.SetCellItem(pos, id);
 				}
@@ -241,21 +241,20 @@ public partial class ChunkGenerator : Node
 			}
 		}
 
-		foreach (ChunkDecor decor in data.Decors)
-		{
-			var scene = WorldObjectRegistry.GetDefinition(decor.DecorRule.DecorId).Scene;
-			var instance = scene.Instantiate<Node3D>();
-			instance.Position = decor.Position;
-			_world.WorldObjects.AddChild(instance);
-			chunk.Decors.Add(instance);
-		}
+		// foreach (ChunkDecor decor in chunk.Decors)
+		// {
+		// 	var scene = WorldObjectRegistry.GetDefinition(decor.DecorRule.DecorId).Scene;
+		// 	var instance = scene.Instantiate<WorldDecor>();
+		// 	instance.Position = decor.Position;
+		// 	_world.WorldObjects.AddChild(instance);
+		// }
 
 		_world.WorldObjectManager.EnqueueChunk(chunk);
 
 		sw.Stop();
-		data.FinaliseTimeMs = sw.Elapsed.TotalMilliseconds;
+		chunk.FinaliseTimeMs = sw.Elapsed.TotalMilliseconds;
 
-		GD.Print($"Chunk {coord} > Build {data.BuildTimeMs:F3}ms | Finalise {data.FinaliseTimeMs:F3}ms");
+		GD.Print($"Chunk {coord} > Build {chunk.BuildTimeMs:F3}ms | Finalise {chunk.FinaliseTimeMs:F3}ms");
 	}
 
 	private int PickWeightedVariant(string tileType, int x, int y)
