@@ -94,12 +94,15 @@ public partial class ChunkGenerator : Node
 		var decors = new List<ChunkDecor>();
 		bool[,] blocked = new bool[C, C];
 
+		Chunk chunk = new Chunk(coord, tiles, objects, decors, new());
+
 		for (int x = 0; x < C; x++)
 		{
 			for (int y = 0; y < C; y++)
 			{
 				int globalX = coord.X * C + x;
 				int globalY = coord.Y * C + y;
+				Vector2I tilePos = new Vector2I(globalX, globalY);
 
 				float tempRaw = _world.TempNoise.GetNoise2D(globalX + _world.worldOffset.X, globalY + _world.worldOffset.Y);
 				float humidityRaw = _world.HumidityNoise.GetNoise2D(globalX + _world.worldOffset.X, globalY + _world.worldOffset.Y);
@@ -130,6 +133,27 @@ public partial class ChunkGenerator : Node
 
 				tiles[x, y] = new TileInstance(tileDef, biome.Name, temp, humidity);
 
+				foreach (var rule in tileDef.DetailMeshes)
+				{
+					if (rng.Randf() > rule.Density)
+						continue;
+
+					int count = rng.RandiRange(rule.MinPerTile, rule.MaxPerTile);
+					var meshData = chunk.GetOrCreateDetailMesh(rule.MeshId);
+
+					for (int i = 0; i < count; i++)
+					{
+						Transform3D t = Transform3D.Identity;
+
+						Vector3 basePos = TileManager.TileToWorld(tilePos);
+						basePos.X += rng.RandfRange(-0.35f, 0.35f);
+						basePos.Z += rng.RandfRange(-0.35f, 0.35f);
+
+						t.Origin = basePos;
+
+						meshData.Transforms.Add(t);
+					}
+				}
 
 				if (!isRiver)
 				{
@@ -177,9 +201,8 @@ public partial class ChunkGenerator : Node
 		}
 
 		sw.Stop();
-		var result = new Chunk(coord, tiles, objects, decors);
-		result.BuildTimeMs = sw.Elapsed.TotalMilliseconds;
-		return result;
+		chunk.BuildTimeMs = sw.Elapsed.TotalMilliseconds;
+		return chunk;
 	}
 
 	private float AdjustContrast(float v)
@@ -230,6 +253,26 @@ public partial class ChunkGenerator : Node
 					_world.GroundMap.SetCellItem(pos, id);
 				}
 			}
+		}
+
+		foreach (var meshData in chunk.DetailMeshes)
+		{
+			var mmi = new MultiMeshInstance3D();
+			var mm = new MultiMesh();
+
+			mm.TransformFormat = MultiMesh.TransformFormatEnum.Transform3D;
+			mm.Mesh = meshData.Value.Mesh;
+			mm.InstanceCount = meshData.Value.Transforms.Count;
+
+			for (int i = 0; i < mm.InstanceCount; i++)
+			{
+				mm.SetInstanceTransform(i, meshData.Value.Transforms[i]);
+			}
+
+			meshData.Value.Mesh.SurfaceSetMaterial(0, meshData.Value.Material);
+			mmi.Multimesh = mm;
+			mmi.Name = meshData.Value.MeshId;
+			_world.WorldObjects.AddChild(mmi);
 		}
 
 		// foreach (ChunkDecor decor in chunk.Decors)

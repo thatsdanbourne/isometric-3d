@@ -9,6 +9,7 @@ public partial class Init : Node
         ItemDataLoader.LoadAllItems();
         CraftingRecipeDataLoader.LoadAllCraftingRecipes();
         TileDataLoader.LoadAllTiles();
+        DetailMeshDataLoader.LoadAllDetailMeshes();
         GD.Print("Registries loaded! 🔥");
     }
 }

@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://cjrcdkqsl4q3i"]
 
-[ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/world-gen/WorldObject.cs" id="1_qio87"]
+[ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/world-gen/terrain/objects/WorldObject.cs" id="1_qio87"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/classes/drops/DropEntry.cs" id="2_11iem"]
 [ext_resource type="Texture2D" uid="uid://dy1vncct46nkg" path="res://assets/sprites/tree/tree.png" id="4_bafl6"]
 [ext_resource type="PackedScene" uid="uid://bfufo5te5o1lo" path="res://scenes/terrain/ShadowCard.tscn" id="5_qdjx2"]

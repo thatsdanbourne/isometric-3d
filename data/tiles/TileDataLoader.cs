@@ -6,6 +6,16 @@ public static class TileDataLoader
         {
             Name = "grass",
             GridTileId = 0,
+            DetailMeshes =
+            {
+                new DetailMeshRule
+                {
+                    MeshId = "grass",
+                    Density = 0.8f,
+                    MinPerTile = 1,
+                    MaxPerTile = 3,
+                }
+            }
         });
 
         TileRegistry.Register(new TileDefinition

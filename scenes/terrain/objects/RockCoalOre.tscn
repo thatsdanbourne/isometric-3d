@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://bvgun8dfrob4a"]
 
-[ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/world-gen/WorldObject.cs" id="1_era11"]
+[ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/world-gen/terrain/objects/WorldObject.cs" id="1_era11"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/classes/drops/DropEntry.cs" id="2_osrtj"]
 [ext_resource type="Texture2D" uid="uid://dppb1hay4phdf" path="res://assets/sprites/rock/rock-coal.png" id="4_era11"]
 

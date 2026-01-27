@@ -6,6 +6,5 @@ public partial class TileDefinition
     public int GridTileId;
     public bool IsWater = false;
 
-    public bool HasDetailMeshes;
-    // public List<DetailMeshRule> DetailMeshes = new();
+    public List<DetailMeshRule> DetailMeshes = new();
 }

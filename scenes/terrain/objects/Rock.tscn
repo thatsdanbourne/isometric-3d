@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://rh0m2ssigb32"]
 
 [ext_resource type="Texture2D" uid="uid://cq6smcjdopquw" path="res://assets/sprites/rock/rock.png" id="1_bpoff"]
-[ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/world-gen/WorldObject.cs" id="1_wmx41"]
+[ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/world-gen/terrain/objects/WorldObject.cs" id="1_wmx41"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/classes/drops/DropEntry.cs" id="2_wfj0d"]
 
 [sub_resource type="Resource" id="Resource_ruplt"]

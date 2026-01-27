@@ -1,7 +1,7 @@
 [gd_scene load_steps=9 format=3 uid="uid://br6m3vppme1hy"]
 
 [ext_resource type="ArrayMesh" uid="uid://c5hng18pmceso" path="res://assets/meshes/rockl.obj" id="1_3tshc"]
-[ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/classes/world-gen/WorldObject3D.cs" id="1_k6fop"]
+[ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/classes/world-gen/terrain/objects/WorldObject3D.cs" id="1_k6fop"]
 [ext_resource type="Shader" uid="uid://dgkxl5jho041u" path="res://resources/shaders/CellShade.gdshader" id="2_d4gln"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/classes/drops/DropEntry.cs" id="2_wy0dr"]
 

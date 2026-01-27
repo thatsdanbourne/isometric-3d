@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3 uid="uid://b6qq6oxrffoas"]
+
+[ext_resource type="Shader" uid="uid://dothtnd28wai" path="res://resources/shaders/DetailShader.gdshader" id="1_l5qi3"]
+[ext_resource type="Texture2D" uid="uid://dl8wfgwbsk2ht" path="res://assets/meshes/grassleaf.png" id="2_mukgd"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_l5qi3")
+shader_parameter/grass_tex = ExtResource("2_mukgd")
+shader_parameter/grass_color = Color(0, 0.4015896, 0, 1)
+shader_parameter/tint_strength = 1.0
