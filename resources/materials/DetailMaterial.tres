@@ -1,4 +1,4 @@
-[gd_resource type="ShaderMaterial" load_steps=3 format=3 uid="uid://b6qq6oxrffoas"]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://b6qq6oxrffoas"]
 
 [ext_resource type="Shader" uid="uid://dothtnd28wai" path="res://resources/shaders/DetailShader.gdshader" id="1_l5qi3"]
 [ext_resource type="Texture2D" uid="uid://dl8wfgwbsk2ht" path="res://assets/meshes/grassleaf.png" id="2_mukgd"]

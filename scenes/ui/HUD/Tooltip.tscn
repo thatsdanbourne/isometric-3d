@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://d34hhl3mhgyeh"]
+[gd_scene format=3 uid="uid://d34hhl3mhgyeh"]
 
 [ext_resource type="Script" uid="uid://1yfvymes6xv6" path="res://scripts/ui/Tooltip.cs" id="1_aloxc"]
 [ext_resource type="StyleBox" uid="uid://bgu6rid7g7ix0" path="res://resources/ui/TooltipStyle.tres" id="2_6dc22"]
@@ -15,7 +15,7 @@ font = ExtResource("3_vo124")
 font = ExtResource("3_vo124")
 font_color = Color(0.3515629, 0.3515629, 0.35156286, 1)
 
-[node name="TooltipManager" type="Control"]
+[node name="TooltipManager" type="Control" unique_id=371947030]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,34 +25,34 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_aloxc")
 
-[node name="Tooltip" type="PanelContainer" parent="."]
+[node name="Tooltip" type="PanelContainer" parent="." unique_id=1911178651]
 layout_mode = 0
 offset_right = 65.0
 offset_bottom = 134.0
 theme_override_styles/panel = ExtResource("2_6dc22")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Tooltip"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Tooltip" unique_id=450628388]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Name" type="Label" parent="Tooltip/VBoxContainer"]
+[node name="Name" type="Label" parent="Tooltip/VBoxContainer" unique_id=1563718118]
 layout_mode = 2
 label_settings = SubResource("LabelSettings_en2e2")
 horizontal_alignment = 1
 
-[node name="MarginContainer" type="MarginContainer" parent="Tooltip/VBoxContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="Tooltip/VBoxContainer" unique_id=1815922592]
 layout_mode = 2
 theme_override_constants/margin_top = 8
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Tooltip/VBoxContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Tooltip/VBoxContainer/MarginContainer" unique_id=127811708]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Damage" type="Label" parent="Tooltip/VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="Damage" type="Label" parent="Tooltip/VBoxContainer/MarginContainer/VBoxContainer" unique_id=467005893]
 layout_mode = 2
 label_settings = SubResource("LabelSettings_sci8d")
 
-[node name="Description" type="Label" parent="Tooltip/VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="Description" type="Label" parent="Tooltip/VBoxContainer/MarginContainer/VBoxContainer" unique_id=793741331]
 custom_minimum_size = Vector2(250, 0)
 layout_mode = 2
 label_settings = SubResource("LabelSettings_vo124")

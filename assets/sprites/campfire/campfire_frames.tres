@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=9 format=3 uid="uid://bp6ywedt8kjl1"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://bp6ywedt8kjl1"]
 
 [ext_resource type="Texture2D" uid="uid://2283seb3q0kv" path="res://assets/sprites/campfire/campfire.png" id="1_itqth"]
 

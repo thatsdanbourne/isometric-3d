@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://nf3wsg32yh2f"]
+[gd_scene format=3 uid="uid://nf3wsg32yh2f"]
 
 [ext_resource type="Script" uid="uid://drg8a4mhwswat" path="res://scripts/ui/HUD.cs" id="1_kw0id"]
 [ext_resource type="StyleBox" uid="uid://cnx8lp71uqiyw" path="res://resources/ui/WindowStyle.tres" id="2_4ed8p"]
@@ -15,11 +15,11 @@ font_size = 32
 font = ExtResource("2_atyv1")
 font_size = 32
 
-[node name="HUD" type="CanvasLayer"]
+[node name="HUD" type="CanvasLayer" unique_id=419892391]
 process_mode = 3
 script = ExtResource("1_kw0id")
 
-[node name="CursorItem" type="Control" parent="."]
+[node name="CursorItem" type="Control" parent="." unique_id=1441356375]
 visible = false
 z_index = 999
 layout_mode = 3
@@ -28,7 +28,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 mouse_filter = 2
 
-[node name="Icon" type="TextureRect" parent="CursorItem"]
+[node name="Icon" type="TextureRect" parent="CursorItem" unique_id=145807875]
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 0
 offset_right = 40.0
@@ -36,14 +36,14 @@ offset_bottom = 40.0
 mouse_filter = 2
 stretch_mode = 4
 
-[node name="Label" type="Label" parent="CursorItem"]
+[node name="Label" type="Label" parent="CursorItem" unique_id=1201468156]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 horizontal_alignment = 2
 vertical_alignment = 2
 
-[node name="Inventory" type="Control" parent="."]
+[node name="Inventory" type="Control" parent="." unique_id=1210786973]
 visible = false
 layout_mode = 3
 anchors_preset = 15
@@ -53,7 +53,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 
-[node name="InventoryWindow" type="PanelContainer" parent="Inventory"]
+[node name="InventoryWindow" type="PanelContainer" parent="Inventory" unique_id=917729463]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -69,7 +69,7 @@ grow_vertical = 2
 localize_numeral_system = false
 theme_override_styles/panel = ExtResource("2_4ed8p")
 
-[node name="Label" type="Label" parent="Inventory/InventoryWindow"]
+[node name="Label" type="Label" parent="Inventory/InventoryWindow" unique_id=896836832]
 layout_mode = 2
 size_flags_vertical = 0
 text = "Inventory"
@@ -77,17 +77,17 @@ label_settings = SubResource("LabelSettings_6ll6g")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="MarginContainer" type="MarginContainer" parent="Inventory/InventoryWindow"]
+[node name="MarginContainer" type="MarginContainer" parent="Inventory/InventoryWindow" unique_id=1610204276]
 layout_mode = 2
 theme_override_constants/margin_top = 75
 
-[node name="SlotGrid" type="GridContainer" parent="Inventory/InventoryWindow/MarginContainer"]
+[node name="SlotGrid" type="GridContainer" parent="Inventory/InventoryWindow/MarginContainer" unique_id=1277869253]
 layout_mode = 2
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 columns = 9
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1817004205]
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
@@ -100,11 +100,11 @@ grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/margin_bottom = 16
 
-[node name="Hotbar" type="HBoxContainer" parent="MarginContainer"]
+[node name="Hotbar" type="HBoxContainer" parent="MarginContainer" unique_id=1323103262]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Crafting" type="Control" parent="."]
+[node name="Crafting" type="Control" parent="." unique_id=143890300]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -113,7 +113,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("3_6ll6g")
 
-[node name="CraftingWindow" type="PanelContainer" parent="Crafting"]
+[node name="CraftingWindow" type="PanelContainer" parent="Crafting" unique_id=68846161]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -128,30 +128,30 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = ExtResource("2_4ed8p")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Crafting/CraftingWindow"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Crafting/CraftingWindow" unique_id=575818756]
 layout_mode = 2
 alignment = 1
 
-[node name="TitleLabel" type="Label" parent="Crafting/CraftingWindow/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="Crafting/CraftingWindow/VBoxContainer" unique_id=736545185]
 layout_mode = 2
 text = "Crafting"
 label_settings = SubResource("LabelSettings_4ed8p")
 horizontal_alignment = 1
 
-[node name="MarginContainer" type="MarginContainer" parent="Crafting/CraftingWindow/VBoxContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="Crafting/CraftingWindow/VBoxContainer" unique_id=276933302]
 layout_mode = 2
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer" unique_id=1105007013]
 layout_mode = 2
 
-[node name="StationStatus" type="Control" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="StationStatus" type="Control" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer" unique_id=1575183170]
 visible = false
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/StationStatus"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/StationStatus" unique_id=1557134617]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -166,23 +166,23 @@ grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="ItemContainerSlot" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/StationStatus/VBoxContainer" instance=ExtResource("5_tsn87")]
+[node name="ItemContainerSlot" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/StationStatus/VBoxContainer" unique_id=469257034 instance=ExtResource("5_tsn87")]
 layout_mode = 2
 
-[node name="ProgressBar" type="ProgressBar" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/StationStatus/VBoxContainer"]
+[node name="ProgressBar" type="ProgressBar" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/StationStatus/VBoxContainer" unique_id=1782779286]
 layout_mode = 2
 
-[node name="CollectButton" type="Button" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/StationStatus/VBoxContainer"]
+[node name="CollectButton" type="Button" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/StationStatus/VBoxContainer" unique_id=627665650]
 layout_mode = 2
 text = "Collect"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer" unique_id=1843875165]
 custom_minimum_size = Vector2(500, 500)
 layout_mode = 2
 
-[node name="RecipeList" type="VBoxContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/ScrollContainer"]
+[node name="RecipeList" type="VBoxContainer" parent="Crafting/CraftingWindow/VBoxContainer/MarginContainer/VBoxContainer/ScrollContainer" unique_id=208431392]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="TooltipManager" parent="." instance=ExtResource("4_ig75s")]
+[node name="TooltipManager" parent="." unique_id=96215466 instance=ExtResource("4_ig75s")]

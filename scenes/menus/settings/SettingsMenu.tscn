@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://c35jmhuadbjjf"]
+[gd_scene format=3 uid="uid://c35jmhuadbjjf"]
 
 [ext_resource type="Script" uid="uid://dfod8bmha88a5" path="res://scripts/menus/SettingsMenu.cs" id="1_krd2w"]
 [ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="2_5x3ak"]
@@ -7,7 +7,7 @@
 font = ExtResource("2_5x3ak")
 font_size = 64
 
-[node name="SettingsMenu" type="Control"]
+[node name="SettingsMenu" type="Control" unique_id=1059688152]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -16,7 +16,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_krd2w")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1372256961]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -31,20 +31,20 @@ grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="VBoxContainer"]
+[node name="Label" type="Label" parent="VBoxContainer" unique_id=54249655]
 layout_mode = 2
 text = "Settings"
 label_settings = SubResource("LabelSettings_pk8vq")
 horizontal_alignment = 1
 
-[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer" unique_id=1183162836]
 layout_mode = 2
 theme_override_constants/margin_top = 32
 
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer" unique_id=1098541907]
 layout_mode = 2
 
-[node name="Video" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="Video" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=1862383136]
 layout_mode = 2
 focus_mode = 0
 theme_override_fonts/font = ExtResource("2_5x3ak")
@@ -52,7 +52,7 @@ theme_override_font_sizes/font_size = 32
 text = "Video"
 flat = true
 
-[node name="Audio" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="Audio" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=776862371]
 layout_mode = 2
 focus_mode = 0
 theme_override_fonts/font = ExtResource("2_5x3ak")
@@ -60,7 +60,7 @@ theme_override_font_sizes/font_size = 32
 text = "Audio"
 flat = true
 
-[node name="Gameplay" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="Gameplay" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=107448737]
 layout_mode = 2
 focus_mode = 0
 theme_override_fonts/font = ExtResource("2_5x3ak")
@@ -68,7 +68,7 @@ theme_override_font_sizes/font_size = 32
 text = "Gameplay"
 flat = true
 
-[node name="Back" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="Back" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=695053341]
 layout_mode = 2
 focus_mode = 0
 theme_override_fonts/font = ExtResource("2_5x3ak")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://rh0m2ssigb32"]
+[gd_scene format=3 uid="uid://rh0m2ssigb32"]
 
 [ext_resource type="Texture2D" uid="uid://cq6smcjdopquw" path="res://assets/sprites/rock/rock.png" id="1_bpoff"]
 [ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/world-gen/terrain/objects/WorldObject.cs" id="1_wmx41"]
@@ -14,21 +14,20 @@ metadata/_custom_type_script = "uid://2hhyer4i1q1g"
 [sub_resource type="BoxShape3D" id="BoxShape3D_wmx41"]
 size = Vector3(1, 1, 0.75)
 
-[node name="Rock" type="StaticBody3D"]
+[node name="Rock" type="StaticBody3D" unique_id=28649439]
 transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 0, 0, 0)
 script = ExtResource("1_wmx41")
-ObjectType = "stone"
-MaxHealth = 15.0
 DropItems = Array[ExtResource("2_wfj0d")]([SubResource("Resource_ruplt")])
 HitSoundsKey = "hit_stone"
+ObjectType = "stone"
 
-[node name="Sprite3D" type="Sprite3D" parent="."]
+[node name="Sprite3D" type="Sprite3D" parent="." unique_id=420294696]
 offset = Vector2(0, 15)
 pixel_size = 0.05
 shaded = true
 texture_filter = 0
 texture = ExtResource("1_bpoff")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=2078280926]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("BoxShape3D_wmx41")

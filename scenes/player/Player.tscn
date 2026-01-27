@@ -1,4 +1,4 @@
-[gd_scene load_steps=233 format=3 uid="uid://di4w6cxgjeo66"]
+[gd_scene format=3 uid="uid://di4w6cxgjeo66"]
 
 [ext_resource type="Script" uid="uid://b1qr4br08xph2" path="res://scripts/player/Player.cs" id="1_3li8b"]
 [ext_resource type="Texture2D" uid="uid://dfpi5ef4yveo7" path="res://assets/sprites/player/player_idle.png" id="2_524rm"]
@@ -1701,11 +1701,11 @@ animations = [{
 [sub_resource type="SphereShape3D" id="SphereShape3D_v6fml"]
 radius = 0.4
 
-[node name="Player" type="CharacterBody3D"]
+[node name="Player" type="CharacterBody3D" unique_id=372727118]
 transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 0, 0, 0)
 script = ExtResource("1_3li8b")
 
-[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="."]
+[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="." unique_id=2029733921]
 offset = Vector2(0, 12)
 pixel_size = 0.05
 billboard = 1
@@ -1716,11 +1716,11 @@ sprite_frames = SubResource("SpriteFrames_qu4a1")
 animation = &"run_w"
 frame_progress = 0.7937922
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=831954978]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.404222, 0)
 shape = SubResource("SphereShape3D_v6fml")
 
-[node name="OmniLight3D" type="OmniLight3D" parent="."]
+[node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=496291974]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 visible = false
 light_color = Color(1, 1, 0.43016636, 1)
@@ -1728,23 +1728,23 @@ shadow_enabled = true
 omni_range = 15.0
 omni_attenuation = 2.0
 
-[node name="HitCooldown" type="Timer" parent="."]
+[node name="HitCooldown" type="Timer" parent="." unique_id=183972332]
 wait_time = 0.5
 one_shot = true
 
-[node name="HitRay" type="RayCast3D" parent="."]
+[node name="HitRay" type="RayCast3D" parent="." unique_id=2133500426]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 target_position = Vector3(0, 0, -2)
 collide_with_areas = true
 
-[node name="AudioListener3D" type="AudioListener3D" parent="."]
+[node name="AudioListener3D" type="AudioListener3D" parent="." unique_id=431604570]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 current = true
 
-[node name="Hotbar" type="Node" parent="."]
+[node name="Hotbar" type="Node" parent="." unique_id=442153319]
 script = ExtResource("3_mdl7e")
 
-[node name="Inventory" type="Node" parent="."]
+[node name="Inventory" type="Node" parent="." unique_id=1457017143]
 script = ExtResource("4_qu4a1")
 
 [connection signal="timeout" from="HitCooldown" to="." method="OnHitCooldownTimeout"]

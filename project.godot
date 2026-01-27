@@ -12,7 +12,7 @@ config_version=5
 
 config/name="isometric 3d"
 run/main_scene="uid://dtgd4yjkf4awx"
-config/features=PackedStringArray("4.5", "C#", "Forward Plus")
+config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -154,8 +154,8 @@ textures/vram_compression/import_etc2_astc=true
 lights_and_shadows/directional_shadow/16_bits=false
 lights_and_shadows/positional_shadow/soft_shadow_filter_quality=5
 lights_and_shadows/positional_shadow/atlas_16_bits=false
-environment/defaults/default_clear_color=Color(0.106236584, 0.106236584, 0.106236555, 1)
 anti_aliasing/quality/use_debanding=true
+environment/defaults/default_clear_color=Color(0.106236584, 0.106236584, 0.106236555, 1)
 
 [shader_globals]
 

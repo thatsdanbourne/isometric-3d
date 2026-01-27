@@ -1,21 +1,21 @@
-[gd_scene load_steps=3 format=3 uid="uid://dbc5xhk0rx40p"]
+[gd_scene format=3 uid="uid://dbc5xhk0rx40p"]
 
 [ext_resource type="Script" uid="uid://btnyf7twdkyj0" path="res://scripts/ItemPickup.cs" id="1_a0vs4"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_a0vs4"]
 radius = 1.0
 
-[node name="ItemPickup" type="Node3D"]
+[node name="ItemPickup" type="Node3D" unique_id=30275017]
 script = ExtResource("1_a0vs4")
 
-[node name="Area3D" type="Area3D" parent="."]
+[node name="Area3D" type="Area3D" parent="." unique_id=96450790]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=1524652562]
 shape = SubResource("SphereShape3D_a0vs4")
 
-[node name="Sprite3D" type="Sprite3D" parent="."]
+[node name="Sprite3D" type="Sprite3D" parent="." unique_id=1387831757]
 pixel_size = 0.05
 billboard = 1
 texture_filter = 0
 
-[node name="Shadow" type="Sprite3D" parent="."]
+[node name="Shadow" type="Sprite3D" parent="." unique_id=618225450]

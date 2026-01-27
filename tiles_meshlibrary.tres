@@ -1,4 +1,4 @@
-[gd_resource type="MeshLibrary" load_steps=36 format=4 uid="uid://crawy4x5h3g1u"]
+[gd_resource type="MeshLibrary" format=4 uid="uid://crawy4x5h3g1u"]
 
 [ext_resource type="Shader" uid="uid://bvdvkci5gnqhq" path="res://resources/shaders/GroundNoise.gdshader" id="1_ycx8f"]
 [ext_resource type="Texture2D" uid="uid://bhctc0b5ov0y0" path="res://resources/noise/GroundNoiseTexture.tres" id="2_dcmn0"]

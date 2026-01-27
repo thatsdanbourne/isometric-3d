@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://uva5v2hjcxj2"]
+[gd_scene format=3 uid="uid://uva5v2hjcxj2"]
 
 [ext_resource type="Script" uid="uid://csm2ncjjajc0m" path="res://scripts/menus/PauseMenu.cs" id="1_i7533"]
 [ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="2_i7533"]
@@ -7,7 +7,7 @@
 font = ExtResource("2_i7533")
 font_size = 64
 
-[node name="PauseMenu" type="Control"]
+[node name="PauseMenu" type="Control" unique_id=1344354813]
 process_mode = 3
 layout_mode = 3
 anchors_preset = 15
@@ -17,7 +17,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_i7533")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=2101622211]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -32,21 +32,21 @@ grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="VBoxContainer"]
+[node name="Label" type="Label" parent="VBoxContainer" unique_id=1366208293]
 layout_mode = 2
 text = "Game Paused"
 label_settings = SubResource("LabelSettings_5c87e")
 horizontal_alignment = 1
 
-[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer" unique_id=2126487000]
 layout_mode = 2
 theme_override_constants/margin_left = 0
 theme_override_constants/margin_top = 32
 
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer" unique_id=2089961311]
 layout_mode = 2
 
-[node name="Resume" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="Resume" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=1784698503]
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
@@ -55,7 +55,7 @@ theme_override_font_sizes/font_size = 32
 text = "Back to Game"
 flat = true
 
-[node name="Settings" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="Settings" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=1905351893]
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
@@ -64,7 +64,7 @@ theme_override_font_sizes/font_size = 32
 text = "Settings"
 flat = true
 
-[node name="QuitDesktop" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="QuitDesktop" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=1672292217]
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2

@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://bvgun8dfrob4a"]
+[gd_scene format=3 uid="uid://bvgun8dfrob4a"]
 
 [ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/world-gen/terrain/objects/WorldObject.cs" id="1_era11"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/classes/drops/DropEntry.cs" id="2_osrtj"]
@@ -21,20 +21,19 @@ metadata/_custom_type_script = "uid://2hhyer4i1q1g"
 [sub_resource type="BoxShape3D" id="BoxShape3D_wmx41"]
 size = Vector3(1, 1, 0.75)
 
-[node name="RockCoalOre" type="StaticBody3D"]
+[node name="RockCoalOre" type="StaticBody3D" unique_id=1673925628]
 transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 0, 0, 0)
 script = ExtResource("1_era11")
-ObjectType = "ore"
-MaxHealth = 18.0
 DropItems = Array[ExtResource("2_osrtj")]([SubResource("Resource_era11"), SubResource("Resource_jlmj0")])
 HitSoundsKey = "hit_stone"
+ObjectType = "ore"
 
-[node name="Sprite3D" type="Sprite3D" parent="."]
+[node name="Sprite3D" type="Sprite3D" parent="." unique_id=1093358835]
 offset = Vector2(0, 15)
 pixel_size = 0.05
 texture_filter = 0
 texture = ExtResource("4_era11")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=913278286]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("BoxShape3D_wmx41")

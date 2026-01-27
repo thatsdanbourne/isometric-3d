@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://dtfybita6mscg"]
+[gd_scene format=3 uid="uid://dtfybita6mscg"]
 
 [ext_resource type="PackedScene" uid="uid://bykksc3manbtm" path="res://assets/meshes/Pine.glb" id="1_u4uva"]
 [ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/classes/world-gen/terrain/objects/WorldObject3D.cs" id="2_cye4l"]
@@ -24,11 +24,11 @@ shader_parameter/leaves_scale = 0.1
 shader_parameter/leaf_bend_amount = 0.105
 shader_parameter/light_steps = 5.0
 
-[node name="Pine" instance=ExtResource("1_u4uva")]
+[node name="Pine" unique_id=1881416248 instance=ExtResource("1_u4uva")]
 script = ExtResource("2_cye4l")
 
-[node name="Trunk" parent="." index="0"]
+[node name="Trunk" parent="." index="0" unique_id=931374994]
 surface_material_override/0 = SubResource("ShaderMaterial_wpald")
 
-[node name="Canopy" parent="." index="1"]
+[node name="Canopy" parent="." index="1" unique_id=999944366]
 surface_material_override/0 = SubResource("ShaderMaterial_u4uva")

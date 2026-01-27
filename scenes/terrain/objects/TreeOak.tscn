@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://8aqqec2t2tg0"]
+[gd_scene format=3 uid="uid://8aqqec2t2tg0"]
 
 [ext_resource type="PackedScene" uid="uid://cc43e4oit1w2" path="res://assets/meshes/Tree.glb" id="1_v2f0m"]
 [ext_resource type="Shader" uid="uid://dgkxl5jho041u" path="res://resources/shaders/CellShade.gdshader" id="2_24huu"]
@@ -35,19 +35,19 @@ shader_parameter/leaves_scale = 0.2
 shader_parameter/leaf_bend_amount = 0.175
 shader_parameter/light_steps = 5.0
 
-[node name="Tree" instance=ExtResource("1_v2f0m")]
+[node name="Tree" unique_id=1951889102 instance=ExtResource("1_v2f0m")]
 script = ExtResource("2_hq3cg")
 DropItems = Array[ExtResource("5_hq3cg")]([SubResource("Resource_hq3cg")])
 ObjectType = "wood"
 
-[node name="Trunk" parent="." index="0"]
+[node name="Trunk" parent="." index="0" unique_id=1403829257]
 surface_material_override/0 = SubResource("ShaderMaterial_gygf0")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="Trunk" index="0"]
+[node name="StaticBody3D" type="StaticBody3D" parent="Trunk" index="0" unique_id=632630034]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Trunk/StaticBody3D" index="0"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Trunk/StaticBody3D" index="0" unique_id=1891762703]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("BoxShape3D_v2f0m")
 
-[node name="Canopy" parent="." index="1"]
+[node name="Canopy" parent="." index="1" unique_id=1499114787]
 surface_material_override/0 = SubResource("ShaderMaterial_l1bqg")

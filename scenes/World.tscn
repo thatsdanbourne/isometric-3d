@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://dtgd4yjkf4awx"]
+[gd_scene format=3 uid="uid://dtgd4yjkf4awx"]
 
 [ext_resource type="MeshLibrary" uid="uid://crawy4x5h3g1u" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="Script" uid="uid://ciarma0geh450" path="res://scripts/tools/Debug.cs" id="2_h1bdy"]
@@ -86,44 +86,44 @@ shader = ExtResource("20_dwmkc")
 [sub_resource type="ViewportTexture" id="ViewportTexture_nthub"]
 viewport_path = NodePath("World/SubViewportContainer/SubViewport")
 
-[node name="Game" type="Node3D"]
+[node name="Game" type="Node3D" unique_id=138169538]
 
-[node name="Debug" type="CanvasLayer" parent="."]
+[node name="Debug" type="CanvasLayer" parent="." unique_id=465937132]
 script = ExtResource("2_h1bdy")
 
-[node name="MarginContainer" type="MarginContainer" parent="Debug"]
+[node name="MarginContainer" type="MarginContainer" parent="Debug" unique_id=690347357]
 offset_right = 40.0
 offset_bottom = 40.0
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Debug/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Debug/MarginContainer" unique_id=1623235313]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="FPS" type="Label" parent="Debug/MarginContainer/VBoxContainer"]
+[node name="FPS" type="Label" parent="Debug/MarginContainer/VBoxContainer" unique_id=570024922]
 layout_mode = 2
 label_settings = SubResource("LabelSettings_d1c63")
 
-[node name="Position" type="Label" parent="Debug/MarginContainer/VBoxContainer"]
+[node name="Position" type="Label" parent="Debug/MarginContainer/VBoxContainer" unique_id=340449506]
 layout_mode = 2
 label_settings = SubResource("LabelSettings_1lgw5")
 
-[node name="Biome" type="Label" parent="Debug/MarginContainer/VBoxContainer"]
+[node name="Biome" type="Label" parent="Debug/MarginContainer/VBoxContainer" unique_id=325196844]
 layout_mode = 2
 label_settings = SubResource("LabelSettings_0uv0p")
 
-[node name="HUD" parent="." instance=ExtResource("3_b3faq")]
+[node name="HUD" parent="." unique_id=1753680264 instance=ExtResource("3_b3faq")]
 layer = 2
 
-[node name="Menus" type="CanvasLayer" parent="."]
+[node name="Menus" type="CanvasLayer" parent="." unique_id=2105073326]
 process_mode = 3
 layer = 4
 
-[node name="MenuManager" type="Node" parent="Menus"]
+[node name="MenuManager" type="Node" parent="Menus" unique_id=987240449]
 script = ExtResource("4_i4b1j")
 
-[node name="BlurOverlay" type="ColorRect" parent="Menus/MenuManager"]
+[node name="BlurOverlay" type="ColorRect" parent="Menus/MenuManager" unique_id=1258320481]
 material = SubResource("ShaderMaterial_o1tcx")
 anchors_preset = 15
 anchor_right = 1.0
@@ -131,22 +131,22 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PauseMenu" parent="Menus/MenuManager" instance=ExtResource("4_7c4bj")]
+[node name="PauseMenu" parent="Menus/MenuManager" unique_id=408241393 instance=ExtResource("4_7c4bj")]
 
-[node name="SettingsMenu" parent="Menus/MenuManager" instance=ExtResource("6_c0d7e")]
+[node name="SettingsMenu" parent="Menus/MenuManager" unique_id=1355218164 instance=ExtResource("6_c0d7e")]
 
-[node name="SettingsVideo" parent="Menus/MenuManager" instance=ExtResource("7_o1tcx")]
+[node name="SettingsVideo" parent="Menus/MenuManager" unique_id=1569410984 instance=ExtResource("7_o1tcx")]
 
-[node name="World" type="Node3D" parent="." node_paths=PackedStringArray("WorldObjects", "GroundMap", "WaterMap", "PlayerContainer")]
+[node name="World" type="Node3D" parent="." unique_id=309803315 node_paths=PackedStringArray("WorldObjects", "GroundMap", "WaterMap", "PlayerContainer")]
 script = ExtResource("4_ygioq")
 WorldObjects = NodePath("SubViewportContainer/SubViewport/WorldObjects")
 GroundMap = NodePath("SubViewportContainer/SubViewport/GroundMap")
 WaterMap = NodePath("SubViewportContainer/SubViewport/WaterMap")
 PlayerContainer = NodePath("SubViewportContainer/SubViewport/PlayerContainer")
 
-[node name="BiomeTint" type="CanvasLayer" parent="World"]
+[node name="BiomeTint" type="CanvasLayer" parent="World" unique_id=1763461435]
 
-[node name="BiomeOverlay" type="ColorRect" parent="World/BiomeTint"]
+[node name="BiomeOverlay" type="ColorRect" parent="World/BiomeTint" unique_id=22886899]
 material = SubResource("ShaderMaterial_ygioq")
 anchors_preset = 15
 anchor_right = 1.0
@@ -156,45 +156,45 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0)
 script = ExtResource("7_h1bdy")
 
-[node name="DayNightCycle" type="Node" parent="World" node_paths=PackedStringArray("Sun", "WorldEnvironment")]
+[node name="DayNightCycle" type="Node" parent="World" unique_id=2037639005 node_paths=PackedStringArray("Sun", "WorldEnvironment")]
 script = ExtResource("8_nrtoj")
 Sun = NodePath("../Sun")
 WorldEnvironment = NodePath("../WorldEnvironment")
 DayLength = 1200.0
 TimeOfDay = 0.45
 
-[node name="WeatherManager" type="Node3D" parent="World" node_paths=PackedStringArray("ParticleAnchor", "RainParticles", "SnowParticles", "WorldEnvironment")]
+[node name="WeatherManager" type="Node3D" parent="World" unique_id=1098148997 node_paths=PackedStringArray("ParticleAnchor", "RainParticles", "SnowParticles", "WorldEnvironment")]
 script = ExtResource("15_nthub")
 ParticleAnchor = NodePath("ParticleAnchor")
 RainParticles = NodePath("ParticleAnchor/ScreenWeather/RainParticles")
 SnowParticles = NodePath("ParticleAnchor/ScreenWeather/SnowParticles")
 WorldEnvironment = NodePath("../WorldEnvironment")
 
-[node name="ParticleAnchor" type="Node3D" parent="World/WeatherManager"]
+[node name="ParticleAnchor" type="Node3D" parent="World/WeatherManager" unique_id=1127631899]
 
-[node name="ScreenWeather" type="CanvasLayer" parent="World/WeatherManager/ParticleAnchor"]
+[node name="ScreenWeather" type="CanvasLayer" parent="World/WeatherManager/ParticleAnchor" unique_id=716276539]
 layer = 0
 
-[node name="RainParticles" type="GPUParticles2D" parent="World/WeatherManager/ParticleAnchor/ScreenWeather"]
+[node name="RainParticles" type="GPUParticles2D" parent="World/WeatherManager/ParticleAnchor/ScreenWeather" unique_id=1759220244]
 visible = false
 amount = 800
 texture = ExtResource("16_rpuxp")
 preprocess = 0.2
 process_material = SubResource("ParticleProcessMaterial_rpuxp")
 
-[node name="SnowParticles" type="GPUParticles2D" parent="World/WeatherManager/ParticleAnchor/ScreenWeather"]
+[node name="SnowParticles" type="GPUParticles2D" parent="World/WeatherManager/ParticleAnchor/ScreenWeather" unique_id=1458957998]
 visible = false
 amount = 800
 texture = ExtResource("17_nthub")
 lifetime = 3.0
 process_material = SubResource("ParticleProcessMaterial_nthub")
 
-[node name="WorldObjectManager" type="Node" parent="World"]
+[node name="WorldObjectManager" type="Node" parent="World" unique_id=1667742210]
 script = ExtResource("18_nthub")
 
-[node name="WorldObjectPool" type="Node3D" parent="World"]
+[node name="WorldObjectPool" type="Node3D" parent="World" unique_id=280004134]
 
-[node name="Sun" type="DirectionalLight3D" parent="World"]
+[node name="Sun" type="DirectionalLight3D" parent="World" unique_id=1543347850]
 transform = Transform3D(-0.03664387, 0.54427326, -0.83810735, 0, 0.83867055, 0.5446391, 0.9993284, 0.019957682, -0.030732136, 0, 20, 0)
 light_color = Color(1, 0.9776916, 0.9063318, 1)
 shadow_enabled = true
@@ -203,10 +203,10 @@ shadow_normal_bias = 0.0
 shadow_blur = 0.5
 directional_shadow_mode = 0
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="World"]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="World" unique_id=860606047]
 environment = SubResource("Environment_1lgw5")
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="World"]
+[node name="SubViewportContainer" type="SubViewportContainer" parent="World" unique_id=1903436382]
 texture_filter = 1
 custom_minimum_size = Vector2(1, 1)
 anchors_preset = 15
@@ -218,7 +218,7 @@ mouse_filter = 2
 stretch = true
 stretch_shrink = 2
 
-[node name="SubViewport" type="SubViewport" parent="World/SubViewportContainer"]
+[node name="SubViewport" type="SubViewport" parent="World/SubViewportContainer" unique_id=1038070148]
 transparent_bg = true
 handle_input_locally = false
 canvas_item_default_texture_filter = 0
@@ -227,7 +227,7 @@ physics_object_picking = true
 size = Vector2i(1152, 648)
 render_target_update_mode = 4
 
-[node name="WaterMap" type="GridMap" parent="World/SubViewportContainer/SubViewport"]
+[node name="WaterMap" type="GridMap" parent="World/SubViewportContainer/SubViewport" unique_id=910294709]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
 mesh_library = ExtResource("8_pdh0q")
 cell_size = Vector3(1, 1, 1)
@@ -237,7 +237,7 @@ cell_center_y = false
 cell_center_z = false
 metadata/_editor_floor_ = Vector3(0, -1, 0)
 
-[node name="GroundMap" type="GridMap" parent="World/SubViewportContainer/SubViewport"]
+[node name="GroundMap" type="GridMap" parent="World/SubViewportContainer/SubViewport" unique_id=2028653057]
 mesh_library = ExtResource("2_7g83o")
 cell_size = Vector3(1, 1, 1)
 cell_octant_size = 16
@@ -246,11 +246,11 @@ cell_center_y = false
 cell_center_z = false
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
-[node name="WorldObjects" type="Node3D" parent="World/SubViewportContainer/SubViewport"]
+[node name="WorldObjects" type="Node3D" parent="World/SubViewportContainer/SubViewport" unique_id=1677955676]
 
-[node name="PlayerContainer" type="Node3D" parent="World/SubViewportContainer/SubViewport"]
+[node name="PlayerContainer" type="Node3D" parent="World/SubViewportContainer/SubViewport" unique_id=2019630338]
 
-[node name="Display" type="Control" parent="." node_paths=PackedStringArray("viewport")]
+[node name="Display" type="Control" parent="." unique_id=2119701516 node_paths=PackedStringArray("viewport")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -260,7 +260,7 @@ grow_vertical = 2
 script = ExtResource("19_44lqw")
 viewport = NodePath("../World/SubViewportContainer/SubViewport")
 
-[node name="Sprite2D" type="Sprite2D" parent="Display"]
+[node name="Sprite2D" type="Sprite2D" parent="Display" unique_id=1340126510]
 texture_filter = 1
 material = SubResource("ShaderMaterial_30fn3")
 texture = SubResource("ViewportTexture_nthub")
