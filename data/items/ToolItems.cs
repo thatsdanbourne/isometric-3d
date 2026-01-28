@@ -28,6 +28,7 @@ public static class ToolItems
             Damage = 1.25f,
             DamageMultipliers = new Dictionary<string, float> {
                 { "stone", 2.0f },
+                { "ore", 1.5f },
                 { "wood", 0.25f }
             },
             HitArcDegress = 35f,
@@ -66,6 +67,7 @@ public static class ToolItems
             Damage = 1.5f,
             DamageMultipliers = new Dictionary<string, float> {
                 { "stone", 2.5f },
+                { "ore", 2.0f },
                 { "wood", 0.5f }
             },
             HitArcDegress = 35f,

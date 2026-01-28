@@ -16,8 +16,8 @@ metadata/_custom_type_script = "uid://2hhyer4i1q1g"
 [sub_resource type="Resource" id="Resource_ur3hi"]
 script = ExtResource("2_fs4fn")
 ItemId = "copper_ore"
-MinQuantity = 2
-MaxQuantity = 4
+MinQuantity = 4
+MaxQuantity = 6
 metadata/_custom_type_script = "uid://2hhyer4i1q1g"
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fs4fn"]

@@ -181,6 +181,9 @@ public partial class ChunkGenerator : Node
 								Source = ChunkObjectSource.Procedural,
 							};
 
+							if (def.BlocksTile)
+								blocked[x, y] = true;
+
 							objects.Add(obj);
 						}
 					}
@@ -188,6 +191,9 @@ public partial class ChunkGenerator : Node
 					// build player placed objects
 					foreach (var placed in chunkDelta.PlacedObjects)
 					{
+						if (placed.Definition.BlocksTile)
+							blocked[x, y] = true;
+
 						objects.Add(placed);
 					}
 

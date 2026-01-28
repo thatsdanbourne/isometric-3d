@@ -66,11 +66,6 @@ public partial class WorldObjectManager : Node
         {
             var data = activeSpawnQueue.Dequeue();
 
-            if (data.Definition.Id == "crafting_table")
-            {
-                GD.PrintErr("Spawning crafting table at " + data.Position);
-            }
-
             if (data.MarkedForRemoval || data.RuntimeNode != null)
                 continue;
 
