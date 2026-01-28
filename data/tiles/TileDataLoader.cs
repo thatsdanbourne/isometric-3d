@@ -12,8 +12,8 @@ public static class TileDataLoader
                 {
                     MeshId = "grass",
                     Density = 0.8f,
-                    MinPerTile = 1,
-                    MaxPerTile = 3,
+                    MinPerTile = 10,
+                    MaxPerTile = 15,
                 }
             }
         });

@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bykksc3manbtm"
-path="res://.godot/imported/pine.glb-af7dfd554ec32b6c8bb01c880ca4d56d.scn"
+uid="uid://qd4djx2plpar"
+path="res://.godot/imported/rock.glb-72b53f0cccec3d749751094474a73d88.scn"
 
 [deps]
 
-source_file="res://assets/meshes/pine.glb"
-dest_files=["res://.godot/imported/pine.glb-af7dfd554ec32b6c8bb01c880ca4d56d.scn"]
+source_file="res://assets/meshes/rock.glb"
+dest_files=["res://.godot/imported/rock.glb-72b53f0cccec3d749751094474a73d88.scn"]
 
 [params]
 

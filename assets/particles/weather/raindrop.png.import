@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cxxnlf6fco4uc"
-path="res://.godot/imported/raindrop.png-ff949b8a50250be210673c0220d0210b.ctex"
+path="res://.godot/imported/raindrop.png-0ba48a97394cad0c2a60f1a08e75aaea.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/weather/raindrop.png"
-dest_files=["res://.godot/imported/raindrop.png-ff949b8a50250be210673c0220d0210b.ctex"]
+source_file="res://assets/particles/weather/raindrop.png"
+dest_files=["res://.godot/imported/raindrop.png-0ba48a97394cad0c2a60f1a08e75aaea.ctex"]
 
 [params]
 

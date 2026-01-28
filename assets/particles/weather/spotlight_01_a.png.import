@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b0rvrpykafb60"
-path="res://.godot/imported/snowflake.png-9bc536f3678307f2aa6d113225d2e39f.ctex"
+uid="uid://dpinrv3mnffj4"
+path="res://.godot/imported/spotlight_01_a.png-cf3872b0cd4013abe0ebaff9c1b8be36.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/weather/snowflake.png"
-dest_files=["res://.godot/imported/snowflake.png-9bc536f3678307f2aa6d113225d2e39f.ctex"]
+source_file="res://assets/particles/weather/spotlight_01_a.png"
+dest_files=["res://.godot/imported/spotlight_01_a.png-cf3872b0cd4013abe0ebaff9c1b8be36.ctex"]
 
 [params]
 

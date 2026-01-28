@@ -1,33 +1,30 @@
-[gd_scene format=3 uid="uid://rh0m2ssigb32"]
+[gd_scene format=3 uid="uid://cl45tvxuqnk6"]
 
-[ext_resource type="Texture2D" uid="uid://cq6smcjdopquw" path="res://assets/sprites/rock/rock.png" id="1_bpoff"]
-[ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/world-gen/terrain/objects/WorldObject.cs" id="1_wmx41"]
+[ext_resource type="PackedScene" uid="uid://qd4djx2plpar" path="res://assets/meshes/rock.glb" id="1_xhq0n"]
+[ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/classes/world-gen/terrain/objects/WorldObject3D.cs" id="2_ruplt"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/classes/drops/DropEntry.cs" id="2_wfj0d"]
+[ext_resource type="Material" uid="uid://bmfptrd5gn133" path="res://resources/materials/Rock.tres" id="4_ruplt"]
 
-[sub_resource type="Resource" id="Resource_ruplt"]
+[sub_resource type="Resource" id="Resource_u6gjy"]
 script = ExtResource("2_wfj0d")
 ItemId = "stone"
 MinQuantity = 2
 MaxQuantity = 5
 metadata/_custom_type_script = "uid://2hhyer4i1q1g"
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_wmx41"]
-size = Vector3(1, 1, 0.75)
+[sub_resource type="BoxShape3D" id="BoxShape3D_wfj0d"]
 
-[node name="Rock" type="StaticBody3D" unique_id=28649439]
-transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 0, 0, 0)
-script = ExtResource("1_wmx41")
-DropItems = Array[ExtResource("2_wfj0d")]([SubResource("Resource_ruplt")])
+[node name="Rock" unique_id=1657300071 instance=ExtResource("1_xhq0n")]
+script = ExtResource("2_ruplt")
+DropItems = Array[ExtResource("2_wfj0d")]([SubResource("Resource_u6gjy")])
 HitSoundsKey = "hit_stone"
 ObjectType = "stone"
 
-[node name="Sprite3D" type="Sprite3D" parent="." unique_id=420294696]
-offset = Vector2(0, 15)
-pixel_size = 0.05
-shaded = true
-texture_filter = 0
-texture = ExtResource("1_bpoff")
+[node name="StaticBody3D" type="StaticBody3D" parent="." index="0" unique_id=588379968]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.032116123, 0.31901324, -0.007201185)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=2078280926]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-shape = SubResource("BoxShape3D_wmx41")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" index="0" unique_id=264208664]
+shape = SubResource("BoxShape3D_wfj0d")
+
+[node name="Cube" parent="." index="1" unique_id=185417355]
+surface_material_override/0 = ExtResource("4_ruplt")

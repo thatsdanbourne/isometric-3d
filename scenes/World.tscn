@@ -14,9 +14,10 @@
 [ext_resource type="PackedScene" uid="uid://cxwbi3kugkjk2" path="res://scenes/menus/settings/SettingsVideo.tscn" id="7_o1tcx"]
 [ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/managers/DayNightCycle.cs" id="8_nrtoj"]
 [ext_resource type="MeshLibrary" uid="uid://hvr6yjpo0ajd" path="res://water_meshlibrary.tres" id="8_pdh0q"]
+[ext_resource type="Texture2D" uid="uid://dpinrv3mnffj4" path="res://assets/particles/weather/spotlight_01_a.png" id="15_30fn3"]
 [ext_resource type="Script" uid="uid://dgarnp7014d6a" path="res://scripts/managers/WeatherManager.cs" id="15_nthub"]
-[ext_resource type="Texture2D" uid="uid://cxxnlf6fco4uc" path="res://assets/sprites/weather/raindrop.png" id="16_rpuxp"]
-[ext_resource type="Texture2D" uid="uid://b0rvrpykafb60" path="res://assets/sprites/weather/snowflake.png" id="17_nthub"]
+[ext_resource type="Texture2D" uid="uid://cxxnlf6fco4uc" path="res://assets/particles/weather/raindrop.png" id="16_rpuxp"]
+[ext_resource type="Texture2D" uid="uid://b0rvrpykafb60" path="res://assets/particles/weather/snowflake.png" id="17_nthub"]
 [ext_resource type="Script" uid="uid://biupxf38shvsk" path="res://scripts/managers/WorldObjectManager.cs" id="18_nthub"]
 [ext_resource type="Script" uid="uid://bt35wqfusytbe" path="res://scripts/ui/Display.cs" id="19_44lqw"]
 [ext_resource type="Shader" uid="uid://cctskt0gvabwm" path="res://resources/shaders/PixelUpcaler.gdshader" id="20_dwmkc"]
@@ -55,6 +56,17 @@ gravity = Vector3(0, 0, 0)
 scale_min = 0.5
 turbulence_noise_strength = 20.0
 turbulence_noise_speed = Vector3(0, 8, 0)
+sub_emitter_mode = 2
+sub_emitter_amount_at_end = 3
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_dgldv"]
+particle_flag_disable_z = true
+direction = Vector3(0, -1, 0)
+initial_velocity_min = 88.57
+initial_velocity_max = 217.14
+gravity = Vector3(0, 98, 0)
+scale_min = 0.01
+scale_max = 0.03
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_nthub"]
 particle_flag_disable_z = true
@@ -73,7 +85,6 @@ turbulence_noise_strength = 20.0
 [sub_resource type="Environment" id="Environment_1lgw5"]
 ambient_light_source = 2
 ambient_light_sky_contribution = 0.52
-ssao_enabled = true
 ssao_radius = 5.0
 fog_mode = 1
 fog_density = 1.0
@@ -178,9 +189,23 @@ layer = 0
 [node name="RainParticles" type="GPUParticles2D" parent="World/WeatherManager/ParticleAnchor/ScreenWeather" unique_id=1759220244]
 visible = false
 amount = 800
+sub_emitter = NodePath("SplashParticles")
 texture = ExtResource("16_rpuxp")
 preprocess = 0.2
+fixed_fps = 0
+local_coords = true
 process_material = SubResource("ParticleProcessMaterial_rpuxp")
+
+[node name="SplashParticles" type="GPUParticles2D" parent="World/WeatherManager/ParticleAnchor/ScreenWeather/RainParticles" unique_id=395395006]
+visible = false
+emitting = false
+amount = 2000
+texture = ExtResource("15_30fn3")
+lifetime = 0.4
+one_shot = true
+fixed_fps = 0
+local_coords = true
+process_material = SubResource("ParticleProcessMaterial_dgldv")
 
 [node name="SnowParticles" type="GPUParticles2D" parent="World/WeatherManager/ParticleAnchor/ScreenWeather" unique_id=1458957998]
 visible = false

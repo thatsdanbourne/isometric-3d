@@ -1,39 +1,44 @@
-[gd_scene format=3 uid="uid://bvgun8dfrob4a"]
+[gd_scene format=3 uid="uid://c8qx7b2866mvt"]
 
-[ext_resource type="Script" uid="uid://dl2hmsanl7ohy" path="res://scripts/classes/world-gen/terrain/objects/WorldObject.cs" id="1_era11"]
+[ext_resource type="PackedScene" uid="uid://b7e0q7x74wk0e" path="res://assets/meshes/RockOre.glb" id="1_jlmj0"]
+[ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/classes/world-gen/terrain/objects/WorldObject3D.cs" id="2_7ddnh"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/classes/drops/DropEntry.cs" id="2_osrtj"]
-[ext_resource type="Texture2D" uid="uid://dppb1hay4phdf" path="res://assets/sprites/rock/rock-coal.png" id="4_era11"]
+[ext_resource type="Material" uid="uid://bmfptrd5gn133" path="res://resources/materials/Rock.tres" id="4_1wien"]
 
-[sub_resource type="Resource" id="Resource_era11"]
-script = ExtResource("2_osrtj")
-ItemId = "coal"
-MinQuantity = 3
-MaxQuantity = 5
-metadata/_custom_type_script = "uid://2hhyer4i1q1g"
-
-[sub_resource type="Resource" id="Resource_jlmj0"]
+[sub_resource type="Resource" id="Resource_xhipr"]
 script = ExtResource("2_osrtj")
 ItemId = "stone"
+MinQuantity = 0
 MaxQuantity = 2
 Chance = 0.5
 metadata/_custom_type_script = "uid://2hhyer4i1q1g"
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_wmx41"]
-size = Vector3(1, 1, 0.75)
+[sub_resource type="Resource" id="Resource_qmuk6"]
+script = ExtResource("2_osrtj")
+ItemId = "coal"
+MinQuantity = 2
+MaxQuantity = 4
+metadata/_custom_type_script = "uid://2hhyer4i1q1g"
 
-[node name="RockCoalOre" type="StaticBody3D" unique_id=1673925628]
-transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 0, 0, 0)
-script = ExtResource("1_era11")
-DropItems = Array[ExtResource("2_osrtj")]([SubResource("Resource_era11"), SubResource("Resource_jlmj0")])
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_era11"]
+albedo_color = Color(0.052842118, 0.052842125, 0.052842118, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ptbxd"]
+
+[node name="RockCoalOre" unique_id=742521493 instance=ExtResource("1_jlmj0")]
+script = ExtResource("2_7ddnh")
+DropItems = Array[ExtResource("2_osrtj")]([SubResource("Resource_xhipr"), SubResource("Resource_qmuk6")])
 HitSoundsKey = "hit_stone"
 ObjectType = "ore"
 
-[node name="Sprite3D" type="Sprite3D" parent="." unique_id=1093358835]
-offset = Vector2(0, 15)
-pixel_size = 0.05
-texture_filter = 0
-texture = ExtResource("4_era11")
+[node name="Rock" parent="." index="0" unique_id=428074793]
+surface_material_override/0 = ExtResource("4_1wien")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=913278286]
+[node name="Ore" parent="." index="1" unique_id=952757878]
+surface_material_override/0 = SubResource("StandardMaterial3D_era11")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." index="2" unique_id=1921269226]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" index="0" unique_id=1910699497]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-shape = SubResource("BoxShape3D_wmx41")
+shape = SubResource("BoxShape3D_ptbxd")

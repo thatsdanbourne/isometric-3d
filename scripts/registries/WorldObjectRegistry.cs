@@ -45,9 +45,9 @@ public static class WorldObjectRegistry
 		Register("tree_oak", GD.Load<PackedScene>("res://scenes/terrain/objects/TreeOak.tscn"), is3D: true);
 		Register("tree_birch", GD.Load<PackedScene>("res://scenes/terrain/objects/TreeBirch.tscn"), is3D: true);
 		Register("tree_pine", GD.Load<PackedScene>("res://scenes/terrain/objects/TreePine.tscn"), is3D: true);
-		Register("rock", GD.Load<PackedScene>("res://scenes/terrain/objects/Rock3d.tscn"), 15f, is3D: true);
-		Register("rock_coal", GD.Load<PackedScene>("res://scenes/terrain/objects/Rock3d.tscn"), 18f, is3D: true);
-		Register("rock_copper", GD.Load<PackedScene>("res://scenes/terrain/objects/Rock3d.tscn"), 20f, ToolTier.Stone, is3D: true);
+		Register("rock", GD.Load<PackedScene>("res://scenes/terrain/objects/Rock.tscn"), 15f, is3D: true);
+		Register("rock_coal", GD.Load<PackedScene>("res://scenes/terrain/objects/RockCoalOre.tscn"), 18f, is3D: true);
+		Register("rock_copper", GD.Load<PackedScene>("res://scenes/terrain/objects/RockCopperOre.tscn"), 20f, ToolTier.Stone, is3D: true);
 		Register("flower_poppy", GD.Load<PackedScene>("res://scenes/terrain/decor/FlowerPoppy.tscn"), blocksTile: false, isDecor: true);
 		Register("campfire", GD.Load<PackedScene>("res://scenes/placeables/Campfire.tscn"));
 		Register("crafting_table", GD.Load<PackedScene>("res://scenes/placeables/CraftingTable.tscn"));

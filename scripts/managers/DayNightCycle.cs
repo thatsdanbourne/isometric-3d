@@ -8,10 +8,6 @@ public partial class DayNightCycle : Node
 	[Export] public DirectionalLight3D Sun;
 	[Export] public WorldEnvironment WorldEnvironment;
 
-	private static readonly List<ShadowCard> _shadowCards = new();
-	public static void RegisterShadow(ShadowCard card) => _shadowCards.Add(card);
-	public static void UnregisterShadow(ShadowCard card) => _shadowCards.Remove(card);
-
 	private Environment environment;
 
 	private readonly Color MIDNIGHT_COLOR = new(0.1f, 0.1f, 0.3f);
@@ -54,12 +50,7 @@ public partial class DayNightCycle : Node
 
 		UpdateSun();
 		UpdateEnvironment();
-		UpdateShadows();
 	}
-
-	// public override void _PhysicsProcess(double delta)
-	// {
-	// }
 
 	public void UpdateSun()
 	{
@@ -110,22 +101,5 @@ public partial class DayNightCycle : Node
 		float ambient = Mathf.Lerp(0.4f, 1.0f, daylight);
 		environment.AmbientLightColor = newColor.Lerp(Colors.White, 0.01f);
 		environment.AmbientLightEnergy = ambient;
-	}
-
-	private void UpdateShadows()
-	{
-		int count = _shadowCards.Count;
-		if (count == 0) return;
-
-		Vector3 dir = -Sun.GlobalTransform.Basis.Z.Normalized();
-
-		var sunHeight = Mathf.Abs(dir.Y);
-		float stretch = Mathf.Lerp(2f, 0.6f, sunHeight);
-
-		dir.Y /= 0.5f;
-		Basis basis = Basis.LookingAt(dir * 10f, Vector3.Up);
-
-		for (int i = 0; i < count; i++)
-			_shadowCards[i].ApplyShadow(basis, stretch);
 	}
 }

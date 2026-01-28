@@ -133,27 +133,27 @@ public partial class ChunkGenerator : Node
 
 				tiles[x, y] = new TileInstance(tileDef, biome.Name, temp, humidity);
 
-				foreach (var rule in tileDef.DetailMeshes)
-				{
-					if (rng.Randf() > rule.Density)
-						continue;
+				// foreach (var rule in tileDef.DetailMeshes)
+				// {
+				// 	if (rng.Randf() > rule.Density)
+				// 		continue;
 
-					int count = rng.RandiRange(rule.MinPerTile, rule.MaxPerTile);
-					var meshData = chunk.GetOrCreateDetailMesh(rule.MeshId);
+				// 	int count = rng.RandiRange(rule.MinPerTile, rule.MaxPerTile);
+				// 	var meshData = chunk.GetOrCreateDetailMesh(rule.MeshId);
 
-					for (int i = 0; i < count; i++)
-					{
-						Transform3D t = Transform3D.Identity;
+				// 	for (int i = 0; i < count; i++)
+				// 	{
+				// 		Transform3D t = Transform3D.Identity;
 
-						Vector3 basePos = TileManager.TileToWorld(tilePos);
-						basePos.X += rng.RandfRange(-0.35f, 0.35f);
-						basePos.Z += rng.RandfRange(-0.35f, 0.35f);
+				// 		Vector3 basePos = TileManager.TileToWorld(tilePos);
+				// 		basePos.X += rng.RandfRange(-0.5f, 0.5f);
+				// 		basePos.Z += rng.RandfRange(-0.5f, 0.5f);
 
-						t.Origin = basePos;
+				// 		t.Origin = basePos;
 
-						meshData.Transforms.Add(t);
-					}
-				}
+				// 		meshData.Transforms.Add(t);
+				// 	}
+				// }
 
 				if (!isRiver)
 				{

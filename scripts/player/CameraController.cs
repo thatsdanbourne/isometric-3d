@@ -24,7 +24,7 @@ public partial class CameraController : Node3D
     // Zoom settings
     // ======================
     public float TargetZoom = 30.0f;
-    public float ZoomSpeed = 0.35f;
+    public float ZoomSpeed = 0.15f;
     public float MinZoom = 15.0f;
     public float MaxZoom = 90.0f;
     public float ZoomSmoothness = 10.0f;
@@ -64,18 +64,13 @@ public partial class CameraController : Node3D
         snapSpace = camera.GlobalTransform;
     }
 
-    public override void _PhysicsProcess(double delta)
-    {
-        float d = (float)delta;
-        UpdateZoom(d);
-        UpdateShake(d);
-    }
-
     public override void _Process(double delta)
     {
         float d = (float)delta;
         UpdateFollow(d);
         ApplyPixelSnap();
+        UpdateZoom(d);
+        UpdateShake(d);
     }
 
     // ======================
@@ -129,6 +124,9 @@ public partial class CameraController : Node3D
             TargetZoom = Mathf.Max(TargetZoom - ZoomSpeed, MinZoom);
         else if (Input.IsActionPressed("zoom_out"))
             TargetZoom = Mathf.Min(TargetZoom + ZoomSpeed, MaxZoom);
+
+        if (camera.Size == TargetZoom)
+            return;
 
         TargetZoom = Mathf.Clamp(TargetZoom, MinZoom, MaxZoom);
 
