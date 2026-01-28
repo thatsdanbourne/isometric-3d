@@ -22,11 +22,9 @@ public partial class World : Node3D
 	public FastNoiseLite HumidityNoise;
 	public FastNoiseLite RiverNoise;
 
-	public readonly Dictionary<Vector2I, Chunk> ActiveChunks
-		= new Dictionary<Vector2I, Chunk>();
-
+	public readonly Dictionary<Vector2I, Chunk> ActiveChunks = new();
+	public Dictionary<Vector2I, ChunkDeltaData> ChunkDeltas = new();
 	private readonly Dictionary<Vector2I, int> blockedTiles = new();
-
 
 	public Vector2I lastPlayerChunk = new(-999, -999);
 
@@ -148,11 +146,6 @@ public partial class World : Node3D
 			blockedTiles[tile] = count;
 	}
 
-	public bool IsTileBlocked(Vector2I tile)
-	{
-		return blockedTiles.ContainsKey(tile);
-	}
-
 	public bool CanPlace(Vector2I tile, PlaceableItem item)
 	{
 		if (blockedTiles.ContainsKey(tile)) return false;
@@ -179,10 +172,24 @@ public partial class World : Node3D
 			TileCoord = tile,
 			Position = worldPos,
 			ChunkCoord = chunkCoord,
+			Source = ChunkObjectSource.Placed,
 		};
 
 		chunk.Objects.Add(chunkObj);
 		WorldObjectManager.EnqueueSpawn(chunkObj);
+		var chunkDelta = GetChunkDelta(chunkCoord);
+		chunkDelta.PlacedObjects.Add(chunkObj);
+	}
+
+	public ChunkDeltaData GetChunkDelta(Vector2I chunkCoord)
+	{
+		if (!ChunkDeltas.TryGetValue(chunkCoord, out ChunkDeltaData delta))
+		{
+			delta = new ChunkDeltaData();
+			ChunkDeltas[chunkCoord] = delta;
+		}
+
+		return delta;
 	}
 
 	public string GetBiomeAtPos(Vector3 worldPos)

@@ -95,6 +95,7 @@ public partial class ChunkGenerator : Node
 		bool[,] blocked = new bool[C, C];
 
 		Chunk chunk = new Chunk(coord, tiles, objects, decors, new());
+		ChunkDeltaData chunkDelta = _world.GetChunkDelta(coord);
 
 		for (int x = 0; x < C; x++)
 		{
@@ -162,6 +163,9 @@ public partial class ChunkGenerator : Node
 					{
 						if (spawn.Algorithm.ShouldPlace(globalX, globalY, spawn.Density))
 						{
+							if (chunkDelta.RemovedProceduralObjects.Contains(tilePos))
+								continue;
+
 							if (blocked[x, y])
 								continue;
 
@@ -174,28 +178,32 @@ public partial class ChunkGenerator : Node
 								TileCoord = new Vector2I(globalX, globalY),
 								Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f),
 								ChunkCoord = coord,
+								Source = ChunkObjectSource.Procedural,
 							};
 
 							objects.Add(obj);
-
-							if (def.BlocksTile)
-								blocked[x, y] = true;
 						}
 					}
 
-					foreach (DecorSpawnRule decorRule in biome.DecorRules)
+					// build player placed objects
+					foreach (var placed in chunkDelta.PlacedObjects)
 					{
-						if (decorRule.ShouldPlace(globalX, globalY))
-						{
-							if (blocked[x, y])
-								continue;
-
-							var dec = new ChunkDecor();
-							dec.DecorRule = decorRule;
-							dec.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
-							decors.Add(dec);
-						}
+						objects.Add(placed);
 					}
+
+					// foreach (DecorSpawnRule decorRule in biome.DecorRules)
+					// {
+					// 	if (decorRule.ShouldPlace(globalX, globalY))
+					// 	{
+					// 		if (blocked[x, y])
+					// 			continue;
+
+					// 		var dec = new ChunkDecor();
+					// 		dec.DecorRule = decorRule;
+					// 		dec.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
+					// 		decors.Add(dec);
+					// 	}
+					// }
 				}
 			}
 		}

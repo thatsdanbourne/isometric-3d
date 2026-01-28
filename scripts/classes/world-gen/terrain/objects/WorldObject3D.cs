@@ -77,7 +77,20 @@ public partial class WorldObject3D : WorldObjectBase
         }
 
         if (World.ActiveChunks.TryGetValue(Data.ChunkCoord, out var chunk))
+        {
             chunk.Objects.Remove(Data);
+
+            if (Data.Source == ChunkObjectSource.Procedural)
+            {
+                var chunkDelta = World.GetChunkDelta(Data.ChunkCoord);
+                chunkDelta.RemovedProceduralObjects.Add(Data.TileCoord);
+            }
+            else
+            {
+                var chunkDelta = World.GetChunkDelta(Data.ChunkCoord);
+                chunkDelta.PlacedObjects.Remove(Data);
+            }
+        }
 
         World.WorldObjectManager.EnqueueRemoval(Data);
     }

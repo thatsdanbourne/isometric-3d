@@ -47,10 +47,6 @@ public partial class WorldObjectManager : Node
 
     public void EnqueueRemoval(ChunkObject data)
     {
-        if (data.MarkedForRemoval)
-            return;
-
-        data.MarkedForRemoval = true;
         removeQueue.Enqueue(data);
     }
 
@@ -69,6 +65,11 @@ public partial class WorldObjectManager : Node
         while (activeSpawnQueue.Count > 0 && count < MaxSpawnsPerFrame)
         {
             var data = activeSpawnQueue.Dequeue();
+
+            if (data.Definition.Id == "crafting_table")
+            {
+                GD.PrintErr("Spawning crafting table at " + data.Position);
+            }
 
             if (data.MarkedForRemoval || data.RuntimeNode != null)
                 continue;
@@ -100,10 +101,8 @@ public partial class WorldObjectManager : Node
             node.Translate(new Vector3(0f, 0f, rng.RandfRange(-0.01f, 0.01f)));
 
             if (data.Definition.BlocksTile)
-            {
                 _world.BlockTile(data.TileCoord);
-                // node.EnableCollision();
-            }
+
             count++;
         }
     }
