@@ -1,6 +1,5 @@
 using Godot;
 using System.Collections.Generic;
-using System.Data.Common;
 
 public partial class WorldObjectManager : Node
 {
@@ -43,6 +42,31 @@ public partial class WorldObjectManager : Node
             return;
 
         activeSpawnQueue.Enqueue(data);
+    }
+
+    public void RequestBreak(ChunkObject data)
+    {
+        var delta = _world.GetOrCreateChunkDelta(data.ChunkCoord);
+
+        if (data.Source == ChunkObjectSource.Procedural)
+            delta.RemovedProceduralObjects.Add(data.TileCoord);
+        else if (data.Source == ChunkObjectSource.Placed)
+            delta.PlacedObjects.Remove(data);
+
+        EnqueueRemoval(data);
+    }
+
+    public bool RequestPlace(ChunkObject data)
+    {
+        var chunk = _world.ActiveChunks[data.ChunkCoord];
+
+        chunk.Objects.Add(data);
+        EnqueueSpawn(data);
+
+        var chunkDelta = _world.GetOrCreateChunkDelta(data.ChunkCoord);
+        chunkDelta.PlacedObjects.Add(data);
+
+        return true;
     }
 
     public void EnqueueRemoval(ChunkObject data)
@@ -97,6 +121,14 @@ public partial class WorldObjectManager : Node
 
             if (data.Definition.BlocksTile)
                 _world.BlockTile(data.TileCoord);
+
+            if (node is IChunkStateful stateful)
+            {
+                ChunkDeltaData delta;
+                _world.TryGetChunkDelta(data.ChunkCoord, out delta);
+                if (delta.StationStates.TryGetValue(data.TileCoord, out var stationState))
+                    stateful.RestoreState(stationState);
+            }
 
             count++;
         }

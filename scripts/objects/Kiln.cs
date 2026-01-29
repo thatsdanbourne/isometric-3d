@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class Kiln : StationObject, ICraftingStation
+public partial class Kiln : StationObject, ICraftingStation, IChunkStateful
 {
 	public string Label => "Kiln";
 	public StationType StationType => StationType.Kiln;
@@ -77,6 +77,67 @@ public partial class Kiln : StationObject, ICraftingStation
 		{
 			activeRecipe = null;
 			totalCount = 0;
+		}
+	}
+
+	// Capture/restore state for chunk saving/loading
+	public StationStateData CaptureState()
+	{
+		return new StationStateData
+		{
+			ObjectId = Data.Definition.Id,
+			TileCoord = Data.TileCoord,
+			ActiveRecipeId = activeRecipe?.ResultItemId,
+			TimeRemaining = timeRemaining,
+			CompletedCount = completedCount,
+			TotalCount = totalCount,
+			IsCrafting = isCrafting,
+			LastUpdateTime = World.WorldTimeSeconds
+		};
+	}
+
+	public void RestoreState(StationStateData stateData)
+	{
+		if (!string.IsNullOrEmpty(stateData.ActiveRecipeId))
+		{
+			activeRecipe = CraftingRegistry.GetRecipeByResultId(stateData.ActiveRecipeId);
+			timeRemaining = stateData.TimeRemaining;
+			completedCount = stateData.CompletedCount;
+			totalCount = stateData.TotalCount;
+			isCrafting = stateData.IsCrafting;
+
+			if (isCrafting)
+				SetProcess(true);
+			else
+				SetProcess(false);
+
+			double now = World.WorldTimeSeconds;
+			double elapsed = now - stateData.LastUpdateTime;
+
+			AdvanceProgress(elapsed);
+		}
+	}
+
+	private void AdvanceProgress(double elapsed)
+	{
+		if (activeRecipe == null || !isCrafting) return;
+
+		double duration = activeRecipe.CraftTime;
+		float itemsCompleted = (float)(elapsed / duration);
+		if (itemsCompleted <= 0f) return;
+
+		int wholeItems = (int)Math.Floor(itemsCompleted);
+		float fractional = (float)(itemsCompleted - wholeItems);
+		completedCount += wholeItems;
+		timeRemaining -= fractional * (float)duration;
+		timeRemaining = Math.Max(0f, timeRemaining);
+
+		if (completedCount >= totalCount)
+		{
+			completedCount = totalCount;
+			timeRemaining = 0f;
+			isCrafting = false;
+			SetProcess(false);
 		}
 	}
 }

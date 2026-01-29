@@ -15,6 +15,8 @@ public partial class World : Node3D
 
 	public Player Player;
 
+	public double WorldTimeSeconds;
+
 	public int ChunkSize = 16;
 	public int ChunkRadius = 3;
 
@@ -89,6 +91,8 @@ public partial class World : Node3D
 
 		ChunkManager.UpdateChunks(Player.GlobalPosition);
 		ChunkGenerator.Update();
+
+		WorldTimeSeconds += delta;
 	}
 
 	private void SetupNoise()
@@ -153,15 +157,15 @@ public partial class World : Node3D
 		return true;
 	}
 
-	public void PlaceItem(Vector2I tile, PlaceableItem item)
+	public bool PlaceItem(Vector2I tile, PlaceableItem item)
 	{
 		Vector3 worldPos = TileManager.TileToWorld(tile);
 		Vector2I chunkCoord = TileManager.WorldToChunk(worldPos);
 
-		if (!ActiveChunks.TryGetValue(chunkCoord, out Chunk chunk))
+		if (!ActiveChunks.ContainsKey(chunkCoord))
 		{
 			GD.PrintErr($"Tried to place item in unloaded chunk {chunkCoord}");
-			return;
+			return false;
 		}
 
 		var def = item.PlaceableObjectDefinition;
@@ -175,13 +179,15 @@ public partial class World : Node3D
 			Source = ChunkObjectSource.Placed,
 		};
 
-		chunk.Objects.Add(chunkObj);
-		WorldObjectManager.EnqueueSpawn(chunkObj);
-		var chunkDelta = GetChunkDelta(chunkCoord);
-		chunkDelta.PlacedObjects.Add(chunkObj);
+		return WorldObjectManager.RequestPlace(chunkObj);
 	}
 
-	public ChunkDeltaData GetChunkDelta(Vector2I chunkCoord)
+	public bool TryGetChunkDelta(Vector2I chunkCoord, out ChunkDeltaData delta)
+	{
+		return ChunkDeltas.TryGetValue(chunkCoord, out delta);
+	}
+
+	public ChunkDeltaData GetOrCreateChunkDelta(Vector2I chunkCoord)
 	{
 		if (!ChunkDeltas.TryGetValue(chunkCoord, out ChunkDeltaData delta))
 		{

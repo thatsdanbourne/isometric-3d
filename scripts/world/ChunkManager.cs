@@ -108,6 +108,9 @@ public class ChunkManager
 
         Vector3I pos = new Vector3I();
 
+
+        _world.TryGetChunkDelta(coord, out var delta);
+
         for (int x = 0; x < C; x++)
         {
             for (int y = 0; y < C; y++)
@@ -127,6 +130,12 @@ public class ChunkManager
 
         foreach (var obj in chunk.Objects)
         {
+            if (obj.RuntimeNode is IChunkStateful stateful)
+            {
+                var state = stateful.CaptureState();
+                delta.StationStates[obj.TileCoord] = state;
+            }
+
             _world.WorldObjectManager.EnqueueRemoval(obj);
         }
 

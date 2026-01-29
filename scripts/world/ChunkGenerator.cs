@@ -95,7 +95,8 @@ public partial class ChunkGenerator : Node
 		bool[,] blocked = new bool[C, C];
 
 		Chunk chunk = new Chunk(coord, tiles, objects, decors, new());
-		ChunkDeltaData chunkDelta = _world.GetChunkDelta(coord);
+		ChunkDeltaData chunkDelta;
+		_world.TryGetChunkDelta(coord, out chunkDelta);
 
 		for (int x = 0; x < C; x++)
 		{
@@ -158,12 +159,13 @@ public partial class ChunkGenerator : Node
 
 				if (!isRiver)
 				{
-					// build objects
+					// build procedural objects
 					foreach (ObjectSpawnRule spawn in biome.ObjectRules)
 					{
 						if (spawn.Algorithm.ShouldPlace(globalX, globalY, spawn.Density))
 						{
-							if (chunkDelta.RemovedProceduralObjects.Contains(tilePos))
+							// skip if removed in chunk delta
+							if (chunkDelta != null && chunkDelta.RemovedProceduralObjects.Contains(tilePos))
 								continue;
 
 							if (blocked[x, y])
@@ -181,20 +183,8 @@ public partial class ChunkGenerator : Node
 								Source = ChunkObjectSource.Procedural,
 							};
 
-							if (def.BlocksTile)
-								blocked[x, y] = true;
-
 							objects.Add(obj);
 						}
-					}
-
-					// build player placed objects
-					foreach (var placed in chunkDelta.PlacedObjects)
-					{
-						if (placed.Definition.BlocksTile)
-							blocked[x, y] = true;
-
-						objects.Add(placed);
 					}
 
 					// foreach (DecorSpawnRule decorRule in biome.DecorRules)
@@ -212,6 +202,13 @@ public partial class ChunkGenerator : Node
 					// }
 				}
 			}
+		}
+
+		// build player placed objects
+		if (chunkDelta != null)
+		{
+			foreach (var placed in chunkDelta?.PlacedObjects)
+				objects.Add(placed);
 		}
 
 		sw.Stop();
@@ -269,25 +266,25 @@ public partial class ChunkGenerator : Node
 			}
 		}
 
-		foreach (var meshData in chunk.DetailMeshes)
-		{
-			var mmi = new MultiMeshInstance3D();
-			var mm = new MultiMesh();
+		// foreach (var meshData in chunk.DetailMeshes)
+		// {
+		// 	var mmi = new MultiMeshInstance3D();
+		// 	var mm = new MultiMesh();
 
-			mm.TransformFormat = MultiMesh.TransformFormatEnum.Transform3D;
-			mm.Mesh = meshData.Value.Mesh;
-			mm.InstanceCount = meshData.Value.Transforms.Count;
+		// 	mm.TransformFormat = MultiMesh.TransformFormatEnum.Transform3D;
+		// 	mm.Mesh = meshData.Value.Mesh;
+		// 	mm.InstanceCount = meshData.Value.Transforms.Count;
 
-			for (int i = 0; i < mm.InstanceCount; i++)
-			{
-				mm.SetInstanceTransform(i, meshData.Value.Transforms[i]);
-			}
+		// 	for (int i = 0; i < mm.InstanceCount; i++)
+		// 	{
+		// 		mm.SetInstanceTransform(i, meshData.Value.Transforms[i]);
+		// 	}
 
-			meshData.Value.Mesh.SurfaceSetMaterial(0, meshData.Value.Material);
-			mmi.Multimesh = mm;
-			mmi.Name = meshData.Value.MeshId;
-			_world.WorldObjects.AddChild(mmi);
-		}
+		// 	meshData.Value.Mesh.SurfaceSetMaterial(0, meshData.Value.Material);
+		// 	mmi.Multimesh = mm;
+		// 	mmi.Name = meshData.Value.MeshId;
+		// 	_world.WorldObjects.AddChild(mmi);
+		// }
 
 		// foreach (ChunkDecor decor in chunk.Decors)
 		// {

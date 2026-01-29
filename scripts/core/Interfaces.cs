@@ -33,3 +33,9 @@ public interface ICraftingStation
     CraftingRecipe GetActiveRecipe();
     void CollectOutput(Player player);
 }
+
+public interface IChunkStateful
+{
+    StationStateData CaptureState();
+    void RestoreState(StationStateData state);
+}

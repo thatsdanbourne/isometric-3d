@@ -74,12 +74,12 @@ public partial class Player : CharacterBody3D
         DefaultTool = ItemRegistry.GetItem("fist") as ToolItem;
 
         // testing items
-        // InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
-        // InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("kiln"), 1);
-        // InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("copper_ore"), 20);
-        // InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("coal"), 20);
-        // InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("wood"), 20);
-        // InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone"), 20);
+        InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
+        InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("kiln"), 1);
+        InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("copper_ore"), 20);
+        InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("coal"), 20);
+        InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("wood"), 20);
+        InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone"), 20);
 
         EmitSignal(SignalName.PlayerReady);
     }
@@ -191,9 +191,12 @@ public partial class Player : CharacterBody3D
         if (!world.CanPlace(previewTile, currentPlaceable))
             return;
 
-        world.PlaceItem(previewTile, currentPlaceable);
-        InventoryManager.Instance.RemoveItem(this, currentPlaceable, 1);
-        UpdateEquippedItem();
+        bool result = world.PlaceItem(previewTile, currentPlaceable);
+        if (result)
+        {
+            InventoryManager.Instance.RemoveItem(this, currentPlaceable, 1);
+            UpdateEquippedItem();
+        }
     }
 
     // event handlers

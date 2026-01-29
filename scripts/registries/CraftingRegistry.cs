@@ -21,4 +21,9 @@ public static class CraftingRegistry
     {
         return _recipes.Where(r => r.RequiredStation == stationType);
     }
+
+    public static CraftingRecipe GetRecipeByResultId(string resultItemId)
+    {
+        return _recipes.FirstOrDefault(r => r.ResultItemId == resultItemId);
+    }
 }

@@ -21,6 +21,8 @@ public abstract partial class StationObject : WorldObject, IInteractable
         outlineMaterial.SetShaderParameter("enabled", false);
 
         baseMat.NextPass = outlineMaterial;
+
+        SetProcess(false);
     }
 
     public virtual T GetCapability<T>() where T : class
