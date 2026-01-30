@@ -32,6 +32,9 @@ public partial class ItemPickup : Node3D
 	private const float HoverAmplitude = 0.15f;
 	private const float HoverSpeed = 3f;
 
+	private const float DespawnTime = 300f;
+	private float lifeTimer = 0f;
+
 	private CharacterBody3D target;
 	private bool bouncing = true;
 	private bool magnetEnabled = false;
@@ -41,8 +44,8 @@ public partial class ItemPickup : Node3D
 	private static Texture2D ShadowTex;
 
 	public override void _Ready()
-    {
-        area = GetNode<Area3D>("Area3D");
+	{
+		area = GetNode<Area3D>("Area3D");
 		sprite = GetNode<Sprite3D>("Sprite3D");
 		shadow = GetNode<Sprite3D>("Shadow");
 
@@ -84,75 +87,82 @@ public partial class ItemPickup : Node3D
 		verticalVelocity = BounceHeight * 8f;
 
 		area.BodyEntered += OnBodyEntered;
-    }
+	}
 
 	private void OnBodyEntered(Node3D body)
-    {
-        if (collected) return;
-		
+	{
+		if (collected) return;
+
 		if (delayTimer <= 0 && body is CharacterBody3D character)
 			target = character;
-    }
+	}
 
 	public override void _PhysicsProcess(double deltaRaw)
-    {
-        if (collected) return;
+	{
+		if (collected) return;
 
 		float delta = (float)deltaRaw;
+
+		lifeTimer += delta;
+		if (lifeTimer >= DespawnTime)
+		{
+			QueueFree();
+			return;
+		}
 
 		if (bouncing)
 			BounceMotion(delta);
 		else
 			HoverMotion(delta);
-		
+
 		if (!magnetEnabled)
-        {
-            UpdateSpriteOffset();
+		{
+			UpdateSpriteOffset();
 			UpdateShadowScale();
-        }
+		}
 
 		if (delayTimer > 0)
-        {
-            delayTimer -= delta;
+		{
+			delayTimer -= delta;
 
 			if (delayTimer <= 0)
-            {
-                foreach (var body in area.GetOverlappingBodies())
-                {
-                    if (body is CharacterBody3D character)
-                       target = character;
-                    
-                }
-            }
-        }
+			{
+				foreach (var body in area.GetOverlappingBodies())
+				{
+					if (body is CharacterBody3D character)
+						target = character;
+
+				}
+			}
+		}
 
 		if (target != null)
-        {
-            MagnetToTarget(delta);
+		{
+			MagnetToTarget(delta);
 			return;
-        }
-    }
+		}
+	}
 
 	private void BounceMotion(float delta)
-    {
-        GlobalPosition += velocity * delta;
+	{
+		GlobalPosition += velocity * delta;
 		velocity = velocity.Lerp(Vector3.Zero, delta * 3f);
 
 		verticalVelocity -= 20f * delta;
 		verticalHeight += verticalVelocity * delta;
 
 		if (verticalHeight <= 0f)
-        {
-            verticalHeight = 0f;
+		{
+			verticalHeight = 0f;
 			bouncing = false;
-        }
-    }
+		}
+	}
 
 	private void HoverMotion(float delta)
-    {
-        hoverPhase += delta * HoverSpeed;
+	{
+		hoverPhase += delta * HoverSpeed;
 		verticalHeight = Mathf.Sin(hoverPhase) * HoverAmplitude;
-    }
+	}
 
 	private void MagnetToTarget(float delta)
 	{
@@ -171,24 +181,24 @@ public partial class ItemPickup : Node3D
 		float speed = Mathf.Lerp(MagnetSpeedBase, MagnetSpeedMax, distFactor);
 
 		GlobalPosition = GlobalPosition.Lerp(targetPos, speed * delta);
-		
+
 		if (GlobalPosition.DistanceTo(targetPos) < collectRadius)
 			Collect();
 	}
 
 	private async void Collect()
-    {
-        if (collected) return;
+	{
+		if (collected) return;
 		collected = true;
 
 		area.Monitorable = false;
 		area.Monitoring = false;
 
 		if (target is Player p)
-        {
-            p.CollectItem(Item, Count);
+		{
+			p.CollectItem(Item, Count);
 			AudioManager.Instance.PlayAt("pickup_pop", GlobalPosition, 0.1f);
-        }
+		}
 
 		// shrink tween
 		var t = CreateTween().SetParallel();
@@ -198,7 +208,7 @@ public partial class ItemPickup : Node3D
 		await ToSignal(t, Tween.SignalName.Finished);
 
 		QueueFree();
-    }
+	}
 
 	private void UpdateSpriteOffset()
 	{
@@ -213,24 +223,24 @@ public partial class ItemPickup : Node3D
 	}
 
 	private Texture2D MakeRadialShadow(int size)
-    {
-        var img = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
+	{
+		var img = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
 
-        float half = size / 2f;
+		float half = size / 2f;
 
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                float dx = (x - half) / half;
-                float dy = (y - half) / half;
-                float d = Mathf.Sqrt(dx * dx + dy * dy);
-                float alpha = Mathf.Clamp(1f - d, 0f, 1f);
+		for (int y = 0; y < size; y++)
+		{
+			for (int x = 0; x < size; x++)
+			{
+				float dx = (x - half) / half;
+				float dy = (y - half) / half;
+				float d = Mathf.Sqrt(dx * dx + dy * dy);
+				float alpha = Mathf.Clamp(1f - d, 0f, 1f);
 
-                img.SetPixel(x, y, new Color(0, 0, 0, alpha * 0.5f));
-            }
-        }
+				img.SetPixel(x, y, new Color(0, 0, 0, alpha * 0.5f));
+			}
+		}
 
-        return ImageTexture.CreateFromImage(img);
-    }
+		return ImageTexture.CreateFromImage(img);
+	}
 }

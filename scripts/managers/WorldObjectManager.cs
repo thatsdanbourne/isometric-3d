@@ -17,7 +17,7 @@ public partial class WorldObjectManager : Node
 
     private int maxPoolSizePerType = 64;
 
-    private PackedScene pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
+    private PackedScene pickupScene;
 
 
     public override void _Ready()
@@ -25,6 +25,7 @@ public partial class WorldObjectManager : Node
         _world = GetParent<World>();
         rng = new RandomNumberGenerator();
         rng.Randomize();
+        pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
     }
 
     public override void _Process(double delta)
@@ -48,14 +49,6 @@ public partial class WorldObjectManager : Node
 
     public void RequestBreak(ChunkObject data)
     {
-        var delta = _world.GetOrCreateChunkDelta(data.ChunkCoord);
-
-        if (data.Source == ChunkObjectSource.Procedural)
-            delta.RemovedProceduralObjects.Add(data.TileCoord);
-        else if (data.Source == ChunkObjectSource.Placed)
-            delta.PlacedObjects.Remove(data);
-
-
         if (data.RuntimeNode is IItemContainer storage)
         {
             foreach (var stack in storage.GetSlots())
@@ -71,10 +64,49 @@ public partial class WorldObjectManager : Node
             }
         }
 
+        SpawnDrops(data);
+
+        // clear chunk delta states
+        var delta = _world.GetOrCreateChunkDelta(data.ChunkCoord);
+
+        if (data.Source == ChunkObjectSource.Procedural)
+            delta.RemovedProceduralObjects.Add(data.TileCoord);
+        else if (data.Source == ChunkObjectSource.Placed)
+            delta.PlacedObjects.Remove(data);
+
         if (delta.StorageStates.ContainsKey(data.TileCoord))
             delta.StorageStates.Remove(data.TileCoord);
 
         EnqueueRemoval(data);
+    }
+
+    private void SpawnDrops(ChunkObject data)
+    {
+        if (data.RuntimeNode is not WorldObjectBase wo)
+            return;
+
+        var drops = wo.DropItems;
+        if (drops == null || drops.Count == 0) return;
+
+        foreach (var entry in drops)
+        {
+            if (GD.Randf() > entry.Chance)
+                continue;
+
+            var item = ItemRegistry.GetItem(entry.ItemId);
+            if (item == null) continue;
+
+            int quantity = rng.RandiRange(entry.MinQuantity, entry.MaxQuantity);
+
+            for (int n = 0; n < quantity; n++)
+            {
+                ItemPickup pickup = pickupScene.Instantiate<ItemPickup>();
+                pickup.Item = item;
+
+                GetParent().AddChild(pickup);
+                pickup.GlobalPosition = data.Position;
+            }
+        }
     }
 
     public bool RequestPlace(ChunkObject data)

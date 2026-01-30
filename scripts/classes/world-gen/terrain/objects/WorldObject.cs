@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 public partial class WorldObject : WorldObjectBase
 {
-    [Export] public Godot.Collections.Array<DropEntry> DropItems { get; set; } = new Godot.Collections.Array<DropEntry>();
     [Export] public string HitSoundsKey { get; set; } = "hit_wood";
 
     private static readonly Dictionary<Texture2D, StandardMaterial3D> MaterialCache = new Dictionary<Texture2D, StandardMaterial3D>();
@@ -17,11 +16,7 @@ public partial class WorldObject : WorldObjectBase
 
     public Vector3 WorldPosition;
     public Vector2I TileCoord;
-
     public bool MarkedForRemoval;
-
-    private RandomNumberGenerator rng = new RandomNumberGenerator();
-    private PackedScene pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
 
     public float currentHealth;
 
@@ -31,7 +26,6 @@ public partial class WorldObject : WorldObjectBase
         visual = GetNodeOrNull<Node3D>("Sprite3D") ?? GetNodeOrNull<Node3D>("AnimatedSprite3D");
         collisionShape = GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
 
-        rng.Randomize();
         currentHealth = MaxHealth;
         ApplySpriteMaterial();
     }
@@ -78,29 +72,6 @@ public partial class WorldObject : WorldObjectBase
     public void BreakObject()
     {
         EmitSignal(SignalName.ObjectBroken, this);
-
-        if (DropItems == null) return;
-
-        foreach (var entry in DropItems)
-        {
-            if (GD.Randf() > entry.Chance)
-                continue;
-
-            var item = ItemRegistry.GetItem(entry.ItemId);
-            if (item == null) continue;
-
-            int quantity = rng.RandiRange(entry.MinQuantity, entry.MaxQuantity);
-
-            for (int n = 0; n < quantity; n++)
-            {
-                ItemPickup pickup = pickupScene.Instantiate<ItemPickup>();
-                pickup.Item = item;
-
-                GetParent().AddChild(pickup);
-                pickup.GlobalPosition = GlobalPosition;
-            }
-        }
-
         World.WorldObjectManager.RequestBreak(Data);
     }
 
