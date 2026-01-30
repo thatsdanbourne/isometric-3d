@@ -1,11 +1,12 @@
+using System;
 using Godot;
 public partial class ItemContainerSlot : PanelContainer
 {
-	[Signal] public delegate void SlotLeftClickedEventHandler(bool isHotbar, int index);
-	[Signal] public delegate void SlotRightClickedEventHandler(bool isHotbar, int index);
-	[Signal] public delegate void SlotShiftClickedEventHandler(bool isHotbar, int index);
-	[Signal] public delegate void SlotHoldStartedEventHandler();
-	[Signal] public delegate void SlotHoldCompletedEventHandler();
+	public event Action<IItemContainer, int> SlotLeftClicked;
+	public event Action<IItemContainer, int> SlotRightClicked;
+	public event Action<IItemContainer, int> SlotShiftClicked;
+	public event Action SlotHoldStarted;
+	public event Action SlotHoldCompleted;
 
 	private Tooltip tooltip;
 
@@ -16,7 +17,6 @@ public partial class ItemContainerSlot : PanelContainer
 	public Label CountLabel;
 	private TextureRect icon;
 
-	public bool IsHotbar = false;
 	public bool ReadOnly = false;
 	public bool IsCraftingSlot = false;
 	public int CompletedCount = 0;
@@ -100,7 +100,7 @@ public partial class ItemContainerSlot : PanelContainer
 			{
 				isHolding = true;
 				holdProgress = 0f;
-				EmitSignal(SignalName.SlotHoldStarted);
+				SlotHoldStarted?.Invoke();
 
 				if (mb.ButtonIndex == MouseButton.Left && !mb.Pressed)
 				{
@@ -120,13 +120,13 @@ public partial class ItemContainerSlot : PanelContainer
 				if (mb.ButtonIndex == MouseButton.Left)
 				{
 					if (Input.IsKeyPressed(Key.Shift))
-						EmitSignal(SignalName.SlotShiftClicked, IsHotbar, Index);
+						SlotShiftClicked?.Invoke(Container, Index);
 					else
-						EmitSignal(SignalName.SlotLeftClicked, IsHotbar, Index);
+						SlotLeftClicked?.Invoke(Container, Index);
 				}
 				else if (mb.ButtonIndex == MouseButton.Right)
 				{
-					EmitSignal(SignalName.SlotRightClicked, IsHotbar, Index);
+					SlotRightClicked?.Invoke(Container, Index);
 				}
 			}
 		}
@@ -154,7 +154,7 @@ public partial class ItemContainerSlot : PanelContainer
 			if (holdProgressBar != null)
 				holdProgressBar.Visible = false;
 
-			EmitSignal(SignalName.SlotHoldCompleted);
+			SlotHoldCompleted?.Invoke();
 		}
 	}
 

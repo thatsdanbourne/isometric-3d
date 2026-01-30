@@ -2,9 +2,11 @@ using System.Collections.Generic;
 
 public interface IItemContainer
 {
+    string Label { get; }
     int SlotCount { get; }
 
     ItemStack GetSlot(int index);
+    ItemStack[] GetSlots();
     void SetSlot(int index, ItemStack stack);
 }
 
@@ -34,8 +36,8 @@ public interface ICraftingStation
     void CollectOutput(Player player);
 }
 
-public interface IChunkStateful
+public interface IChunkStateful<TState>
 {
-    StationStateData CaptureState();
-    void RestoreState(StationStateData state);
+    TState CaptureState();
+    void RestoreState(TState state);
 }

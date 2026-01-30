@@ -74,6 +74,7 @@ public partial class Player : CharacterBody3D
         DefaultTool = ItemRegistry.GetItem("fist") as ToolItem;
 
         // testing items
+        InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("chest"), 1);
         InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
         InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("kiln"), 1);
         InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("copper_ore"), 20);
@@ -236,6 +237,8 @@ public partial class Player : CharacterBody3D
         {
             if (HUD.isInventoryOpen)
                 HUD.CloseInventoryUI();
+            else if (FocusedInteractable is IItemContainer storage)
+                HUD.OpenStorageUI(storage);
             else
                 HUD.OpenInventoryUI();
         }

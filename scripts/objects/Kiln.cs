@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class Kiln : StationObject, ICraftingStation, IChunkStateful
+public partial class Kiln : StationObject, ICraftingStation, IChunkStateful<StationStateData>
 {
 	public string Label => "Kiln";
 	public StationType StationType => StationType.Kiln;

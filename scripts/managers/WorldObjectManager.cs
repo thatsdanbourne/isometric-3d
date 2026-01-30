@@ -17,6 +17,8 @@ public partial class WorldObjectManager : Node
 
     private int maxPoolSizePerType = 64;
 
+    private PackedScene pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
+
 
     public override void _Ready()
     {
@@ -52,6 +54,25 @@ public partial class WorldObjectManager : Node
             delta.RemovedProceduralObjects.Add(data.TileCoord);
         else if (data.Source == ChunkObjectSource.Placed)
             delta.PlacedObjects.Remove(data);
+
+
+        if (data.RuntimeNode is IItemContainer storage)
+        {
+            foreach (var stack in storage.GetSlots())
+            {
+                if (stack == null || stack.Count <= 0) continue;
+
+                ItemPickup pickup = pickupScene.Instantiate<ItemPickup>();
+                pickup.Item = stack.Item;
+                pickup.Count = stack.Count;
+
+                GetParent().AddChild(pickup);
+                pickup.GlobalPosition = data.Position;
+            }
+        }
+
+        if (delta.StorageStates.ContainsKey(data.TileCoord))
+            delta.StorageStates.Remove(data.TileCoord);
 
         EnqueueRemoval(data);
     }
@@ -122,12 +143,19 @@ public partial class WorldObjectManager : Node
             if (data.Definition.BlocksTile)
                 _world.BlockTile(data.TileCoord);
 
-            if (node is IChunkStateful stateful)
+            // Restore state if applicable
+            ChunkDeltaData delta;
+            _world.TryGetChunkDelta(data.ChunkCoord, out delta);
+
+            if (node is IChunkStateful<StationStateData> station)
             {
-                ChunkDeltaData delta;
-                _world.TryGetChunkDelta(data.ChunkCoord, out delta);
                 if (delta.StationStates.TryGetValue(data.TileCoord, out var stationState))
-                    stateful.RestoreState(stationState);
+                    station.RestoreState(stationState);
+            }
+            else if (node is IChunkStateful<StorageStateData> storage)
+            {
+                if (delta.StorageStates.TryGetValue(data.TileCoord, out var storageState))
+                    storage.RestoreState(storageState);
             }
 
             count++;

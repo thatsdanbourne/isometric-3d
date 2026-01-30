@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bykksc3manbtm"
-path="res://.godot/imported/Pine.glb-c1ce537f1df146d8290d3e29aa769410.scn"
+uid="uid://c0p2x2evxxsl0"
+path="res://.godot/imported/ChestOne.fbx-ad037e8491b3ae78e08f04da1827cff5.scn"
 
 [deps]
 
-source_file="res://assets/meshes/Pine.glb"
-dest_files=["res://.godot/imported/Pine.glb-c1ce537f1df146d8290d3e29aa769410.scn"]
+source_file="res://assets/meshes/chest/ChestOne.fbx"
+dest_files=["res://.godot/imported/ChestOne.fbx-ad037e8491b3ae78e08f04da1827cff5.scn"]
 
 [params]
 
@@ -17,7 +17,7 @@ nodes/root_type=""
 nodes/root_name=""
 nodes/root_script=null
 nodes/apply_root_scale=true
-nodes/root_scale=0.5
+nodes/root_scale=0.75
 nodes/import_as_skeleton_bones=false
 nodes/use_name_suffixes=true
 nodes/use_node_type_suffixes=true
@@ -30,7 +30,7 @@ meshes/force_disable_compression=false
 skins/use_named_skins=true
 animation/import=true
 animation/fps=30
-animation/trimming=false
+animation/trimming=true
 animation/remove_immutable_tracks=true
 animation/import_rest_as_RESET=false
 import_script/path=""
@@ -38,5 +38,7 @@ materials/extract=0
 materials/extract_format=0
 materials/extract_path=""
 _subresources={}
-gltf/naming_version=2
-gltf/embedded_image_handling=1
+fbx/importer=0
+fbx/allow_geometry_helper_nodes=false
+fbx/embedded_image_handling=1
+fbx/naming_version=2

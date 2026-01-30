@@ -44,7 +44,6 @@ horizontal_alignment = 2
 vertical_alignment = 2
 
 [node name="Inventory" type="Control" parent="." unique_id=1210786973]
-visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -53,23 +52,27 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 
-[node name="InventoryWindow" type="PanelContainer" parent="Inventory" unique_id=917729463]
+[node name="HBoxContainer" type="HBoxContainer" parent="Inventory" unique_id=544062694]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -37.5
-offset_top = -40.0
-offset_right = 37.5
-offset_bottom = 40.0
+offset_left = -121.0
+offset_top = -61.5
+offset_right = 121.0
+offset_bottom = 61.5
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="InventoryWindow" type="PanelContainer" parent="Inventory/HBoxContainer" unique_id=917729463]
+layout_mode = 2
 localize_numeral_system = false
 theme_override_styles/panel = ExtResource("2_4ed8p")
 
-[node name="Label" type="Label" parent="Inventory/InventoryWindow" unique_id=896836832]
+[node name="Label" type="Label" parent="Inventory/HBoxContainer/InventoryWindow" unique_id=896836832]
 layout_mode = 2
 size_flags_vertical = 0
 text = "Inventory"
@@ -77,15 +80,36 @@ label_settings = SubResource("LabelSettings_6ll6g")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="MarginContainer" type="MarginContainer" parent="Inventory/InventoryWindow" unique_id=1610204276]
+[node name="MarginContainer" type="MarginContainer" parent="Inventory/HBoxContainer/InventoryWindow" unique_id=1610204276]
 layout_mode = 2
 theme_override_constants/margin_top = 75
 
-[node name="SlotGrid" type="GridContainer" parent="Inventory/InventoryWindow/MarginContainer" unique_id=1277869253]
+[node name="SlotGrid" type="GridContainer" parent="Inventory/HBoxContainer/InventoryWindow/MarginContainer" unique_id=1277869253]
 layout_mode = 2
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 columns = 9
+
+[node name="StorageWindow" type="PanelContainer" parent="Inventory/HBoxContainer" unique_id=2098803175]
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_4ed8p")
+
+[node name="Label" type="Label" parent="Inventory/HBoxContainer/StorageWindow" unique_id=25356304]
+layout_mode = 2
+size_flags_vertical = 0
+label_settings = SubResource("LabelSettings_6ll6g")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="Inventory/HBoxContainer/StorageWindow" unique_id=915456053]
+layout_mode = 2
+theme_override_constants/margin_top = 75
+
+[node name="SlotGrid" type="GridContainer" parent="Inventory/HBoxContainer/StorageWindow/MarginContainer" unique_id=1310626956]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 3
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=1817004205]
 anchors_preset = 7
@@ -105,6 +129,7 @@ layout_mode = 2
 theme_override_constants/separation = 8
 
 [node name="Crafting" type="Control" parent="." unique_id=143890300]
+visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

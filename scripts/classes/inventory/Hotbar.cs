@@ -5,6 +5,8 @@ public partial class Hotbar : Node, IItemContainer
     [Signal] public delegate void ContainerChangedEventHandler();
     [Signal] public delegate void SelectedSlotChangedEventHandler(int slot);
 
+    public string Label => "Hotbar";
+
     public int SlotCount { get; private set; } = 9;
     public int SelectedSlot { get; private set; } = 0;
 
@@ -16,8 +18,9 @@ public partial class Hotbar : Node, IItemContainer
     {
         slots = new ItemStack[SlotCount];
     }
-    
+
     public ItemStack GetSlot(int index) => slots[index];
+    public ItemStack[] GetSlots() => slots;
 
     public void SetSlot(int index, ItemStack stack)
     {

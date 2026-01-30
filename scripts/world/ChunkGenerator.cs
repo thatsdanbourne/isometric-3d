@@ -178,7 +178,7 @@ public partial class ChunkGenerator : Node
 							{
 								Definition = def,
 								TileCoord = new Vector2I(globalX, globalY),
-								Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f),
+								Position = new Vector3(globalX, 0, globalY),
 								ChunkCoord = coord,
 								Source = ChunkObjectSource.Procedural,
 							};

@@ -36,6 +36,17 @@ public static class PlaceableItems
             PlaceableObjectDefinition = WorldObjectRegistry.GetDefinition("kiln"),
             PreviewTexture = GD.Load<Texture2D>("res://assets/sprites/kiln/kiln.png"),
         });
+
+        ItemRegistry.RegisterItem(new PlaceableItem
+        {
+            Id = "chest",
+            DisplayName = "Chest",
+            Description = "A chest for storing items.",
+            Icon = LoadIcon("kiln"),
+            StackSize = 1,
+            PlaceableObjectDefinition = WorldObjectRegistry.GetDefinition("chest"),
+            PreviewTexture = GD.Load<Texture2D>("res://assets/sprites/kiln/kiln.png"),
+        });
     }
 
     private static Texture2D LoadIcon(string name) =>

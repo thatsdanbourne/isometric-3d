@@ -44,9 +44,9 @@ public partial class InventoryManager : Node
 
         if (remaining > 0)
             remaining = RemoveFromContainer(player.Hotbar, item, remaining);
-        
+
         return remaining;
-        
+
     }
 
     public int RemoveFromContainer(IItemContainer container, Item item, int remaining)
@@ -143,27 +143,21 @@ public partial class InventoryManager : Node
 
     // inventory shortcut logic
 
-        public ItemStack LeftClick(
-        bool isHotbar,
-        int index,
-        ItemStack dragged,
-        Inventory inventory,
-        Hotbar hotbar
-    )
+    public ItemStack LeftClick(IItemContainer container, int index, ItemStack dragged)
     {
-        var stack = isHotbar ? hotbar.GetSlot(index) : inventory.GetSlot(index);
+        var stack = container.GetSlot(index);
 
         // pick up stack
         if (dragged == null && stack != null)
         {
-            Set(isHotbar, index, null, inventory, hotbar);
+            container.SetSlot(index, null);
             return stack;
         }
 
         // place stack
         if (dragged != null && stack == null)
         {
-            Set(isHotbar, index, dragged, inventory, hotbar);
+            container.SetSlot(index, dragged);
             return null;
         }
 
@@ -189,7 +183,7 @@ public partial class InventoryManager : Node
         // swap stacks
         if (dragged != null && stack != null && dragged.Item != stack.Item)
         {
-            Set(isHotbar, index, dragged, inventory, hotbar);
+            container.SetSlot(index, dragged);
             return stack;
         }
 
@@ -197,22 +191,16 @@ public partial class InventoryManager : Node
     }
 
 
-    public ItemStack RightClick(
-        bool isHotbar,
-        int index,
-        ItemStack dragged,
-        Inventory inventory,
-        Hotbar hotbar
-    )
+    public ItemStack RightClick(IItemContainer container, int index, ItemStack dragged)
     {
-        var stack = isHotbar ? hotbar.GetSlot(index) : inventory.GetSlot(index);
+        var stack = container.GetSlot(index);
 
         // place one item from dragged stack
         if (dragged != null)
         {
             if (stack == null)
             {
-                Set(isHotbar, index, new ItemStack(dragged.Item, 1), inventory, hotbar);
+                container.SetSlot(index, new ItemStack(dragged.Item, 1));
                 dragged.Count -= 1;
                 return dragged.Count > 0 ? dragged : null;
             }
@@ -233,7 +221,7 @@ public partial class InventoryManager : Node
             int half = stack.Count / 2;
             if (half <= 0)
                 return null;
-            
+
             stack.Count -= half;
             return new ItemStack(stack.Item, half);
         }
@@ -241,31 +229,37 @@ public partial class InventoryManager : Node
         return null;
     }
 
-    public ItemStack ShiftClick(bool fromHotbar, int index, Inventory inventory, Hotbar hotbar)
+    public ItemStack ShiftClick(IItemContainer source, int index, params IItemContainer[] targets)
     {
-        var stack = fromHotbar ? hotbar.GetSlot(index) : inventory.GetSlot(index);
-        if (stack == null) return null;
-        
+        var stack = source.GetSlot(index);
+        if (stack == null)
+            return null;
+
+
         int remaining = stack.Count;
 
-        if (fromHotbar)
-        {
-            remaining = MergeStacks(inventory, stack.Item, remaining);
 
-            if (remaining > 0)
-                remaining = FillEmptySlots(inventory, stack.Item, remaining);
-        } 
-        else
+        foreach (var target in targets)
         {
-            remaining = MergeStacks(hotbar, stack.Item, remaining);
+            remaining = MergeStacks(target, stack.Item, remaining);
+            if (remaining <= 0) break;
 
-            if (remaining > 0)
-                remaining = FillEmptySlots(hotbar, stack.Item, remaining);
+
+            remaining = FillEmptySlots(target, stack.Item, remaining);
+            if (remaining <= 0) break;
         }
 
-        if (remaining > 0)
-            return new ItemStack(stack.Item, remaining);
-        else return null;
+
+        if (remaining <= 0)
+        {
+            source.SetSlot(index, null);
+            return null;
+        }
+
+
+        // partial move
+        source.SetSlot(index, new ItemStack(stack.Item, remaining));
+        return new ItemStack(stack.Item, remaining);
     }
 
     private void Set(bool isHotbar, int index, ItemStack stack, Inventory inventory, Hotbar hotbar)

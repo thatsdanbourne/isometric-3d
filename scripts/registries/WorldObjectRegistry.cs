@@ -48,10 +48,10 @@ public static class WorldObjectRegistry
 		Register("rock", GD.Load<PackedScene>("res://scenes/terrain/objects/Rock.tscn"), 15f, is3D: true);
 		Register("rock_coal", GD.Load<PackedScene>("res://scenes/terrain/objects/RockCoalOre.tscn"), 18f, is3D: true);
 		Register("rock_copper", GD.Load<PackedScene>("res://scenes/terrain/objects/RockCopperOre.tscn"), 20f, ToolTier.Stone, is3D: true);
-		Register("flower_poppy", GD.Load<PackedScene>("res://scenes/terrain/decor/FlowerPoppy.tscn"), blocksTile: false, isDecor: true);
 		Register("campfire", GD.Load<PackedScene>("res://scenes/placeables/Campfire.tscn"));
 		Register("crafting_table", GD.Load<PackedScene>("res://scenes/placeables/CraftingTable.tscn"));
 		Register("kiln", GD.Load<PackedScene>("res://scenes/placeables/Kiln.tscn"));
+		Register("chest", GD.Load<PackedScene>("res://scenes/placeables/ChestOne.tscn"), is3D: true);
 	}
 }
 

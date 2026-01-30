@@ -11,6 +11,7 @@ public partial class HUD : CanvasLayer
 
 	private Inventory inventory;
 	private Hotbar hotbar;
+	private IItemContainer storage;
 
 	private ItemStack draggedStack;
 	private Control cursorItem;
@@ -19,7 +20,11 @@ public partial class HUD : CanvasLayer
 
 	private Control inventoryRoot;
 	private PanelContainer inventoryWindow;
-	private GridContainer slotGrid;
+	private GridContainer inventorySlotGrid;
+	private PanelContainer storageWindow;
+	private GridContainer storageSlotGrid;
+	private Label storageLabel;
+
 	private HBoxContainer hotbarBox;
 
 	private CraftingUI craftingUI;
@@ -29,6 +34,7 @@ public partial class HUD : CanvasLayer
 
 	private List<ItemContainerSlot> hotbarSlots = new List<ItemContainerSlot>();
 	private List<ItemContainerSlot> inventorySlots = new List<ItemContainerSlot>();
+	private List<ItemContainerSlot> storageSlots = new List<ItemContainerSlot>();
 
 	private Player player;
 
@@ -56,10 +62,13 @@ public partial class HUD : CanvasLayer
 		inventory = player.GetNode<Inventory>("Inventory");
 		hotbar = player.GetNode<Hotbar>("Hotbar");
 
-
 		inventoryRoot = GetNode<Control>("Inventory");
-		inventoryWindow = inventoryRoot.GetNode<PanelContainer>("InventoryWindow");
-		slotGrid = inventoryWindow.GetNode<GridContainer>("MarginContainer/SlotGrid");
+		inventoryWindow = inventoryRoot.GetNode<PanelContainer>("HBoxContainer/InventoryWindow");
+		inventorySlotGrid = inventoryWindow.GetNode<GridContainer>("MarginContainer/SlotGrid");
+		storageWindow = inventoryRoot.GetNode<PanelContainer>("HBoxContainer/StorageWindow");
+		storageSlotGrid = storageWindow.GetNode<GridContainer>("MarginContainer/SlotGrid");
+		storageLabel = storageWindow.GetNode<Label>("Label");
+
 		hotbarBox = GetNode<HBoxContainer>("MarginContainer/Hotbar");
 
 		craftingUI = GetNode<CraftingUI>("Crafting");
@@ -106,6 +115,25 @@ public partial class HUD : CanvasLayer
 		inventoryRoot.Visible = false;
 		craftingUI.Visible = false;
 		tooltip.Visible = false;
+
+		CloseStorageUI();
+	}
+
+	public void OpenStorageUI(IItemContainer storage)
+	{
+		this.storage = storage;
+		OpenInventoryUI();
+
+		BuildStorageSlots(storage);
+		storageWindow.Visible = true;
+	}
+
+	public void CloseStorageUI()
+	{
+		storage = null;
+		storageWindow.Visible = false;
+		ClearChildren(storageSlotGrid);
+		storageSlots.Clear();
 	}
 
 	public void OpenCraftingUI(ICraftingStation station = null)
@@ -176,29 +204,29 @@ public partial class HUD : CanvasLayer
 
 	private void ClearChildren(Node parent)
 	{
-		while (parent.GetChildCount() > 0)
+		foreach (var child in parent.GetChildren())
 		{
-			parent.GetChild(0).QueueFree();
+			if (child is GodotObject go && GodotObject.IsInstanceValid(go))
+				go.Free();
 		}
 	}
 
 	private void BuildInventorySlots()
 	{
-		ClearChildren(slotGrid);
+		ClearChildren(inventorySlotGrid);
 		inventorySlots.Clear();
 
 		for (int i = 0; i < inventory.SlotCount; i++)
 		{
 			var slot = slotPanelScene.Instantiate<ItemContainerSlot>();
 			slot.AddThemeStyleboxOverride("panel", slotStyle);
-			slot.IsHotbar = false;
 			slot.SetSlot(inventory, i);
 			slot.SetStack(inventory[i]);
 			slot.SlotLeftClicked += OnSlotLeftClick;
 			slot.SlotRightClicked += OnSlotRightClick;
 			slot.SlotShiftClicked += OnSlotShiftLeftClick;
 
-			slotGrid.AddChild(slot);
+			inventorySlotGrid.AddChild(slot);
 			inventorySlots.Add(slot);
 		}
 	}
@@ -212,7 +240,6 @@ public partial class HUD : CanvasLayer
 		{
 			var slot = slotPanelScene.Instantiate<ItemContainerSlot>();
 			slot.AddThemeStyleboxOverride("panel", slotStyle);
-			slot.IsHotbar = true;
 			slot.SetSlot(hotbar, i);
 			slot.SetStack(hotbar[i]);
 			slot.SlotLeftClicked += OnSlotLeftClick;
@@ -222,6 +249,31 @@ public partial class HUD : CanvasLayer
 			hotbarBox.AddChild(slot);
 			hotbarSlots.Add(slot);
 		}
+	}
+
+	private void BuildStorageSlots(IItemContainer storage)
+	{
+		ClearChildren(storageSlotGrid);
+		storageSlots.Clear();
+
+		for (int i = 0; i < storage.SlotCount; i++)
+		{
+			var slot = slotPanelScene.Instantiate<ItemContainerSlot>();
+			slot.AddThemeStyleboxOverride("panel", slotStyle);
+			slot.SetSlot(storage, i);
+			slot.SetStack(storage.GetSlot(i));
+			slot.SlotLeftClicked += OnSlotLeftClick;
+			slot.SlotRightClicked += OnSlotRightClick;
+			slot.SlotShiftClicked += OnSlotShiftLeftClick;
+
+			storageSlotGrid.AddChild(slot);
+			storageSlots.Add(slot);
+		}
+
+		storageSlotGrid.Columns = Mathf.CeilToInt(storage.SlotCount / 3.0f);
+		storageLabel.Text = storage.Label;
+
+		RefreshUI();
 	}
 
 	public ItemStack GetStack(bool isHotbar, int index)
@@ -250,6 +302,14 @@ public partial class HUD : CanvasLayer
 		{
 			hotbarSlots[i].SetStack(hotbar[i]);
 		}
+
+		if (storage != null)
+		{
+			for (int i = 0; i < storage.SlotCount; i++)
+			{
+				storageSlots[i].SetStack(storage.GetSlot(i));
+			}
+		}
 	}
 
 	private void OnHotbarSelectionChanged(int selectedIndex)
@@ -277,27 +337,41 @@ public partial class HUD : CanvasLayer
 		}
 	}
 
-	public void OnSlotLeftClick(bool isHotbar, int index)
+	public void OnSlotLeftClick(IItemContainer container, int index)
 	{
-		draggedStack = InventoryManager.Instance.LeftClick(isHotbar, index, draggedStack, inventory, hotbar);
+		draggedStack = InventoryManager.Instance.LeftClick(container, index, draggedStack);
 		UpdateCursor();
 		RefreshUI();
 	}
 
-	public void OnSlotShiftLeftClick(bool isHotbar, int index)
+	public void OnSlotShiftLeftClick(IItemContainer source, int index)
 	{
-		var remaining = InventoryManager.Instance.ShiftClick(isHotbar, index, inventory, hotbar);
-		if (isHotbar)
-			hotbar.SetSlot(index, remaining);
+		// From storage → hotbar, then inventory
+		if (source == storage)
+			InventoryManager.Instance.ShiftClick(source, index, hotbar, inventory);
+
+		// From player → storage (if open)
+		else if (storage != null)
+			InventoryManager.Instance.ShiftClick(source, index, storage);
+
+		// No storage open → fallback (hotbar ↔ inventory)
 		else
-			inventory.SetSlot(index, remaining);
+		{
+			IItemContainer target;
+			if (ReferenceEquals(source, hotbar))
+				target = inventory;
+			else
+				target = hotbar;
+
+			InventoryManager.Instance.ShiftClick(source, index, target);
+		}
 
 		RefreshUI();
 	}
 
-	public void OnSlotRightClick(bool isHotbar, int index)
+	public void OnSlotRightClick(IItemContainer container, int index)
 	{
-		draggedStack = InventoryManager.Instance.RightClick(isHotbar, index, draggedStack, inventory, hotbar);
+		draggedStack = InventoryManager.Instance.RightClick(container, index, draggedStack);
 		UpdateCursor();
 		RefreshUI();
 	}

@@ -130,11 +130,11 @@ public class ChunkManager
 
         foreach (var obj in chunk.Objects)
         {
-            if (obj.RuntimeNode is IChunkStateful stateful)
-            {
-                var state = stateful.CaptureState();
-                delta.StationStates[obj.TileCoord] = state;
-            }
+            if (obj.RuntimeNode is IChunkStateful<StationStateData> station)
+                delta.StationStates[obj.TileCoord] = station.CaptureState();
+            else if (obj.RuntimeNode is IChunkStateful<StorageStateData> storage)
+                delta.StorageStates[obj.TileCoord] = storage.CaptureState();
+
 
             _world.WorldObjectManager.EnqueueRemoval(obj);
         }

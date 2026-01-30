@@ -4,6 +4,8 @@ public partial class Inventory : Node, IItemContainer
 {
     [Signal] public delegate void ContainerChangedEventHandler();
 
+    public string Label => "Inventory";
+
     public int SlotCount { get; private set; } = 27;
     private ItemStack[] slots;
 
@@ -15,6 +17,7 @@ public partial class Inventory : Node, IItemContainer
     }
 
     public ItemStack GetSlot(int index) => slots[index];
+    public ItemStack[] GetSlots() => slots;
 
     public void SetSlot(int index, ItemStack stack)
     {
