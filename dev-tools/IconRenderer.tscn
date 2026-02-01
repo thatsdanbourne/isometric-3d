@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://cc50g6x1vwk1p"]
+
+[ext_resource type="Script" uid="uid://cgks33m4rrgo3" path="res://dev-tools/IconRenderer.cs" id="1_v1bn5"]
+[ext_resource type="PackedScene" uid="uid://6lkpw6gskqw3" path="res://assets/meshes/campfire/Campfire.glb" id="2_c7faj"]
+
+[node name="IconRenderer" type="Node3D" unique_id=683127452 node_paths=PackedStringArray("Viewport", "PreviewRoot", "Camera", "Light")]
+script = ExtResource("1_v1bn5")
+Viewport = NodePath("SubViewport")
+PreviewRoot = NodePath("SubViewport/PreviewRoot")
+Camera = NodePath("SubViewport/Camera3D")
+Light = NodePath("SubViewport/DirectionalLight3D")
+
+[node name="SubViewport" type="SubViewport" parent="." unique_id=1922719966]
+transparent_bg = true
+size = Vector2i(128, 128)
+
+[node name="PreviewRoot" type="Node3D" parent="SubViewport" unique_id=2077730827]
+
+[node name="Campfire" parent="SubViewport/PreviewRoot" unique_id=1569149356 instance=ExtResource("2_c7faj")]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="SubViewport" unique_id=1155517337]
+transform = Transform3D(0.8508111, 0.2861924, -0.44069764, 0, 0.83867055, 0.54463905, 0.5254717, -0.46338496, 0.7135502, 3.3626094, 3.251422, 3.3626094)
+light_energy = 0.5
+light_specular = 0.0
+
+[node name="Camera3D" type="Camera3D" parent="SubViewport" unique_id=1301835359]
+transform = Transform3D(0.7071068, -0.38511795, 0.5930297, 0, 0.83867055, 0.54463905, -0.7071068, -0.38511795, 0.5930297, 2, 1.9, 2)
+projection = 1
+current = true
+size = 1.15

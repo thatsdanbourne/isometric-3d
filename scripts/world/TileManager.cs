@@ -10,17 +10,18 @@ public static class TileManager
     //world <> tile conversions
     public static Vector2I WorldToTile(Vector3 worldPos)
     {
-        int x = Mathf.FloorToInt(worldPos.X / TileSize);
-        int y = Mathf.FloorToInt(worldPos.Z / TileSize);
-        return new Vector2I(x, y);
+        return new Vector2I(
+            Mathf.RoundToInt(worldPos.X),
+            Mathf.RoundToInt(worldPos.Z)
+        );
     }
 
     public static Vector3 TileToWorld(Vector2I tilePos)
     {
         return new Vector3(
-            (tilePos.X + 0.5f) * TileSize,
+            tilePos.X * TileSize,
             0,
-            (tilePos.Y + 0.5f) * TileSize
+            tilePos.Y * TileSize
         );
     }
 
@@ -54,7 +55,7 @@ public static class TileManager
         return TileToWorld(tileOrigin);
     }
 
-    public static Vector3 GetMouseWorldPosition(Camera3D camera, float groundY = -1f)
+    public static Vector3 GetMouseWorldPosition(Camera3D camera, float groundY = 0f)
     {
         var viewport = camera.GetViewport();
         Vector2 mousePos = viewport.GetMousePosition();
@@ -78,10 +79,9 @@ public static class TileManager
         return rayOrigin + rayDir * t;
     }
 
-    public static Vector3 GetMouseTilePosition(Camera3D camera, float groundY = 0f)
+    public static Vector2I GetMouseTilePosition(Camera3D camera, float groundY = 0f)
     {
         Vector3 worldPos = GetMouseWorldPosition(camera, groundY);
-        Vector2I tilePos = WorldToTile(worldPos);
-        return TileToWorld(tilePos);
+        return WorldToTile(worldPos);
     }
 }

@@ -14,7 +14,6 @@ public interface IInteractable
 {
     void OnFocusGained();
     void OnFocusLost();
-    void Interact(Player player);
 
     T GetCapability<T>() where T : class;
 }

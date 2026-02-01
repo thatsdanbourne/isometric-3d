@@ -1,143 +1,167 @@
-using Godot;
 using System;
+using Godot;
 
-public partial class Kiln : StationObject, ICraftingStation, IChunkStateful<StationStateData>
+public partial class Kiln : WorldObject, IInteractable, ICraftingStation, IChunkStateful<StationStateData>
 {
-	public string Label => "Kiln";
-	public StationType StationType => StationType.Kiln;
+    public string Label => "Kiln";
+    public StationType StationType => StationType.Kiln;
 
-	private CraftingRecipe activeRecipe;
-	private float timeRemaining;
-	private int completedCount;
-	private int totalCount;
-	private bool isCrafting;
+    private CraftingRecipe activeRecipe;
 
-	public bool IsCrafting => isCrafting;
-	public bool IsTimed => true;
-	public int CompletedCount => completedCount;
-	public int TotalCount => totalCount;
+    private InteractionPrompt interactPrompt;
 
-	public float GetProgress()
-	{
-		if (activeRecipe == null) return 0f;
-		return 1f - (timeRemaining / activeRecipe.CraftTime);
-	}
+    private OmniLight3D light;
+    private float timeRemaining;
 
-	public CraftingRecipe GetActiveRecipe() => activeRecipe;
+    public bool IsCrafting { get; private set; }
 
-	public void StartCraft(CraftingRecipe recipe, Player player)
-	{
-		if (activeRecipe == null)
-		{
-			activeRecipe = recipe;
-			totalCount = 0;
-			completedCount = 0;
-			timeRemaining = recipe.CraftTime;
-			isCrafting = true;
-			SetProcess(true);
-		}
+    public bool IsTimed => true;
+    public int CompletedCount { get; private set; }
 
-		if (activeRecipe != recipe)
-			return;
+    public int TotalCount { get; private set; }
 
-		// Consume ingredients per item added
-		CraftingManager.Instance.ConsumeIngredients(player, recipe);
-		totalCount += 1;
-	}
+    public float GetProgress()
+    {
+        if (activeRecipe == null) return 0f;
+        return 1f - timeRemaining / activeRecipe.CraftTime;
+    }
 
-	public override void _Process(double delta)
-	{
-		if (!isCrafting) return;
+    public CraftingRecipe GetActiveRecipe()
+    {
+        return activeRecipe;
+    }
 
-		timeRemaining -= (float)delta;
+    public void StartCraft(CraftingRecipe recipe, Player player)
+    {
+        if (activeRecipe == null)
+        {
+            activeRecipe = recipe;
+            TotalCount = 0;
+            CompletedCount = 0;
+            timeRemaining = recipe.CraftTime;
+            IsCrafting = true;
+            SetProcess(true);
+        }
 
-		if (timeRemaining > 0f) return;
+        if (activeRecipe != recipe)
+            return;
 
-		completedCount++;
+        // Consume ingredients per item added
+        CraftingManager.Instance.ConsumeIngredients(player, recipe);
+        TotalCount += 1;
 
-		if (completedCount < totalCount)
-			timeRemaining = activeRecipe.CraftTime;
-		else
-		{
-			isCrafting = false;
-			timeRemaining = 0f;
-			SetProcess(false);
-		}
-	}
+        light.Visible = true;
+    }
 
-	public void CollectOutput(Player player)
-	{
-		if (completedCount <= 0 || activeRecipe == null) return;
+    public void CollectOutput(Player player)
+    {
+        if (CompletedCount <= 0 || activeRecipe == null) return;
 
-		InventoryManager.Instance.AddItem(player, ItemRegistry.GetItem(activeRecipe.ResultItemId), completedCount);
-		totalCount -= completedCount;
-		completedCount = 0;
+        InventoryManager.Instance.AddItem(player, ItemRegistry.GetItem(activeRecipe.ResultItemId), CompletedCount);
+        TotalCount -= CompletedCount;
+        CompletedCount = 0;
 
-		if (!isCrafting)
-		{
-			activeRecipe = null;
-			totalCount = 0;
-		}
-	}
+        if (TotalCount <= 0)
+            activeRecipe = null;
+    }
 
-	// Capture/restore state for chunk saving/loading
-	public StationStateData CaptureState()
-	{
-		return new StationStateData
-		{
-			ObjectId = Data.Definition.Id,
-			TileCoord = Data.TileCoord,
-			ActiveRecipeId = activeRecipe?.ResultItemId,
-			TimeRemaining = timeRemaining,
-			CompletedCount = completedCount,
-			TotalCount = totalCount,
-			IsCrafting = isCrafting,
-			LastUpdateTime = World.WorldTimeSeconds
-		};
-	}
+    public void OnFocusGained()
+    {
+        interactPrompt.ShowIcon();
+    }
 
-	public void RestoreState(StationStateData stateData)
-	{
-		if (!string.IsNullOrEmpty(stateData.ActiveRecipeId))
-		{
-			activeRecipe = CraftingRegistry.GetRecipeByResultId(stateData.ActiveRecipeId);
-			timeRemaining = stateData.TimeRemaining;
-			completedCount = stateData.CompletedCount;
-			totalCount = stateData.TotalCount;
-			isCrafting = stateData.IsCrafting;
+    public void OnFocusLost()
+    {
+        interactPrompt.HideIcon();
+    }
 
-			if (isCrafting)
-				SetProcess(true);
-			else
-				SetProcess(false);
+    public T GetCapability<T>() where T : class
+    {
+        return this as T;
+    }
 
-			double now = World.WorldTimeSeconds;
-			double elapsed = now - stateData.LastUpdateTime;
+    public override void _Ready()
+    {
+        base._Ready();
+        light = GetNode<OmniLight3D>("OmniLight3D");
+        interactPrompt = GetNode<InteractionPrompt>("InteractionPrompt");
+    }
 
-			AdvanceProgress(elapsed);
-		}
-	}
+    private void EndCraft()
+    {
+        IsCrafting = false;
+        timeRemaining = 0f;
+        SetProcess(false);
+        light.Visible = false;
+    }
 
-	private void AdvanceProgress(double elapsed)
-	{
-		if (activeRecipe == null || !isCrafting) return;
+    public override void _Process(double delta)
+    {
+        if (!IsCrafting || activeRecipe == null) return;
 
-		double duration = activeRecipe.CraftTime;
-		float itemsCompleted = (float)(elapsed / duration);
-		if (itemsCompleted <= 0f) return;
+        timeRemaining -= (float)delta;
 
-		int wholeItems = (int)Math.Floor(itemsCompleted);
-		float fractional = (float)(itemsCompleted - wholeItems);
-		completedCount += wholeItems;
-		timeRemaining -= fractional * (float)duration;
-		timeRemaining = Math.Max(0f, timeRemaining);
+        while (timeRemaining <= 0f && CompletedCount < TotalCount)
+        {
+            CompletedCount++;
+            timeRemaining += activeRecipe.CraftTime;
+        }
 
-		if (completedCount >= totalCount)
-		{
-			completedCount = totalCount;
-			timeRemaining = 0f;
-			isCrafting = false;
-			SetProcess(false);
-		}
-	}
+        if (CompletedCount >= TotalCount)
+            EndCraft();
+    }
+
+    private void AdvanceProgress(double elapsed)
+    {
+        if (activeRecipe == null || !IsCrafting) return;
+
+        double duration = activeRecipe.CraftTime;
+        var itemsCompleted = (float)(elapsed / duration);
+        if (itemsCompleted <= 0f) return;
+
+        var wholeItems = (int)Math.Floor(itemsCompleted);
+        var fractional = itemsCompleted - wholeItems;
+        CompletedCount += wholeItems;
+        timeRemaining -= fractional * (float)duration;
+        timeRemaining = Math.Max(0f, timeRemaining);
+
+        if (CompletedCount < TotalCount) return;
+        CompletedCount = TotalCount;
+        timeRemaining = 0f;
+        IsCrafting = false;
+        SetProcess(false);
+    }
+
+    // Capture/restore state for chunk saving/loading
+    public StationStateData CaptureState()
+    {
+        return new StationStateData
+        {
+            ObjectId = Data.Definition.Id,
+            TileCoord = Data.TileCoord,
+            ActiveRecipeId = activeRecipe?.ResultItemId,
+            TimeRemaining = timeRemaining,
+            CompletedCount = CompletedCount,
+            TotalCount = TotalCount,
+            IsCrafting = IsCrafting,
+            LastUpdateTime = World.WorldTimeSeconds
+        };
+    }
+
+    public void RestoreState(StationStateData stateData)
+    {
+        if (string.IsNullOrEmpty(stateData.ActiveRecipeId)) return;
+
+        activeRecipe = CraftingRegistry.GetRecipeByResultId(stateData.ActiveRecipeId);
+        timeRemaining = stateData.TimeRemaining;
+        CompletedCount = stateData.CompletedCount;
+        TotalCount = stateData.TotalCount;
+        IsCrafting = stateData.IsCrafting;
+
+        var elapsed = World.WorldTimeSeconds - stateData.LastUpdateTime;
+        AdvanceProgress(elapsed);
+
+        SetProcess(IsCrafting);
+        light.Visible = IsCrafting;
+    }
 }

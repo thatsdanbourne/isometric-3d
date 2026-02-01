@@ -1,41 +1,181 @@
-[gd_scene format=3 uid="uid://lj1llqg1bjxs"]
+[gd_scene format=3 uid="uid://bk2wfyjkdompu"]
 
+[ext_resource type="PackedScene" uid="uid://6lkpw6gskqw3" path="res://assets/meshes/campfire/Campfire.glb" id="1_icftp"]
 [ext_resource type="Script" uid="uid://7cu8bawyavvb" path="res://scripts/objects/Campfire.cs" id="1_s0gxx"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/classes/drops/DropEntry.cs" id="2_icftp"]
-[ext_resource type="SpriteFrames" uid="uid://bp6ywedt8kjl1" path="res://assets/sprites/campfire/campfire_frames.tres" id="3_s0gxx"]
+[ext_resource type="Texture2D" uid="uid://b4kw5vweh4a6r" path="res://assets/particles/flame_03_a.png" id="4_4e13r"]
+[ext_resource type="Texture2D" uid="uid://dpinrv3mnffj4" path="res://assets/particles/spotlight_01_a.png" id="4_icftp"]
 
-[sub_resource type="Resource" id="Resource_1b37d"]
+[sub_resource type="Resource" id="Resource_4e13r"]
 script = ExtResource("2_icftp")
 ItemId = "campfire"
 metadata/_custom_type_script = "uid://2hhyer4i1q1g"
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_1b37d"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_hp3ve"]
+size = Vector3(1, 0.3, 1)
 
-[node name="Campfire" type="StaticBody3D" unique_id=181621293]
-transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 0, 0, 0)
+[sub_resource type="Curve" id="Curve_ymemr"]
+_data = [Vector2(0.0049504936, 0), 0.0, 0.0, 0, 0, Vector2(0.15016502, 1), 0.0, 0.0, 0, 0, Vector2(0.5, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_4gy27"]
+curve = SubResource("Curve_ymemr")
+
+[sub_resource type="Gradient" id="Gradient_gwycf"]
+colors = PackedColorArray(0.77970624, 0.77970624, 0.77970624, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_30x4q"]
+gradient = SubResource("Gradient_gwycf")
+
+[sub_resource type="Gradient" id="Gradient_p4e3y"]
+offsets = PackedFloat32Array(0.18518518, 0.73333335)
+colors = PackedColorArray(0.9260749, 0.4366271, 0, 1, 0.8113331, 0.6554126, 0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_g2u2a"]
+gradient = SubResource("Gradient_p4e3y")
+
+[sub_resource type="Curve" id="Curve_f73sd"]
+_limits = [0.0, 4.0, 0.0, 1.0]
+_data = [Vector2(0, 4), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_o83ej"]
+curve = SubResource("Curve_f73sd")
+
+[sub_resource type="Curve" id="Curve_pnddg"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_mki2j"]
+curve = SubResource("Curve_pnddg")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_8nbpa"]
+emission_shape = 1
+emission_sphere_radius = 0.3
+direction = Vector3(0, 1, 0)
+spread = 0.0
+initial_velocity_min = 0.59999996
+initial_velocity_max = 1.0
+angular_velocity_min = -60.000015
+angular_velocity_max = 59.99998
+gravity = Vector3(0, 0, 0)
+scale_min = 0.75
+scale_max = 1.5
+scale_curve = SubResource("CurveTexture_mki2j")
+color_ramp = SubResource("GradientTexture1D_g2u2a")
+color_initial_ramp = SubResource("GradientTexture1D_30x4q")
+alpha_curve = SubResource("CurveTexture_4gy27")
+emission_curve = SubResource("CurveTexture_o83ej")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6te26"]
+transparency = 1
+shading_mode = 0
+diffuse_mode = 2
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("4_4e13r")
+billboard_mode = 3
+billboard_keep_scale = true
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="QuadMesh" id="QuadMesh_gc10d"]
+material = SubResource("StandardMaterial3D_6te26")
+size = Vector2(0.5, 0.5)
+
+[sub_resource type="Curve" id="Curve_4e13r"]
+_data = [Vector2(0.0016501695, 0), 0.0, 0.0, 0, 0, Vector2(0.2557756, 1), 0.0, 0.0, 0, 0, Vector2(0.72112215, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_ymemr"]
+curve = SubResource("Curve_4e13r")
+
+[sub_resource type="Curve" id="Curve_4gy27"]
+_limits = [0.0, 10.0, 0.0, 1.0]
+_data = [Vector2(0, 10), 0.0, 0.0, 0, 0]
+point_count = 1
+
+[sub_resource type="CurveTexture" id="CurveTexture_gwycf"]
+curve = SubResource("Curve_4gy27")
+
+[sub_resource type="Curve" id="Curve_30x4q"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.9917492, 0.27003574), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_p4e3y"]
+curve = SubResource("Curve_30x4q")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_g2u2a"]
+lifetime_randomness = 0.8
+emission_shape = 1
+emission_sphere_radius = 0.07
+direction = Vector3(0, 1, 0)
+spread = 20.0
+initial_velocity_min = 0.59999996
+initial_velocity_max = 1.1999999
+gravity = Vector3(0, 0, 0)
+scale_min = 0.099999994
+scale_max = 0.19999999
+scale_curve = SubResource("CurveTexture_p4e3y")
+color = Color(1, 1, 0.39732322, 1)
+alpha_curve = SubResource("CurveTexture_ymemr")
+emission_curve = SubResource("CurveTexture_gwycf")
+turbulence_enabled = true
+turbulence_noise_strength = 2.0
+turbulence_noise_scale = 2.0
+turbulence_influence_min = 0.0
+turbulence_influence_max = 0.010000001
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_f73sd"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("4_icftp")
+billboard_mode = 3
+billboard_keep_scale = true
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="QuadMesh" id="QuadMesh_o83ej"]
+material = SubResource("StandardMaterial3D_f73sd")
+size = Vector2(0.5, 0.5)
+
+[node name="Campfire" unique_id=1569149356 instance=ExtResource("1_icftp")]
 script = ExtResource("1_s0gxx")
-DropItems = Array[ExtResource("2_icftp")]([SubResource("Resource_1b37d")])
-ObjectType = "campfire"
+ObjectType = "wood"
+DropItems = Array[ExtResource("2_icftp")]([SubResource("Resource_4e13r")])
 
-[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="." unique_id=2120273423]
-offset = Vector2(0, 16)
-pixel_size = 0.05
-billboard = 2
-shaded = true
-texture_filter = 0
-sprite_frames = ExtResource("3_s0gxx")
-autoplay = "default"
-frame_progress = 0.838161
+[node name="RootNode" parent="." index="0" unique_id=537431130]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
 
-[node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=1173773789]
-transform = Transform3D(1.0000001, 0, 0, 0, 1, 0, 0, 0, 1.0000001, 0.030252548, 0.57469296, 0.06758467)
+[node name="StaticBody3D" type="StaticBody3D" parent="." index="1" unique_id=233947942]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" index="0" unique_id=590293689]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("BoxShape3D_hp3ve")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="." index="2" unique_id=1124962011]
+transform = Transform3D(0.9991885, 0.03178995, -0.024734369, -0.03076821, 0.9986997, 0.04064698, 0.025994373, -0.039852966, 0.9988674, 0.03, 0.580209, 0.018185869)
 light_color = Color(1, 0.85915905, 0, 1)
 shadow_enabled = true
-shadow_transmittance_bias = -14.827
 shadow_opacity = 0.75
 shadow_blur = 0.0
 omni_range = 20.0
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1697587708]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-shape = SubResource("BoxShape3D_1b37d")
+[node name="Flame" type="Node3D" parent="." index="3" unique_id=938221680]
+
+[node name="Flame" type="GPUParticles3D" parent="Flame" index="0" unique_id=1508778557]
+amount = 32
+lifetime = 2.0
+fixed_fps = 60
+process_material = SubResource("ParticleProcessMaterial_8nbpa")
+draw_pass_1 = SubResource("QuadMesh_gc10d")
+
+[node name="Embers" type="GPUParticles3D" parent="Flame" index="1" unique_id=1379812235]
+amount = 18
+lifetime = 3.0
+explosiveness = 0.2
+fixed_fps = 60
+process_material = SubResource("ParticleProcessMaterial_g2u2a")
+draw_pass_1 = SubResource("QuadMesh_o83ej")

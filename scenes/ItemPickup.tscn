@@ -5,6 +5,8 @@
 [sub_resource type="SphereShape3D" id="SphereShape3D_a0vs4"]
 radius = 1.0
 
+[sub_resource type="QuadMesh" id="QuadMesh_1m3bo"]
+
 [node name="ItemPickup" type="Node3D" unique_id=30275017]
 script = ExtResource("1_a0vs4")
 
@@ -13,9 +15,8 @@ script = ExtResource("1_a0vs4")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=1524652562]
 shape = SubResource("SphereShape3D_a0vs4")
 
-[node name="Sprite3D" type="Sprite3D" parent="." unique_id=1387831757]
-pixel_size = 0.05
-billboard = 1
-texture_filter = 0
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1615688279]
+transform = Transform3D(0.70710677, -0.38511795, 0.5930296, 0, 0.83867055, 0.54463905, -0.70710677, -0.38511795, 0.5930296, 0, 0, 0)
+mesh = SubResource("QuadMesh_1m3bo")
 
 [node name="Shadow" type="Sprite3D" parent="." unique_id=618225450]

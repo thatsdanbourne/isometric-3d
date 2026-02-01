@@ -12,6 +12,7 @@ public partial class World : Node3D
 	[Export] public GridMap GroundMap;
 	[Export] public GridMap WaterMap;
 	[Export] public Node3D PlayerContainer;
+	[Export] public Node3D ItemPickupContainer;
 
 	public Player Player;
 

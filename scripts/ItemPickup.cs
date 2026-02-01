@@ -10,7 +10,7 @@ public partial class ItemPickup : Node3D
 	public int Count = 1;
 
 	private Area3D area;
-	private Sprite3D sprite;
+	private MeshInstance3D meshInstnace;
 	private Sprite3D shadow;
 
 	private const float MagnetSpeedBase = 1f;
@@ -46,14 +46,12 @@ public partial class ItemPickup : Node3D
 	public override void _Ready()
 	{
 		area = GetNode<Area3D>("Area3D");
-		sprite = GetNode<Sprite3D>("Sprite3D");
+		meshInstnace = GetNode<MeshInstance3D>("MeshInstance3D");
 		shadow = GetNode<Sprite3D>("Shadow");
 
 		GlobalPosition += new Vector3(0f, 0.2f, 0f);
 
 		delayTimer = pickupDelay;
-
-		sprite.Texture = Item.Icon;
 
 		if (!MaterialCache.TryGetValue(Item.Icon, out var mat))
 		{
@@ -61,12 +59,12 @@ public partial class ItemPickup : Node3D
 
 			mat.AlbedoTexture = Item.Icon;
 			mat.BillboardMode = BaseMaterial3D.BillboardModeEnum.Enabled;
+			mat.BillboardKeepScale = true;
 			MaterialCache[Item.Icon] = mat;
 		}
 
-		sprite.MaterialOverride = mat;
-		sprite.PixelSize = 0.025f;
-		sprite.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
+		meshInstnace.MaterialOverride = mat;
+		meshInstnace.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
 
 		if (ShadowTex == null)
 			ShadowTex = MakeRadialShadow(128);
@@ -169,14 +167,14 @@ public partial class ItemPickup : Node3D
 		magnetEnabled = true;
 		bouncing = false;
 
-		sprite.Position = sprite.Position.Lerp(
-			new Vector3(sprite.Position.X, 0.4f, sprite.Position.Z),
+		meshInstnace.Position = meshInstnace.Position.Lerp(
+			new Vector3(meshInstnace.Position.X, 0.4f, meshInstnace.Position.Z),
 			0.05f
 		);
 
 		var targetPos = target.GlobalPosition;
 
-		float dist = sprite.GlobalPosition.DistanceTo(targetPos);
+		float dist = meshInstnace.GlobalPosition.DistanceTo(targetPos);
 		float distFactor = Mathf.Clamp(1f - dist / 10f, 0f, 1f);
 		float speed = Mathf.Lerp(MagnetSpeedBase, MagnetSpeedMax, distFactor);
 
@@ -201,19 +199,17 @@ public partial class ItemPickup : Node3D
 		}
 
 		// shrink tween
-		var t = CreateTween().SetParallel();
-		t.TweenProperty(sprite, "pixel_size", 0.001f, 0.1f);
-		t.TweenProperty(shadow, "scale", Vector3.Zero, 0.1f);
+		var t = CreateTween();
+		Vector3 scale = new Vector3(0.01f, 0.01f, 0.01f);
+		t.TweenProperty(meshInstnace, "scale", scale, 0.15f);
 
-		await ToSignal(t, Tween.SignalName.Finished);
-
-		QueueFree();
+		t.Finished += QueueFree;
 	}
 
 	private void UpdateSpriteOffset()
 	{
-		var p = sprite.Position;
-		sprite.Position = new Vector3(p.X, verticalHeight + 0.4f, p.Z);
+		var p = meshInstnace.Position;
+		meshInstnace.Position = new Vector3(p.X, verticalHeight + 0.4f, p.Z);
 	}
 
 	private void UpdateShadowScale()

@@ -6,7 +6,7 @@ public static class WorldObjectRegistry
 	private static Dictionary<string, WorldObjectDefinition> _defs = new();
 
 	public static void Register(string id, PackedScene scene, float MaxHealth = 10, ToolTier ToolTier = ToolTier.Fist,
-		bool blocksTile = true, bool canBeBroken = true, bool isDecor = false, bool is3D = false
+		bool blocksTile = true, bool canBeBroken = true, bool isDecor = false
 	)
 	{
 		_defs[id] = new WorldObjectDefinition
@@ -18,7 +18,6 @@ public static class WorldObjectRegistry
 			BlocksTile = blocksTile,
 			CanBeBroken = canBeBroken,
 			IsDecor = isDecor,
-			Is3D = is3D
 		};
 	}
 
@@ -42,16 +41,16 @@ public static class WorldObjectRegistry
 
 	public static void RegisterDefaults()
 	{
-		Register("tree_oak", GD.Load<PackedScene>("res://scenes/terrain/objects/TreeOak.tscn"), is3D: true);
-		Register("tree_birch", GD.Load<PackedScene>("res://scenes/terrain/objects/TreeBirch.tscn"), is3D: true);
-		Register("tree_pine", GD.Load<PackedScene>("res://scenes/terrain/objects/TreePine.tscn"), is3D: true);
-		Register("rock", GD.Load<PackedScene>("res://scenes/terrain/objects/Rock.tscn"), 15f, is3D: true);
-		Register("rock_coal", GD.Load<PackedScene>("res://scenes/terrain/objects/RockCoalOre.tscn"), 18f, is3D: true);
-		Register("rock_copper", GD.Load<PackedScene>("res://scenes/terrain/objects/RockCopperOre.tscn"), 20f, ToolTier.Stone, is3D: true);
+		Register("tree_oak", GD.Load<PackedScene>("res://scenes/terrain/objects/TreeOak.tscn"));
+		Register("tree_birch", GD.Load<PackedScene>("res://scenes/terrain/objects/TreeBirch.tscn"));
+		Register("tree_pine", GD.Load<PackedScene>("res://scenes/terrain/objects/TreePine.tscn"));
+		Register("rock", GD.Load<PackedScene>("res://scenes/terrain/objects/Rock.tscn"), 15f);
+		Register("rock_coal", GD.Load<PackedScene>("res://scenes/terrain/objects/RockCoalOre.tscn"), 18f);
+		Register("rock_copper", GD.Load<PackedScene>("res://scenes/terrain/objects/RockCopperOre.tscn"), 20f, ToolTier.Stone);
 		Register("campfire", GD.Load<PackedScene>("res://scenes/placeables/Campfire.tscn"));
 		Register("crafting_table", GD.Load<PackedScene>("res://scenes/placeables/CraftingTable.tscn"));
 		Register("kiln", GD.Load<PackedScene>("res://scenes/placeables/Kiln.tscn"));
-		Register("chest", GD.Load<PackedScene>("res://scenes/placeables/ChestOne.tscn"), is3D: true);
+		Register("chest", GD.Load<PackedScene>("res://scenes/placeables/ChestOne.tscn"));
 	}
 }
 
@@ -64,5 +63,4 @@ public class WorldObjectDefinition
 	public bool BlocksTile = true;
 	public bool CanBeBroken = true;
 	public bool IsDecor = false;
-	public bool Is3D = false;
 }

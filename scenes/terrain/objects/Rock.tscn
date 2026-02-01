@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cl45tvxuqnk6"]
 
 [ext_resource type="PackedScene" uid="uid://qd4djx2plpar" path="res://assets/meshes/rock.glb" id="1_xhq0n"]
-[ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/classes/world-gen/terrain/objects/WorldObject3D.cs" id="2_ruplt"]
+[ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/classes/world-gen/terrain/objects/WorldObject.cs" id="2_ruplt"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/classes/drops/DropEntry.cs" id="2_wfj0d"]
 [ext_resource type="Material" uid="uid://bmfptrd5gn133" path="res://resources/materials/Rock.tres" id="4_ruplt"]
 

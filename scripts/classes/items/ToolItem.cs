@@ -14,7 +14,7 @@ public class ToolItem : Item
 
     public void UseOn(Node3D target, Vector3 fromDirection)
     {
-        if (target is WorldObjectBase wo)
+        if (target is WorldObject wo)
         {
             if (wo.RequiredTier > Tier)
             {

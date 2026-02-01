@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://bt4fxaovy8gis" path="res://assets/meshes/chest/DarkTexture.png" id="2_sqmew"]
 [ext_resource type="Script" uid="uid://dwah8xkovnww3" path="res://scripts/objects/Chest.cs" id="2_vbyf3"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/classes/drops/DropEntry.cs" id="3_hh243"]
+[ext_resource type="PackedScene" uid="uid://dfxn8jg5m0gcf" path="res://scenes/ui/HUD/InteractionPrompt.tscn" id="5_n5iw4"]
 
 [sub_resource type="Resource" id="Resource_n5iw4"]
 script = ExtResource("3_hh243")
@@ -17,17 +18,18 @@ albedo_texture = ExtResource("2_sqmew")
 albedo_texture = ExtResource("2_sqmew")
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_sqmew"]
+size = Vector3(0.8, 1, 1.2)
 
-[node name="ChestOne" unique_id=115479365 instance=ExtResource("1_sqmew")]
+[node name="ChestOne" unique_id=73016950 instance=ExtResource("1_sqmew")]
 script = ExtResource("2_vbyf3")
-DropItems = Array[ExtResource("3_hh243")]([SubResource("Resource_n5iw4")])
 ObjectType = "wood"
+DropItems = Array[ExtResource("3_hh243")]([SubResource("Resource_n5iw4")])
 
-[node name="ChestBase" parent="." index="0" unique_id=2143178515]
+[node name="ChestBase" parent="." index="0" unique_id=1890602019]
 transform = Transform3D(99.99756, -0.37080595, -0.59351623, 0.59471613, 0.323457, 99.99772, -0.3688785, -99.998795, 0.32565337, 0, 0, 0)
 surface_material_override/0 = SubResource("StandardMaterial3D_hh243")
 
-[node name="ChestLid" parent="ChestBase" index="0" unique_id=597038881]
+[node name="ChestLid" parent="ChestBase" index="0" unique_id=310835420]
 surface_material_override/0 = SubResource("StandardMaterial3D_n5iw4")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." index="1" unique_id=956853641]
@@ -35,3 +37,6 @@ surface_material_override/0 = SubResource("StandardMaterial3D_n5iw4")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" index="0" unique_id=839816693]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("BoxShape3D_sqmew")
+
+[node name="InteractionPrompt" parent="." index="2" unique_id=401111205 instance=ExtResource("5_n5iw4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6250215, 0)

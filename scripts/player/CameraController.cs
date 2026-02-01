@@ -40,6 +40,10 @@ public partial class CameraController : Node3D
     // ======================
     [Export] public bool EnablePixelSnap = true;
     public Vector2 TexelError = Vector2.Zero;
+    public float TexelSize = 0.0f;
+
+    private Godot.Collections.Array<Node> pickups;
+    private Vector3[] preSnapPos;
 
     private Transform3D snapSpace;
     private Vector3 prevRotation;
@@ -62,6 +66,8 @@ public partial class CameraController : Node3D
 
         prevRotation = GlobalRotation;
         snapSpace = camera.GlobalTransform;
+
+        // RenderingServer.FramePostDraw += SnapRevert;
     }
 
     public override void _Process(double delta)
@@ -183,7 +189,7 @@ public partial class CameraController : Node3D
             snapSpace = camera.GlobalTransform;
         }
 
-        float TexelSize = camera.Size / (camera.GetViewport() as SubViewport).Size.Y;
+        TexelSize = camera.Size / (camera.GetViewport() as SubViewport).Size.Y;
         Vector3 SnapSpacePosition = snapSpace.AffineInverse() * camera.GlobalPosition;
         Vector3 SnappedSpaceSnapPosition = SnapSpacePosition.Snapped(Vector3.One * TexelSize);
         Vector3 SnapError = SnappedSpaceSnapPosition - SnapSpacePosition;
@@ -192,5 +198,33 @@ public partial class CameraController : Node3D
         camera.HOffset = SnapError.X;
         camera.VOffset = SnapError.Y;
         TexelError = new Vector2(SnapError.X, -SnapError.Y) / TexelSize;
+        // SnapPickups();
+    }
+
+    private void SnapPickups()
+    {
+        pickups = GetTree().GetNodesInGroup("item_pickups");
+        preSnapPos = new Vector3[pickups.Count];
+
+        for (int i = 0; i < pickups.Count; i++)
+        {
+            var node = pickups[i] as Node3D;
+            var pos = node.GlobalPosition;
+            preSnapPos[i] = pos;
+            var snapSpacePos = pos * snapSpace;
+            var snapped = snapSpacePos.Snapped(new Vector3(TexelSize, TexelSize, 0.0f));
+            node.GlobalPosition = snapSpace * snapped;
+        }
+    }
+
+    private void SnapRevert()
+    {
+        for (int i = 0; i < pickups.Count; i++)
+        {
+            var node = pickups[i] as Node3D;
+            node.GlobalPosition = preSnapPos[i];
+        }
+
+        pickups.Clear();
     }
 }

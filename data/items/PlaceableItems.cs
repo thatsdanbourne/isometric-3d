@@ -12,7 +12,7 @@ public static class PlaceableItems
             Icon = LoadIcon("campfire"),
             StackSize = 1,
             PlaceableObjectDefinition = WorldObjectRegistry.GetDefinition("campfire"),
-            PreviewFrames = GD.Load<SpriteFrames>("res://assets/sprites/campfire/campfire_frames.tres"),
+            PreviewScene = GD.Load<PackedScene>("res://assets/meshes/campfire/Campfire.glb"),
         });
 
         ItemRegistry.RegisterItem(new PlaceableItem
@@ -23,7 +23,7 @@ public static class PlaceableItems
             Icon = LoadIcon("crafting_table"),
             StackSize = 1,
             PlaceableObjectDefinition = WorldObjectRegistry.GetDefinition("crafting_table"),
-            PreviewTexture = GD.Load<Texture2D>("res://assets/sprites/crafting-table/crafting_table.png"),
+            PreviewScene = GD.Load<PackedScene>("res://assets/meshes/crafting-table/CraftingTable.glb"),
         });
 
         ItemRegistry.RegisterItem(new PlaceableItem
@@ -34,7 +34,7 @@ public static class PlaceableItems
             Icon = LoadIcon("kiln"),
             StackSize = 1,
             PlaceableObjectDefinition = WorldObjectRegistry.GetDefinition("kiln"),
-            PreviewTexture = GD.Load<Texture2D>("res://assets/sprites/kiln/kiln.png"),
+            PreviewScene = GD.Load<PackedScene>("res://assets/meshes/kiln/Kiln.glb"),
         });
 
         ItemRegistry.RegisterItem(new PlaceableItem
@@ -42,10 +42,10 @@ public static class PlaceableItems
             Id = "chest",
             DisplayName = "Chest",
             Description = "A chest for storing items.",
-            Icon = LoadIcon("kiln"),
+            Icon = LoadIcon("chest_one"),
             StackSize = 1,
             PlaceableObjectDefinition = WorldObjectRegistry.GetDefinition("chest"),
-            PreviewTexture = GD.Load<Texture2D>("res://assets/sprites/kiln/kiln.png"),
+            PreviewScene = GD.Load<PackedScene>("res://assets/meshes/chest/ChestOne.fbx"),
         });
     }
 

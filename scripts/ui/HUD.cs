@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 public partial class HUD : CanvasLayer
 {
-	private PackedScene pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
 	public PackedScene slotPanelScene = ResourceLoader.Load<PackedScene>("res://scenes/ui/HUD/ItemContainerSlot.tscn");
 
 	private StyleBoxFlat slotStyle = ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotStyle.tres");
@@ -38,7 +37,7 @@ public partial class HUD : CanvasLayer
 
 	private Player player;
 
-	public bool WindowOpen => inventoryRoot.Visible || craftingUI.Visible;
+	public bool WindowOpen => inventoryRoot.Visible || craftingUI.Visible || storageWindow.Visible;
 	public bool isCraftingOpen => craftingUI.Visible;
 	public bool isInventoryOpen => inventoryRoot.Visible;
 
@@ -86,6 +85,7 @@ public partial class HUD : CanvasLayer
 
 		inventoryRoot.Visible = false;
 		craftingUI.Visible = false;
+		storageWindow.Visible = false;
 
 		RefreshUI();
 	}

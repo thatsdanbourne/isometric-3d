@@ -10,7 +10,7 @@ public partial class ChunkObject : RefCounted
     public ChunkObjectSource Source;
 
     // runtime
-    public WorldObjectBase RuntimeNode;
+    public WorldObject RuntimeNode;
     public bool MarkedForRemoval;
 }
 

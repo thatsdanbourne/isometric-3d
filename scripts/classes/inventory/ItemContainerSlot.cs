@@ -140,10 +140,11 @@ public partial class ItemContainerSlot : PanelContainer
 
 		if (holdProgressBar != null)
 		{
-			float raw = (float)(holdProgress / HoldDuration);
-			float pct = 1f - Mathf.Pow(1f - raw, 3);
+			float raw = (float)(holdProgress / HoldDuration) * 100f;
+			// float pct = 1f - Mathf.Pow(1f - raw, 3);
+			// holdProgressBar.Value = Mathf.Clamp(pct * 100f, 0, 100f);
 			holdProgressBar.Visible = true;
-			holdProgressBar.Value = Mathf.Clamp(pct * 100f, 0, 100f);
+			holdProgressBar.Value = raw;
 		}
 
 		if (holdProgress >= HoldDuration)

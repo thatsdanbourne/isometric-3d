@@ -10,7 +10,7 @@ public partial class WorldObjectManager : Node
     private readonly Queue<ChunkObject> activeSpawnQueue = new();
     private readonly Queue<ChunkObject> removeQueue = new();
 
-    private Dictionary<string, Stack<WorldObjectBase>> pools = new();
+    private Dictionary<string, Stack<WorldObject>> pools = new();
 
     private World _world;
     private RandomNumberGenerator rng;
@@ -59,7 +59,7 @@ public partial class WorldObjectManager : Node
                 pickup.Item = stack.Item;
                 pickup.Count = stack.Count;
 
-                GetParent().AddChild(pickup);
+                _world.ItemPickupContainer.AddChild(pickup);
                 pickup.GlobalPosition = data.Position;
             }
         }
@@ -82,7 +82,7 @@ public partial class WorldObjectManager : Node
 
     private void SpawnDrops(ChunkObject data)
     {
-        if (data.RuntimeNode is not WorldObjectBase wo)
+        if (data.RuntimeNode is not WorldObject wo)
             return;
 
         var drops = wo.DropItems;
@@ -103,7 +103,7 @@ public partial class WorldObjectManager : Node
                 ItemPickup pickup = pickupScene.Instantiate<ItemPickup>();
                 pickup.Item = item;
 
-                GetParent().AddChild(pickup);
+                _world.ItemPickupContainer.AddChild(pickup);
                 pickup.GlobalPosition = data.Position;
             }
         }
@@ -146,13 +146,7 @@ public partial class WorldObjectManager : Node
             if (data.MarkedForRemoval || data.RuntimeNode != null)
                 continue;
 
-            WorldObjectBase node;
-            bool is3D = WorldObjectRegistry.GetDefinition(data.Definition.Id).Is3D;
-
-            if (!is3D)
-                node = WorldObjectRegistry.GetScene(data.Definition.Id).Instantiate<WorldObject>();
-            else
-                node = WorldObjectRegistry.GetScene(data.Definition.Id).Instantiate<WorldObject3D>();
+            WorldObject node = WorldObjectRegistry.GetScene(data.Definition.Id).Instantiate<WorldObject>();
 
             node.Reset();
             node.Data = data;
@@ -215,15 +209,15 @@ public partial class WorldObjectManager : Node
         }
     }
 
-    private WorldObjectBase GetPooled(string sceneId)
+    private WorldObject GetPooled(string sceneId)
     {
         if (pools.TryGetValue(sceneId, out var stack) && stack.Count > 0)
             return stack.Pop();
 
-        return WorldObjectRegistry.GetScene(sceneId).Instantiate<WorldObjectBase>();
+        return WorldObjectRegistry.GetScene(sceneId).Instantiate<WorldObject>();
     }
 
-    private void Recycle(WorldObjectBase node)
+    private void Recycle(WorldObject node)
     {
         // node.Visible = false;
         // node.SetPhysicsProcess(false);

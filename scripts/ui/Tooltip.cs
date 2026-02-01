@@ -17,7 +17,7 @@ public partial class Tooltip : Control
 	private Control hoveredSlot;
 
 	public override void _Ready()
-    {
+	{
 		tooltip = GetNode<Control>("Tooltip");
 		itemName = tooltip.GetNode<Label>("VBoxContainer/Name");
 		damage = tooltip.GetNode<Label>("VBoxContainer/MarginContainer/VBoxContainer/Damage");
@@ -25,25 +25,25 @@ public partial class Tooltip : Control
 
 		tooltip.SizeFlagsHorizontal = SizeFlags.ShrinkBegin;
 		tooltip.Visible = false;
-    }
+	}
 
 	public async void ShowTooltip(Item item, Control slot)
-    {
+	{
 		if (hoveredSlot != slot)
-        {
-            hoveredSlot = slot;
+		{
+			hoveredSlot = slot;
 			waitingToShow = false;
 			fadeTween?.Kill();
 
 			if (isShowing)
-            {
-                FillContent(item);
+			{
+				FillContent(item);
 				PositionTooltip(slot);
 				FadeInInstant();
 				currentSlot = slot;
 				return;
-            }
-        }
+			}
+		}
 
 		waitingToShow = true;
 
@@ -54,7 +54,8 @@ public partial class Tooltip : Control
 		FillContent(item);
 		PositionTooltip(slot);
 
-		FadeIn();
+		// FadeIn();
+		FadeInInstant();
 		currentSlot = slot;
 		isShowing = true;
 		return;
@@ -95,8 +96,8 @@ public partial class Tooltip : Control
 	}
 
 	private void FadeIn()
-    {
-        tooltip.Visible = true;
+	{
+		tooltip.Visible = true;
 		tooltip.Modulate = new Color(1, 1, 1, 0);
 
 		fadeTween = CreateTween();
@@ -109,13 +110,13 @@ public partial class Tooltip : Control
 		tooltip.Position.Y - 5,
 		fadeDuration
 		);
-    }
+	}
 
 	private void FadeInInstant()
-    {
-        tooltip.Visible = true;
+	{
+		tooltip.Visible = true;
 		tooltip.Modulate = new Color(1, 1, 1, 1);
-    }
+	}
 
 	private void FadeOut()
 	{
@@ -125,7 +126,7 @@ public partial class Tooltip : Control
 		fadeTween.TweenProperty(tooltip, "modulate:a", 0f, fadeDuration)
 			.SetTrans(Tween.TransitionType.Cubic)
 			.SetEase(Tween.EaseType.In);
-		
+
 		fadeTween.TweenCallback(Callable.From(() =>
 		{
 			tooltip.Visible = false;
@@ -136,31 +137,37 @@ public partial class Tooltip : Control
 	public void HideTooltip(Control slot = null)
 	{
 		if (hoveredSlot == slot)
-            hoveredSlot = null;
-		
+			hoveredSlot = null;
+
 		if (hoveredSlot != null)
 			return;
-		
+
 		waitingToShow = false;
 
 		if (!isShowing)
 			return;
 
-		fadeTween?.Kill();
-		FadeOut();
-		fadeTween = CreateTween();
+		// fadeTween?.Kill();
+		// FadeOut();
+		// fadeTween = CreateTween();
 
-		fadeTween.TweenProperty(tooltip, "modulate:a", 0f, fadeDuration)
-			.SetTrans(Tween.TransitionType.Cubic)
-			.SetEase(Tween.EaseType.In);
-			
-		fadeTween.TweenCallback(Callable.From(() =>
-		{
-			tooltip.Visible = false;
-			itemName.Text = "";
-			description.Text = "";
-			damage.Text = "";
-		}));
+		// fadeTween.TweenProperty(tooltip, "modulate:a", 0f, fadeDuration)
+		// 	.SetTrans(Tween.TransitionType.Cubic)
+		// 	.SetEase(Tween.EaseType.In);
+
+		// fadeTween.TweenCallback(Callable.From(() =>
+		// {
+		// 	tooltip.Visible = false;
+		// 	itemName.Text = "";
+		// 	description.Text = "";
+		// 	damage.Text = "";
+		// }));
+
+		tooltip.Visible = false;
+		itemName.Text = "";
+		description.Text = "";
+		damage.Text = "";
+		isShowing = false;
 	}
 }
 

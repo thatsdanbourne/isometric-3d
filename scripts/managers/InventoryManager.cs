@@ -5,9 +5,12 @@ public partial class InventoryManager : Node
 {
     public static InventoryManager Instance { get; protected set; }
 
+    private World _world;
+
     public override void _Ready()
     {
         Instance = this;
+        _world = GetNode<World>("/root/Game/World");
     }
 
     // add logic
@@ -123,8 +126,7 @@ public partial class InventoryManager : Node
             drop.Item = item;
             drop.Count = amount;
 
-            var world = player.GetParent();
-            world.AddChild(drop);
+            _world.ItemPickupContainer.AddChild(drop);
             drop.GlobalPosition = player.GlobalPosition + new Vector3(0, 1, 0);
         }
     }
@@ -138,7 +140,6 @@ public partial class InventoryManager : Node
         src.SetSlot(si, destStack);
         dest.SetSlot(di, srcStack);
     }
-
 
 
     // inventory shortcut logic

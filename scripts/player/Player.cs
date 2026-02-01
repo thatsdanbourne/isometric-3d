@@ -4,10 +4,14 @@ using System.Runtime.Versioning;
 
 public partial class Player : CharacterBody3D
 {
-    [Signal] public delegate void PlayerReadyEventHandler();
-    [Signal] public delegate void BiomeChangedEventHandler(string newBiome);
+    [Signal]
+    public delegate void PlayerReadyEventHandler();
 
-    private static readonly StandardMaterial3D BaseMaterial = GD.Load<StandardMaterial3D>("res://resources/materials/WorldObjectBase.tres");
+    [Signal]
+    public delegate void BiomeChangedEventHandler(string newBiome);
+
+    private static readonly StandardMaterial3D BaseMaterial =
+        GD.Load<StandardMaterial3D>("res://resources/materials/WorldObjectBase.tres");
 
     private PackedScene cameraControllerScene =
         GD.Load<PackedScene>("res://scenes/player/CameraController.tscn");
@@ -62,7 +66,8 @@ public partial class Player : CharacterBody3D
         CameraController.Player = this;
         GetNode<Display>("/root/Game/Display").SetCameraController(CameraController);
 
-        world.GetNode<Node3D>("SubViewportContainer/SubViewport/WorldObjects").CallDeferred(Node.MethodName.AddChild, CameraController);
+        world.GetNode<Node3D>("SubViewportContainer/SubViewport/WorldObjects")
+            .CallDeferred(Node.MethodName.AddChild, CameraController);
 
         HUD.RefreshUI();
         Hotbar.SelectedSlotChanged += _ => UpdateEquippedItem();
@@ -91,13 +96,12 @@ public partial class Player : CharacterBody3D
             return;
 
         _lastCheckedPosition = GlobalPosition;
-
         CheckBiome();
     }
 
     public void CheckBiome()
     {
-        string biome = world.GetBiomeAtPos(GlobalPosition);
+        var biome = world.GetBiomeAtPos(GlobalPosition);
         if (!string.IsNullOrEmpty(biome) && biome != CurrentBiome)
             OnBiomeChanged(biome);
     }
@@ -107,7 +111,7 @@ public partial class Player : CharacterBody3D
     private void UpdateEquippedItem()
     {
         var stack = Hotbar.GetSlot(Hotbar.SelectedSlot);
-        Item newItem = stack?.Item ?? DefaultTool;
+        var newItem = stack?.Item ?? DefaultTool;
 
         if (newItem == lastEquippedItem)
             return;
@@ -128,17 +132,17 @@ public partial class Player : CharacterBody3D
 
     private void UseActiveTool()
     {
-        ToolItem tool = GetActiveTool();
+        var tool = GetActiveTool();
         if (tool == null) return;
 
         AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, 0.1f);
         // AudioManager.Call("play_random_at", tool.SwingSounds, GlobalPosition, AudioManager.Get("BUS_TOOLS"), 0.1f, -12);
 
         var space = GetWorld3D().DirectSpaceState;
-        Vector3 swingDir = aimDirection;
-        Vector2 faceDir = new Vector2(swingDir.X, swingDir.Z).Normalized();
+        var swingDir = aimDirection;
+        var faceDir = new Vector2(swingDir.X, swingDir.Z).Normalized();
 
-        FacingDir facing = AnimationManager.GetFacingFromInput(faceDir);
+        var facing = AnimationManager.GetFacingFromInput(faceDir);
         lastFacing = facing;
         sprite.Play("idle_" + facing.ToString().ToLower());
 
@@ -157,12 +161,12 @@ public partial class Player : CharacterBody3D
 
             var collider = result["collider"].As<Node>();
 
-            WorldObjectBase worldObject = null;
-            Node current = collider;
+            WorldObject worldObject = null;
+            var current = collider;
 
             while (current != null)
             {
-                if (current is WorldObjectBase wo)
+                if (current is WorldObject wo)
                 {
                     worldObject = wo;
                     break;
@@ -177,8 +181,8 @@ public partial class Player : CharacterBody3D
             worldObject.ObjectHitFailed -= OnHitFailed;
             worldObject.ObjectHitFailed += OnHitFailed;
 
-            Vector3 hitPoint = (Vector3)result["position"];
-            Vector3 hitDir = (worldObject.GlobalPosition - hitPoint).Normalized();
+            var hitPoint = (Vector3)result["position"];
+            var hitDir = (worldObject.GlobalPosition - hitPoint).Normalized();
             tool.UseOn(worldObject, hitDir);
             return;
         }
@@ -192,7 +196,7 @@ public partial class Player : CharacterBody3D
         if (!world.CanPlace(previewTile, currentPlaceable))
             return;
 
-        bool result = world.PlaceItem(previewTile, currentPlaceable);
+        var result = world.PlaceItem(previewTile, currentPlaceable);
         if (result)
         {
             InventoryManager.Instance.RemoveItem(this, currentPlaceable, 1);
@@ -201,13 +205,13 @@ public partial class Player : CharacterBody3D
     }
 
     // event handlers
-    private void OnObjectBroken(WorldObjectBase obj)
+    private void OnObjectBroken(WorldObject obj)
     {
         obj.ObjectBroken -= OnObjectBroken;
         CameraController?.Shake(0.3f, 0.7f);
     }
 
-    private void OnHitFailed(WorldObjectBase obj)
+    private void OnHitFailed(WorldObject obj)
     {
         obj.ObjectHitFailed -= OnHitFailed;
         AudioManager.Instance.PlayAt("hit_fail", obj.GlobalPosition, 0.1f);
@@ -259,24 +263,25 @@ public partial class Player : CharacterBody3D
         }
     }
 
+
     //Movement and tool usage
 
     public override void _PhysicsProcess(double delta)
     {
-        Vector2 inputDir = new Vector2(
+        var inputDir = new Vector2(
             Input.GetActionStrength("move_right") - Input.GetActionStrength("move_left"),
             Input.GetActionStrength("move_down") - Input.GetActionStrength("move_up")
         ).Normalized();
 
         if (inputDir != Vector2.Zero)
         {
-            Vector3 moveVec = new Vector3(inputDir.X, 0, inputDir.Y)
+            var moveVec = new Vector3(inputDir.X, 0, inputDir.Y)
                 .Rotated(Vector3.Up, Mathf.DegToRad(45));
 
             Velocity = moveVec * Speed;
             MoveAndSlide();
 
-            FacingDir facing = AnimationManager.GetFacingFromInput(inputDir);
+            var facing = AnimationManager.GetFacingFromInput(inputDir);
             lastFacing = facing;
             sprite.Play("run_" + facing.ToString().ToLower());
         }
@@ -301,6 +306,17 @@ public partial class Player : CharacterBody3D
                 UseActiveTool();
         }
 
+        if (Input.IsActionPressed("interact"))
+            switch (FocusedInteractable)
+            {
+                case IItemContainer storage:
+                    HUD.OpenStorageUI(storage);
+                    break;
+                case ICraftingStation station:
+                    HUD.OpenCraftingUI(station);
+                    break;
+            }
+
         if (placementMode && placementPreview != null && placementPreview.IsInsideTree())
             UpdatePlacementPreview();
         else
@@ -323,16 +339,16 @@ public partial class Player : CharacterBody3D
         var camera = viewport.GetCamera3D();
         if (camera == null) return aimDirection;
 
-        Vector2 mousePos = viewport.GetMousePosition();
+        var mousePos = viewport.GetMousePosition();
 
-        Vector3 rayOrigin = camera.ProjectRayOrigin(mousePos);
-        Vector3 rayDir = camera.ProjectRayNormal(mousePos);
+        var rayOrigin = camera.ProjectRayOrigin(mousePos);
+        var rayDir = camera.ProjectRayNormal(mousePos);
 
-        float t = (GlobalPosition.Y - rayOrigin.Y) / rayDir.Y;
+        var t = (GlobalPosition.Y - rayOrigin.Y) / rayDir.Y;
         if (t < 0) return aimDirection;
 
-        Vector3 hitPoint = rayOrigin + rayDir * t;
-        Vector3 dir = hitPoint - GlobalPosition;
+        var hitPoint = rayOrigin + rayDir * t;
+        var dir = hitPoint - GlobalPosition;
         dir.Y = 0;
 
         if (dir.LengthSquared() < 0.01f)
@@ -346,12 +362,12 @@ public partial class Player : CharacterBody3D
     private IEnumerable<Vector3> GetHitArcDirections(Vector3 centerDir, float arcDegrees, int rayCount)
     {
         centerDir = centerDir.Rotated(Vector3.Up, Mathf.DegToRad(45)).Normalized();
-        float halfArc = arcDegrees * 0.5f;
-        float step = rayCount > 1 ? arcDegrees / (rayCount - 1) : 0f;
+        var halfArc = arcDegrees * 0.5f;
+        var step = rayCount > 1 ? arcDegrees / (rayCount - 1) : 0f;
 
-        for (int i = 0; i < rayCount; i++)
+        for (var i = 0; i < rayCount; i++)
         {
-            float angle = -halfArc + step * i;
+            var angle = -halfArc + step * i;
             yield return centerDir.Rotated(Vector3.Up, Mathf.DegToRad(angle)).Normalized();
         }
     }
@@ -393,18 +409,15 @@ public partial class Player : CharacterBody3D
         placementPreview = GD.Load<PackedScene>("res://scenes/placeables/PlacementPreview.tscn")
             .Instantiate<PlacementPreview>();
 
-        if (currentPlaceable.IsAnimated)
-            placementPreview.SetAnimatedSprite(currentPlaceable.PreviewFrames);
-        else
-            placementPreview.SetTexture(currentPlaceable.PreviewTexture);
+        placementPreview.SetPreviewScene(currentPlaceable.PreviewScene);
 
         GetTree().CurrentScene.CallDeferred("add_child", placementPreview);
 
-        Camera3D camera = GetViewport().GetCamera3D();
+        var camera = GetViewport().GetCamera3D();
         if (camera == null)
             return;
 
-        placementPreview.SetDeferred("global_position", TileManager.GetMouseTilePosition(camera, 0f));
+        placementPreview.SetDeferred("global_position", TileManager.GetMouseTilePosition(camera));
         placementPreview.CallDeferred("force_update_transform");
     }
 
@@ -413,16 +426,25 @@ public partial class Player : CharacterBody3D
         if (!placementMode || placementPreview == null || !placementPreview.IsInsideTree())
             return;
 
+        if (HUD.WindowOpen)
+        {
+            placementPreview.Visible = false;
+            return;
+        }
+        else
+        {
+            placementPreview.Visible = true;
+        }
 
-        Camera3D camera = GetViewport().GetCamera3D();
+
+        var camera = GetViewport().GetCamera3D();
         if (camera == null)
             return;
 
-        Vector3 mouseTile = TileManager.GetMouseTilePosition(camera, 0f);
-        previewTile = TileManager.WorldToTile(mouseTile);
+        previewTile = TileManager.GetMouseTilePosition(camera);
 
-        placementPreview.GlobalPosition = mouseTile;
-        bool canPlace = world.CanPlace(previewTile, currentPlaceable);
+        placementPreview.GlobalPosition = TileManager.TileToWorld(previewTile);
+        var canPlace = world.CanPlace(previewTile, currentPlaceable);
         placementPreview.SetValid(canPlace);
     }
 
@@ -439,13 +461,13 @@ public partial class Player : CharacterBody3D
 
     private void UpdateFocusedObject()
     {
-        Camera3D camera = GetViewport().GetCamera3D();
+        var camera = GetViewport().GetCamera3D();
         if (camera == null)
             return;
 
-        Vector2 mousePos = GetViewport().GetMousePosition();
-        Vector3 rayOrigin = camera.ProjectRayOrigin(mousePos);
-        Vector3 rayDir = camera.ProjectRayNormal(mousePos);
+        var mousePos = GetViewport().GetMousePosition();
+        var rayOrigin = camera.ProjectRayOrigin(mousePos);
+        var rayDir = camera.ProjectRayNormal(mousePos);
 
         var query = PhysicsRayQueryParameters3D.Create(
             rayOrigin,

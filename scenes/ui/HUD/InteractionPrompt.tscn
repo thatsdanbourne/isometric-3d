@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://dfxn8jg5m0gcf"]
+
+[ext_resource type="Texture2D" uid="uid://cdp66guigpcge" path="res://assets/icons/inputs/mouse_right_outline.png" id="1_c131v"]
+[ext_resource type="Script" uid="uid://8lwiq5a4j0va" path="res://scripts/ui/InteractionPrompt.cs" id="1_vpmcn"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_clq4g"]
+transparency = 1
+shading_mode = 0
+albedo_texture = ExtResource("1_c131v")
+texture_filter = 0
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_vpmcn"]
+material = SubResource("StandardMaterial3D_clq4g")
+
+[node name="InteractionPrompt" type="Node3D" unique_id=401111205]
+script = ExtResource("1_vpmcn")
+
+[node name="InputIcon" type="MeshInstance3D" parent="." unique_id=541625753]
+visible = false
+cast_shadow = 0
+mesh = SubResource("QuadMesh_vpmcn")

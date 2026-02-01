@@ -1,30 +1,56 @@
-using Godot;
-using System;
-
-public partial class CraftingTable : StationObject, ICraftingStation
+public partial class CraftingTable : WorldObject, IInteractable, ICraftingStation
 {
-	public string Label => "Crafting Table";
-	public StationType StationType => StationType.CraftingTable;
+    private InteractionPrompt interactPrompt;
 
-	public bool IsCrafting => false;
-	public bool IsTimed => false;
+    public string Label => "Crafting Table";
+    public StationType StationType => StationType.CraftingTable;
 
-	public int CompletedCount => 0;
-	public int TotalCount => 0;
+    public bool IsCrafting => false;
+    public bool IsTimed => false;
 
-	public CraftingRecipe GetActiveRecipe() => null;
-	public float GetProgress() => 0f;
+    public int CompletedCount => 0;
+    public int TotalCount => 0;
 
-	public void StartCraft(CraftingRecipe recipe, Player player)
-	{
-		if (!CraftingManager.Instance.CanCraft(player, recipe))
-			return;
+    public CraftingRecipe GetActiveRecipe()
+    {
+        return null;
+    }
 
-		CraftingManager.Instance.CraftItem(player, recipe.ResultItemId);
-	}
+    public float GetProgress()
+    {
+        return 0f;
+    }
 
-	public void CollectOutput(Player player)
-	{
-		// No output to collect in a crafting table
-	}
+    public void StartCraft(CraftingRecipe recipe, Player player)
+    {
+        if (!CraftingManager.Instance.CanCraft(player, recipe))
+            return;
+
+        CraftingManager.Instance.CraftItem(player, recipe.ResultItemId);
+    }
+
+    public void CollectOutput(Player player)
+    {
+        // No output to collect in a crafting table
+    }
+
+    public void OnFocusGained()
+    {
+        interactPrompt.ShowIcon();
+    }
+
+    public void OnFocusLost()
+    {
+        interactPrompt.HideIcon();
+    }
+
+    public T GetCapability<T>() where T : class
+    {
+        return this as T;
+    }
+
+    public override void _Ready()
+    {
+        interactPrompt = GetNode<InteractionPrompt>("InteractionPrompt");
+    }
 }

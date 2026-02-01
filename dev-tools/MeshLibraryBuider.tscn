@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://brypl17r56f51"]
+
+[ext_resource type="Script" uid="uid://df6kssmyx37s1" path="res://dev-tools/GroundMeshBuilder.gd" id="1_a4k7o"]
+[ext_resource type="Texture2D" uid="uid://uanpdlofsn3w" path="res://assets/sprites/ground/grass.png" id="2_lo707"]
+[ext_resource type="Script" uid="uid://dkb0ddgbxwe8m" path="res://dev-tools/WaterMeshBuilder.gd" id="3_lo707"]
+[ext_resource type="Texture2D" uid="uid://b0i3w6cdey405" path="res://assets/sprites/ground/water.png" id="4_ts4fe"]
+
+[node name="Node3D" type="Node3D" unique_id=1147436534]
+
+[node name="GroundMesh" type="Node3D" parent="." unique_id=984027528]
+script = ExtResource("1_a4k7o")
+atlas = ExtResource("2_lo707")
+
+[node name="WaterMesh" type="Node3D" parent="." unique_id=1025707858]
+script = ExtResource("3_lo707")
+water_texture = ExtResource("4_ts4fe")
