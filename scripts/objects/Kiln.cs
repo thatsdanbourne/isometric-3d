@@ -1,7 +1,6 @@
-using Godot;
 using System;
 
-public partial class Kiln : StationObject, ICraftingStation, IChunkStateful<StationStateData>
+public partial class Kiln : WorldObject, IInteractable, ICraftingStation, IChunkStateful<StationStateData>
 {
 	public string Label => "Kiln";
 	public StationType StationType => StationType.Kiln;
@@ -139,5 +138,20 @@ public partial class Kiln : StationObject, ICraftingStation, IChunkStateful<Stat
 			isCrafting = false;
 			SetProcess(false);
 		}
+	}
+
+	public void OnFocusGained()
+	{
+		// Show outline or highlight
+	}
+
+	public void OnFocusLost()
+	{
+		// Hide outline or highlight
+	}
+
+	public virtual T GetCapability<T>() where T : class
+	{
+		return this as T;
 	}
 }

@@ -86,6 +86,7 @@ public partial class HUD : CanvasLayer
 
 		inventoryRoot.Visible = false;
 		craftingUI.Visible = false;
+		storageWindow.Visible = false;
 
 		RefreshUI();
 	}

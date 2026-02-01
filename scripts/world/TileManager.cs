@@ -10,17 +10,15 @@ public static class TileManager
     //world <> tile conversions
     public static Vector2I WorldToTile(Vector3 worldPos)
     {
-        int x = Mathf.FloorToInt(worldPos.X / TileSize);
-        int y = Mathf.FloorToInt(worldPos.Z / TileSize);
-        return new Vector2I(x, y);
+        return new Vector2I((int)worldPos.X, (int)worldPos.Z);
     }
 
     public static Vector3 TileToWorld(Vector2I tilePos)
     {
         return new Vector3(
-            (tilePos.X + 0.5f) * TileSize,
+            tilePos.X * TileSize,
             0,
-            (tilePos.Y + 0.5f) * TileSize
+            tilePos.Y * TileSize
         );
     }
 

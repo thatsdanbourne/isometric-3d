@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class CraftingTable : StationObject, ICraftingStation
+public partial class CraftingTable : WorldObject, IInteractable, ICraftingStation
 {
 	public string Label => "Crafting Table";
 	public StationType StationType => StationType.CraftingTable;
@@ -26,5 +26,20 @@ public partial class CraftingTable : StationObject, ICraftingStation
 	public void CollectOutput(Player player)
 	{
 		// No output to collect in a crafting table
+	}
+
+	public void OnFocusGained()
+	{
+		// Show outline or highlight
+	}
+
+	public void OnFocusLost()
+	{
+		// Hide outline or highlight
+	}
+
+	public virtual T GetCapability<T>() where T : class
+	{
+		return this as T;
 	}
 }

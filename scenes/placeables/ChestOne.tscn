@@ -17,17 +17,18 @@ albedo_texture = ExtResource("2_sqmew")
 albedo_texture = ExtResource("2_sqmew")
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_sqmew"]
+size = Vector3(0.8, 1, 1.2)
 
-[node name="ChestOne" unique_id=115479365 instance=ExtResource("1_sqmew")]
+[node name="ChestOne" unique_id=73016950 instance=ExtResource("1_sqmew")]
 script = ExtResource("2_vbyf3")
 DropItems = Array[ExtResource("3_hh243")]([SubResource("Resource_n5iw4")])
 ObjectType = "wood"
 
-[node name="ChestBase" parent="." index="0" unique_id=2143178515]
+[node name="ChestBase" parent="." index="0" unique_id=1890602019]
 transform = Transform3D(99.99756, -0.37080595, -0.59351623, 0.59471613, 0.323457, 99.99772, -0.3688785, -99.998795, 0.32565337, 0, 0, 0)
 surface_material_override/0 = SubResource("StandardMaterial3D_hh243")
 
-[node name="ChestLid" parent="ChestBase" index="0" unique_id=597038881]
+[node name="ChestLid" parent="ChestBase" index="0" unique_id=310835420]
 surface_material_override/0 = SubResource("StandardMaterial3D_n5iw4")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." index="1" unique_id=956853641]

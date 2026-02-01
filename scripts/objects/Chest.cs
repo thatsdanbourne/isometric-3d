@@ -1,6 +1,6 @@
 using Godot;
 
-public partial class Chest : WorldObject3D, IItemContainer, IInteractable, IChunkStateful<StorageStateData>
+public partial class Chest : WorldObject, IItemContainer, IInteractable, IChunkStateful<StorageStateData>
 {
 	private ItemStack[] slots;
 

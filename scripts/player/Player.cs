@@ -157,12 +157,12 @@ public partial class Player : CharacterBody3D
 
             var collider = result["collider"].As<Node>();
 
-            WorldObjectBase worldObject = null;
+            WorldObject worldObject = null;
             Node current = collider;
 
             while (current != null)
             {
-                if (current is WorldObjectBase wo)
+                if (current is WorldObject wo)
                 {
                     worldObject = wo;
                     break;
@@ -201,13 +201,13 @@ public partial class Player : CharacterBody3D
     }
 
     // event handlers
-    private void OnObjectBroken(WorldObjectBase obj)
+    private void OnObjectBroken(WorldObject obj)
     {
         obj.ObjectBroken -= OnObjectBroken;
         CameraController?.Shake(0.3f, 0.7f);
     }
 
-    private void OnHitFailed(WorldObjectBase obj)
+    private void OnHitFailed(WorldObject obj)
     {
         obj.ObjectHitFailed -= OnHitFailed;
         AudioManager.Instance.PlayAt("hit_fail", obj.GlobalPosition, 0.1f);
