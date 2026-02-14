@@ -86,8 +86,10 @@ turbulence_noise_strength = 20.0
 
 [sub_resource type="Environment" id="Environment_1lgw5"]
 ambient_light_source = 2
-ambient_light_sky_contribution = 0.52
+ambient_light_color = Color(0.9946967, 0.9946967, 0.99469656, 1)
+ambient_light_sky_contribution = 0.74
 ssao_radius = 5.0
+fog_enabled = true
 fog_mode = 1
 fog_density = 1.0
 fog_sky_affect = 0.0
@@ -172,10 +174,10 @@ script = ExtResource("7_h1bdy")
 
 [node name="DayNightCycle" type="Node" parent="World" unique_id=2037639005 node_paths=PackedStringArray("Sun", "WorldEnvironment")]
 script = ExtResource("8_nrtoj")
-Sun = NodePath("../Sun")
-WorldEnvironment = NodePath("../WorldEnvironment")
 DayLength = 1200.0
-TimeOfDay = 0.45
+Sun = NodePath("../Sun")
+TimeOfDay = 0.345
+WorldEnvironment = NodePath("../WorldEnvironment")
 
 [node name="WeatherManager" type="Node3D" parent="World" unique_id=1098148997 node_paths=PackedStringArray("ParticleAnchor", "RainParticles", "SnowParticles", "WorldEnvironment")]
 script = ExtResource("15_nthub")

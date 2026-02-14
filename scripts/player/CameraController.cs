@@ -7,27 +7,27 @@ public partial class CameraController : Node3D
     // ======================
     // Follow settings
     // ======================
-    public float FollowResponsiveness = 8.0f;
+    private float followResponsiveness = 8.0f;
 
-    public float DeadzoneRadius = 7.0f;
-    public float SoftDeadzoneExtra = 3.0f;
+    private float deadzoneRadius = 7.0f;
+    private float softDeadzoneExtra = 3.0f;
 
-    public float MaxVelocity = 30.0f;
-    public float Acceleration = 14.0f;
-    public float Deceleration = 20.0f;
+    private float maxVelocity = 30.0f;
+    private float acceleration = 14.0f;
+    private float deceleration = 20.0f;
 
-    public Vector3 CameraOffset = new Vector3(0, 0, 65);
+    private Vector3 cameraOffset = new(0, 0, 65);
 
     private Vector3 camVelocity = Vector3.Zero;
 
     // ======================
     // Zoom settings
     // ======================
-    public float TargetZoom = 30.0f;
-    public float ZoomSpeed = 0.15f;
-    public float MinZoom = 15.0f;
-    public float MaxZoom = 90.0f;
-    public float ZoomSmoothness = 10.0f;
+    private float targetZoom = 30.0f;
+    private float zoomSpeed = 30f;
+    private float minZoom = 15.0f;
+    private float maxZoom = 90.0f;
+    private float zoomSmoothness = 10.0f;
 
     // ======================
     // Shake settings
@@ -40,7 +40,7 @@ public partial class CameraController : Node3D
     // ======================
     [Export] public bool EnablePixelSnap = true;
     public Vector2 TexelError = Vector2.Zero;
-    public float TexelSize = 0.0f;
+    private float texelSize = 0.0f;
 
     private Godot.Collections.Array<Node> pickups;
     private Vector3[] preSnapPos;
@@ -48,21 +48,19 @@ public partial class CameraController : Node3D
     private Transform3D snapSpace;
     private Vector3 prevRotation;
 
-    public Camera3D camera;
+    private Camera3D camera;
 
     public override void _Ready()
     {
         camera = GetNode<Camera3D>("Camera3D");
-        camera.Position = CameraOffset;
+        camera.Position = cameraOffset;
 
         if (Player != null)
-        {
             GlobalPosition = new Vector3(
                 Player.GlobalPosition.X,
                 GlobalPosition.Y,
                 Player.GlobalPosition.Z
             );
-        }
 
         prevRotation = GlobalRotation;
         snapSpace = camera.GlobalTransform;
@@ -72,7 +70,7 @@ public partial class CameraController : Node3D
 
     public override void _Process(double delta)
     {
-        float d = (float)delta;
+        var d = (float)delta;
         UpdateFollow(d);
         ApplyPixelSnap();
         UpdateZoom(d);
@@ -84,14 +82,14 @@ public partial class CameraController : Node3D
     // ======================
     private void UpdateFollow(float delta)
     {
-        Vector3 camPos = GlobalPosition;
-        Vector3 playerPos = Player.GlobalPosition;
+        var camPos = GlobalPosition;
+        var playerPos = Player.GlobalPosition;
 
-        Vector3 diff = new Vector3(playerPos.X, camPos.Y, playerPos.Z) - camPos;
-        float dist = diff.Length();
+        var diff = new Vector3(playerPos.X, camPos.Y, playerPos.Z) - camPos;
+        var dist = diff.Length();
 
-        float inner = DeadzoneRadius;
-        float outer = DeadzoneRadius + SoftDeadzoneExtra;
+        var inner = deadzoneRadius;
+        var outer = deadzoneRadius + softDeadzoneExtra;
 
         Vector3 desiredVelocity;
 
@@ -101,18 +99,18 @@ public partial class CameraController : Node3D
         }
         else if (dist < outer)
         {
-            float t = (dist - inner) / (outer - inner);
-            float speed = Mathf.Lerp(0f, MaxVelocity * 0.5f, t);
+            var t = (dist - inner) / (outer - inner);
+            var speed = Mathf.Lerp(0f, maxVelocity * 0.5f, t);
             desiredVelocity = diff.Normalized() * speed;
         }
         else
         {
-            desiredVelocity = diff.Normalized() * MaxVelocity;
+            desiredVelocity = diff.Normalized() * maxVelocity;
         }
 
-        float accel = desiredVelocity.Length() > camVelocity.Length()
-            ? Acceleration
-            : Deceleration;
+        var accel = desiredVelocity.Length() > camVelocity.Length()
+            ? acceleration
+            : deceleration;
 
         camVelocity = camVelocity.MoveToward(desiredVelocity, accel * delta);
         GlobalPosition += camVelocity * delta;
@@ -127,20 +125,20 @@ public partial class CameraController : Node3D
     private void UpdateZoom(float delta)
     {
         if (Input.IsActionPressed("zoom_in"))
-            TargetZoom = Mathf.Max(TargetZoom - ZoomSpeed, MinZoom);
+            targetZoom -= zoomSpeed * delta;
         else if (Input.IsActionPressed("zoom_out"))
-            TargetZoom = Mathf.Min(TargetZoom + ZoomSpeed, MaxZoom);
+            targetZoom += zoomSpeed * delta;
 
-        if (camera.Size == TargetZoom)
+        targetZoom = Mathf.Clamp(targetZoom, minZoom, maxZoom);
+
+        if (Mathf.Abs(camera.Size - targetZoom) < 0.001f)
+        {
+            camera.Size = targetZoom;
             return;
+        }
 
-        TargetZoom = Mathf.Clamp(TargetZoom, MinZoom, MaxZoom);
-
-        camera.Size = Mathf.Lerp(
-            camera.Size,
-            TargetZoom,
-            ZoomSmoothness * delta
-        );
+        var t = 1f - Mathf.Exp(-zoomSmoothness * delta);
+        camera.Size = Mathf.Lerp(camera.Size, targetZoom, t);
     }
 
     // ======================
@@ -157,22 +155,19 @@ public partial class CameraController : Node3D
         if (shakeTime > 0f)
         {
             shakeTime -= delta;
-            float currentIntensity = shakeIntensity * (shakeTime / shakeIntensity);
+            var currentIntensity = shakeIntensity * (shakeTime / shakeIntensity);
 
-            float x = (float)GD.RandRange(-currentIntensity, currentIntensity);
-            float y = (float)GD.RandRange(-currentIntensity, currentIntensity);
+            var x = (float)GD.RandRange(-currentIntensity, currentIntensity);
+            var y = (float)GD.RandRange(-currentIntensity, currentIntensity);
 
-            camera.Position = CameraOffset + new Vector3(x, y, 0);
+            camera.Position = cameraOffset + new Vector3(x, y, 0);
         }
         else
         {
-            camera.Position = CameraOffset;
+            camera.Position = cameraOffset;
         }
     }
 
-    // ======================
-    // PIXEL SNAP (THE FIX)
-    // ======================
     private void ApplyPixelSnap()
     {
         if (!EnablePixelSnap)
@@ -189,15 +184,15 @@ public partial class CameraController : Node3D
             snapSpace = camera.GlobalTransform;
         }
 
-        TexelSize = camera.Size / (camera.GetViewport() as SubViewport).Size.Y;
-        Vector3 SnapSpacePosition = snapSpace.AffineInverse() * camera.GlobalPosition;
-        Vector3 SnappedSpaceSnapPosition = SnapSpacePosition.Snapped(Vector3.One * TexelSize);
-        Vector3 SnapError = SnappedSpaceSnapPosition - SnapSpacePosition;
+        texelSize = camera.Size / (camera.GetViewport() as SubViewport).Size.Y;
+        var SnapSpacePosition = snapSpace.AffineInverse() * camera.GlobalPosition;
+        var SnappedSpaceSnapPosition = SnapSpacePosition.Snapped(Vector3.One * texelSize);
+        var SnapError = SnappedSpaceSnapPosition - SnapSpacePosition;
 
         // Apply render offset ONLY
         camera.HOffset = SnapError.X;
         camera.VOffset = SnapError.Y;
-        TexelError = new Vector2(SnapError.X, -SnapError.Y) / TexelSize;
+        TexelError = new Vector2(SnapError.X, -SnapError.Y) / texelSize;
         // SnapPickups();
     }
 
@@ -206,20 +201,20 @@ public partial class CameraController : Node3D
         pickups = GetTree().GetNodesInGroup("item_pickups");
         preSnapPos = new Vector3[pickups.Count];
 
-        for (int i = 0; i < pickups.Count; i++)
+        for (var i = 0; i < pickups.Count; i++)
         {
             var node = pickups[i] as Node3D;
             var pos = node.GlobalPosition;
             preSnapPos[i] = pos;
             var snapSpacePos = pos * snapSpace;
-            var snapped = snapSpacePos.Snapped(new Vector3(TexelSize, TexelSize, 0.0f));
+            var snapped = snapSpacePos.Snapped(new Vector3(texelSize, texelSize, 0.0f));
             node.GlobalPosition = snapSpace * snapped;
         }
     }
 
     private void SnapRevert()
     {
-        for (int i = 0; i < pickups.Count; i++)
+        for (var i = 0; i < pickups.Count; i++)
         {
             var node = pickups[i] as Node3D;
             node.GlobalPosition = preSnapPos[i];

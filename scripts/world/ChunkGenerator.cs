@@ -170,18 +170,17 @@ public partial class ChunkGenerator : Node
 
                         blocked[x, y] = obj.Definition.BlocksTile;
                     }
-            // foreach (DecorSpawnRule decorRule in biome.DecorRules)
-            // {
-            // 	if (decorRule.ShouldPlace(globalX, globalY))
-            // 	{
-            // 		if (blocked[x, y])
-            // 			continue;
-            // 		var dec = new ChunkDecor();
-            // 		dec.DecorRule = decorRule;
-            // 		dec.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
-            // 		decors.Add(dec);
-            // 	}
-            // }
+
+            // foreach (var decorRule in biome.DecorRules)
+            //     if (decorRule.ShouldPlace(globalX, globalY))
+            //     {
+            //         if (blocked[x, y])
+            //             continue;
+            //         var dec = new ChunkDecor();
+            //         dec.DecorRule = decorRule;
+            //         dec.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
+            //         decors.Add(dec);
+            //     }
         }
 
         // build player placed objects
@@ -258,12 +257,12 @@ public partial class ChunkGenerator : Node
         // 	_world.WorldObjects.AddChild(mmi);
         // }
 
-        // foreach (ChunkDecor decor in chunk.Decors)
+        // foreach (var decor in chunk.Decors)
         // {
-        // 	var scene = WorldObjectRegistry.GetDefinition(decor.DecorRule.DecorId).Scene;
-        // 	var instance = scene.Instantiate<WorldDecor>();
-        // 	instance.Position = decor.Position;
-        // 	_world.WorldObjects.AddChild(instance);
+        //     var scene = WorldObjectRegistry.GetDefinition(decor.DecorRule.DecorId).Scene;
+        //     var instance = scene.Instantiate<WorldDecor>();
+        //     instance.Position = decor.Position;
+        //     _world.WorldObjects.AddChild(instance);
         // }
 
         _world.WorldObjectManager.EnqueueChunk(chunk);

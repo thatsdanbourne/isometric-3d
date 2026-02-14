@@ -1,5 +1,5 @@
 using Godot;
-using System;
+
 public partial class WeatherManager : Node
 {
     [Export] public Node3D ParticleAnchor;
@@ -7,30 +7,30 @@ public partial class WeatherManager : Node
     [Export] public GpuParticles2D SnowParticles;
     [Export] public WorldEnvironment WorldEnvironment;
 
-    public WeatherType CurrentWeather = WeatherType.Rain;
-    public float Intensity = 0.5f;
+    private WeatherType currentWeather = WeatherType.Rain;
+    private float currentIntensity = 0.5f;
 
     private WeatherType targetWeather;
-    private float targetIntensity = 0f;
+    private float targetIntensity;
     private float weatherTransitionSpeed = 0.3f;
     private float fadeLerpSpeed = 0.0005f;
 
-    private float weatherTimer = 0f;
+    private float weatherTimer;
     private float nextWeatherChange = 20f;
 
-    private float RainFade = 0f;
-    private float SnowFade = 0f;
+    private float rainFade;
+    private float snowFade;
 
-    public float RainSunDim = 0.75f;
-    public float SnowSunDim = 0.85f;
+    private float rainSunDim = 0.75f;
+    private float snowSunDim = 0.85f;
 
-    public float BaseFog = 0f;
-    public float RainFog = 0.15f;
-    public float SnowFog = 0.25f;
+    private float baseFog;
+    private float rainFog = 0.3f;
+    private float snowFog = 0.5f;
 
-    public float SunlightMultiplier { get; private set; } = 1f;
+    private float SunlightMultiplier { get; set; } = 1f;
 
-    private float currentFog = 0f;
+    private float currentFog;
 
     private string currentBiome = "";
 
@@ -39,7 +39,7 @@ public partial class WeatherManager : Node
 
     public override void _Ready()
     {
-        targetWeather = CurrentWeather;
+        targetWeather = currentWeather;
         rng.Randomize();
 
         UpdateOverlay();
@@ -49,7 +49,7 @@ public partial class WeatherManager : Node
 
     public override void _Process(double delta)
     {
-        float dt = (float)delta;
+        var dt = (float)delta;
 
         weatherTimer += dt;
         if (weatherTimer >= nextWeatherChange)
@@ -61,7 +61,7 @@ public partial class WeatherManager : Node
                 ChooseWeatherForBiome(currentBiome);
         }
 
-        Intensity = Mathf.Lerp(Intensity, targetIntensity, dt * weatherTransitionSpeed);
+        currentIntensity = Mathf.Lerp(currentIntensity, targetIntensity, dt * weatherTransitionSpeed);
 
         UpdateWeather();
         UpdateLightingAndFog(dt);
@@ -80,39 +80,39 @@ public partial class WeatherManager : Node
 
     private void UpdateWeather()
     {
-        float rainTarget =
-            (targetWeather == WeatherType.Rain) ? targetIntensity : 0f;
+        var rainTarget =
+            targetWeather == WeatherType.Rain ? targetIntensity : 0f;
 
-        float snowTarget =
-            (targetWeather == WeatherType.Snow) ? targetIntensity : 0f;
-
-
-        RainFade = Mathf.Lerp(RainFade, rainTarget, fadeLerpSpeed);
-        SnowFade = Mathf.Lerp(SnowFade, snowTarget, fadeLerpSpeed);
+        var snowTarget =
+            targetWeather == WeatherType.Snow ? targetIntensity : 0f;
 
 
-        bool rainActive = RainFade > 0.01f;
+        rainFade = Mathf.Lerp(rainFade, rainTarget, fadeLerpSpeed);
+        snowFade = Mathf.Lerp(snowFade, snowTarget, fadeLerpSpeed);
+
+
+        var rainActive = rainFade > 0.01f;
         RainParticles.Visible = rainActive;
         RainParticles.Emitting = rainActive;
 
-        RainParticles.Modulate = new Color(1, 1, 1, RainFade);
-        RainParticles.AmountRatio = RainFade;
+        RainParticles.Modulate = new Color(1, 1, 1, rainFade);
+        RainParticles.AmountRatio = rainFade;
 
 
-        bool snowActive = SnowFade > 0.01f;
+        var snowActive = snowFade > 0.01f;
         SnowParticles.Visible = snowActive;
         SnowParticles.Emitting = snowActive;
 
-        SnowParticles.Modulate = new Color(1, 1, 1, SnowFade);
-        SnowParticles.AmountRatio = SnowFade;
+        SnowParticles.Modulate = new Color(1, 1, 1, snowFade);
+        SnowParticles.AmountRatio = snowFade;
 
 
-        if (RainFade < 0.02f && SnowFade < 0.02f)
-            CurrentWeather = WeatherType.Clear;
-        else if (RainFade > SnowFade)
-            CurrentWeather = WeatherType.Rain;
+        if (rainFade < 0.02f && snowFade < 0.02f)
+            currentWeather = WeatherType.Clear;
+        else if (rainFade > snowFade)
+            currentWeather = WeatherType.Rain;
         else
-            CurrentWeather = WeatherType.Snow;
+            currentWeather = WeatherType.Snow;
     }
 
     private void UpdateLightingAndFog(float dt)
@@ -122,11 +122,11 @@ public partial class WeatherManager : Node
         switch (targetWeather)
         {
             case WeatherType.Rain:
-                targetMultiplier = Mathf.Lerp(1f, RainSunDim, targetIntensity);
+                targetMultiplier = Mathf.Lerp(1f, rainSunDim, targetIntensity);
                 break;
 
             case WeatherType.Snow:
-                targetMultiplier = Mathf.Lerp(1f, SnowSunDim, targetIntensity);
+                targetMultiplier = Mathf.Lerp(1f, snowSunDim, targetIntensity);
                 break;
 
             case WeatherType.Clear:
@@ -144,16 +144,16 @@ public partial class WeatherManager : Node
         switch (targetWeather)
         {
             case WeatherType.Rain:
-                targetFog = Mathf.Lerp(BaseFog, RainFog, targetIntensity);
+                targetFog = Mathf.Lerp(baseFog, rainFog, targetIntensity);
                 break;
 
             case WeatherType.Snow:
-                targetFog = Mathf.Lerp(BaseFog, SnowFog, targetIntensity);
+                targetFog = Mathf.Lerp(baseFog, snowFog, targetIntensity);
                 break;
 
             case WeatherType.Clear:
             default:
-                targetFog = BaseFog;
+                targetFog = baseFog;
                 break;
         }
 
@@ -163,20 +163,20 @@ public partial class WeatherManager : Node
         env.FogDensity = currentFog;
     }
 
-    public void ChooseWeatherForBiome(string biome)
+    private void ChooseWeatherForBiome(string biome)
     {
         if (!BiomeWeather.Rules.TryGetValue(biome, out var rules))
             return;
 
-        float roll = rng.Randf();
-        float acc = 0f;
+        var roll = rng.Randf();
+        var acc = 0f;
 
         foreach (var (type, chance) in rules)
         {
             acc += chance;
             if (roll <= acc)
             {
-                float newIntensity = rng.RandfRange(0.4f, 1f);
+                var newIntensity = rng.RandfRange(0.4f, 1f);
                 SetWeather(type, newIntensity);
                 GD.Print($"Weather changed to {type} with intensity {newIntensity} in biome {biome}");
                 return;
@@ -184,20 +184,17 @@ public partial class WeatherManager : Node
         }
     }
 
-    public void SetWeather(WeatherType type, float intensity = 1f)
+    private void SetWeather(WeatherType type, float intensity = 1f)
     {
         targetWeather = type;
         targetIntensity = intensity;
-        if (type == WeatherType.Rain)
-            AudioManager.Instance.PlayWeatherAmbience("rain");
-        else
-            AudioManager.Instance.PlayWeatherAmbience(null);
+        AudioManager.Instance.PlayWeatherAmbience(type == WeatherType.Rain ? "rain" : null);
     }
 
     private void UpdateOverlay()
     {
         var viewport = GetViewport();
-        Vector2 size = viewport.GetVisibleRect().Size;
+        var size = viewport.GetVisibleRect().Size;
 
         var mat = (ParticleProcessMaterial)RainParticles.ProcessMaterial;
 

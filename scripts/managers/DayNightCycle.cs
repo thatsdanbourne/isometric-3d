@@ -1,105 +1,105 @@
 using Godot;
-using System.Collections.Generic;
 
 public partial class DayNightCycle : Node
 {
-	[Signal] public delegate void DayStateChangedEventHandler(bool isDaytime);
+    [Signal]
+    public delegate void DayStateChangedEventHandler(bool isDaytime);
 
-	[Export] public DirectionalLight3D Sun;
-	[Export] public WorldEnvironment WorldEnvironment;
+    // Constants
+    private const float MiddayAltitude = -0.5759587f; // DegToRad(-33)
+    private const float AltRange = 0.1745329f; // DegToRad(10)
 
-	private Environment environment;
+    private static readonly Color MidnightColor = new(0.1f, 0.1f, 0.3f);
+    private static readonly Color SunriseColor = new(0.8f, 0.7f, 0.55f);
+    private static readonly Color MiddayColor = new(0.9f, 0.9f, 0.85f);
+    private static readonly Color DuskColor = new(0.7f, 0.4f, 0.3f);
 
-	private readonly Color MIDNIGHT_COLOR = new(0.1f, 0.1f, 0.3f);
-	private readonly Color SUNRISE_COLOR = new(0.8f, 0.7f, 0.55f);
-	private readonly Color MIDDAY_COLOR = new(0.9f, 0.9f, 0.85f);
-	private readonly Color DUSK_COLOR = new(0.7f, 0.4f, 0.3f);
+    private float lastStretch = 999f;
 
-	// Constants
-	private const float MIDDAY_ALTITUDE = -0.5759587f; // DegToRad(-33)
-	private const float ALT_RANGE = 0.1745329f; // DegToRad(10)
-	private float ISOMETRIC_Y_ROTATION = 0.1745329f; // DegToRad(-45f);
+    [Export] public float DayLength = 300.0f;
 
-	[Export] public float DayLength = 300.0f;
-	[Export] public float TimeOfDay = 0.25f;
-	private bool lastDaytimeState = true;
-	public bool isDaytime { get; private set; } = true;
+    private Environment environment;
+    private float isometricYRotation = 0.1745329f; // DegToRad(-45f);
 
-	private float _lastStretch = 999f;
+    private string lastAmbience = "";
+    private bool lastDaytimeState = true;
 
-	private string lastAmbience = "";
+    [Export] public DirectionalLight3D Sun;
+    [Export] public float TimeOfDay = 0.25f;
+    [Export] public WorldEnvironment WorldEnvironment;
+    public bool IsDaytime { get; private set; } = true;
 
-	public override void _Ready()
-	{
-		environment = WorldEnvironment.Environment;
-	}
+    public override void _Ready()
+    {
+        environment = WorldEnvironment.Environment;
+    }
 
-	public override void _Process(double delta)
-	{
-		if (DayLength <= 0f) return;
+    public override void _Process(double delta)
+    {
+        if (DayLength <= 0f) return;
 
-		TimeOfDay = Mathf.PosMod(TimeOfDay + (float)delta / DayLength, 1.0f);
+        TimeOfDay = Mathf.PosMod(TimeOfDay + (float)delta / DayLength, 1.0f);
 
-		isDaytime = TimeOfDay > 0.1f && TimeOfDay < 0.8f;
+        IsDaytime = TimeOfDay is > 0.1f and < 0.8f;
 
-		if (isDaytime != lastDaytimeState)
-		{
-			EmitSignal(SignalName.DayStateChanged, isDaytime);
-			lastDaytimeState = isDaytime;
-		}
+        if (IsDaytime != lastDaytimeState)
+        {
+            EmitSignal(SignalName.DayStateChanged, IsDaytime);
+            lastDaytimeState = IsDaytime;
+        }
 
-		UpdateSun();
-		UpdateEnvironment();
-	}
+        UpdateSun();
+        UpdateEnvironment();
+    }
 
-	public void UpdateSun()
-	{
-		float t = TimeOfDay;
+    public void UpdateSun()
+    {
+        var t = TimeOfDay;
 
-		float yawAngle = Mathf.Lerp(0f, Mathf.Tau, t);
-		var azimuth = yawAngle + ISOMETRIC_Y_ROTATION;
+        var yawAngle = Mathf.Lerp(0f, Mathf.Tau, t);
+        var azimuth = yawAngle + isometricYRotation;
 
-		var altitudeT = Mathf.Sin(t * Mathf.Pi);
-		float altitude = Mathf.Lerp(MIDDAY_ALTITUDE - ALT_RANGE, MIDDAY_ALTITUDE, altitudeT);
+        var altitudeT = Mathf.Sin(t * Mathf.Pi);
+        var altitude = Mathf.Lerp(MiddayAltitude - AltRange, MiddayAltitude, altitudeT);
 
-		Sun.Rotation = new Vector3(altitude, azimuth, 0f);
-	}
+        Sun.Rotation = new Vector3(altitude, azimuth, 0f);
+    }
 
-	private void UpdateEnvironment()
-	{
-		float t = TimeOfDay;
-		float daylight = Mathf.Sin(t * Mathf.Pi);
-		daylight = Mathf.Max(daylight, 0.03f);
+    private void UpdateEnvironment()
+    {
+        var t = TimeOfDay;
+        var daylight = Mathf.Sin(t * Mathf.Pi);
+        daylight = Mathf.Max(daylight, 0.03f);
 
-		Color newColor;
-		float u;
+        Color newColor;
+        float u;
 
-		if (t < 0.25f)
-		{
-			u = t / 0.25f;
-			newColor = MIDNIGHT_COLOR.Lerp(SUNRISE_COLOR, u);
-		}
-		else if (t < 0.5f)
-		{
-			u = (t - 0.25f) / 0.25f;
-			newColor = SUNRISE_COLOR.Lerp(MIDDAY_COLOR, u);
-		}
-		else if (t < 0.75f)
-		{
-			u = (t - 0.5f) / 0.25f;
-			newColor = MIDDAY_COLOR.Lerp(DUSK_COLOR, u);
-		}
-		else
-		{
-			u = (t - 0.75f) / 0.25f;
-			newColor = DUSK_COLOR.Lerp(MIDNIGHT_COLOR, u);
-		}
+        if (t < 0.25f)
+        {
+            u = t / 0.25f;
+            newColor = MidnightColor.Lerp(SunriseColor, u);
+        }
+        else if (t < 0.5f)
+        {
+            u = (t - 0.25f) / 0.25f;
+            newColor = SunriseColor.Lerp(MiddayColor, u);
+        }
+        else if (t < 0.75f)
+        {
+            u = (t - 0.5f) / 0.25f;
+            newColor = MiddayColor.Lerp(DuskColor, u);
+        }
+        else
+        {
+            u = (t - 0.75f) / 0.25f;
+            newColor = DuskColor.Lerp(MidnightColor, u);
+        }
 
-		Sun.LightColor = newColor;
-		Sun.LightEnergy = Mathf.Lerp(0.2f, 1.0f, daylight);
+        Sun.LightColor = newColor;
+        Sun.LightEnergy = Mathf.Lerp(0.2f, 1.0f, daylight);
 
-		float ambient = Mathf.Lerp(0.4f, 1.0f, daylight);
-		environment.AmbientLightColor = newColor.Lerp(Colors.White, 0.01f);
-		environment.AmbientLightEnergy = ambient;
-	}
+        var ambient = Mathf.Lerp(0.1f, 0.4f, daylight);
+        environment.AmbientLightColor = newColor.Lerp(Colors.White, 0.01f);
+        environment.AmbientLightEnergy = ambient;
+    }
 }

@@ -1,14 +1,8 @@
-[gd_scene format=3 uid="uid://6rlupv02gcvl"]
+[gd_scene format=3 uid="uid://cpg6admv5x2vh"]
 
-[ext_resource type="Texture2D" uid="uid://crr0m7p62p7fb" path="res://assets/sprites/terrain/decor/FlowerPoppy.png" id="1_jqawr"]
-[ext_resource type="Script" uid="uid://duds130ujx7s6" path="res://scripts/classes/world-gen/terrain/objects/WorldDecor.cs" id="1_tthm0"]
+[ext_resource type="PackedScene" uid="uid://uly05nerhiw1" path="res://assets/meshes/flowers/Poppy.glb" id="1_jqawr"]
+[ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/classes/world-gen/terrain/objects/WorldObject.cs" id="2_tthm0"]
 
-[node name="FlowerPoppy" type="Node3D" unique_id=399155677]
-transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 0, 0, 0)
-script = ExtResource("1_tthm0")
-
-[node name="Sprite3D" type="Sprite3D" parent="." unique_id=179875044]
-offset = Vector2(0, 16)
-pixel_size = 0.03
-texture_filter = 0
-texture = ExtResource("1_jqawr")
+[node name="FlowerPoppy" unique_id=194147997 instance=ExtResource("1_jqawr")]
+script = ExtResource("2_tthm0")
+ObjectType = "flower"

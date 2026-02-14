@@ -52,7 +52,7 @@ public partial class AudioManager : Node
 
     private void InitPlayers()
     {
-        musicPlayer = new AudioStreamPlayer()
+        musicPlayer = new AudioStreamPlayer
         {
             Bus = BUS_MUSIC,
             VolumeDb = -6,
@@ -72,7 +72,7 @@ public partial class AudioManager : Node
 
     private AudioStreamPlayer CreateAmbientPlayer(string bus)
     {
-        return new AudioStreamPlayer()
+        return new AudioStreamPlayer
         {
             Bus = bus,
             VolumeDb = -80,
@@ -85,7 +85,7 @@ public partial class AudioManager : Node
     {
         pool = new AudioStreamPlayer3D[POOL_SIZE];
 
-        for (int i = 0; i < POOL_SIZE; i++)
+        for (var i = 0; i < POOL_SIZE; i++)
         {
             var p = new AudioStreamPlayer3D
             {
@@ -140,8 +140,8 @@ public partial class AudioManager : Node
     private async void FadeOutTrack(AudioStream track)
     {
         var fadeOutTime = 3.0f;
-        double length = track.GetLength();
-        double fadeStart = Mathf.Max(length - fadeOutTime, 0.1);
+        var length = track.GetLength();
+        var fadeStart = Mathf.Max(length - fadeOutTime, 0.1);
 
         await ToSignal(GetTree().CreateTimer(fadeStart), "timeout");
 
@@ -184,7 +184,7 @@ public partial class AudioManager : Node
         if (!BiomeAmbiances.AmbianceMap.TryGetValue(biome, out var ambience))
             return;
 
-        string key = isDaytime ? ambience.DayAmbianceKey : ambience.NightAmbianceKey;
+        var key = isDaytime ? ambience.DayAmbianceKey : ambience.NightAmbianceKey;
         PlayAmbience(key);
     }
 
@@ -233,7 +233,7 @@ public partial class AudioManager : Node
 
     private void UpdateWeatherVolume(float intensity, float fadeTime)
     {
-        float targetVolume = Mathf.Lerp(weatherMinVolumeDb, weatherMaxVolumeDb, intensity);
+        var targetVolume = Mathf.Lerp(weatherMinVolumeDb, weatherMaxVolumeDb, intensity);
 
         if (weatherTween != null && weatherTween.IsRunning())
             weatherTween.Kill();
@@ -324,7 +324,7 @@ public partial class AudioManager : Node
 
     private void OnBiomeChanged(string biome)
     {
-        bool isDaytime = GameManager.Instance.DayNightCycle.isDaytime;
+        var isDaytime = GameManager.Instance.DayNightCycle.IsDaytime;
         UpdateBiomeAmbience(biome, isDaytime);
     }
 
@@ -332,7 +332,7 @@ public partial class AudioManager : Node
     {
         if (GameManager.Instance.LocalPlayer == null) return;
 
-        string biome = GameManager.Instance.LocalPlayer.CurrentBiome;
+        var biome = GameManager.Instance.LocalPlayer.CurrentBiome;
         UpdateBiomeAmbience(biome, isDaytime);
     }
 }
