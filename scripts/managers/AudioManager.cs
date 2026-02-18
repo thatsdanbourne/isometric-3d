@@ -3,43 +3,43 @@ using Godot;
 public partial class AudioManager : Node
 {
     public static AudioManager Instance;
-    private AudioRegistry audioRegistry;
+    private AudioRegistry _audioRegistry;
 
-    public const string BUS_WORLD = "World";
-    public const string BUS_TOOLS = "Tools";
-    public const string BUS_UI = "UI";
-    public const string BUS_FOOTSTEPS = "Footsteps";
-    public const string BUS_AMBIENCE = "Ambience";
-    public const string BUS_WEATHER = "Weather";
-    public const string BUS_MUSIC = "Music";
+    private const string BusWorld = "World";
+    public const string BusTools = "Tools";
+    public const string BusUI = "UI";
+    public const string BusFootsteps = "Footsteps";
+    private const string BusAmbience = "Ambience";
+    private const string BusWeather = "Weather";
+    private const string BusMusic = "Music";
 
-    private AudioStreamPlayer musicPlayer;
-    private float nextMusicTime;
-    private readonly float musicMinDelay = 60f;
-    private readonly float musicMaxDelay = 180f;
+    private AudioStreamPlayer _musicPlayer;
+    private float _nextMusicTime;
+    private readonly float _musicMinDelay = 60f;
+    private readonly float _musicMaxDelay = 180f;
 
-    private AudioStreamPlayer ambientA;
-    private AudioStreamPlayer ambientB;
-    private AudioStreamPlayer weatherPlayer;
-    private float fadeSpeed = 5f;
-    private string currentAmbient = "";
-    private string currentWeather = "";
-    private float currentIntensity = 0f;
-    private Tween weatherTween;
+    private AudioStreamPlayer _ambientA;
+    private AudioStreamPlayer _ambientB;
+    private AudioStreamPlayer _weatherPlayer;
+    private float _fadeSpeed = 5f;
+    private string _currentAmbient = "";
+    private string _currentWeather = "";
+    private float _currentIntensity;
+    private Tween _weatherTween;
 
-    private float weatherMaxVolumeDb = 0f;
-    private float weatherMinVolumeDb = -10f;
+    private float _weatherMaxVolumeDb;
+    private float _weatherMinVolumeDb = -10f;
 
-    private AudioStreamPlayer3D[] pool;
-    private int poolIndex = 0;
-    private const int POOL_SIZE = 32;
+    private AudioStreamPlayer3D[] _pool;
+    private int _poolIndex;
+    private const int PoolSize = 32;
 
-    private RandomNumberGenerator rng = new();
+    private RandomNumberGenerator _rng = new();
 
     public override void _Ready()
     {
         Instance = this;
-        audioRegistry = new AudioRegistry();
+        _audioRegistry = new AudioRegistry();
 
         InitPlayers();
         InitPool();
@@ -52,22 +52,22 @@ public partial class AudioManager : Node
 
     private void InitPlayers()
     {
-        musicPlayer = new AudioStreamPlayer
+        _musicPlayer = new AudioStreamPlayer
         {
-            Bus = BUS_MUSIC,
+            Bus = BusMusic,
             VolumeDb = -6,
             Autoplay = false
         };
 
-        AddChild(musicPlayer);
+        AddChild(_musicPlayer);
 
-        ambientA = CreateAmbientPlayer(BUS_AMBIENCE);
-        ambientB = CreateAmbientPlayer(BUS_AMBIENCE);
-        weatherPlayer = CreateAmbientPlayer(BUS_WEATHER);
+        _ambientA = CreateAmbientPlayer(BusAmbience);
+        _ambientB = CreateAmbientPlayer(BusAmbience);
+        _weatherPlayer = CreateAmbientPlayer(BusWeather);
 
-        AddChild(ambientA);
-        AddChild(ambientB);
-        AddChild(weatherPlayer);
+        AddChild(_ambientA);
+        AddChild(_ambientB);
+        AddChild(_weatherPlayer);
     }
 
     private AudioStreamPlayer CreateAmbientPlayer(string bus)
@@ -83,13 +83,13 @@ public partial class AudioManager : Node
 
     private void InitPool()
     {
-        pool = new AudioStreamPlayer3D[POOL_SIZE];
+        _pool = new AudioStreamPlayer3D[PoolSize];
 
-        for (var i = 0; i < POOL_SIZE; i++)
+        for (var i = 0; i < PoolSize; i++)
         {
             var p = new AudioStreamPlayer3D
             {
-                Bus = BUS_WORLD,
+                Bus = BusWorld,
                 AttenuationFilterDb = 6,
                 AttenuationModel = AudioStreamPlayer3D.AttenuationModelEnum.Logarithmic,
                 MaxDistance = 40,
@@ -97,16 +97,16 @@ public partial class AudioManager : Node
                 Autoplay = false
             };
 
-            pool[i] = p;
+            _pool[i] = p;
             AddChild(p);
         }
     }
 
     public override void _Process(double delta)
     {
-        nextMusicTime -= (float)delta;
+        _nextMusicTime -= (float)delta;
 
-        if (nextMusicTime <= 0f)
+        if (_nextMusicTime <= 0f)
         {
             StartRandomMusic();
             ScheduleNextMusic();
@@ -117,22 +117,22 @@ public partial class AudioManager : Node
 
     private void ScheduleNextMusic()
     {
-        nextMusicTime = rng.RandfRange(musicMinDelay, musicMaxDelay);
+        _nextMusicTime = _rng.RandfRange(_musicMinDelay, _musicMaxDelay);
     }
 
     private void StartRandomMusic()
     {
-        if (musicPlayer.Playing || audioRegistry.Music.Count == 0)
+        if (_musicPlayer.Playing || _audioRegistry.Music.Count == 0)
             return;
 
-        var track = audioRegistry.Music[rng.RandiRange(0, audioRegistry.Music.Count - 1)];
+        var track = _audioRegistry.Music[_rng.RandiRange(0, _audioRegistry.Music.Count - 1)];
 
-        musicPlayer.Stream = track;
-        musicPlayer.VolumeDb = -40;
-        musicPlayer.Play();
+        _musicPlayer.Stream = track;
+        _musicPlayer.VolumeDb = -40;
+        _musicPlayer.Play();
 
         var tween = CreateTween();
-        tween.TweenProperty(musicPlayer, "volume_db", -6, 3f).SetTrans(Tween.TransitionType.Sine);
+        tween.TweenProperty(_musicPlayer, "volume_db", -6, 3f).SetTrans(Tween.TransitionType.Sine);
 
         FadeOutTrack(track);
     }
@@ -146,40 +146,38 @@ public partial class AudioManager : Node
         await ToSignal(GetTree().CreateTimer(fadeStart), "timeout");
 
         var t = CreateTween();
-        t.TweenProperty(musicPlayer, "volume_db", -40, fadeOutTime).SetTrans(Tween.TransitionType.Sine);
+        t.TweenProperty(_musicPlayer, "volume_db", -40, fadeOutTime).SetTrans(Tween.TransitionType.Sine);
 
         await ToSignal(t, "finished");
-        musicPlayer.Stop();
+        _musicPlayer.Stop();
     }
 
     // Ambience
 
-    public void PlayAmbience(string key, float fadeTime = 8f)
+    private void PlayAmbience(string key, float fadeTime = 8f)
     {
-        if (currentAmbient == key) return;
-        currentAmbient = key;
-        if (!audioRegistry.Ambiance.TryGetValue(key, out var stream)) return;
+        if (_currentAmbient == key) return;
+        _currentAmbient = key;
+        if (!_audioRegistry.Ambiance.TryGetValue(key, out var stream)) return;
 
-        var old = ambientA;
-        ambientA = ambientB;
-        ambientB = old;
+        (_ambientA, _ambientB) = (_ambientB, _ambientA);
 
-        ambientB.Stream = stream;
-        ambientB.VolumeDb = -40f;
-        ambientB.StreamPaused = false;
-        ambientB.Play();
+        _ambientB.Stream = stream;
+        _ambientB.VolumeDb = -40f;
+        _ambientB.StreamPaused = false;
+        _ambientB.Play();
 
         var tween = CreateTween();
-        tween.TweenProperty(ambientA, "volume_db", -40f, fadeTime)
+        tween.TweenProperty(_ambientA, "volume_db", -40f, fadeTime)
             .SetTrans(Tween.TransitionType.Sine)
             .SetEase(Tween.EaseType.InOut);
 
-        tween.Parallel().TweenProperty(ambientB, "volume_db", 0f, fadeTime)
+        tween.Parallel().TweenProperty(_ambientB, "volume_db", 0f, fadeTime)
             .SetTrans(Tween.TransitionType.Sine)
             .SetEase(Tween.EaseType.InOut);
     }
 
-    public void UpdateBiomeAmbience(string biome, bool isDaytime)
+    private void UpdateBiomeAmbience(string biome, bool isDaytime)
     {
         if (!BiomeAmbiances.AmbianceMap.TryGetValue(biome, out var ambience))
             return;
@@ -192,83 +190,83 @@ public partial class AudioManager : Node
 
     public void PlayWeatherAmbience(string key, float intensity = 0f, float fadeTime = 8f)
     {
-        currentIntensity = intensity;
+        _currentIntensity = intensity;
 
         if (string.IsNullOrEmpty(key))
         {
-            if (weatherTween != null && weatherTween.IsRunning())
-                weatherTween.Kill();
+            if (_weatherTween != null && _weatherTween.IsRunning())
+                _weatherTween.Kill();
 
-            weatherTween = CreateTween();
-            weatherTween.TweenProperty(weatherPlayer, "volume_db", -80, fadeTime * 2f)
+            _weatherTween = CreateTween();
+            _weatherTween.TweenProperty(_weatherPlayer, "volume_db", -80, fadeTime * 2f)
                 .SetTrans(Tween.TransitionType.Sine)
                 .SetEase(Tween.EaseType.InOut);
 
-            currentWeather = "";
+            _currentWeather = "";
 
             return;
         }
 
-        if (!audioRegistry.Ambiance.TryGetValue(key, out var stream))
+        if (!_audioRegistry.Ambiance.TryGetValue(key, out var stream))
             return;
 
-        if (currentWeather == key)
+        if (_currentWeather == key)
         {
             UpdateWeatherVolume(intensity, fadeTime * 0.5f);
             return;
         }
 
-        currentWeather = key;
+        _currentWeather = key;
 
-        if (weatherTween != null && weatherTween.IsRunning())
-            weatherTween.Kill();
+        if (_weatherTween != null && _weatherTween.IsRunning())
+            _weatherTween.Kill();
 
-        weatherPlayer.Stream = stream;
-        weatherPlayer.VolumeDb = -80;
-        weatherPlayer.StreamPaused = false;
-        weatherPlayer.Play();
+        _weatherPlayer.Stream = stream;
+        _weatherPlayer.VolumeDb = -80;
+        _weatherPlayer.StreamPaused = false;
+        _weatherPlayer.Play();
 
         UpdateWeatherVolume(intensity, fadeTime);
     }
 
     private void UpdateWeatherVolume(float intensity, float fadeTime)
     {
-        var targetVolume = Mathf.Lerp(weatherMinVolumeDb, weatherMaxVolumeDb, intensity);
+        var targetVolume = Mathf.Lerp(_weatherMinVolumeDb, _weatherMaxVolumeDb, intensity);
 
-        if (weatherTween != null && weatherTween.IsRunning())
-            weatherTween.Kill();
+        if (_weatherTween != null && _weatherTween.IsRunning())
+            _weatherTween.Kill();
 
-        weatherTween = CreateTween();
-        weatherTween.TweenProperty(weatherPlayer, "volume_db", targetVolume, fadeTime)
+        _weatherTween = CreateTween();
+        _weatherTween.TweenProperty(_weatherPlayer, "volume_db", targetVolume, fadeTime)
             .SetTrans(Tween.TransitionType.Sine)
             .SetEase(Tween.EaseType.InOut);
     }
 
     // SFX
 
-    public void PlaySfx(string key, float pitchRange = 0f, float volumeOffsetDb = 0f)
+    private void PlaySfx(string key, float pitchRange = 0f, float volumeOffsetDb = 0f)
     {
-        if (!audioRegistry.Sfx.TryGetValue(key, out var stream))
+        if (!_audioRegistry.Sfx.TryGetValue(key, out var stream))
             return;
 
         var p = new AudioStreamPlayer();
         AddChild(p);
 
-        p.Bus = BUS_WORLD;
+        p.Bus = BusWorld;
         p.Stream = stream;
-        p.PitchScale = 1f + rng.RandfRange(-pitchRange, pitchRange);
+        p.PitchScale = 1f + _rng.RandfRange(-pitchRange, pitchRange);
         p.VolumeDb = volumeOffsetDb;
 
         p.Play();
         p.Finished += p.QueueFree;
     }
 
-    public void PlayVariant(string key)
+    private void PlayVariant(string key)
     {
-        if (!audioRegistry.SfxVariants.TryGetValue(key, out var list))
+        if (!_audioRegistry.SfxVariants.TryGetValue(key, out var list))
             return;
 
-        var sfx = list[rng.RandiRange(0, list.Length - 1)];
+        var sfx = list[_rng.RandiRange(0, list.Length - 1)];
         PlaySfxStream(sfx);
     }
 
@@ -277,7 +275,7 @@ public partial class AudioManager : Node
         var p = new AudioStreamPlayer();
         AddChild(p);
 
-        p.Bus = BUS_WORLD;
+        p.Bus = BusWorld;
         p.Stream = stream;
         p.Play();
         p.Finished += p.QueueFree;
@@ -285,32 +283,32 @@ public partial class AudioManager : Node
 
     public void PlayAt(string key, Vector3 position, float pitchRange = 0.0f)
     {
-        if (!audioRegistry.Sfx.TryGetValue(key, out var stream))
+        if (!_audioRegistry.Sfx.TryGetValue(key, out var stream))
             return;
 
-        var p = pool[poolIndex];
-        poolIndex = (poolIndex + 1) % pool.Length;
+        var p = _pool[_poolIndex];
+        _poolIndex = (_poolIndex + 1) % _pool.Length;
 
         p.Stream = stream;
-        p.PitchScale = 1.0f + rng.RandfRange(-pitchRange, pitchRange);
+        p.PitchScale = 1.0f + _rng.RandfRange(-pitchRange, pitchRange);
         p.GlobalPosition = position;
         p.Play();
     }
 
     public void PlayVariantAt(string key, Vector3 position, float pitchRange = 0.0f)
     {
-        if (!audioRegistry.SfxVariants.TryGetValue(key, out var list) || list.Length == 0)
+        if (!_audioRegistry.SfxVariants.TryGetValue(key, out var list) || list.Length == 0)
             return;
 
         // Pick a random variant
-        var stream = list[rng.RandiRange(0, list.Length - 1)];
+        var stream = list[_rng.RandiRange(0, list.Length - 1)];
 
         // Use the pooled 3D players
-        var p = pool[poolIndex];
-        poolIndex = (poolIndex + 1) % pool.Length;
+        var p = _pool[_poolIndex];
+        _poolIndex = (_poolIndex + 1) % _pool.Length;
 
         p.Stream = stream;
-        p.PitchScale = 1.0f + rng.RandfRange(-pitchRange, pitchRange);
+        p.PitchScale = 1.0f + _rng.RandfRange(-pitchRange, pitchRange);
         p.GlobalPosition = position;
         p.Play();
     }

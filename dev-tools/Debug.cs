@@ -1,4 +1,3 @@
-using System;
 using Godot;
 
 public partial class Debug : CanvasLayer
@@ -18,10 +17,7 @@ public partial class Debug : CanvasLayer
 		positionLabel = GetNode<Label>("MarginContainer/VBoxContainer/Position");
 		biomeLabel = GetNode<Label>("MarginContainer/VBoxContainer/Biome");
 
-		GameManager.Instance.LocalPlayerChanged += (Player p) =>
-		{
-			player = p;
-		};
+		GameManager.Instance.LocalPlayerChanged += (Player p) => { player = p; };
 	}
 
 	public override void _Process(double delta)
@@ -35,10 +31,10 @@ public partial class Debug : CanvasLayer
 
 		fpsLabel.Text = $"{Engine.GetFramesPerSecond()}fps";
 
-		Vector2I p = TileManager.WorldToTile(player.Position);
+		var p = TileManager.WorldToTile(player.Position);
 		positionLabel.Text = $"x: {p.X}, y: {p.Y}";
 
-		string biomeName = player.CurrentBiome;
+		var biomeName = player.CurrentBiome;
 		if (!string.IsNullOrEmpty(biomeName))
 			biomeName = char.ToUpper(biomeName[0]) + biomeName[1..];
 

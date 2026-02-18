@@ -1,4 +1,3 @@
-using Godot;
 using System;
 using System.Collections.Generic;
 
@@ -20,11 +19,11 @@ public class ObjectSpawnRule
 		foreach (var v in Variants)
 			totalWeight += v.Weight;
 
-		int hash = HashCode.Combine(seed, Id, x, y);
-		uint u = (uint)hash;
-		float t = u / (float)uint.MaxValue;
+		var hash = HashCode.Combine(seed, Id, x, y);
+		var u = (uint)hash;
+		var t = u / (float)uint.MaxValue;
 
-		float roll = t * totalWeight;
+		var roll = t * totalWeight;
 
 		foreach (var v in Variants)
 		{

@@ -1,235 +1,233 @@
 using Godot;
-using Microsoft.VisualBasic;
-using System;
 using System.Collections.Generic;
 
 public partial class ItemPickup : Node3D
 {
-    private static readonly Dictionary<Texture2D, StandardMaterial3D> MaterialCache = new();
-    public Item Item;
-    public int Count = 1;
+	private static readonly Dictionary<Texture2D, StandardMaterial3D> MaterialCache = new();
+	public Item Item;
+	public int Count = 1;
 
-    private Area3D area;
-    private MeshInstance3D meshInstnace;
-    private Sprite3D shadow;
+	private Area3D area;
+	private MeshInstance3D meshInstnace;
+	private Sprite3D shadow;
 
-    private const float MagnetSpeedBase = 1f;
-    private const float MagnetSpeedMax = 20f;
+	private const float MagnetSpeedBase = 1f;
+	private const float MagnetSpeedMax = 20f;
 
-    private float pickupDelay = 0.5f;
-    private float delayTimer = 0f;
+	private float pickupDelay = 0.5f;
+	private float delayTimer = 0f;
 
-    private float collectRadius = 0.25f;
+	private float collectRadius = 0.25f;
 
-    private Vector3 velocity = Vector3.Zero;
-    private float verticalHeight = 0f;
-    private float verticalVelocity = 0f;
+	private Vector3 velocity = Vector3.Zero;
+	private float verticalHeight = 0f;
+	private float verticalVelocity = 0f;
 
-    private const float LaunchStrength = 6f;
-    private const float BounceHeight = 1.2f;
+	private const float LaunchStrength = 6f;
+	private const float BounceHeight = 1.2f;
 
-    private float hoverPhase = 0f;
-    private const float HoverAmplitude = 0.15f;
-    private const float HoverSpeed = 3f;
+	private float hoverPhase = 0f;
+	private const float HoverAmplitude = 0.15f;
+	private const float HoverSpeed = 3f;
 
-    private const float DespawnTime = 300f;
-    private float lifeTimer = 0f;
+	private const float DespawnTime = 300f;
+	private float lifeTimer = 0f;
 
-    private CharacterBody3D target;
-    private bool bouncing = true;
-    private bool magnetEnabled = false;
-    private bool collected = false;
+	private CharacterBody3D target;
+	private bool bouncing = true;
+	private bool magnetEnabled = false;
+	private bool collected = false;
 
-    private static readonly Material BaseMat = GD.Load<Material>("res://resources/materials/WorldObjectBase.tres");
-    private static Texture2D ShadowTex;
+	private static readonly Material BaseMat = GD.Load<Material>("res://resources/materials/WorldObjectBase.tres");
+	private static Texture2D ShadowTex;
 
-    public override void _Ready()
-    {
-        area = GetNode<Area3D>("Area3D");
-        meshInstnace = GetNode<MeshInstance3D>("MeshInstance3D");
-        shadow = GetNode<Sprite3D>("Shadow");
+	public override void _Ready()
+	{
+		area = GetNode<Area3D>("Area3D");
+		meshInstnace = GetNode<MeshInstance3D>("MeshInstance3D");
+		shadow = GetNode<Sprite3D>("Shadow");
 
-        GlobalPosition += new Vector3(0f, 0.2f, 0f);
+		GlobalPosition += new Vector3(0f, 0.2f, 0f);
 
-        delayTimer = pickupDelay;
+		delayTimer = pickupDelay;
 
-        if (!MaterialCache.TryGetValue(Item.Icon, out var mat))
-        {
-            mat = (StandardMaterial3D)BaseMat.Duplicate();
+		if (!MaterialCache.TryGetValue(Item.Icon, out var mat))
+		{
+			mat = (StandardMaterial3D)BaseMat.Duplicate();
 
-            mat.AlbedoTexture = Item.Icon;
-            mat.BillboardMode = BaseMaterial3D.BillboardModeEnum.Enabled;
-            mat.BillboardKeepScale = true;
-            MaterialCache[Item.Icon] = mat;
-        }
+			mat.AlbedoTexture = Item.Icon;
+			mat.BillboardMode = BaseMaterial3D.BillboardModeEnum.Enabled;
+			mat.BillboardKeepScale = true;
+			MaterialCache[Item.Icon] = mat;
+		}
 
-        meshInstnace.MaterialOverride = mat;
-        meshInstnace.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
+		meshInstnace.MaterialOverride = mat;
+		meshInstnace.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
 
-        if (ShadowTex == null)
-            ShadowTex = MakeRadialShadow(128);
-        shadow.Texture = ShadowTex;
-        shadow.Position = new Vector3(0f, 0.01f, 0f);
-        shadow.RotationDegrees = new Vector3(-90f, 0f, 0f);
+		if (ShadowTex == null)
+			ShadowTex = MakeRadialShadow(128);
+		shadow.Texture = ShadowTex;
+		shadow.Position = new Vector3(0f, 0.01f, 0f);
+		shadow.RotationDegrees = new Vector3(-90f, 0f, 0f);
 
-        var rng = new RandomNumberGenerator();
-        rng.Randomize();
+		var rng = new RandomNumberGenerator();
+		rng.Randomize();
 
-        var dir = new Vector3(
-            rng.RandfRange(-1f, 1f),
-            0f,
-            rng.RandfRange(-1f, 1f)
-        ).Normalized();
+		var dir = new Vector3(
+			rng.RandfRange(-1f, 1f),
+			0f,
+			rng.RandfRange(-1f, 1f)
+		).Normalized();
 
-        velocity = dir * LaunchStrength;
-        verticalVelocity = BounceHeight * 8f;
+		velocity = dir * LaunchStrength;
+		verticalVelocity = BounceHeight * 8f;
 
-        area.BodyEntered += OnBodyEntered;
-    }
+		area.BodyEntered += OnBodyEntered;
+	}
 
-    private void OnBodyEntered(Node3D body)
-    {
-        if (collected) return;
+	private void OnBodyEntered(Node3D body)
+	{
+		if (collected) return;
 
-        if (delayTimer <= 0 && body is CharacterBody3D character)
-            target = character;
-    }
+		if (delayTimer <= 0 && body is CharacterBody3D character)
+			target = character;
+	}
 
-    public override void _PhysicsProcess(double deltaRaw)
-    {
-        if (collected) return;
+	public override void _PhysicsProcess(double deltaRaw)
+	{
+		if (collected) return;
 
-        var delta = (float)deltaRaw;
+		var delta = (float)deltaRaw;
 
-        lifeTimer += delta;
-        if (lifeTimer >= DespawnTime)
-        {
-            QueueFree();
-            return;
-        }
+		lifeTimer += delta;
+		if (lifeTimer >= DespawnTime)
+		{
+			QueueFree();
+			return;
+		}
 
-        if (bouncing)
-            BounceMotion(delta);
-        else
-            HoverMotion(delta);
+		if (bouncing)
+			BounceMotion(delta);
+		else
+			HoverMotion(delta);
 
-        if (!magnetEnabled)
-        {
-            UpdateSpriteOffset();
-            UpdateShadowScale();
-        }
+		if (!magnetEnabled)
+		{
+			UpdateSpriteOffset();
+			UpdateShadowScale();
+		}
 
-        if (delayTimer > 0)
-        {
-            delayTimer -= delta;
+		if (delayTimer > 0)
+		{
+			delayTimer -= delta;
 
-            if (delayTimer <= 0)
-                foreach (var body in area.GetOverlappingBodies())
-                    if (body is CharacterBody3D character)
-                        target = character;
-        }
+			if (delayTimer <= 0)
+				foreach (var body in area.GetOverlappingBodies())
+					if (body is CharacterBody3D character)
+						target = character;
+		}
 
-        if (target != null)
-        {
-            MagnetToTarget(delta);
-            return;
-        }
-    }
+		if (target != null)
+		{
+			MagnetToTarget(delta);
+			return;
+		}
+	}
 
-    private void BounceMotion(float delta)
-    {
-        GlobalPosition += velocity * delta;
-        velocity = velocity.Lerp(Vector3.Zero, delta * 3f);
+	private void BounceMotion(float delta)
+	{
+		GlobalPosition += velocity * delta;
+		velocity = velocity.Lerp(Vector3.Zero, delta * 3f);
 
-        verticalVelocity -= 20f * delta;
-        verticalHeight += verticalVelocity * delta;
+		verticalVelocity -= 20f * delta;
+		verticalHeight += verticalVelocity * delta;
 
-        if (verticalHeight <= 0f)
-        {
-            verticalHeight = 0f;
-            bouncing = false;
-        }
-    }
+		if (verticalHeight <= 0f)
+		{
+			verticalHeight = 0f;
+			bouncing = false;
+		}
+	}
 
-    private void HoverMotion(float delta)
-    {
-        hoverPhase += delta * HoverSpeed;
-        verticalHeight = Mathf.Sin(hoverPhase) * HoverAmplitude;
-    }
+	private void HoverMotion(float delta)
+	{
+		hoverPhase += delta * HoverSpeed;
+		verticalHeight = Mathf.Sin(hoverPhase) * HoverAmplitude;
+	}
 
-    private void MagnetToTarget(float delta)
-    {
-        magnetEnabled = true;
-        bouncing = false;
+	private void MagnetToTarget(float delta)
+	{
+		magnetEnabled = true;
+		bouncing = false;
 
-        meshInstnace.Position = meshInstnace.Position.Lerp(
-            new Vector3(meshInstnace.Position.X, 0.4f, meshInstnace.Position.Z),
-            0.05f
-        );
+		meshInstnace.Position = meshInstnace.Position.Lerp(
+			new Vector3(meshInstnace.Position.X, 0.4f, meshInstnace.Position.Z),
+			0.05f
+		);
 
-        var targetPos = target.GlobalPosition;
+		var targetPos = target.GlobalPosition;
 
-        var dist = meshInstnace.GlobalPosition.DistanceTo(targetPos);
-        var distFactor = Mathf.Clamp(1f - dist / 10f, 0f, 1f);
-        var speed = Mathf.Lerp(MagnetSpeedBase, MagnetSpeedMax, distFactor);
+		var dist = meshInstnace.GlobalPosition.DistanceTo(targetPos);
+		var distFactor = Mathf.Clamp(1f - dist / 10f, 0f, 1f);
+		var speed = Mathf.Lerp(MagnetSpeedBase, MagnetSpeedMax, distFactor);
 
-        GlobalPosition = GlobalPosition.Lerp(targetPos, speed * delta);
+		GlobalPosition = GlobalPosition.Lerp(targetPos, speed * delta);
 
-        if (GlobalPosition.DistanceTo(targetPos) < collectRadius)
-            Collect();
-    }
+		if (GlobalPosition.DistanceTo(targetPos) < collectRadius)
+			Collect();
+	}
 
-    private void Collect()
-    {
-        if (collected) return;
-        collected = true;
+	private void Collect()
+	{
+		if (collected) return;
+		collected = true;
 
-        area.Monitorable = false;
-        area.Monitoring = false;
+		area.Monitorable = false;
+		area.Monitoring = false;
 
-        if (target is Player p)
-        {
-            p.CollectItem(Item, Count);
-            AudioManager.Instance.PlayAt("pickup_pop", GlobalPosition, 0.1f);
-        }
+		if (target is Player p)
+		{
+			p.CollectItem(Item, Count);
+			AudioManager.Instance.PlayAt("pickup_pop", GlobalPosition, 0.1f);
+		}
 
-        // shrink tween
-        var t = CreateTween();
-        var scale = new Vector3(0.01f, 0.01f, 0.01f);
-        t.TweenProperty(meshInstnace, "scale", scale, 0.15f);
+		// shrink tween
+		var t = CreateTween();
+		var scale = new Vector3(0.01f, 0.01f, 0.01f);
+		t.TweenProperty(meshInstnace, "scale", scale, 0.15f);
 
-        t.Finished += QueueFree;
-    }
+		t.Finished += QueueFree;
+	}
 
-    private void UpdateSpriteOffset()
-    {
-        var p = meshInstnace.Position;
-        meshInstnace.Position = new Vector3(p.X, verticalHeight + 0.4f, p.Z);
-    }
+	private void UpdateSpriteOffset()
+	{
+		var p = meshInstnace.Position;
+		meshInstnace.Position = new Vector3(p.X, verticalHeight + 0.4f, p.Z);
+	}
 
-    private void UpdateShadowScale()
-    {
-        var shadowScale = Mathf.Clamp(1f - verticalHeight * 0.7f, 0.4f, 1f);
-        shadow.Scale = new Vector3(shadowScale, shadowScale, shadowScale);
-    }
+	private void UpdateShadowScale()
+	{
+		var shadowScale = Mathf.Clamp(1f - verticalHeight * 0.7f, 0.4f, 1f);
+		shadow.Scale = new Vector3(shadowScale, shadowScale, shadowScale);
+	}
 
-    private Texture2D MakeRadialShadow(int size)
-    {
-        var img = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
+	private Texture2D MakeRadialShadow(int size)
+	{
+		var img = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
 
-        var half = size / 2f;
+		var half = size / 2f;
 
-        for (var y = 0; y < size; y++)
-        for (var x = 0; x < size; x++)
-        {
-            var dx = (x - half) / half;
-            var dy = (y - half) / half;
-            var d = Mathf.Sqrt(dx * dx + dy * dy);
-            var alpha = Mathf.Clamp(1f - d, 0f, 1f);
+		for (var y = 0; y < size; y++)
+		for (var x = 0; x < size; x++)
+		{
+			var dx = (x - half) / half;
+			var dy = (y - half) / half;
+			var d = Mathf.Sqrt(dx * dx + dy * dy);
+			var alpha = Mathf.Clamp(1f - d, 0f, 1f);
 
-            img.SetPixel(x, y, new Color(0, 0, 0, alpha * 0.5f));
-        }
+			img.SetPixel(x, y, new Color(0, 0, 0, alpha * 0.5f));
+		}
 
-        return ImageTexture.CreateFromImage(img);
-    }
+		return ImageTexture.CreateFromImage(img);
+	}
 }

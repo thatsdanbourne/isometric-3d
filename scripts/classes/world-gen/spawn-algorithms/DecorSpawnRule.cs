@@ -1,5 +1,3 @@
-using Godot;
-
 public class DecorSpawnRule
 {
 	public SpawnAlgorithm Algorithm { get; set; }

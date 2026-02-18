@@ -1,150 +1,130 @@
 using Godot;
 using System.Collections.Generic;
 
-public class ChunkManager
+public class ChunkManager(World world, int chunkSize, int chunkRadius)
 {
-    private readonly World _world;
+	private Dictionary<Vector2I, Chunk> ActiveChunks => world.ActiveChunks;
 
-    public Dictionary<Vector2I, Chunk> ActiveChunks => _world.ActiveChunks;
+	private int ChunkSize { get; set; } = chunkSize;
+	private int ChunkRadius { get; set; } = chunkRadius;
 
-    public int ChunkSize { get; set; }
-    public int ChunkRadius { get; set; }
-
-    public HashSet<Vector2I> PendingInitialChunks = new();
-    public bool InitialChunksReady = false;
-
-    public ChunkManager(World world, int chunkSize, int chunkRadius)
-    {
-        _world = world;
-        ChunkSize = chunkSize;
-        ChunkRadius = chunkRadius;
-    }
+	public readonly HashSet<Vector2I> PendingInitialChunks = new();
+	public bool InitialChunksReady;
 
 
-    public void ForceInitialChunks(Vector3 playerPos)
-    {
-        Vector2I playerChunk = TileManager.WorldToChunk(playerPos);
-        _world.lastPlayerChunk = playerChunk;
+	public void ForceInitialChunks(Vector3 playerPos)
+	{
+		var playerChunk = TileManager.WorldToChunk(playerPos);
+		world.lastPlayerChunk = playerChunk;
 
-        PendingInitialChunks.Clear();
-        InitialChunksReady = false;
+		PendingInitialChunks.Clear();
+		InitialChunksReady = false;
 
-        int r = ChunkRadius;
-        for (int x = -r; x <= r; x++)
-        {
-            for (int y = -r; y <= r; y++)
-            {
-                Vector2I coord = new(playerChunk.X + x, playerChunk.Y + y);
-                PendingInitialChunks.Add(coord);
-            }
-        }
+		var r = ChunkRadius;
+		for (var x = -r; x <= r; x++)
+		for (var y = -r; y <= r; y++)
+		{
+			Vector2I coord = new(playerChunk.X + x, playerChunk.Y + y);
+			PendingInitialChunks.Add(coord);
+		}
 
-        RequestChunksAround(playerChunk);
-    }
+		RequestChunksAround(playerChunk);
+	}
 
-    public void UpdateChunks(Vector3 playerPos)
-    {
-        Vector2I playerChunk = TileManager.WorldToChunk(playerPos);
+	public void UpdateChunks(Vector3 playerPos)
+	{
+		var playerChunk = TileManager.WorldToChunk(playerPos);
 
-        if (playerChunk == _world.lastPlayerChunk)
-            return;
+		if (playerChunk == world.lastPlayerChunk)
+			return;
 
-        _world.lastPlayerChunk = playerChunk;
+		world.lastPlayerChunk = playerChunk;
 
-        RequestChunksAround(playerChunk);
-        UnloadChunksOutside(playerChunk);
-    }
+		RequestChunksAround(playerChunk);
+		UnloadChunksOutside(playerChunk);
+	}
 
-    // chunk loading
+	// chunk loading
 
-    public void RequestChunksAround(Vector2I center)
-    {
-        int r = ChunkRadius;
+	private void RequestChunksAround(Vector2I center)
+	{
+		var r = ChunkRadius;
 
-        for (int x = -r; x <= r; x++)
-        {
-            for (int y = -r; y <= r; y++)
-            {
-                Vector2I coord = new(center.X + x, center.Y + y);
+		for (var x = -r; x <= r; x++)
+		for (var y = -r; y <= r; y++)
+		{
+			Vector2I coord = new(center.X + x, center.Y + y);
 
-                if (!_world.ActiveChunks.ContainsKey(coord))
-                {
-                    _world.ChunkGenerator.RequestBuild(coord);
-                }
-            }
-        }
-    }
+			if (!world.ActiveChunks.ContainsKey(coord)) world.ChunkGenerator.RequestBuild(coord);
+		}
+	}
 
-    // chunk unloading
+	// chunk unloading
 
-    public void UnloadChunksOutside(Vector2I center)
-    {
-        int r = ChunkRadius;
-        List<Vector2I> chunksToUnload = new();
+	private void UnloadChunksOutside(Vector2I center)
+	{
+		var r = ChunkRadius;
+		List<Vector2I> chunksToUnload = new();
 
-        foreach (var kv in ActiveChunks)
-        {
-            Vector2I c = kv.Key;
+		foreach (var kv in ActiveChunks)
+		{
+			var c = kv.Key;
 
-            if (Mathf.Abs(c.X - center.X) > r ||
-                Mathf.Abs(c.Y - center.Y) > r)
-            {
-                chunksToUnload.Add(c);
-            }
-        }
+			if (Mathf.Abs(c.X - center.X) > r ||
+			    Mathf.Abs(c.Y - center.Y) > r)
+				chunksToUnload.Add(c);
+		}
 
-        foreach (var coord in chunksToUnload)
-            RemoveChunk(coord);
-    }
+		foreach (var coord in chunksToUnload)
+			RemoveChunk(coord);
+	}
 
-    public void RemoveChunk(Vector2I coord)
-    {
-        if (!ActiveChunks.TryGetValue(coord, out Chunk chunk))
-            return;
+	private void RemoveChunk(Vector2I coord)
+	{
+		if (!ActiveChunks.TryGetValue(coord, out var chunk))
+			return;
 
-        int C = ChunkSize;
-        int baseX = coord.X * C;
-        int baseY = coord.Y * C;
+		var c = ChunkSize;
+		var baseX = coord.X * c;
+		var baseY = coord.Y * c;
 
-        Vector3I pos = new Vector3I();
+		var pos = new Vector3I();
 
 
-        _world.TryGetChunkDelta(coord, out var delta);
+		world.TryGetChunkDelta(coord, out var delta);
 
-        for (int x = 0; x < C; x++)
-        {
-            for (int y = 0; y < C; y++)
-            {
-                pos.X = baseX + x;
-                pos.Y = 0;
-                pos.Z = baseY + y;
+		for (var x = 0; x < c; x++)
+		for (var y = 0; y < c; y++)
+		{
+			pos.X = baseX + x;
+			pos.Y = 0;
+			pos.Z = baseY + y;
 
-                var tile = chunk.Tiles[x, y];
+			var tile = chunk.Tiles[x, y];
 
-                if (tile.Definition.Name == "water")
-                    _world.WaterMap.SetCellItem(pos, -1);
-                else
-                    _world.GroundMap.SetCellItem(pos, -1);
-            }
-        }
+			if (tile.Definition.Name == "water")
+				world.WaterMap.SetCellItem(pos, -1);
+			else
+				world.GroundMap.SetCellItem(pos, -1);
+		}
 
-        foreach (var obj in chunk.Objects)
-        {
-            if (obj.RuntimeNode is IChunkStateful<StationStateData> station)
-                delta.StationStates[obj.TileCoord] = station.CaptureState();
-            else if (obj.RuntimeNode is IChunkStateful<StorageStateData> storage)
-                delta.StorageStates[obj.TileCoord] = storage.CaptureState();
+		foreach (var obj in chunk.Objects)
+		{
+			if (obj.RuntimeNode is IChunkStateful<StationStateData> station)
+				delta.StationStates[obj.TileCoord] = station.CaptureState();
+			else if (obj.RuntimeNode is IChunkStateful<StorageStateData> storage)
+				delta.StorageStates[obj.TileCoord] = storage.CaptureState();
 
 
-            _world.WorldObjectManager.EnqueueRemoval(obj);
-        }
+			world.WorldObjectManager.EnqueueRemoval(obj);
+		}
 
-        // foreach (var decor in chunk.Decors)
-        // {
-        //     if (decor != null && GodotObject.IsInstanceValid(decor))
-        //         decor.QueueFree();
-        // }
+		// foreach (var decor in chunk.Decors)
+		// {
+		//     if (decor != null && GodotObject.IsInstanceValid(decor))
+		//         decor.QueueFree();
+		// }
 
-        ActiveChunks.Remove(coord);
-    }
+		ActiveChunks.Remove(coord);
+	}
 }

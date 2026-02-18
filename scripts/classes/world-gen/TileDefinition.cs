@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 
-public partial class TileDefinition
+public class TileDefinition
 {
     public string Name;
     public int GridTileId;
     public bool IsWater = false;
 
-    public List<DetailMeshRule> DetailMeshes = new();
+    public readonly List<DetailMeshRule> DetailMeshes = new();
 }

@@ -1,5 +1,3 @@
-using Godot;
-
 public class SpawnVariant
 {
 	public string Id { get; set; }

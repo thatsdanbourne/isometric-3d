@@ -1,42 +1,40 @@
-using System.Collections.Generic;
-
 public interface IItemContainer
 {
-    string Label { get; }
-    int SlotCount { get; }
+	string Label { get; }
+	int SlotCount { get; }
 
-    ItemStack GetSlot(int index);
-    ItemStack[] GetSlots();
-    void SetSlot(int index, ItemStack stack);
+	ItemStack GetSlot(int index);
+	ItemStack[] GetSlots();
+	void SetSlot(int index, ItemStack stack);
 }
 
 public interface IInteractable
 {
-    void OnFocusGained();
-    void OnFocusLost();
+	void OnFocusGained();
+	void OnFocusLost();
 
-    T GetCapability<T>() where T : class;
+	T GetCapability<T>() where T : class;
 }
 
 public interface ICraftingStation
 {
-    string Label { get; }
-    StationType StationType { get; }
+	string Label { get; }
+	StationType StationType { get; }
 
-    bool IsCrafting { get; }
-    bool IsTimed { get; }
+	bool IsCrafting { get; }
+	bool IsTimed { get; }
 
-    int CompletedCount { get; }
-    int TotalCount { get; }
+	int CompletedCount { get; }
+	int TotalCount { get; }
 
-    void StartCraft(CraftingRecipe recipe, Player player);
-    float GetProgress();
-    CraftingRecipe GetActiveRecipe();
-    void CollectOutput(Player player);
+	void StartCraft(CraftingRecipe recipe, Player player);
+	float GetProgress();
+	CraftingRecipe GetActiveRecipe();
+	void CollectOutput(Player player);
 }
 
 public interface IChunkStateful<TState>
 {
-    TState CaptureState();
-    void RestoreState(TState state);
+	TState CaptureState();
+	void RestoreState(TState state);
 }

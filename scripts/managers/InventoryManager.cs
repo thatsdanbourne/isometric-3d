@@ -3,7 +3,7 @@ using System;
 
 public partial class InventoryManager : Node
 {
-    public static InventoryManager Instance { get; protected set; }
+    public static InventoryManager Instance { get; private set; }
 
     private World _world;
 
@@ -19,7 +19,7 @@ public partial class InventoryManager : Node
         var inv = player.Inventory;
         var hotbar = player.Hotbar;
 
-        int remaining = amount;
+        var remaining = amount;
 
         // Try to merge into existing stacks in hotbar first
         remaining = MergeStacks(hotbar, item, remaining);
@@ -43,7 +43,7 @@ public partial class InventoryManager : Node
     // remove logic
     public int RemoveItem(Player player, Item item, int amount)
     {
-        int remaining = RemoveFromContainer(player.Inventory, item, amount);
+        var remaining = RemoveFromContainer(player.Inventory, item, amount);
 
         if (remaining > 0)
             remaining = RemoveFromContainer(player.Hotbar, item, remaining);
@@ -52,21 +52,18 @@ public partial class InventoryManager : Node
 
     }
 
-    public int RemoveFromContainer(IItemContainer container, Item item, int remaining)
+    private int RemoveFromContainer(IItemContainer container, Item item, int remaining)
     {
-        for (int i = 0; i < container.SlotCount && remaining > 0; i++)
+        for (var i = 0; i < container.SlotCount && remaining > 0; i++)
         {
             var stack = container.GetSlot(i);
             if (stack == null || stack.Item != item) continue;
 
-            int remove = Math.Min(stack.Count, remaining);
+            var remove = Math.Min(stack.Count, remaining);
             stack.Count -= remove;
             remaining -= remove;
 
-            if (stack.Count <= 0)
-                container.SetSlot(i, null);
-            else
-                container.SetSlot(i, stack);
+            container.SetSlot(i, stack.Count <= 0 ? null : stack);
         }
 
         return remaining;
@@ -76,15 +73,15 @@ public partial class InventoryManager : Node
     // merge logic
     private int MergeStacks(IItemContainer container, Item item, int remaining)
     {
-        for (int i = 0; i < container.SlotCount && remaining > 0; i++)
+        for (var i = 0; i < container.SlotCount && remaining > 0; i++)
         {
             var slot = container.GetSlot(i);
             if (slot == null || slot.Item != item) continue;
 
-            int space = slot.Item.StackSize - slot.Count;
+            var space = slot.Item.StackSize - slot.Count;
             if (space <= 0) continue;
 
-            int toAdd = Mathf.Min(space, remaining);
+            var toAdd = Mathf.Min(space, remaining);
             slot.Count += toAdd;
             remaining -= toAdd;
 
@@ -98,12 +95,12 @@ public partial class InventoryManager : Node
     // fill empty slots
     private int FillEmptySlots(IItemContainer container, Item item, int remaining)
     {
-        for (int i = 0; i < container.SlotCount && remaining > 0; i++)
+        for (var i = 0; i < container.SlotCount && remaining > 0; i++)
         {
             if (container.GetSlot(i) != null)
                 continue;
 
-            int toAdd = Mathf.Min(item.StackSize, remaining);
+            var toAdd = Mathf.Min(item.StackSize, remaining);
             container.SetSlot(i, new ItemStack(item, toAdd));
             remaining -= toAdd;
         }
@@ -115,14 +112,14 @@ public partial class InventoryManager : Node
     // drop logic
     public void DropItem(Player player, Item item, int remaining)
     {
-        PackedScene itemScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
+        var itemScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
 
         while (remaining > 0)
         {
-            int amount = Mathf.Min(item.StackSize, remaining);
+            var amount = Mathf.Min(item.StackSize, remaining);
             remaining -= amount;
 
-            ItemPickup drop = itemScene.Instantiate<ItemPickup>();
+            var drop = itemScene.Instantiate<ItemPickup>();
             drop.Item = item;
             drop.Count = amount;
 
@@ -163,14 +160,14 @@ public partial class InventoryManager : Node
         }
 
         // merge stacks
-        if (dragged != null && stack != null && dragged.Item == stack.Item)
+        if (dragged != null && dragged.Item == stack.Item)
         {
-            int max = stack.Item.StackSize;
-            int space = max - stack.Count;
+            var max = stack.Item.StackSize;
+            var space = max - stack.Count;
 
             if (space > 0)
             {
-                int move = Math.Min(space, dragged.Count);
+                var move = Math.Min(space, dragged.Count);
                 stack.Count += move;
                 dragged.Count -= move;
 
@@ -182,7 +179,7 @@ public partial class InventoryManager : Node
         }
 
         // swap stacks
-        if (dragged != null && stack != null && dragged.Item != stack.Item)
+        if (dragged != null && dragged.Item != stack.Item)
         {
             container.SetSlot(index, dragged);
             return stack;
@@ -217,9 +214,9 @@ public partial class InventoryManager : Node
         }
 
         // pick up half of the stack
-        if (dragged == null && stack != null)
+        if (stack != null)
         {
-            int half = stack.Count / 2;
+            var half = stack.Count / 2;
             if (half <= 0)
                 return null;
 
@@ -237,7 +234,7 @@ public partial class InventoryManager : Node
             return null;
 
 
-        int remaining = stack.Count;
+        var remaining = stack.Count;
 
 
         foreach (var target in targets)

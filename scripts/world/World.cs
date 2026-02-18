@@ -1,12 +1,11 @@
 using Godot;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
 
 public partial class World : Node3D
 {
-	[Signal] public delegate void WorldReadyEventHandler();
+	[Signal]
+	public delegate void WorldReadyEventHandler();
 
 	[Export] public Node3D WorldObjects;
 	[Export] public GridMap GroundMap;
@@ -18,7 +17,7 @@ public partial class World : Node3D
 
 	public double WorldTimeSeconds;
 
-	public int ChunkSize = 16;
+	public int ChunkSize = TileManager.ChunkSize;
 	public int ChunkRadius = 3;
 
 	public FastNoiseLite TempNoise;
@@ -77,7 +76,6 @@ public partial class World : Node3D
 		};
 
 		GameManager.Instance.SpawnLocalPlayer();
-
 	}
 
 	public override void _ExitTree()
@@ -100,7 +98,7 @@ public partial class World : Node3D
 	{
 		terrainSeed = (int)rng.Randi();
 
-		TempNoise = new FastNoiseLite()
+		TempNoise = new FastNoiseLite
 		{
 			Seed = terrainSeed + 1000,
 			NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
@@ -110,7 +108,7 @@ public partial class World : Node3D
 			FractalLacunarity = 2.0f
 		};
 
-		HumidityNoise = new FastNoiseLite()
+		HumidityNoise = new FastNoiseLite
 		{
 			Seed = terrainSeed + 2000,
 			NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
@@ -120,7 +118,7 @@ public partial class World : Node3D
 			FractalLacunarity = 2.0f
 		};
 
-		RiverNoise = new FastNoiseLite()
+		RiverNoise = new FastNoiseLite
 		{
 			Seed = terrainSeed + 3000,
 			NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
@@ -133,7 +131,7 @@ public partial class World : Node3D
 
 	public void BlockTile(Vector2I tile)
 	{
-		if (blockedTiles.TryGetValue(tile, out int count))
+		if (blockedTiles.TryGetValue(tile, out var count))
 			blockedTiles[tile] = count + 1;
 		else
 			blockedTiles[tile] = 1;
@@ -141,7 +139,7 @@ public partial class World : Node3D
 
 	public void UnblockTile(Vector2I tile)
 	{
-		if (!blockedTiles.TryGetValue(tile, out int count)) return;
+		if (!blockedTiles.TryGetValue(tile, out var count)) return;
 
 		count--;
 
@@ -160,8 +158,8 @@ public partial class World : Node3D
 
 	public bool PlaceItem(Vector2I tile, PlaceableItem item)
 	{
-		Vector3 worldPos = TileManager.TileToWorld(tile);
-		Vector2I chunkCoord = TileManager.WorldToChunk(worldPos);
+		var worldPos = TileManager.TileToWorld(tile);
+		var chunkCoord = TileManager.WorldToChunk(worldPos);
 
 		if (!ActiveChunks.ContainsKey(chunkCoord))
 		{
@@ -171,13 +169,13 @@ public partial class World : Node3D
 
 		var def = item.PlaceableObjectDefinition;
 
-		var chunkObj = new ChunkObject()
+		var chunkObj = new ChunkObject
 		{
 			Definition = def,
 			TileCoord = tile,
 			Position = worldPos,
 			ChunkCoord = chunkCoord,
-			Source = ChunkObjectSource.Placed,
+			Source = ChunkObjectSource.Placed
 		};
 
 		return WorldObjectManager.RequestPlace(chunkObj);
@@ -190,7 +188,7 @@ public partial class World : Node3D
 
 	public ChunkDeltaData GetOrCreateChunkDelta(Vector2I chunkCoord)
 	{
-		if (!ChunkDeltas.TryGetValue(chunkCoord, out ChunkDeltaData delta))
+		if (!ChunkDeltas.TryGetValue(chunkCoord, out var delta))
 		{
 			delta = new ChunkDeltaData();
 			ChunkDeltas[chunkCoord] = delta;
@@ -201,22 +199,22 @@ public partial class World : Node3D
 
 	public string GetBiomeAtPos(Vector3 worldPos)
 	{
-		int tileX = (int)worldPos.X;
-		int tileY = (int)worldPos.Z;
+		var tileX = (int)worldPos.X;
+		var tileY = (int)worldPos.Z;
 
-		int shift = (int)Math.Log2(ChunkSize);
+		var shift = (int)Math.Log2(ChunkSize);
 
-		int cx = tileX >> shift;
-		int cy = tileY >> shift;
+		var cx = tileX >> shift;
+		var cy = tileY >> shift;
 
 		Vector2I chunkCoord = new(cx, cy);
 
-		if (!ActiveChunks.TryGetValue(chunkCoord, out Chunk chunk))
+		if (!ActiveChunks.TryGetValue(chunkCoord, out var chunk))
 			return "";
 
 		// Local tile inside chunk
-		int localX = tileX & (ChunkSize - 1);
-		int localY = tileY & (ChunkSize - 1);
+		var localX = tileX & (ChunkSize - 1);
+		var localY = tileY & (ChunkSize - 1);
 
 		return chunk.Tiles[localX, localY].Biome;
 	}

@@ -10,12 +10,12 @@ public static class AnimationManager
 
     public static FacingDir GetFacingFromInput(Vector2 input)
     {
-        float degrees = Mathf.RadToDeg(Mathf.Atan2(input.X, input.Y));
+        var degrees = Mathf.RadToDeg(Mathf.Atan2(input.X, input.Y));
 
         if (degrees < 0)
             degrees += 360;
 
-        if (degrees >= 337.5f || degrees < 22.5f) return FacingDir.S;
+        if (degrees is >= 337.5f or < 22.5f) return FacingDir.S;
         if (degrees < 67.5f) return FacingDir.SE;
         if (degrees < 112.5f) return FacingDir.E;
         if (degrees < 157.5f) return FacingDir.NE;

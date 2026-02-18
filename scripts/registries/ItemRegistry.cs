@@ -2,20 +2,20 @@ using System.Collections.Generic;
 
 public static class ItemRegistry
 {
-    private static Dictionary<string, Item> _items = new();
+	private static readonly Dictionary<string, Item> Items = new();
 
-    public static void RegisterItem(Item item)
-    {
-        _items[item.Id] = item;
-    }
+	public static void RegisterItem(Item item)
+	{
+		Items[item.Id] = item;
+	}
 
-    public static Item GetItem(string id)
-    {
-        return _items.TryGetValue(id, out var item) ? item : null;
-    }
+	public static Item GetItem(string id)
+	{
+		return Items.GetValueOrDefault(id);
+	}
 
-    public static IEnumerable<Item> GetAllItems()
-    {
-        return _items.Values;
-    }
+	public static IEnumerable<Item> GetAllItems()
+	{
+		return Items.Values;
+	}
 }

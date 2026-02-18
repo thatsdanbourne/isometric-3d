@@ -7,15 +7,19 @@ public partial class RecipeEntry : HBoxContainer
 	[Export] public HBoxContainer IngredientsContainer { get; set; }
 	[Export] public ItemContainerSlot Result { get; set; }
 
-	public List<ItemContainerSlot> IngredientSlots = new();
-	public List<IngredientInfo> Ingredients = new();
+	public readonly List<ItemContainerSlot> IngredientSlots = new();
+	public readonly List<IngredientInfo> Ingredients = new();
 	public CraftingRecipe Recipe { get; private set; }
 
 	public Action<CraftingRecipe> OnCraftRequested;
 
-	public PackedScene containerSlotScene = GD.Load<PackedScene>("res://scenes/ui/HUD/ItemContainerSlot.tscn");
-	public StyleBoxFlat slotDefaultStyle = ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotStyle.tres");
-	public StyleBoxFlat slotHighlightStyle = ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotHighlight.tres");
+	private PackedScene _containerSlotScene = GD.Load<PackedScene>("res://scenes/ui/HUD/ItemContainerSlot.tscn");
+
+	public StyleBoxFlat SlotDefaultStyle =
+		ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotStyle.tres");
+
+	public StyleBoxFlat SlotHighlightStyle =
+		ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotHighlight.tres");
 
 
 	public void SetRecipe(CraftingRecipe r)
@@ -25,11 +29,11 @@ public partial class RecipeEntry : HBoxContainer
 
 		foreach (var ingredient in r.Ingredients)
 		{
-			Item item = ItemRegistry.GetItem(ingredient.Key);
-			int requiredCount = ingredient.Value;
+			var item = ItemRegistry.GetItem(ingredient.Key);
+			var requiredCount = ingredient.Value;
 			Ingredients.Add(new IngredientInfo(item, requiredCount));
 
-			var ingredientSlot = containerSlotScene.Instantiate<ItemContainerSlot>();
+			var ingredientSlot = _containerSlotScene.Instantiate<ItemContainerSlot>();
 			ingredientSlot.SetStack(new ItemStack(item, requiredCount));
 			ingredientSlot.ReadOnly = true;
 
@@ -43,7 +47,7 @@ public partial class RecipeEntry : HBoxContainer
 		}
 
 		Recipe = r;
-		Item recipeResultItem = ItemRegistry.GetItem(r.ResultItemId);
+		var recipeResultItem = ItemRegistry.GetItem(r.ResultItemId);
 
 		var resIcon = Result.GetNode<TextureRect>("Icon");
 		var resCount = Result.GetNode<Label>("Label");
@@ -53,7 +57,7 @@ public partial class RecipeEntry : HBoxContainer
 		Result.SetStack(new ItemStack(recipeResultItem, r.ResultCount));
 		Result.HoldToActivate = true;
 		Result.SlotHoldCompleted += OnCraftHoldCompleted;
-		Result.AddThemeStyleboxOverride("panel", slotHighlightStyle);
+		Result.AddThemeStyleboxOverride("panel", SlotHighlightStyle);
 	}
 
 	private void OnCraftHoldCompleted()
@@ -63,14 +67,8 @@ public partial class RecipeEntry : HBoxContainer
 }
 
 
-public struct IngredientInfo
+public struct IngredientInfo(Item item, int count)
 {
-	public Item Item;
-	public int RequiredCount;
-
-	public IngredientInfo(Item item, int count)
-	{
-		Item = item;
-		RequiredCount = count;
-	}
+	public readonly Item Item = item;
+	public readonly int RequiredCount = count;
 }

@@ -1,9 +1,8 @@
 using Godot;
-using System;
 
 public partial class SettingsVideo : Control
 {
-	SettingsManager S => SettingsManager.Instance;
+	private SettingsManager S => SettingsManager.Instance;
 
 	private CheckBox fullscreen;
 	private CheckBox borderless;
@@ -14,13 +13,13 @@ public partial class SettingsVideo : Control
 	private Button backButton;
 
 	public override void _Ready()
-    {
+	{
 		Visible = false;
 
-        fullscreen = GetNode<CheckBox>("VBoxContainer/MarginContainer/VBoxContainer/Fullscreen");
-        borderless = GetNode<CheckBox>("VBoxContainer/MarginContainer/VBoxContainer/Borderless");
-        vsync = GetNode<CheckBox>("VBoxContainer/MarginContainer/VBoxContainer/VSync");
-        ssao = GetNode<CheckBox>("VBoxContainer/MarginContainer/VBoxContainer/SSAO");
+		fullscreen = GetNode<CheckBox>("VBoxContainer/MarginContainer/VBoxContainer/Fullscreen");
+		borderless = GetNode<CheckBox>("VBoxContainer/MarginContainer/VBoxContainer/Borderless");
+		vsync = GetNode<CheckBox>("VBoxContainer/MarginContainer/VBoxContainer/VSync");
+		ssao = GetNode<CheckBox>("VBoxContainer/MarginContainer/VBoxContainer/SSAO");
 
 		applyButton = GetNode<Button>("VBoxContainer/HBoxContainer/Apply");
 		backButton = GetNode<Button>("VBoxContainer/HBoxContainer/Back");
@@ -29,25 +28,25 @@ public partial class SettingsVideo : Control
 		backButton.Pressed += OnBack;
 
 		LoadSettings();
-    }
+	}
 
 	private void LoadSettings()
-    {
-        fullscreen.ButtonPressed = S.Fullscreen;
+	{
+		fullscreen.ButtonPressed = S.Fullscreen;
 		borderless.ButtonPressed = S.Borderless;
 		vsync.ButtonPressed = S.VSync;
-		ssao.ButtonPressed = S.SSAOEnabled;
-    }
+		ssao.ButtonPressed = S.SsaoEnabled;
+	}
 
 	private void OnApply()
-    {
-        S.Fullscreen = fullscreen.ButtonPressed;
+	{
+		S.Fullscreen = fullscreen.ButtonPressed;
 		S.Borderless = borderless.ButtonPressed;
 		S.VSync = vsync.ButtonPressed;
-		S.SSAOEnabled = ssao.ButtonPressed;
+		S.SsaoEnabled = ssao.ButtonPressed;
 
 		S.ApplyAll();
-    }
+	}
 
 	private void OnBack()
 	{

@@ -3,236 +3,232 @@ using System.Collections.Generic;
 
 public partial class WorldObjectManager : Node
 {
-    public int MaxSpawnsPerFrame = 6;
-    public int MaxRemovesPerFrame = 10;
+	private int _maxSpawnsPerFrame = 6;
+	private int _maxRemovesPerFrame = 10;
 
-    private readonly Queue<Chunk> spawnChunkQueue = new();
-    private readonly Queue<ChunkObject> activeSpawnQueue = new();
-    private readonly Queue<ChunkObject> removeQueue = new();
+	private readonly Queue<Chunk> _spawnChunkQueue = new();
+	private readonly Queue<ChunkObject> _activeSpawnQueue = new();
+	private readonly Queue<ChunkObject> _removeQueue = new();
 
-    private Dictionary<string, Stack<WorldObject>> pools = new();
+	// private readonly Dictionary<string, Stack<WorldObject>> _pools = new();
 
-    private World _world;
-    private RandomNumberGenerator rng;
+	private World _world;
+	private RandomNumberGenerator _rng;
 
-    private int maxPoolSizePerType = 64;
+	private int _maxPoolSizePerType = 64;
 
-    private PackedScene pickupScene;
+	private PackedScene _pickupScene;
 
 
-    public override void _Ready()
-    {
-        _world = GetParent<World>();
-        rng = new RandomNumberGenerator();
-        rng.Randomize();
-        pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
-    }
+	public override void _Ready()
+	{
+		_world = GetParent<World>();
+		_rng = new RandomNumberGenerator();
+		_rng.Randomize();
+		_pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
+	}
 
-    public override void _Process(double delta)
-    {
-        ProcessSpawns();
-        ProcessRemovals();
-    }
+	public override void _Process(double delta)
+	{
+		ProcessSpawns();
+		ProcessRemovals();
+	}
 
-    public void EnqueueChunk(Chunk chunk)
-    {
-        spawnChunkQueue.Enqueue(chunk);
-    }
+	public void EnqueueChunk(Chunk chunk)
+	{
+		_spawnChunkQueue.Enqueue(chunk);
+	}
 
-    public void EnqueueSpawn(ChunkObject data)
-    {
-        if (data.RuntimeNode != null || data.MarkedForRemoval)
-            return;
+	private void EnqueueSpawn(ChunkObject data)
+	{
+		if (data.RuntimeNode != null || data.MarkedForRemoval)
+			return;
 
-        activeSpawnQueue.Enqueue(data);
-    }
+		_activeSpawnQueue.Enqueue(data);
+	}
 
-    public void RequestBreak(ChunkObject data)
-    {
-        if (data.RuntimeNode is IItemContainer storage)
-        {
-            foreach (var stack in storage.GetSlots())
-            {
-                if (stack == null || stack.Count <= 0) continue;
+	public void RequestBreak(ChunkObject data)
+	{
+		if (data.RuntimeNode is IItemContainer storage)
+			foreach (var stack in storage.GetSlots())
+			{
+				if (stack is not { Count: > 0 }) continue;
 
-                ItemPickup pickup = pickupScene.Instantiate<ItemPickup>();
-                pickup.Item = stack.Item;
-                pickup.Count = stack.Count;
+				var pickup = _pickupScene.Instantiate<ItemPickup>();
+				pickup.Item = stack.Item;
+				pickup.Count = stack.Count;
 
-                _world.ItemPickupContainer.AddChild(pickup);
-                pickup.GlobalPosition = data.Position;
-            }
-        }
+				_world.ItemPickupContainer.AddChild(pickup);
+				pickup.GlobalPosition = data.Position;
+			}
 
-        SpawnDrops(data);
+		SpawnDrops(data);
 
-        // clear chunk delta states
-        var delta = _world.GetOrCreateChunkDelta(data.ChunkCoord);
+		// clear chunk delta states
+		var delta = _world.GetOrCreateChunkDelta(data.ChunkCoord);
 
-        if (data.Source == ChunkObjectSource.Procedural)
-            delta.RemovedProceduralObjects.Add(data.TileCoord);
-        else if (data.Source == ChunkObjectSource.Placed)
-            delta.PlacedObjects.Remove(data);
+		if (data.Source == ChunkObjectSource.Procedural)
+			delta.RemovedProceduralObjects.Add(data.TileCoord);
+		else if (data.Source == ChunkObjectSource.Placed)
+			delta.PlacedObjects.Remove(data);
 
-        if (delta.StorageStates.ContainsKey(data.TileCoord))
-            delta.StorageStates.Remove(data.TileCoord);
+		delta.StorageStates.Remove(data.TileCoord);
 
-        EnqueueRemoval(data);
-    }
+		EnqueueRemoval(data);
+	}
 
-    private void SpawnDrops(ChunkObject data)
-    {
-        if (data.RuntimeNode is not WorldObject wo)
-            return;
+	private void SpawnDrops(ChunkObject data)
+	{
+		if (data.RuntimeNode is not { } wo)
+			return;
 
-        var drops = wo.DropItems;
-        if (drops == null || drops.Count == 0) return;
+		var drops = wo.DropItems;
+		if (drops == null || drops.Count == 0) return;
 
-        foreach (var entry in drops)
-        {
-            if (GD.Randf() > entry.Chance)
-                continue;
+		foreach (var entry in drops)
+		{
+			if (GD.Randf() > entry.Chance)
+				continue;
 
-            var item = ItemRegistry.GetItem(entry.ItemId);
-            if (item == null) continue;
+			var item = ItemRegistry.GetItem(entry.ItemId);
+			if (item == null) continue;
 
-            int quantity = rng.RandiRange(entry.MinQuantity, entry.MaxQuantity);
+			var quantity = _rng.RandiRange(entry.MinQuantity, entry.MaxQuantity);
 
-            for (int n = 0; n < quantity; n++)
-            {
-                ItemPickup pickup = pickupScene.Instantiate<ItemPickup>();
-                pickup.Item = item;
+			for (var n = 0; n < quantity; n++)
+			{
+				var pickup = _pickupScene.Instantiate<ItemPickup>();
+				pickup.Item = item;
 
-                _world.ItemPickupContainer.AddChild(pickup);
-                pickup.GlobalPosition = data.Position;
-            }
-        }
-    }
+				_world.ItemPickupContainer.AddChild(pickup);
+				pickup.GlobalPosition = data.Position;
+			}
+		}
+	}
 
-    public bool RequestPlace(ChunkObject data)
-    {
-        var chunk = _world.ActiveChunks[data.ChunkCoord];
+	public bool RequestPlace(ChunkObject data)
+	{
+		var chunk = _world.ActiveChunks[data.ChunkCoord];
 
-        chunk.Objects.Add(data);
-        EnqueueSpawn(data);
+		chunk.Objects.Add(data);
+		EnqueueSpawn(data);
 
-        var chunkDelta = _world.GetOrCreateChunkDelta(data.ChunkCoord);
-        chunkDelta.PlacedObjects.Add(data);
+		var chunkDelta = _world.GetOrCreateChunkDelta(data.ChunkCoord);
+		chunkDelta.PlacedObjects.Add(data);
 
-        return true;
-    }
+		return true;
+	}
 
-    public void EnqueueRemoval(ChunkObject data)
-    {
-        removeQueue.Enqueue(data);
-    }
+	public void EnqueueRemoval(ChunkObject data)
+	{
+		_removeQueue.Enqueue(data);
+	}
 
-    private void ProcessSpawns()
-    {
-        int count = 0;
+	private void ProcessSpawns()
+	{
+		var count = 0;
 
-        if (activeSpawnQueue.Count == 0 && spawnChunkQueue.Count > 0)
-        {
-            var chunk = spawnChunkQueue.Dequeue();
+		if (_activeSpawnQueue.Count == 0 && _spawnChunkQueue.Count > 0)
+		{
+			var chunk = _spawnChunkQueue.Dequeue();
 
-            foreach (var obj in chunk.Objects)
-                activeSpawnQueue.Enqueue(obj);
-        }
+			foreach (var obj in chunk.Objects)
+				_activeSpawnQueue.Enqueue(obj);
+		}
 
-        while (activeSpawnQueue.Count > 0 && count < MaxSpawnsPerFrame)
-        {
-            var data = activeSpawnQueue.Dequeue();
+		while (_activeSpawnQueue.Count > 0 && count < _maxSpawnsPerFrame)
+		{
+			var data = _activeSpawnQueue.Dequeue();
 
-            if (data.MarkedForRemoval || data.RuntimeNode != null)
-                continue;
+			if (data.MarkedForRemoval || data.RuntimeNode != null)
+				continue;
 
-            WorldObject node = WorldObjectRegistry.GetScene(data.Definition.Id).Instantiate<WorldObject>();
+			var node = WorldObjectRegistry.GetScene(data.Definition.Id).Instantiate<WorldObject>();
 
-            node.Reset();
-            node.Data = data;
-            node.World = _world;
-            data.RuntimeNode = node;
+			node.Reset();
+			node.Data = data;
+			node.World = _world;
+			data.RuntimeNode = node;
 
-            node.Initialise(data.Definition);
+			node.Initialise(data.Definition);
 
-            if (node.GetParent() != null)
-                node.Reparent(_world.WorldObjects);
-            else
-                _world.WorldObjects.AddChild(node);
+			if (node.GetParent() != null)
+				node.Reparent(_world.WorldObjects);
+			else
+				_world.WorldObjects.AddChild(node);
 
-            node.Visible = true;
-            node.SetPhysicsProcess(true);
+			node.Visible = true;
+			node.SetPhysicsProcess(true);
 
-            node.GlobalPosition = data.Position;
-            node.Translate(new Vector3(0f, 0f, rng.RandfRange(-0.01f, 0.01f)));
+			node.GlobalPosition = data.Position;
+			node.Translate(new Vector3(0f, 0f, _rng.RandfRange(-0.01f, 0.01f)));
 
-            if (data.Definition.BlocksTile)
-                _world.BlockTile(data.TileCoord);
+			if (data.Definition.BlocksTile)
+				_world.BlockTile(data.TileCoord);
 
-            // Restore state if applicable
-            ChunkDeltaData delta;
-            _world.TryGetChunkDelta(data.ChunkCoord, out delta);
+			// Restore state if applicable
+			_world.TryGetChunkDelta(data.ChunkCoord, out var delta);
 
-            if (node is IChunkStateful<StationStateData> station)
-            {
-                if (delta.StationStates.TryGetValue(data.TileCoord, out var stationState))
-                    station.RestoreState(stationState);
-            }
-            else if (node is IChunkStateful<StorageStateData> storage)
-            {
-                if (delta.StorageStates.TryGetValue(data.TileCoord, out var storageState))
-                    storage.RestoreState(storageState);
-            }
+			if (node is IChunkStateful<StationStateData> station)
+			{
+				if (delta.StationStates.TryGetValue(data.TileCoord, out var stationState))
+					station.RestoreState(stationState);
+			}
+			else if (node is IChunkStateful<StorageStateData> storage)
+			{
+				if (delta.StorageStates.TryGetValue(data.TileCoord, out var storageState))
+					storage.RestoreState(storageState);
+			}
 
-            count++;
-        }
-    }
+			count++;
+		}
+	}
 
-    private void ProcessRemovals()
-    {
-        int count = 0;
+	private void ProcessRemovals()
+	{
+		var count = 0;
 
-        while (removeQueue.Count > 0 && count < MaxRemovesPerFrame)
-        {
-            var data = removeQueue.Dequeue();
+		while (_removeQueue.Count > 0 && count < _maxRemovesPerFrame)
+		{
+			var data = _removeQueue.Dequeue();
 
-            if (data.RuntimeNode != null)
-            {
-                if (data.Definition.BlocksTile)
-                    _world.UnblockTile(data.TileCoord);
+			if (data.RuntimeNode != null)
+			{
+				if (data.Definition.BlocksTile)
+					_world.UnblockTile(data.TileCoord);
 
-                Recycle(data.RuntimeNode);
-                data.RuntimeNode = null;
-            }
+				Recycle(data.RuntimeNode);
+				data.RuntimeNode = null;
+			}
 
-            count++;
-        }
-    }
+			count++;
+		}
+	}
 
-    private WorldObject GetPooled(string sceneId)
-    {
-        if (pools.TryGetValue(sceneId, out var stack) && stack.Count > 0)
-            return stack.Pop();
+	// private WorldObject GetPooled(string sceneId)
+	// {
+	// 	if (_pools.TryGetValue(sceneId, out var stack) && stack.Count > 0)
+	// 		return stack.Pop();
+	//
+	// 	return WorldObjectRegistry.GetScene(sceneId).Instantiate<WorldObject>();
+	// }
 
-        return WorldObjectRegistry.GetScene(sceneId).Instantiate<WorldObject>();
-    }
+	private void Recycle(WorldObject node)
+	{
+		// node.Visible = false;
+		// node.SetPhysicsProcess(false);
+		// node.Reparent(_world.WorldObjectPool);
 
-    private void Recycle(WorldObject node)
-    {
-        // node.Visible = false;
-        // node.SetPhysicsProcess(false);
-        // node.Reparent(_world.WorldObjectPool);
+		// var id = node.Data.Definition.Id;
 
-        // var id = node.Data.Definition.Id;
+		// if (!pools.TryGetValue(id, out var stack))
+		//     pools[id] = stack = new Stack<WorldObjectBase>();
 
-        // if (!pools.TryGetValue(id, out var stack))
-        //     pools[id] = stack = new Stack<WorldObjectBase>();
+		// if (stack.Count < maxPoolSizePerType)
+		//     stack.Push(node);
+		// else
+		//     node.QueueFree();
 
-        // if (stack.Count < maxPoolSizePerType)
-        //     stack.Push(node);
-        // else
-        //     node.QueueFree();
-
-        node.QueueFree();
-    }
+		node.QueueFree();
+	}
 }

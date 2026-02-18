@@ -3,30 +3,25 @@ using Godot;
 
 public static class RuleRegistry
 {
-    private static readonly List<BiomeDefinition> _biomes = new();
+	private static readonly List<BiomeDefinition> BiomeList = [];
 
-    public static IReadOnlyList<BiomeDefinition> Biomes => _biomes;
+	public static void RegisterBiome(BiomeDefinition biome)
+	{
+		BiomeList.Add(biome);
+	}
 
+	public static void LoadAll(int seed, Vector2I worldOffset)
+	{
+		BiomeList.Clear();
+		BiomeDefinitions.RegisterAll(seed, worldOffset);
+	}
 
-    public static void RegisterBiome(BiomeDefinition biome)
-    {
-        _biomes.Add(biome);
-    }
+	public static BiomeDefinition GetBiome(float temp, float humidity)
+	{
+		foreach (var biome in BiomeList)
+			if (biome.Matches(temp, humidity))
+				return biome;
 
-    public static void LoadAll(int seed, Vector2I worldOffset)
-    {
-        _biomes.Clear();
-        BiomeDefinitions.RegisterAll(seed, worldOffset);
-    }
-
-    public static BiomeDefinition GetBiome(float temp, float humidity)
-    {
-        foreach (var biome in _biomes)
-        {
-            if (biome.Matches(temp, humidity))
-                return biome;
-        }
-
-        return _biomes[0];
-    }
+		return BiomeList[0];
+	}
 }

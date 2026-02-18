@@ -1,33 +1,26 @@
 using Godot;
-using System;
 
-public partial class ItemStack : GodotObject
+public class ItemStack(Item item, int count)
 {
-    public Item Item { get; private set; }
-    public int Count { get; set; }
-    
-    public int StackSize => Item.StackSize;
+	public Item Item { get; private set; } = item;
+	public int Count { get; set; } = Mathf.Clamp(count, 1, item.StackSize);
 
-    public ItemStack(Item item, int count)
-    {
-        Item = item;
-        Count = Mathf.Clamp(count, 1, item.StackSize);
-    }
+	private int StackSize => Item.StackSize;
 
-    public bool IsFull => Count >= StackSize;
+	public bool IsFull => Count >= StackSize;
 
-    public int Add(int amount)
-    {
-        int space = StackSize - Count;
-        int added = Mathf.Min(space, amount);
-        Count += added;
-        return amount - added;
-    }
+	public int Add(int amount)
+	{
+		var space = StackSize - Count;
+		var added = Mathf.Min(space, amount);
+		Count += added;
+		return amount - added;
+	}
 
-    public int Remove(int amount)
-    {
-        int removed = Mathf.Min(Count, amount);
-        Count -= removed;
-        return removed;
-    }
+	public int Remove(int amount)
+	{
+		var removed = Mathf.Min(Count, amount);
+		Count -= removed;
+		return removed;
+	}
 }
