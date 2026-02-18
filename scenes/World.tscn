@@ -21,8 +21,6 @@
 [ext_resource type="Script" uid="uid://biupxf38shvsk" path="res://scripts/managers/WorldObjectManager.cs" id="18_nthub"]
 [ext_resource type="Script" uid="uid://bt35wqfusytbe" path="res://scripts/ui/Display.cs" id="19_44lqw"]
 [ext_resource type="Shader" uid="uid://cctskt0gvabwm" path="res://resources/shaders/PixelUpcaler.gdshader" id="20_dwmkc"]
-[ext_resource type="PackedScene" uid="uid://bqrmi522mcr38" path="res://scenes/npc/Adventurer.tscn" id="21_rm3lh"]
-[ext_resource type="PackedScene" uid="uid://c4xqv3ghyi72d" path="res://scenes/npc/Zombie.tscn" id="22_dgldv"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_d1c63"]
 font = ExtResource("3_h1bdy")
@@ -278,11 +276,6 @@ cell_center_z = false
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="WorldObjects" type="Node3D" parent="World/SubViewportContainer/SubViewport" unique_id=1677955676]
-
-[node name="Superhero_Male_FullBody" parent="World/SubViewportContainer/SubViewport/WorldObjects" unique_id=1365456234 instance=ExtResource("22_dgldv")]
-
-[node name="Adventurer" parent="World/SubViewportContainer/SubViewport/WorldObjects" unique_id=1529770209 instance=ExtResource("21_rm3lh")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3062497, 0, 0)
 
 [node name="PlayerContainer" type="Node3D" parent="World/SubViewportContainer/SubViewport" unique_id=2019630338]
 

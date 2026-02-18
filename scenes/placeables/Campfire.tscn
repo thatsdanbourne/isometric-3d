@@ -156,11 +156,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
 shape = SubResource("BoxShape3D_hp3ve")
 
 [node name="OmniLight3D" type="OmniLight3D" parent="." index="2" unique_id=1124962011]
-transform = Transform3D(0.9991885, 0.03178995, -0.024734369, -0.03076821, 0.9986997, 0.04064698, 0.025994373, -0.039852966, 0.9988674, 0.03, 0.580209, 0.018185869)
+transform = Transform3D(0.9991885, 0.03178995, -0.02473437, -0.03076821, 0.9986997, 0.04064698, 0.025994373, -0.039852966, 0.9988674, 0.03, 1.2953274, 0.018185869)
 light_color = Color(1, 0.85915905, 0, 1)
+light_size = 1.0
 shadow_enabled = true
-shadow_opacity = 0.75
-shadow_blur = 0.0
+shadow_opacity = 0.5
+shadow_blur = 0.5
 omni_range = 20.0
 
 [node name="Flame" type="Node3D" parent="." index="3" unique_id=938221680]
