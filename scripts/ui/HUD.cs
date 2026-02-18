@@ -268,19 +268,6 @@ public partial class HUD : CanvasLayer
 		RefreshUI();
 	}
 
-	private ItemStack GetStack(bool isHotbar, int index)
-	{
-		return isHotbar ? _hotbar.GetSlot(index) : _inventory.GetSlot(index);
-	}
-
-	private void SetStack(bool isHotbar, int index, ItemStack stack)
-	{
-		if (isHotbar)
-			_hotbar.SetSlot(index, stack);
-		else
-			_inventory.SetSlot(index, stack);
-	}
-
 	public void RefreshUI()
 	{
 		if (_inventory == null || _hotbar == null) return;

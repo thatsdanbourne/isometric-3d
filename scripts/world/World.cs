@@ -26,14 +26,14 @@ public partial class World : Node3D
 
 	public readonly Dictionary<Vector2I, Chunk> ActiveChunks = new();
 	public Dictionary<Vector2I, ChunkDeltaData> ChunkDeltas = new();
-	private readonly Dictionary<Vector2I, int> blockedTiles = new();
+	private readonly Dictionary<Vector2I, int> _blockedTiles = new();
 
-	public Vector2I lastPlayerChunk = new(-999, -999);
+	public Vector2I LastPlayerChunk = new(-999, -999);
 
-	private int terrainSeed = 0;
-	public Vector2I worldOffset; // prevents sampling noise at (0,0)
+	private int _terrainSeed;
+	public Vector2I WorldOffset; // prevents sampling noise at (0,0)
 
-	private RandomNumberGenerator rng;
+	private RandomNumberGenerator _rng;
 
 	public ChunkManager ChunkManager { get; private set; }
 	public ChunkGenerator ChunkGenerator { get; private set; }
@@ -43,23 +43,23 @@ public partial class World : Node3D
 
 	public override void _Ready()
 	{
-		rng = new RandomNumberGenerator();
-		rng.Randomize();
+		_rng = new RandomNumberGenerator();
+		_rng.Randomize();
 
-		worldOffset = new Vector2I(
-			(int)rng.Randi() % 100000,
-			(int)rng.Randi() % 100000
+		WorldOffset = new Vector2I(
+			(int)_rng.Randi() % 100000,
+			(int)_rng.Randi() % 100000
 		);
 
 		SetupNoise();
 
-		RuleRegistry.LoadAll(terrainSeed, worldOffset);
+		RuleRegistry.LoadAll(_terrainSeed, WorldOffset);
 
 		ChunkManager = new ChunkManager(this, ChunkSize, ChunkRadius);
 		WorldObjectManager = GetNode<WorldObjectManager>("WorldObjectManager");
 		WorldObjectPool = GetNode<Node3D>("WorldObjectPool");
 
-		ChunkGenerator = new ChunkGenerator(this, ChunkManager, terrainSeed);
+		ChunkGenerator = new ChunkGenerator(this, ChunkManager, _terrainSeed);
 		ChunkGenerator.Start();
 
 		GameManager.Instance.RegisterWorld(this);
@@ -71,7 +71,7 @@ public partial class World : Node3D
 			p.PlayerReady += () =>
 			{
 				ChunkManager.ForceInitialChunks(p.GlobalPosition);
-				ChunkGenerator.InitialChunksReady += () => p.CheckBiome();
+				ChunkGenerator.InitialChunksReady += p.CheckBiome;
 			};
 		};
 
@@ -96,11 +96,11 @@ public partial class World : Node3D
 
 	private void SetupNoise()
 	{
-		terrainSeed = (int)rng.Randi();
+		_terrainSeed = (int)_rng.Randi();
 
 		TempNoise = new FastNoiseLite
 		{
-			Seed = terrainSeed + 1000,
+			Seed = _terrainSeed + 1000,
 			NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
 			Frequency = 0.0015f,
 			FractalOctaves = 3,
@@ -110,7 +110,7 @@ public partial class World : Node3D
 
 		HumidityNoise = new FastNoiseLite
 		{
-			Seed = terrainSeed + 2000,
+			Seed = _terrainSeed + 2000,
 			NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
 			Frequency = 0.003f,
 			FractalOctaves = 4,
@@ -120,7 +120,7 @@ public partial class World : Node3D
 
 		RiverNoise = new FastNoiseLite
 		{
-			Seed = terrainSeed + 3000,
+			Seed = _terrainSeed + 3000,
 			NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
 			Frequency = 0.0025f,
 			FractalOctaves = 3,
@@ -131,27 +131,27 @@ public partial class World : Node3D
 
 	public void BlockTile(Vector2I tile)
 	{
-		if (blockedTiles.TryGetValue(tile, out var count))
-			blockedTiles[tile] = count + 1;
+		if (_blockedTiles.TryGetValue(tile, out var count))
+			_blockedTiles[tile] = count + 1;
 		else
-			blockedTiles[tile] = 1;
+			_blockedTiles[tile] = 1;
 	}
 
 	public void UnblockTile(Vector2I tile)
 	{
-		if (!blockedTiles.TryGetValue(tile, out var count)) return;
+		if (!_blockedTiles.TryGetValue(tile, out var count)) return;
 
 		count--;
 
 		if (count <= 0)
-			blockedTiles.Remove(tile);
+			_blockedTiles.Remove(tile);
 		else
-			blockedTiles[tile] = count;
+			_blockedTiles[tile] = count;
 	}
 
 	public bool CanPlace(Vector2I tile, PlaceableItem item)
 	{
-		if (blockedTiles.ContainsKey(tile)) return false;
+		if (_blockedTiles.ContainsKey(tile)) return false;
 
 		return true;
 	}
@@ -188,11 +188,9 @@ public partial class World : Node3D
 
 	public ChunkDeltaData GetOrCreateChunkDelta(Vector2I chunkCoord)
 	{
-		if (!ChunkDeltas.TryGetValue(chunkCoord, out var delta))
-		{
-			delta = new ChunkDeltaData();
-			ChunkDeltas[chunkCoord] = delta;
-		}
+		if (ChunkDeltas.TryGetValue(chunkCoord, out var delta)) return delta;
+		delta = new ChunkDeltaData();
+		ChunkDeltas[chunkCoord] = delta;
 
 		return delta;
 	}

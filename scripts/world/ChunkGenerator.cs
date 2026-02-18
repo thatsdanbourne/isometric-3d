@@ -89,10 +89,10 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 			var globalY = coord.Y * c + y;
 			var tilePos = new Vector2I(globalX, globalY);
 
-			var tempRaw = world.TempNoise.GetNoise2D(globalX + world.worldOffset.X, globalY + world.worldOffset.Y);
+			var tempRaw = world.TempNoise.GetNoise2D(globalX + world.WorldOffset.X, globalY + world.WorldOffset.Y);
 			var humidityRaw =
-				world.HumidityNoise.GetNoise2D(globalX + world.worldOffset.X, globalY + world.worldOffset.Y);
-			var riverVal = world.RiverNoise.GetNoise2D(globalX, globalY + world.worldOffset.Y);
+				world.HumidityNoise.GetNoise2D(globalX + world.WorldOffset.X, globalY + world.WorldOffset.Y);
+			var riverVal = world.RiverNoise.GetNoise2D(globalX, globalY + world.WorldOffset.Y);
 
 			var temp = AdjustContrast((tempRaw + 1f) / 2f);
 			var humidity = AdjustContrast((humidityRaw + 1f) / 2f);

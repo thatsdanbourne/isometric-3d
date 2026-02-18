@@ -1,225 +1,198 @@
 using Godot;
+using Godot.Collections;
 
 public partial class CameraController : Node3D
 {
-    public Player Player;
+	public Player Player;
 
-    // ======================
-    // Follow settings
-    // ======================
-    private float followResponsiveness = 8.0f;
+	// ======================
+	// Follow settings
+	// ======================
+	private float _followResponsiveness = 8.0f;
 
-    private float deadzoneRadius = 7.0f;
-    private float softDeadzoneExtra = 3.0f;
+	private float _deadzoneRadius = 7.0f;
+	private float _softDeadzoneExtra = 3.0f;
 
-    private float maxVelocity = 30.0f;
-    private float acceleration = 14.0f;
-    private float deceleration = 20.0f;
+	private float _maxVelocity = 30.0f;
+	private float _acceleration = 14.0f;
+	private float _deceleration = 20.0f;
 
-    private Vector3 cameraOffset = new(0, 0, 65);
+	private Vector3 _cameraOffset = new(0, 0, 65);
 
-    private Vector3 camVelocity = Vector3.Zero;
+	private Vector3 _camVelocity = Vector3.Zero;
 
-    // ======================
-    // Zoom settings
-    // ======================
-    private float targetZoom = 30.0f;
-    private float zoomSpeed = 30f;
-    private float minZoom = 15.0f;
-    private float maxZoom = 90.0f;
-    private float zoomSmoothness = 10.0f;
+	// ======================
+	// Zoom settings
+	// ======================
+	private float _targetZoom = 30.0f;
+	private float _zoomSpeed = 30f;
+	private float _minZoom = 15.0f;
+	private float _maxZoom = 90.0f;
+	private float _zoomSmoothness = 10.0f;
 
-    // ======================
-    // Shake settings
-    // ======================
-    private float shakeTime = 0f;
-    private float shakeIntensity = 0f;
+	// ======================
+	// Shake settings
+	// ======================
+	private float _shakeTime;
+	private float _shakeIntensity;
 
-    // ======================
-    // Pixel snap settings
-    // ======================
-    [Export] public bool EnablePixelSnap = true;
-    public Vector2 TexelError = Vector2.Zero;
-    private float texelSize = 0.0f;
+	// ======================
+	// Pixel snap settings
+	// ======================
+	[Export] public bool EnablePixelSnap = true;
+	public Vector2 TexelError = Vector2.Zero;
+	private float _texelSize;
 
-    private Godot.Collections.Array<Node> pickups;
-    private Vector3[] preSnapPos;
+	private Array<Node> _pickups;
+	private Vector3[] _preSnapPos;
 
-    private Transform3D snapSpace;
-    private Vector3 prevRotation;
+	private Transform3D _snapSpace;
+	private Vector3 _prevRotation;
 
-    private Camera3D camera;
+	private Camera3D _camera;
 
-    public override void _Ready()
-    {
-        camera = GetNode<Camera3D>("Camera3D");
-        camera.Position = cameraOffset;
+	public override void _Ready()
+	{
+		_camera = GetNode<Camera3D>("Camera3D");
+		_camera.Position = _cameraOffset;
 
-        if (Player != null)
-            GlobalPosition = new Vector3(
-                Player.GlobalPosition.X,
-                GlobalPosition.Y,
-                Player.GlobalPosition.Z
-            );
+		if (Player != null)
+			GlobalPosition = new Vector3(
+				Player.GlobalPosition.X,
+				GlobalPosition.Y,
+				Player.GlobalPosition.Z
+			);
 
-        prevRotation = GlobalRotation;
-        snapSpace = camera.GlobalTransform;
+		_prevRotation = GlobalRotation;
+		_snapSpace = _camera.GlobalTransform;
 
-        // RenderingServer.FramePostDraw += SnapRevert;
-    }
+		// RenderingServer.FramePostDraw += SnapRevert;
+	}
 
-    public override void _Process(double delta)
-    {
-        var d = (float)delta;
-        UpdateFollow(d);
-        ApplyPixelSnap();
-        UpdateZoom(d);
-        UpdateShake(d);
-    }
+	public override void _Process(double delta)
+	{
+		var d = (float)delta;
+		UpdateFollow(d);
+		// ApplyPixelSnap();
+		UpdateZoom(d);
+		UpdateShake(d);
+	}
 
-    // ======================
-    // FOLLOW
-    // ======================
-    private void UpdateFollow(float delta)
-    {
-        var camPos = GlobalPosition;
-        var playerPos = Player.GlobalPosition;
+	// ======================
+	// FOLLOW
+	// ======================
+	private void UpdateFollow(float delta)
+	{
+		var camPos = GlobalPosition;
+		var playerPos = Player.GlobalPosition;
 
-        var diff = new Vector3(playerPos.X, camPos.Y, playerPos.Z) - camPos;
-        var dist = diff.Length();
+		var diff = new Vector3(playerPos.X, camPos.Y, playerPos.Z) - camPos;
+		var dist = diff.Length();
 
-        var inner = deadzoneRadius;
-        var outer = deadzoneRadius + softDeadzoneExtra;
+		var inner = _deadzoneRadius;
+		var outer = _deadzoneRadius + _softDeadzoneExtra;
 
-        Vector3 desiredVelocity;
+		Vector3 desiredVelocity;
 
-        if (dist < inner)
-        {
-            desiredVelocity = Vector3.Zero;
-        }
-        else if (dist < outer)
-        {
-            var t = (dist - inner) / (outer - inner);
-            var speed = Mathf.Lerp(0f, maxVelocity * 0.5f, t);
-            desiredVelocity = diff.Normalized() * speed;
-        }
-        else
-        {
-            desiredVelocity = diff.Normalized() * maxVelocity;
-        }
+		if (dist < inner)
+		{
+			desiredVelocity = Vector3.Zero;
+		}
+		else if (dist < outer)
+		{
+			var t = (dist - inner) / (outer - inner);
+			var speed = Mathf.Lerp(0f, _maxVelocity * 0.5f, t);
+			desiredVelocity = diff.Normalized() * speed;
+		}
+		else
+		{
+			desiredVelocity = diff.Normalized() * _maxVelocity;
+		}
 
-        var accel = desiredVelocity.Length() > camVelocity.Length()
-            ? acceleration
-            : deceleration;
+		var accel = desiredVelocity.Length() > _camVelocity.Length()
+			? _acceleration
+			: _deceleration;
 
-        camVelocity = camVelocity.MoveToward(desiredVelocity, accel * delta);
-        GlobalPosition += camVelocity * delta;
+		_camVelocity = _camVelocity.MoveToward(desiredVelocity, accel * delta);
+		GlobalPosition += _camVelocity * delta;
 
-        if (camVelocity.Length() < 0.02f)
-            camVelocity = Vector3.Zero;
-    }
+		if (_camVelocity.Length() < 0.02f)
+			_camVelocity = Vector3.Zero;
+	}
 
-    // ======================
-    // ZOOM
-    // ======================
-    private void UpdateZoom(float delta)
-    {
-        if (Input.IsActionPressed("zoom_in"))
-            targetZoom -= zoomSpeed * delta;
-        else if (Input.IsActionPressed("zoom_out"))
-            targetZoom += zoomSpeed * delta;
+	// ======================
+	// ZOOM
+	// ======================
+	private void UpdateZoom(float delta)
+	{
+		if (Input.IsActionPressed("zoom_in"))
+			_targetZoom -= _zoomSpeed * delta;
+		else if (Input.IsActionPressed("zoom_out"))
+			_targetZoom += _zoomSpeed * delta;
 
-        targetZoom = Mathf.Clamp(targetZoom, minZoom, maxZoom);
+		_targetZoom = Mathf.Clamp(_targetZoom, _minZoom, _maxZoom);
 
-        if (Mathf.Abs(camera.Size - targetZoom) < 0.001f)
-        {
-            camera.Size = targetZoom;
-            return;
-        }
+		if (Mathf.Abs(_camera.Size - _targetZoom) < 0.001f)
+		{
+			_camera.Size = _targetZoom;
+			return;
+		}
 
-        var t = 1f - Mathf.Exp(-zoomSmoothness * delta);
-        camera.Size = Mathf.Lerp(camera.Size, targetZoom, t);
-    }
+		var t = 1f - Mathf.Exp(-_zoomSmoothness * delta);
+		_camera.Size = Mathf.Lerp(_camera.Size, _targetZoom, t);
+	}
 
-    // ======================
-    // SHAKE
-    // ======================
-    public void Shake(float duration, float intensity)
-    {
-        shakeTime = duration;
-        shakeIntensity = intensity;
-    }
+	// ======================
+	// SHAKE
+	// ======================
+	public void Shake(float duration, float intensity)
+	{
+		_shakeTime = duration;
+		_shakeIntensity = intensity;
+	}
 
-    private void UpdateShake(float delta)
-    {
-        if (shakeTime > 0f)
-        {
-            shakeTime -= delta;
-            var currentIntensity = shakeIntensity * (shakeTime / shakeIntensity);
+	private void UpdateShake(float delta)
+	{
+		if (_shakeTime > 0f)
+		{
+			_shakeTime -= delta;
+			var currentIntensity = _shakeIntensity * (_shakeTime / _shakeIntensity);
 
-            var x = (float)GD.RandRange(-currentIntensity, currentIntensity);
-            var y = (float)GD.RandRange(-currentIntensity, currentIntensity);
+			var x = (float)GD.RandRange(-currentIntensity, currentIntensity);
+			var y = (float)GD.RandRange(-currentIntensity, currentIntensity);
 
-            camera.Position = cameraOffset + new Vector3(x, y, 0);
-        }
-        else
-        {
-            camera.Position = cameraOffset;
-        }
-    }
+			_camera.Position = _cameraOffset + new Vector3(x, y, 0);
+		}
+		else
+		{
+			_camera.Position = _cameraOffset;
+		}
+	}
 
-    private void ApplyPixelSnap()
-    {
-        if (!EnablePixelSnap)
-        {
-            camera.HOffset = 0;
-            camera.VOffset = 0;
-            return;
-        }
+	private void ApplyPixelSnap()
+	{
+		if (!EnablePixelSnap)
+		{
+			_camera.HOffset = 0;
+			_camera.VOffset = 0;
+			return;
+		}
 
-        // Reset snap space if camera rotates
-        if (camera.GlobalRotation != prevRotation)
-        {
-            prevRotation = camera.GlobalRotation;
-            snapSpace = camera.GlobalTransform;
-        }
+		// Reset snap space if the camera rotates
+		if (_camera.GlobalRotation != _prevRotation)
+		{
+			_prevRotation = _camera.GlobalRotation;
+			_snapSpace = _camera.GlobalTransform;
+		}
 
-        texelSize = camera.Size / (camera.GetViewport() as SubViewport).Size.Y;
-        var SnapSpacePosition = snapSpace.AffineInverse() * camera.GlobalPosition;
-        var SnappedSpaceSnapPosition = SnapSpacePosition.Snapped(Vector3.One * texelSize);
-        var SnapError = SnappedSpaceSnapPosition - SnapSpacePosition;
+		_texelSize = _camera.Size / ((SubViewport)_camera.GetViewport()).Size.Y;
+		var snapSpacePosition = _snapSpace.AffineInverse() * _camera.GlobalPosition;
+		var snappedSpaceSnapPosition = snapSpacePosition.Snapped(Vector3.One * _texelSize);
+		var snapError = snappedSpaceSnapPosition - snapSpacePosition;
 
-        // Apply render offset ONLY
-        camera.HOffset = SnapError.X;
-        camera.VOffset = SnapError.Y;
-        TexelError = new Vector2(SnapError.X, -SnapError.Y) / texelSize;
-        // SnapPickups();
-    }
-
-    private void SnapPickups()
-    {
-        pickups = GetTree().GetNodesInGroup("item_pickups");
-        preSnapPos = new Vector3[pickups.Count];
-
-        for (var i = 0; i < pickups.Count; i++)
-        {
-            var node = pickups[i] as Node3D;
-            var pos = node.GlobalPosition;
-            preSnapPos[i] = pos;
-            var snapSpacePos = pos * snapSpace;
-            var snapped = snapSpacePos.Snapped(new Vector3(texelSize, texelSize, 0.0f));
-            node.GlobalPosition = snapSpace * snapped;
-        }
-    }
-
-    private void SnapRevert()
-    {
-        for (var i = 0; i < pickups.Count; i++)
-        {
-            var node = pickups[i] as Node3D;
-            node.GlobalPosition = preSnapPos[i];
-        }
-
-        pickups.Clear();
-    }
+		// Apply render offset ONLY
+		_camera.HOffset = snapError.X;
+		_camera.VOffset = snapError.Y;
+		TexelError = new Vector2(snapError.X, -snapError.Y) / _texelSize;
+	}
 }

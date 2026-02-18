@@ -2,149 +2,150 @@ using Godot;
 
 public partial class Tooltip : Control
 {
-	private Control tooltip;
-	private Label itemName;
-	private Label description;
-	private Label damage;
+	private Control _tooltip;
+	private Label _itemName;
+	private Label _description;
+	private Label _damage;
 
-	private Tween fadeTween;
-	private float delay = 0.5f;
-	private float fadeDuration = 0.5f;
-	private bool isShowing = false;
-	private bool waitingToShow = false;
+	private Tween _fadeTween;
+	private float _delay = 0.5f;
+	private float _fadeDuration = 0.5f;
+	private bool _isShowing;
+	private bool _waitingToShow;
 
-	private Control currentSlot;
-	private Control hoveredSlot;
+	private Control _currentSlot;
+	private Control _hoveredSlot;
 
 	public override void _Ready()
 	{
-		tooltip = GetNode<Control>("Tooltip");
-		itemName = tooltip.GetNode<Label>("VBoxContainer/Name");
-		damage = tooltip.GetNode<Label>("VBoxContainer/MarginContainer/VBoxContainer/Damage");
-		description = tooltip.GetNode<Label>("VBoxContainer/MarginContainer/VBoxContainer/Description");
+		_tooltip = GetNode<Control>("Tooltip");
+		_itemName = _tooltip.GetNode<Label>("VBoxContainer/Name");
+		_damage = _tooltip.GetNode<Label>("VBoxContainer/MarginContainer/VBoxContainer/Damage");
+		_description = _tooltip.GetNode<Label>("VBoxContainer/MarginContainer/VBoxContainer/Description");
 
-		tooltip.SizeFlagsHorizontal = SizeFlags.ShrinkBegin;
-		tooltip.Visible = false;
+		_tooltip.SizeFlagsHorizontal = SizeFlags.ShrinkBegin;
+		_tooltip.Visible = false;
 	}
 
 	public async void ShowTooltip(Item item, Control slot)
 	{
-		if (hoveredSlot != slot)
+		if (_hoveredSlot != slot)
 		{
-			hoveredSlot = slot;
-			waitingToShow = false;
-			fadeTween?.Kill();
+			_hoveredSlot = slot;
+			_waitingToShow = false;
+			_fadeTween?.Kill();
 
-			if (isShowing)
+			if (_isShowing)
 			{
 				FillContent(item);
 				PositionTooltip(slot);
 				FadeInInstant();
-				currentSlot = slot;
+				_currentSlot = slot;
 				return;
 			}
 		}
 
-		waitingToShow = true;
+		_waitingToShow = true;
 
-		await ToSignal(GetTree().CreateTimer(delay), SceneTreeTimer.SignalName.Timeout);
+		await ToSignal(GetTree().CreateTimer(_delay), SceneTreeTimer.SignalName.Timeout);
 
-		if (!waitingToShow || hoveredSlot != slot) return;
+		if (!_waitingToShow || _hoveredSlot != slot) return;
 
 		FillContent(item);
 		PositionTooltip(slot);
 
 		// FadeIn();
 		FadeInInstant();
-		currentSlot = slot;
-		isShowing = true;
-		return;
+		_currentSlot = slot;
+		_isShowing = true;
 	}
 
 	private void FillContent(Item item)
 	{
-		itemName.Text = item.DisplayName;
+		_itemName.Text = item.DisplayName;
 
 		if (string.IsNullOrEmpty(item.Description))
-			description.Visible = false;
+		{
+			_description.Visible = false;
+		}
 		else
 		{
-			description.Visible = true;
-			description.Text = item.Description;
+			_description.Visible = true;
+			_description.Text = item.Description;
 		}
 
 		if (item is ToolItem tool)
 		{
-			damage.Visible = true;
-			damage.Text = $"Damage: {tool.Damage}";
+			_damage.Visible = true;
+			_damage.Text = $"Damage: {tool.Damage}";
 		}
 		else
 		{
-			damage.Visible = false;
+			_damage.Visible = false;
 		}
 
-		tooltip.ResetSize();
+		_tooltip.ResetSize();
 	}
 
 	private void PositionTooltip(Control slot)
 	{
 		var slotRect = slot.GetGlobalRect();
-		tooltip.GlobalPosition = new Vector2(
-			slotRect.Position.X + slotRect.Size.X / 2f - tooltip.Size.X / 2f,
-			slotRect.Position.Y - tooltip.Size.Y
+		_tooltip.GlobalPosition = new Vector2(
+			slotRect.Position.X + slotRect.Size.X / 2f - _tooltip.Size.X / 2f,
+			slotRect.Position.Y - _tooltip.Size.Y
 		);
 	}
 
 	private void FadeIn()
 	{
-		tooltip.Visible = true;
-		tooltip.Modulate = new Color(1, 1, 1, 0);
+		_tooltip.Visible = true;
+		_tooltip.Modulate = new Color(1, 1, 1, 0);
 
-		fadeTween = CreateTween();
-		fadeTween.TweenProperty(tooltip, "modulate:a", 1f, fadeDuration)
+		_fadeTween = CreateTween();
+		_fadeTween.TweenProperty(_tooltip, "modulate:a", 1f, _fadeDuration)
 			.SetTrans(Tween.TransitionType.Cubic)
 			.SetEase(Tween.EaseType.Out);
 
-		fadeTween.Parallel().TweenProperty(
-		tooltip, "position:y",
-		tooltip.Position.Y - 5,
-		fadeDuration
+		_fadeTween.Parallel().TweenProperty(
+			_tooltip, "position:y",
+			_tooltip.Position.Y - 5,
+			_fadeDuration
 		);
 	}
 
 	private void FadeInInstant()
 	{
-		tooltip.Visible = true;
-		tooltip.Modulate = new Color(1, 1, 1, 1);
+		_tooltip.Visible = true;
+		_tooltip.Modulate = new Color(1, 1, 1);
 	}
 
 	private void FadeOut()
 	{
-		isShowing = false;
+		_isShowing = false;
 
-		fadeTween = CreateTween();
-		fadeTween.TweenProperty(tooltip, "modulate:a", 0f, fadeDuration)
+		_fadeTween = CreateTween();
+		_fadeTween.TweenProperty(_tooltip, "modulate:a", 0f, _fadeDuration)
 			.SetTrans(Tween.TransitionType.Cubic)
 			.SetEase(Tween.EaseType.In);
 
-		fadeTween.TweenCallback(Callable.From(() =>
+		_fadeTween.TweenCallback(Callable.From(() =>
 		{
-			tooltip.Visible = false;
-			currentSlot = null;
+			_tooltip.Visible = false;
+			_currentSlot = null;
 		}));
 	}
 
 	public void HideTooltip(Control slot = null)
 	{
-		if (hoveredSlot == slot)
-			hoveredSlot = null;
+		if (_hoveredSlot == slot)
+			_hoveredSlot = null;
 
-		if (hoveredSlot != null)
+		if (_hoveredSlot != null)
 			return;
 
-		waitingToShow = false;
+		_waitingToShow = false;
 
-		if (!isShowing)
+		if (!_isShowing)
 			return;
 
 		// fadeTween?.Kill();
@@ -163,11 +164,10 @@ public partial class Tooltip : Control
 		// 	damage.Text = "";
 		// }));
 
-		tooltip.Visible = false;
-		itemName.Text = "";
-		description.Text = "";
-		damage.Text = "";
-		isShowing = false;
+		_tooltip.Visible = false;
+		_itemName.Text = "";
+		_description.Text = "";
+		_damage.Text = "";
+		_isShowing = false;
 	}
 }
-

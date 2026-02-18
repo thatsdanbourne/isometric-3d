@@ -1,5 +1,5 @@
-using Godot;
 using System.Collections.Generic;
+using Godot;
 
 public partial class Player : CharacterBody3D
 {
@@ -9,36 +9,37 @@ public partial class Player : CharacterBody3D
 	[Signal]
 	public delegate void BiomeChangedEventHandler(string newBiome);
 
-	private static readonly StandardMaterial3D BaseMaterial =
-		GD.Load<StandardMaterial3D>("res://resources/materials/WorldObjectBase.tres");
-
-	private PackedScene cameraControllerScene =
+	private PackedScene _cameraControllerScene =
 		GD.Load<PackedScene>("res://scenes/player/CameraController.tscn");
 
 	public float Speed = 5.0f;
 	public ToolItem DefaultTool;
-	private Item equippedItem;
-	private Item lastEquippedItem;
+	private Item _equippedItem;
+	private Item _lastEquippedItem;
 
-	private bool canSwing = true;
+	private bool _canSwing = true;
 
+	private World _world;
 	public string CurrentBiome { get; private set; } = "";
 	private Vector3 _lastCheckedPosition;
-	private const float BIOME_CHECK_DISTANCE = 0.5f;
+	private const float BiomeCheckDistance = 0.5f;
 
-	private World world;
-	private BiomeTintOverlay tintOverlay;
+	private BiomeTintOverlay _tintOverlay;
+	
+	private AnimationTree _animTree;
+	private Vector3 _aimDirection = Vector3.Forward;
+	private string _animState = "";
+	private AnimationNodeStateMachinePlayback _animPlayback;
+	private float _locomotionBlend;
+	private float _locomotionBlendTarget;
+	private const string LocomotionBlendPath = "parameters/Locomotion/IdleRun/blend_position";
 
-	private AnimatedSprite3D sprite;
-	private Timer hitCooldown;
-	private RayCast3D hitRay;
-	private Vector3 aimDirection = Vector3.Forward;
-	private FacingDir lastFacing = FacingDir.SW;
+	private Timer _hitCooldown;
 
-	private bool placementMode = false;
-	private PlaceableItem currentPlaceable;
-	private PlacementPreview placementPreview;
-	private Vector2I previewTile;
+	private bool _placementMode;
+	private PlaceableItem _currentPlaceable;
+	private PlacementPreview _placementPreview;
+	private Vector2I _previewTile;
 
 	public IInteractable FocusedInteractable { get; private set; }
 	public ICraftingStation FocusedStation => FocusedInteractable?.GetCapability<ICraftingStation>();
@@ -53,30 +54,29 @@ public partial class Player : CharacterBody3D
 	{
 		GameManager.Instance.SetLocalPlayer(this);
 
-		world = GetNode<World>("/root/Game/World");
-		tintOverlay = world.GetNode<BiomeTintOverlay>("BiomeTint/BiomeOverlay");
-		sprite = GetNode<AnimatedSprite3D>("AnimatedSprite3D");
-		hitCooldown = GetNode<Timer>("HitCooldown");
-		hitRay = GetNode<RayCast3D>("HitRay");
+		_world = GetNode<World>("/root/Game/World");
+		_animTree = GetNode<AnimationTree>("AnimationTree");
+		_animPlayback = _animTree.Get("parameters/playback").As<AnimationNodeStateMachinePlayback>();
+		_animPlayback?.Travel("Locomotion");
+		_tintOverlay = _world.GetNode<BiomeTintOverlay>("BiomeTint/BiomeOverlay");
+		_hitCooldown = GetNode<Timer>("HitCooldown");
 		HUD = GetNode<HUD>("/root/Game/HUD");
 		Hotbar = GetNode<Hotbar>("Hotbar");
 		Inventory = GetNode<Inventory>("Inventory");
-		CameraController = cameraControllerScene.Instantiate<CameraController>();
+		CameraController = _cameraControllerScene.Instantiate<CameraController>();
 		CameraController.Player = this;
 		GetNode<Display>("/root/Game/Display").SetCameraController(CameraController);
 
-		world.GetNode<Node3D>("SubViewportContainer/SubViewport/WorldObjects")
+		_world.GetNode<Node3D>("SubViewportContainer/SubViewport/WorldObjects")
 			.CallDeferred(Node.MethodName.AddChild, CameraController);
 
 		HUD.RefreshUI();
 		Hotbar.SelectedSlotChanged += _ => UpdateEquippedItem();
 		Hotbar.ContainerChanged += UpdateEquippedItem;
 
-		// var mat = (StandardMaterial3D)BaseMaterial.Duplicate();
-		// sprite.MaterialOverride = mat;
-
 		DefaultTool = ItemRegistry.GetItem("fist") as ToolItem;
 
+#if DEBUG
 		// testing items
 		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("chest"), 1);
 		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
@@ -85,13 +85,14 @@ public partial class Player : CharacterBody3D
 		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("coal"), 20);
 		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("wood"), 20);
 		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone"), 20);
+#endif
 
 		EmitSignal(SignalName.PlayerReady);
 	}
 
 	public override void _Process(double delta)
 	{
-		if (_lastCheckedPosition.DistanceSquaredTo(GlobalPosition) < BIOME_CHECK_DISTANCE * BIOME_CHECK_DISTANCE)
+		if (_lastCheckedPosition.DistanceSquaredTo(GlobalPosition) < BiomeCheckDistance * BiomeCheckDistance)
 			return;
 
 		_lastCheckedPosition = GlobalPosition;
@@ -100,7 +101,7 @@ public partial class Player : CharacterBody3D
 
 	public void CheckBiome()
 	{
-		var biome = world.GetBiomeAtPos(GlobalPosition);
+		var biome = _world.GetBiomeAtPos(GlobalPosition);
 		if (!string.IsNullOrEmpty(biome) && biome != CurrentBiome)
 			OnBiomeChanged(biome);
 	}
@@ -112,18 +113,18 @@ public partial class Player : CharacterBody3D
 		var stack = Hotbar.GetSlot(Hotbar.SelectedSlot);
 		var newItem = stack?.Item ?? DefaultTool;
 
-		if (newItem == lastEquippedItem)
+		if (newItem == _lastEquippedItem)
 			return;
 
-		lastEquippedItem = newItem;
-		equippedItem = newItem;
+		_lastEquippedItem = newItem;
+		_equippedItem = newItem;
 
 		UpdatePlacementState(newItem);
 	}
 
 	private ToolItem GetActiveTool()
 	{
-		if (equippedItem is ToolItem tool)
+		if (_equippedItem is ToolItem tool)
 			return tool;
 
 		return DefaultTool;
@@ -135,15 +136,9 @@ public partial class Player : CharacterBody3D
 		if (tool == null) return;
 
 		AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, 0.1f);
-		// AudioManager.Call("play_random_at", tool.SwingSounds, GlobalPosition, AudioManager.Get("BUS_TOOLS"), 0.1f, -12);
 
 		var space = GetWorld3D().DirectSpaceState;
-		var swingDir = aimDirection;
-		var faceDir = new Vector2(swingDir.X, swingDir.Z).Normalized();
-
-		var facing = AnimationManager.GetFacingFromInput(faceDir);
-		lastFacing = facing;
-		sprite.Play("idle_" + facing.ToString().ToLower());
+		var swingDir = _aimDirection;
 
 		foreach (var dir in GetHitArcDirections(swingDir, tool.HitArcDegress, tool.HitRayCount))
 		{
@@ -152,7 +147,7 @@ public partial class Player : CharacterBody3D
 				GlobalPosition + dir * tool.HitRange
 			);
 
-			query.Exclude = new Godot.Collections.Array<Rid> { GetRid() };
+			query.Exclude = [GetRid()];
 
 			var result = space.IntersectRay(query);
 			if (result.Count == 0)
@@ -174,6 +169,8 @@ public partial class Player : CharacterBody3D
 				current = current.GetParent();
 			}
 
+			if (worldObject == null) continue;
+
 			worldObject.ObjectBroken -= OnObjectBroken;
 			worldObject.ObjectBroken += OnObjectBroken;
 
@@ -183,24 +180,24 @@ public partial class Player : CharacterBody3D
 			var hitPoint = (Vector3)result["position"];
 			var hitDir = (worldObject.GlobalPosition - hitPoint).Normalized();
 			tool.UseOn(worldObject, hitDir);
+
 			return;
 		}
 	}
 
 	private void PlaceItem()
 	{
-		if (currentPlaceable == null)
+		if (_currentPlaceable == null)
 			return;
 
-		if (!world.CanPlace(previewTile, currentPlaceable))
+		if (!_world.CanPlace(_previewTile, _currentPlaceable))
 			return;
 
-		var result = world.PlaceItem(previewTile, currentPlaceable);
-		if (result)
-		{
-			InventoryManager.Instance.RemoveItem(this, currentPlaceable, 1);
-			UpdateEquippedItem();
-		}
+		var result = _world.PlaceItem(_previewTile, _currentPlaceable);
+
+		if (!result) return;
+		InventoryManager.Instance.RemoveItem(this, _currentPlaceable, 1);
+		UpdateEquippedItem();
 	}
 
 	// event handlers
@@ -219,7 +216,7 @@ public partial class Player : CharacterBody3D
 
 	private void OnHitCooldownTimeout()
 	{
-		canSwing = true;
+		_canSwing = true;
 	}
 
 	// inventory interaction
@@ -262,7 +259,6 @@ public partial class Player : CharacterBody3D
 		}
 	}
 
-
 	//Movement and tool usage
 
 	public override void _PhysicsProcess(double delta)
@@ -280,32 +276,45 @@ public partial class Player : CharacterBody3D
 			Velocity = moveVec * Speed;
 			MoveAndSlide();
 
-			var facing = AnimationManager.GetFacingFromInput(inputDir);
-			lastFacing = facing;
-			sprite.Play("run_" + facing.ToString().ToLower());
+			var targetAngle = Mathf.Atan2(moveVec.X, moveVec.Z);
+			var currentAngle = Rotation.Y;
+
+			Rotation = new Vector3(
+				Rotation.X,
+				Mathf.LerpAngle(currentAngle, targetAngle, 10f * (float)delta),
+				Rotation.Z
+			);
+
+			SetAnimState("run");
 		}
 		else
 		{
 			Velocity = Vector3.Zero;
-			sprite.Play("idle_" + lastFacing.ToString().ToLower());
+			SetAnimState("idle");
 		}
 
-		aimDirection = GetAimDirection();
+		const float k = 14f;
+		var a = 1f - Mathf.Exp(-k * (float)delta);
+		
+		_locomotionBlend = Mathf.Lerp(_locomotionBlend, _locomotionBlendTarget, a);
+		_animTree.Set(LocomotionBlendPath, _locomotionBlend);
+
+		_aimDirection = GetAimDirection();
 
 		if (Input.IsActionPressed("use_tool") && !HUD.WindowOpen)
 		{
-			if (!canSwing) return;
-			canSwing = false;
-			hitCooldown.Start();
+			if (!_canSwing) return;
+			_canSwing = false;
+			_hitCooldown.Start();
 
 
-			if (equippedItem is PlaceableItem)
+			if (_equippedItem is PlaceableItem)
 				PlaceItem();
 			else
 				UseActiveTool();
 		}
 
-		if (Input.IsActionPressed("interact"))
+		if (Input.IsActionJustPressed("interact"))
 			switch (FocusedInteractable)
 			{
 				case IItemContainer storage:
@@ -316,18 +325,31 @@ public partial class Player : CharacterBody3D
 					break;
 			}
 
-		if (placementMode && placementPreview != null && placementPreview.IsInsideTree())
+		if (_placementMode)
 			UpdatePlacementPreview();
-		else
+		else if (!HUD.WindowOpen)
 			UpdateFocusedObject();
 	}
 
+	private void SetAnimState(string name)
+	{
+		if (_animState == name) return;
+		_animState = name;
+		
+		_animPlayback?.Travel("Locomotion");
+		_locomotionBlendTarget = name switch
+		{
+			"idle" => 0f,
+			"run" => 1f,
+			_ => _locomotionBlendTarget
+		};
+	}
 
 	// biome updates
 	public void OnBiomeChanged(string newBiome)
 	{
 		CurrentBiome = newBiome;
-		tintOverlay.SetTintForBiome(newBiome);
+		_tintOverlay.SetTintForBiome(newBiome);
 		EmitSignal(SignalName.BiomeChanged, newBiome);
 	}
 
@@ -336,22 +358,24 @@ public partial class Player : CharacterBody3D
 	{
 		var viewport = GetViewport();
 		var camera = viewport.GetCamera3D();
-		if (camera == null) return aimDirection;
+		if (camera == null) return _aimDirection;
 
 		var mousePos = viewport.GetMousePosition();
 
 		var rayOrigin = camera.ProjectRayOrigin(mousePos);
 		var rayDir = camera.ProjectRayNormal(mousePos);
 
+		if (Mathf.Abs(rayDir.Y) < 0.0001f) return _aimDirection;
+
 		var t = (GlobalPosition.Y - rayOrigin.Y) / rayDir.Y;
-		if (t < 0) return aimDirection;
+		if (t < 0) return _aimDirection;
 
 		var hitPoint = rayOrigin + rayDir * t;
 		var dir = hitPoint - GlobalPosition;
 		dir.Y = 0;
 
 		if (dir.LengthSquared() < 0.01f)
-			return aimDirection;
+			return _aimDirection;
 
 		dir = dir.Rotated(Vector3.Up, Mathf.DegToRad(-45));
 
@@ -382,80 +406,79 @@ public partial class Player : CharacterBody3D
 
 	private void EnterPlacementMode(PlaceableItem placeable)
 	{
-		if (placementMode && currentPlaceable == placeable)
+		if (_placementMode && _currentPlaceable == placeable)
 			return;
 
-		placementMode = true;
-		currentPlaceable = placeable;
-		CreatePlacementPreivew();
+		_placementMode = true;
+		_currentPlaceable = placeable;
+		CreatePlacementPreview();
 	}
 
 	private void ExitPlacementMode()
 	{
-		if (!placementMode)
+		if (!_placementMode)
 			return;
 
-		placementMode = false;
-		currentPlaceable = null;
+		_placementMode = false;
+		_currentPlaceable = null;
 		RemovePlacementPreview();
 	}
 
-	private void CreatePlacementPreivew()
+	private void CreatePlacementPreview()
 	{
-		if (placementPreview != null)
-			placementPreview.Free();
+		_placementPreview?.Free();
 
-		placementPreview = GD.Load<PackedScene>("res://scenes/placeables/PlacementPreview.tscn")
+		_placementPreview = GD.Load<PackedScene>("res://scenes/placeables/PlacementPreview.tscn")
 			.Instantiate<PlacementPreview>();
 
-		placementPreview.SetPreviewScene(currentPlaceable.PreviewScene);
+		_placementPreview.SetPreviewScene(_currentPlaceable.PreviewScene);
 
-		GetTree().CurrentScene.CallDeferred("add_child", placementPreview);
+		GetTree().CurrentScene.CallDeferred("add_child", _placementPreview);
 
 		var camera = GetViewport().GetCamera3D();
 		if (camera == null)
 			return;
 
-		placementPreview.SetDeferred("global_position", TileManager.GetMouseTilePosition(camera));
-		placementPreview.CallDeferred("force_update_transform");
+		_placementPreview.SetDeferred("global_position", TileManager.GetMouseTilePosition(camera));
+		_placementPreview.CallDeferred("force_update_transform");
 	}
 
 	private void UpdatePlacementPreview()
 	{
-		if (!placementMode || placementPreview == null || !placementPreview.IsInsideTree())
+		if (!_placementMode || _placementPreview == null)
 			return;
 
 		if (HUD.WindowOpen)
 		{
-			placementPreview.Visible = false;
+			_placementPreview.Visible = false;
 			return;
 		}
-		else
-		{
-			placementPreview.Visible = true;
-		}
 
+		if (!_placementPreview.IsInsideTree())
+			return;
+
+		_placementPreview.Visible = true;
 
 		var camera = GetViewport().GetCamera3D();
 		if (camera == null)
 			return;
 
-		previewTile = TileManager.GetMouseTilePosition(camera);
+		_previewTile = TileManager.GetMouseTilePosition(camera);
 
-		placementPreview.GlobalPosition = TileManager.TileToWorld(previewTile);
-		var canPlace = world.CanPlace(previewTile, currentPlaceable);
-		placementPreview.SetValid(canPlace);
+		_placementPreview.GlobalPosition = TileManager.TileToWorld(_previewTile);
+		var canPlace = _world.CanPlace(_previewTile, _currentPlaceable);
+		_placementPreview.SetValid(canPlace);
 	}
 
 	private void RemovePlacementPreview()
 	{
-		if (placementPreview == null)
+		if (_placementPreview == null)
 			return;
 
-		if (placementPreview.IsInsideTree())
-			placementPreview.Free();
+		if (_placementPreview.IsInsideTree())
+			_placementPreview.Free();
 
-		placementPreview = null;
+		_placementPreview = null;
 	}
 
 	private void UpdateFocusedObject()

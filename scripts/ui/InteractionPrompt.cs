@@ -2,21 +2,21 @@ using Godot;
 
 public partial class InteractionPrompt : Node3D
 {
-    private MeshInstance3D inputIcon;
+	private MeshInstance3D _inputIcon;
 
-    public override void _Ready()
-    {
-        inputIcon = GetNode<MeshInstance3D>("InputIcon");
-    }
+	public override void _Ready()
+	{
+		_inputIcon = GetNode<MeshInstance3D>("InputIcon");
+	}
 
-    public void ShowIcon()
-    {
-        inputIcon.Visible = true;
-    }
+	public void ShowIcon()
+	{
+		_inputIcon.Visible = true;
+	}
 
-    public void HideIcon()
-    {
-        if (IsInstanceValid(inputIcon))
-            inputIcon.Visible = false;
-    }
+	public void HideIcon()
+	{
+		if (IsInstanceValid(_inputIcon))
+			_inputIcon.Visible = false;
+	}
 }

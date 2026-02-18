@@ -6,3 +6,6 @@
 [node name="FlowerPoppy" unique_id=194147997 instance=ExtResource("1_jqawr")]
 script = ExtResource("2_tthm0")
 ObjectType = "flower"
+
+[node name="Icosphere" parent="." index="0" unique_id=750502038]
+cast_shadow = 2

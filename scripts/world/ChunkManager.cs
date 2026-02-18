@@ -5,24 +5,23 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 {
 	private Dictionary<Vector2I, Chunk> ActiveChunks => world.ActiveChunks;
 
-	private int ChunkSize { get; set; } = chunkSize;
-	private int ChunkRadius { get; set; } = chunkRadius;
+	private int ChunkSize { get; } = chunkSize;
+	private int ChunkRadius { get; } = chunkRadius;
 
-	public readonly HashSet<Vector2I> PendingInitialChunks = new();
+	public readonly HashSet<Vector2I> PendingInitialChunks = [];
 	public bool InitialChunksReady;
 
 
 	public void ForceInitialChunks(Vector3 playerPos)
 	{
 		var playerChunk = TileManager.WorldToChunk(playerPos);
-		world.lastPlayerChunk = playerChunk;
+		world.LastPlayerChunk = playerChunk;
 
 		PendingInitialChunks.Clear();
 		InitialChunksReady = false;
 
-		var r = ChunkRadius;
-		for (var x = -r; x <= r; x++)
-		for (var y = -r; y <= r; y++)
+		for (var x = -ChunkRadius; x <= ChunkRadius; x++)
+		for (var y = -ChunkRadius; y <= ChunkRadius; y++)
 		{
 			Vector2I coord = new(playerChunk.X + x, playerChunk.Y + y);
 			PendingInitialChunks.Add(coord);
@@ -35,10 +34,10 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 	{
 		var playerChunk = TileManager.WorldToChunk(playerPos);
 
-		if (playerChunk == world.lastPlayerChunk)
+		if (playerChunk == world.LastPlayerChunk)
 			return;
 
-		world.lastPlayerChunk = playerChunk;
+		world.LastPlayerChunk = playerChunk;
 
 		RequestChunksAround(playerChunk);
 		UnloadChunksOutside(playerChunk);
@@ -64,7 +63,7 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 	private void UnloadChunksOutside(Vector2I center)
 	{
 		var r = ChunkRadius;
-		List<Vector2I> chunksToUnload = new();
+		List<Vector2I> chunksToUnload = [];
 
 		foreach (var kv in ActiveChunks)
 		{
@@ -110,10 +109,15 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 
 		foreach (var obj in chunk.Objects)
 		{
-			if (obj.RuntimeNode is IChunkStateful<StationStateData> station)
-				delta.StationStates[obj.TileCoord] = station.CaptureState();
-			else if (obj.RuntimeNode is IChunkStateful<StorageStateData> storage)
-				delta.StorageStates[obj.TileCoord] = storage.CaptureState();
+			switch (obj.RuntimeNode)
+			{
+				case IChunkStateful<StationStateData> station:
+					delta.StationStates[obj.TileCoord] = station.CaptureState();
+					break;
+				case IChunkStateful<StorageStateData> storage:
+					delta.StorageStates[obj.TileCoord] = storage.CaptureState();
+					break;
+			}
 
 
 			world.WorldObjectManager.EnqueueRemoval(obj);
