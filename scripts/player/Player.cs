@@ -9,7 +9,7 @@ public partial class Player : CharacterBody3D
 	[Signal]
 	public delegate void BiomeChangedEventHandler(string newBiome);
 
-	private PackedScene _cameraControllerScene =
+	private static readonly PackedScene CameraControllerScene =
 		GD.Load<PackedScene>("res://scenes/player/CameraController.tscn");
 
 	public float Speed = 5.0f;
@@ -25,7 +25,7 @@ public partial class Player : CharacterBody3D
 	private const float BiomeCheckDistance = 0.5f;
 
 	private BiomeTintOverlay _tintOverlay;
-	
+
 	private AnimationTree _animTree;
 	private Vector3 _aimDirection = Vector3.Forward;
 	private string _animState = "";
@@ -36,19 +36,23 @@ public partial class Player : CharacterBody3D
 
 	private Timer _hitCooldown;
 
-	private bool _placementMode;
-	private PlaceableItem _currentPlaceable;
-	private PlacementPreview _placementPreview;
-	private Vector2I _previewTile;
+	private PlacementController _placement;
 
 	public IInteractable FocusedInteractable { get; private set; }
 	public ICraftingStation FocusedStation => FocusedInteractable?.GetCapability<ICraftingStation>();
+	private float _focusAccum;
+	private const float FocusHz = 20f;
+	private const float FocusInterval = 1f / FocusHz;
+	private PhysicsRayQueryParameters3D _focusQuery;
 
 	public HUD HUD;
 	public Hotbar Hotbar;
 	public Inventory Inventory;
 
 	public CameraController CameraController;
+
+	private static readonly StringName UseToolAction = "use_tool";
+	private static readonly StringName InteractAction = "interact";
 
 	public override void _Ready()
 	{
@@ -63,7 +67,7 @@ public partial class Player : CharacterBody3D
 		HUD = GetNode<HUD>("/root/Game/HUD");
 		Hotbar = GetNode<Hotbar>("Hotbar");
 		Inventory = GetNode<Inventory>("Inventory");
-		CameraController = _cameraControllerScene.Instantiate<CameraController>();
+		CameraController = CameraControllerScene.Instantiate<CameraController>();
 		CameraController.Player = this;
 		GetNode<Display>("/root/Game/Display").SetCameraController(CameraController);
 
@@ -75,6 +79,16 @@ public partial class Player : CharacterBody3D
 		Hotbar.ContainerChanged += UpdateEquippedItem;
 
 		DefaultTool = ItemRegistry.GetItem("fist") as ToolItem;
+
+		_placement = new PlacementController();
+		AddChild(_placement);
+		_placement.Init(_world, this);
+
+		_focusQuery = new PhysicsRayQueryParameters3D
+		{
+			CollideWithAreas = false,
+			CollideWithBodies = true
+		};
 
 #if DEBUG
 		// testing items
@@ -185,21 +199,6 @@ public partial class Player : CharacterBody3D
 		}
 	}
 
-	private void PlaceItem()
-	{
-		if (_currentPlaceable == null)
-			return;
-
-		if (!_world.CanPlace(_previewTile, _currentPlaceable))
-			return;
-
-		var result = _world.PlaceItem(_previewTile, _currentPlaceable);
-
-		if (!result) return;
-		InventoryManager.Instance.RemoveItem(this, _currentPlaceable, 1);
-		UpdateEquippedItem();
-	}
-
 	// event handlers
 	private void OnObjectBroken(WorldObject obj)
 	{
@@ -263,6 +262,15 @@ public partial class Player : CharacterBody3D
 
 	public override void _PhysicsProcess(double delta)
 	{
+		var dt = (float)delta;
+
+		var hudOpen = HUD.WindowOpen;
+		var useToolHeld = Input.IsActionPressed(UseToolAction);
+		var interactPressed = Input.IsActionJustPressed(InteractAction);
+
+		var viewport = GetViewport();
+		var camera = viewport.GetCamera3D();
+
 		var inputDir = new Vector2(
 			Input.GetActionStrength("move_right") - Input.GetActionStrength("move_left"),
 			Input.GetActionStrength("move_down") - Input.GetActionStrength("move_up")
@@ -277,11 +285,10 @@ public partial class Player : CharacterBody3D
 			MoveAndSlide();
 
 			var targetAngle = Mathf.Atan2(moveVec.X, moveVec.Z);
-			var currentAngle = Rotation.Y;
 
 			Rotation = new Vector3(
 				Rotation.X,
-				Mathf.LerpAngle(currentAngle, targetAngle, 10f * (float)delta),
+				Mathf.LerpAngle(Rotation.Y, targetAngle, 10f * dt),
 				Rotation.Z
 			);
 
@@ -294,27 +301,31 @@ public partial class Player : CharacterBody3D
 		}
 
 		const float k = 14f;
-		var a = 1f - Mathf.Exp(-k * (float)delta);
-		
+		var a = 1f - Mathf.Exp(-k * dt);
+
 		_locomotionBlend = Mathf.Lerp(_locomotionBlend, _locomotionBlendTarget, a);
 		_animTree.Set(LocomotionBlendPath, _locomotionBlend);
 
-		_aimDirection = GetAimDirection();
+		if (camera != null && !hudOpen)
+			_aimDirection = GetAimDirection(camera, viewport.GetMousePosition());
 
-		if (Input.IsActionPressed("use_tool") && !HUD.WindowOpen)
-		{
-			if (!_canSwing) return;
-			_canSwing = false;
-			_hitCooldown.Start();
+		if (useToolHeld && !hudOpen)
+			if (_canSwing)
+			{
+				_canSwing = false;
+				_hitCooldown.Start();
 
+				if (_equippedItem is PlaceableItem)
+				{
+					if (_placement.TryPlace()) UpdateEquippedItem();
+				}
+				else
+				{
+					UseActiveTool();
+				}
+			}
 
-			if (_equippedItem is PlaceableItem)
-				PlaceItem();
-			else
-				UseActiveTool();
-		}
-
-		if (Input.IsActionJustPressed("interact"))
+		if (interactPressed && !hudOpen)
 			switch (FocusedInteractable)
 			{
 				case IItemContainer storage:
@@ -325,17 +336,26 @@ public partial class Player : CharacterBody3D
 					break;
 			}
 
-		if (_placementMode)
-			UpdatePlacementPreview();
-		else if (!HUD.WindowOpen)
-			UpdateFocusedObject();
+		if (_placement.Active)
+		{
+			if (camera != null)
+				_placement.Tick(camera, !hudOpen);
+		}
+		else if (!hudOpen)
+		{
+			_focusAccum += dt;
+			if (!(_focusAccum >= FocusInterval)) return;
+
+			_focusAccum -= FocusInterval;
+			if (camera != null) UpdateFocusedObject(camera, viewport.GetMousePosition());
+		}
 	}
 
 	private void SetAnimState(string name)
 	{
 		if (_animState == name) return;
 		_animState = name;
-		
+
 		_animPlayback?.Travel("Locomotion");
 		_locomotionBlendTarget = name switch
 		{
@@ -354,13 +374,9 @@ public partial class Player : CharacterBody3D
 	}
 
 	// helpers
-	private Vector3 GetAimDirection()
+	private Vector3 GetAimDirection(Camera3D camera, Vector2 mousePos)
 	{
-		var viewport = GetViewport();
-		var camera = viewport.GetCamera3D();
 		if (camera == null) return _aimDirection;
-
-		var mousePos = viewport.GetMousePosition();
 
 		var rayOrigin = camera.ProjectRayOrigin(mousePos);
 		var rayDir = camera.ProjectRayNormal(mousePos);
@@ -395,117 +411,32 @@ public partial class Player : CharacterBody3D
 		}
 	}
 
-	// create/remove/update placement preview
 	private void UpdatePlacementState(Item item)
 	{
 		if (item is PlaceableItem placeable)
-			EnterPlacementMode(placeable);
+			_placement.Enter(placeable);
 		else
-			ExitPlacementMode();
+			_placement.Exit();
 	}
 
-	private void EnterPlacementMode(PlaceableItem placeable)
+	private void UpdateFocusedObject(Camera3D camera, Vector2 mousePos)
 	{
-		if (_placementMode && _currentPlaceable == placeable)
-			return;
-
-		_placementMode = true;
-		_currentPlaceable = placeable;
-		CreatePlacementPreview();
-	}
-
-	private void ExitPlacementMode()
-	{
-		if (!_placementMode)
-			return;
-
-		_placementMode = false;
-		_currentPlaceable = null;
-		RemovePlacementPreview();
-	}
-
-	private void CreatePlacementPreview()
-	{
-		_placementPreview?.Free();
-
-		_placementPreview = GD.Load<PackedScene>("res://scenes/placeables/PlacementPreview.tscn")
-			.Instantiate<PlacementPreview>();
-
-		_placementPreview.SetPreviewScene(_currentPlaceable.PreviewScene);
-
-		GetTree().CurrentScene.CallDeferred("add_child", _placementPreview);
-
-		var camera = GetViewport().GetCamera3D();
 		if (camera == null)
 			return;
 
-		_placementPreview.SetDeferred("global_position", TileManager.GetMouseTilePosition(camera));
-		_placementPreview.CallDeferred("force_update_transform");
-	}
-
-	private void UpdatePlacementPreview()
-	{
-		if (!_placementMode || _placementPreview == null)
-			return;
-
-		if (HUD.WindowOpen)
-		{
-			_placementPreview.Visible = false;
-			return;
-		}
-
-		if (!_placementPreview.IsInsideTree())
-			return;
-
-		_placementPreview.Visible = true;
-
-		var camera = GetViewport().GetCamera3D();
-		if (camera == null)
-			return;
-
-		_previewTile = TileManager.GetMouseTilePosition(camera);
-
-		_placementPreview.GlobalPosition = TileManager.TileToWorld(_previewTile);
-		var canPlace = _world.CanPlace(_previewTile, _currentPlaceable);
-		_placementPreview.SetValid(canPlace);
-	}
-
-	private void RemovePlacementPreview()
-	{
-		if (_placementPreview == null)
-			return;
-
-		if (_placementPreview.IsInsideTree())
-			_placementPreview.Free();
-
-		_placementPreview = null;
-	}
-
-	private void UpdateFocusedObject()
-	{
-		var camera = GetViewport().GetCamera3D();
-		if (camera == null)
-			return;
-
-		var mousePos = GetViewport().GetMousePosition();
 		var rayOrigin = camera.ProjectRayOrigin(mousePos);
 		var rayDir = camera.ProjectRayNormal(mousePos);
 
-		var query = PhysicsRayQueryParameters3D.Create(
-			rayOrigin,
-			rayOrigin + rayDir * 100f
-		);
+		_focusQuery.From = rayOrigin;
+		_focusQuery.To = rayOrigin + rayDir * 100f;
 
-		query.CollideWithAreas = false;
-		query.CollideWithBodies = true;
-
-		var result = GetWorld3D().DirectSpaceState.IntersectRay(query);
+		var result = GetWorld3D().DirectSpaceState.IntersectRay(_focusQuery);
 
 		IInteractable newFocus = null;
 
-		if (result.Count > 0)
+		if (result.Count > 0 && result.TryGetValue("collider", out var col))
 		{
-			var collider = result["collider"].As<Node>();
+			var collider = col.As<Node>();
 			newFocus = FindAncestor<IInteractable>(collider);
 		}
 
