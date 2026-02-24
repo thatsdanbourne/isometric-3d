@@ -1,5 +1,4 @@
 using Godot;
-using Godot.Collections;
 
 public partial class CameraController : Node3D
 {
@@ -36,19 +35,6 @@ public partial class CameraController : Node3D
 	private float _shakeTime;
 	private float _shakeIntensity;
 
-	// ======================
-	// Pixel snap settings
-	// ======================
-	[Export] public bool EnablePixelSnap = true;
-	public Vector2 TexelError = Vector2.Zero;
-	private float _texelSize;
-
-	private Array<Node> _pickups;
-	private Vector3[] _preSnapPos;
-
-	private Transform3D _snapSpace;
-	private Vector3 _prevRotation;
-
 	private Camera3D _camera;
 
 	public override void _Ready()
@@ -62,25 +48,16 @@ public partial class CameraController : Node3D
 				GlobalPosition.Y,
 				Player.GlobalPosition.Z
 			);
-
-		_prevRotation = GlobalRotation;
-		_snapSpace = _camera.GlobalTransform;
-
-		// RenderingServer.FramePostDraw += SnapRevert;
 	}
 
 	public override void _Process(double delta)
 	{
 		var d = (float)delta;
 		UpdateFollow(d);
-		// ApplyPixelSnap();
 		UpdateZoom(d);
 		UpdateShake(d);
 	}
 
-	// ======================
-	// FOLLOW
-	// ======================
 	private void UpdateFollow(float delta)
 	{
 		var camPos = GlobalPosition;
@@ -120,9 +97,6 @@ public partial class CameraController : Node3D
 			_camVelocity = Vector3.Zero;
 	}
 
-	// ======================
-	// ZOOM
-	// ======================
 	private void UpdateZoom(float delta)
 	{
 		if (Input.IsActionPressed("zoom_in"))
@@ -142,9 +116,6 @@ public partial class CameraController : Node3D
 		_camera.Size = Mathf.Lerp(_camera.Size, _targetZoom, t);
 	}
 
-	// ======================
-	// SHAKE
-	// ======================
 	public void Shake(float duration, float intensity)
 	{
 		_shakeTime = duration;
@@ -167,32 +138,5 @@ public partial class CameraController : Node3D
 		{
 			_camera.Position = _cameraOffset;
 		}
-	}
-
-	private void ApplyPixelSnap()
-	{
-		if (!EnablePixelSnap)
-		{
-			_camera.HOffset = 0;
-			_camera.VOffset = 0;
-			return;
-		}
-
-		// Reset snap space if the camera rotates
-		if (_camera.GlobalRotation != _prevRotation)
-		{
-			_prevRotation = _camera.GlobalRotation;
-			_snapSpace = _camera.GlobalTransform;
-		}
-
-		_texelSize = _camera.Size / ((SubViewport)_camera.GetViewport()).Size.Y;
-		var snapSpacePosition = _snapSpace.AffineInverse() * _camera.GlobalPosition;
-		var snappedSpaceSnapPosition = snapSpacePosition.Snapped(Vector3.One * _texelSize);
-		var snapError = snappedSpaceSnapPosition - snapSpacePosition;
-
-		// Apply render offset ONLY
-		_camera.HOffset = snapError.X;
-		_camera.VOffset = snapError.Y;
-		TexelError = new Vector2(snapError.X, -snapError.Y) / _texelSize;
 	}
 }

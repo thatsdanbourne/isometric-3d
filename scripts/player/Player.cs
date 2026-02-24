@@ -73,9 +73,8 @@ public partial class Player : CharacterBody3D
 		Inventory = GetNode<Inventory>("Inventory");
 		CameraController = CameraControllerScene.Instantiate<CameraController>();
 		CameraController.Player = this;
-		GetNode<Display>("/root/Game/Display").SetCameraController(CameraController);
 
-		_world.GetNode<Node3D>("SubViewportContainer/SubViewport/WorldObjects")
+		_world.GetNode<Node3D>("WorldObjects")
 			.CallDeferred(Node.MethodName.AddChild, CameraController);
 
 		HUD.RefreshUI();
