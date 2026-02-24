@@ -27,8 +27,8 @@ shader_parameter/light_steps = 5.0
 [node name="Pine" unique_id=1881416248 instance=ExtResource("1_u4uva")]
 script = ExtResource("2_cye4l")
 
-[node name="Trunk" parent="." index="0" unique_id=931374994]
+[node name="Trunk" parent="." index="0" unique_id=2084508773]
 surface_material_override/0 = SubResource("ShaderMaterial_wpald")
 
-[node name="Canopy" parent="." index="1" unique_id=999944366]
+[node name="Canopy" parent="." index="1" unique_id=545128871]
 surface_material_override/0 = SubResource("ShaderMaterial_u4uva")

@@ -158,17 +158,6 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 
 						blocked[x, y] = obj.Definition.BlocksTile;
 					}
-
-			// foreach (var decorRule in biome.DecorRules)
-			//     if (decorRule.ShouldPlace(globalX, globalY))
-			//     {
-			//         if (blocked[x, y])
-			//             continue;
-			//         var dec = new ChunkDecor();
-			//         dec.DecorRule = decorRule;
-			//         dec.Position = new Vector3(globalX + 0.25f, 0, globalY + 0.25f);
-			//         decors.Add(dec);
-			//     }
 		}
 
 		// build player placed objects

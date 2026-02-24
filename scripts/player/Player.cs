@@ -43,7 +43,11 @@ public partial class Player : CharacterBody3D
 	private float _focusAccum;
 	private const float FocusHz = 20f;
 	private const float FocusInterval = 1f / FocusHz;
+
+	private const uint InteractableMask = 1u << 2;
 	private PhysicsRayQueryParameters3D _focusQuery;
+	private const uint HittableMask = 1u << 1;
+	private PhysicsRayQueryParameters3D _toolQuery;
 
 	public HUD HUD;
 	public Hotbar Hotbar;
@@ -87,8 +91,17 @@ public partial class Player : CharacterBody3D
 		_focusQuery = new PhysicsRayQueryParameters3D
 		{
 			CollideWithAreas = false,
-			CollideWithBodies = true
+			CollideWithBodies = true,
+			CollisionMask = InteractableMask
 		};
+
+		_toolQuery = new PhysicsRayQueryParameters3D
+		{
+			CollideWithAreas = false,
+			CollideWithBodies = true,
+			CollisionMask = HittableMask
+		};
+
 
 #if DEBUG
 		// testing items
@@ -156,32 +169,22 @@ public partial class Player : CharacterBody3D
 
 		foreach (var dir in GetHitArcDirections(swingDir, tool.HitArcDegress, tool.HitRayCount))
 		{
-			var query = PhysicsRayQueryParameters3D.Create(
-				GlobalPosition,
-				GlobalPosition + dir * tool.HitRange
-			);
+			_toolQuery.From = GlobalPosition;
+			_toolQuery.To = GlobalPosition + dir * tool.HitRange;
 
-			query.Exclude = [GetRid()];
+			_toolQuery.Exclude = [GetRid()];
 
-			var result = space.IntersectRay(query);
+			var result = space.IntersectRay(_toolQuery);
 			if (result.Count == 0)
 				continue;
 
-			var collider = result["collider"].As<Node>();
+			if (!result.TryGetValue("collider", out var col))
+				continue;
 
-			WorldObject worldObject = null;
-			var current = collider;
+			var collider = col.As<Node>();
 
-			while (current != null)
-			{
-				if (current is WorldObject wo)
-				{
-					worldObject = wo;
-					break;
-				}
-
-				current = current.GetParent();
-			}
+			var body = collider as WorldObjectCollider;
+			var worldObject = body?.ObjectOwner;
 
 			if (worldObject == null) continue;
 
@@ -191,10 +194,11 @@ public partial class Player : CharacterBody3D
 			worldObject.ObjectHitFailed -= OnHitFailed;
 			worldObject.ObjectHitFailed += OnHitFailed;
 
-			var hitPoint = (Vector3)result["position"];
+			if (!result.TryGetValue("position", out var pos)) continue;
+			var hitPoint = pos.AsVector3();
 			var hitDir = (worldObject.GlobalPosition - hitPoint).Normalized();
-			tool.UseOn(worldObject, hitDir);
 
+			tool.UseOn(worldObject, hitDir);
 			return;
 		}
 	}
@@ -436,8 +440,8 @@ public partial class Player : CharacterBody3D
 
 		if (result.Count > 0 && result.TryGetValue("collider", out var col))
 		{
-			var collider = col.As<Node>();
-			newFocus = FindAncestor<IInteractable>(collider);
+			var body = col.As<Node>() as WorldObjectCollider;
+			newFocus = body?.ObjectOwner as IInteractable;
 		}
 
 		if (newFocus == FocusedInteractable)
@@ -446,18 +450,5 @@ public partial class Player : CharacterBody3D
 		FocusedInteractable?.OnFocusLost();
 		FocusedInteractable = newFocus;
 		FocusedInteractable?.OnFocusGained();
-	}
-
-	private static T FindAncestor<T>(Node node) where T : class
-	{
-		while (node != null)
-		{
-			if (node is T match)
-				return match;
-
-			node = node.GetParent();
-		}
-
-		return null;
 	}
 }

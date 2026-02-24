@@ -10,8 +10,6 @@ public partial class WorldObjectManager : Node
 	private readonly Queue<ChunkObject> _activeSpawnQueue = new();
 	private readonly Queue<ChunkObject> _removeQueue = new();
 
-	// private readonly Dictionary<string, Stack<WorldObject>> _pools = new();
-
 	private World _world;
 	private RandomNumberGenerator _rng;
 
@@ -158,10 +156,9 @@ public partial class WorldObjectManager : Node
 				_world.WorldObjects.AddChild(node);
 
 			node.Visible = true;
-			node.SetPhysicsProcess(true);
+			// node.SetPhysicsProcess(true);
 
 			node.GlobalPosition = data.Position;
-			node.Translate(new Vector3(0f, 0f, _rng.RandfRange(-0.01f, 0.01f)));
 
 			if (data.Definition.BlocksTile)
 				_world.BlockTile(data.TileCoord);

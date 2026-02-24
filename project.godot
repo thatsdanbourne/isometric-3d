@@ -156,6 +156,14 @@ interact={
 ]
 }
 
+[layer_names]
+
+3d_physics/layer_1="World"
+3d_physics/layer_2="Hittable"
+3d_physics/layer_3="Interactable"
+3d_physics/layer_4="Player"
+3d_physics/layer_5="Reserved"
+
 [physics]
 
 common/physics_interpolation=true

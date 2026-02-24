@@ -1,5 +1,6 @@
 using System;
 using Godot;
+
 public partial class ItemContainerSlot : PanelContainer
 {
 	public event Action<IItemContainer, int> SlotLeftClicked;
@@ -8,36 +9,38 @@ public partial class ItemContainerSlot : PanelContainer
 	public event Action SlotHoldStarted;
 	public event Action SlotHoldCompleted;
 
-	private Tooltip tooltip;
+	private Tooltip _tooltip;
 
-	public ItemStack Stack { get; private set; }
-	public IItemContainer Container { get; private set; }
-	public int Index { get; private set; }
+	private ItemStack Stack { get; set; }
+	private IItemContainer Container { get; set; }
+	private int Index { get; set; }
 
 	public Label CountLabel;
-	private TextureRect icon;
+	private TextureRect _icon;
 
 	public bool ReadOnly = false;
 	public bool IsCraftingSlot = false;
-	public int CompletedCount = 0;
-	public int TotalCount = 0;
+	private int _completedCount;
+	private int _totalCount;
 
 	public bool HoldToActivate = false;
-	public float HoldDuration = 1f;
-	private bool isHolding = false;
-	private double holdProgress = 0f;
-	private ProgressBar holdProgressBar;
-	private bool isHovered = false;
+	private float _holdDuration = 1f;
+	private bool _isHolding;
+	private double _holdProgress;
+	private ProgressBar _holdProgressBar;
 
 
 	public override void _Ready()
 	{
-		tooltip = GetTree().Root.GetNode<HUD>("Game/HUD").GetNode<Tooltip>("TooltipManager");
-		icon = GetNode<TextureRect>("Icon");
+		_tooltip = GetTree().Root.GetNode<HUD>("Game/HUD").GetNode<Tooltip>("TooltipManager");
+		_icon = GetNode<TextureRect>("Icon");
 		CountLabel = GetNode<Label>("Label");
-		holdProgressBar = GetNode<ProgressBar>("ProgressBar");
+		_holdProgressBar = GetNode<ProgressBar>("ProgressBar");
 
+		MouseEntered += OnMouseEntered;
 		MouseExited += OnMouseExited;
+
+		SetProcess(false);
 	}
 
 	public void SetSlot(IItemContainer container, int index)
@@ -55,113 +58,108 @@ public partial class ItemContainerSlot : PanelContainer
 	public void SetCraftingStack(Item item, int completed, int total)
 	{
 		Stack = new ItemStack(item, 0);
-		CompletedCount = completed;
-		TotalCount = total;
+		_completedCount = completed;
+		_totalCount = total;
 		UpdateDisplay();
 	}
 
-	public void UpdateDisplay()
+	private void UpdateDisplay()
 	{
-		if (icon == null || CountLabel == null) return;
+		if (_icon == null || CountLabel == null) return;
 
-		if (Stack == null || Stack.Item == null)
+		if (Stack?.Item == null)
 		{
-			icon.Texture = null;
+			_icon.Texture = null;
 			CountLabel.Text = "";
 			TooltipText = "";
 			return;
 		}
 
-		icon.Texture = Stack.Item.Icon;
+		_icon.Texture = Stack.Item.Icon;
 
 		if (IsCraftingSlot)
-			CountLabel.Text = $"{CompletedCount}/{TotalCount}";
+			CountLabel.Text = $"{_completedCount}/{_totalCount}";
 		else
 			CountLabel.Text = Stack.Count > 1 ? Stack.Count.ToString() : "";
 	}
 
 	public override void _GuiInput(InputEvent e)
 	{
-		if (e is InputEventMouseMotion && Stack != null && Stack.Item != null)
-		{
-			if (!isHovered)
-			{
-				isHovered = true;
-				tooltip.ShowTooltip(Stack.Item, this);
-			}
-		}
-
 		if (ReadOnly) return;
 
-		if (e is InputEventMouseButton mb)
+		if (e is not InputEventMouseButton mb) return;
+
+		// Handle hold to activate
+		if (HoldToActivate)
 		{
-			// Handle hold to activate
-			if (HoldToActivate)
+			if (mb.ButtonIndex == MouseButton.Left && mb.Pressed)
 			{
-				isHolding = true;
-				holdProgress = 0f;
+				_isHolding = true;
+				_holdProgress = 0f;
+				SetProcess(true);
 				SlotHoldStarted?.Invoke();
-
-				if (mb.ButtonIndex == MouseButton.Left && !mb.Pressed)
-				{
-					isHolding = false;
-					holdProgress = 0f;
-					if (holdProgressBar != null)
-						holdProgressBar.Visible = false;
-				}
-
-				return;
+				if (_holdProgressBar != null) _holdProgressBar.Visible = true;
 			}
 
-			// Handle normal clicks
-			if (mb.Pressed)
+			if (mb.ButtonIndex == MouseButton.Left && !mb.Pressed)
 			{
-				tooltip.HideTooltip();
-				if (mb.ButtonIndex == MouseButton.Left)
-				{
-					if (Input.IsKeyPressed(Key.Shift))
-						SlotShiftClicked?.Invoke(Container, Index);
-					else
-						SlotLeftClicked?.Invoke(Container, Index);
-				}
-				else if (mb.ButtonIndex == MouseButton.Right)
-				{
-					SlotRightClicked?.Invoke(Container, Index);
-				}
+				_isHolding = false;
+				_holdProgress = 0f;
+				if (_holdProgressBar != null) _holdProgressBar.Visible = false;
+				SetProcess(false);
 			}
+
+			return;
+		}
+
+		// Handle normal clicks
+		if (!mb.Pressed) return;
+
+		_tooltip.HideTooltip();
+		switch (mb.ButtonIndex)
+		{
+			case MouseButton.Left when Input.IsKeyPressed(Key.Shift):
+				SlotShiftClicked?.Invoke(Container, Index);
+				break;
+			case MouseButton.Left:
+				SlotLeftClicked?.Invoke(Container, Index);
+				break;
+			case MouseButton.Right:
+				SlotRightClicked?.Invoke(Container, Index);
+				break;
 		}
 	}
 
 	public override void _Process(double delta)
 	{
-		if (!HoldToActivate || !isHolding) return;
+		if (!HoldToActivate || !_isHolding) return;
 
-		holdProgress += delta;
+		_holdProgress += delta;
 
-		if (holdProgressBar != null)
+		if (_holdProgressBar != null)
 		{
-			float raw = (float)(holdProgress / HoldDuration) * 100f;
-			// float pct = 1f - Mathf.Pow(1f - raw, 3);
-			// holdProgressBar.Value = Mathf.Clamp(pct * 100f, 0, 100f);
-			holdProgressBar.Visible = true;
-			holdProgressBar.Value = raw;
+			var raw = (float)(_holdProgress / _holdDuration) * 100f;
+			_holdProgressBar.Visible = true;
+			_holdProgressBar.Value = raw;
 		}
 
-		if (holdProgress >= HoldDuration)
-		{
-			isHolding = false;
-			holdProgress = 0f;
+		if (!(_holdProgress >= _holdDuration)) return;
 
-			if (holdProgressBar != null)
-				holdProgressBar.Visible = false;
+		_isHolding = false;
+		_holdProgress = 0f;
+		if (_holdProgressBar != null) _holdProgressBar.Visible = false;
+		SetProcess(false);
+		SlotHoldCompleted?.Invoke();
+	}
 
-			SlotHoldCompleted?.Invoke();
-		}
+	private void OnMouseEntered()
+	{
+		if (Stack?.Item == null) return;
+		_tooltip.ShowTooltip(Stack.Item, this);
 	}
 
 	private void OnMouseExited()
 	{
-		isHovered = false;
-		tooltip.HideTooltip(this);
+		_tooltip.HideTooltip(this);
 	}
 }
