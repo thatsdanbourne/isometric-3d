@@ -18,7 +18,6 @@ public partial class Player : CharacterBody3D
 	private Item _lastEquippedItem;
 	private PlayerEquipment _equipment;
 
-	private bool CanSwing => _hitCooldownAccum <= 0;
 
 	private World _world;
 	public string CurrentBiome { get; private set; } = "";
@@ -26,6 +25,10 @@ public partial class Player : CharacterBody3D
 	private const float BiomeCheckDistance = 0.5f;
 
 	private BiomeTintOverlay _tintOverlay;
+
+	private const string RootLocomotion = "Locomotion";
+	private const string RootPunch = "Punch";
+	private string _rootState = RootLocomotion;
 
 	private AnimationTree _animTree;
 	private Vector3 _aimDirection = Vector3.Forward;
@@ -37,6 +40,9 @@ public partial class Player : CharacterBody3D
 
 	private float _hitCooldown = 0.5f;
 	private float _hitCooldownAccum;
+	private bool CanSwing => _hitCooldownAccum <= 0;
+	private bool IsActionLocked => _hitCooldownAccum > 0;
+	private bool _wasActionLocked;
 
 	private PlacementController _placement;
 
@@ -104,6 +110,8 @@ public partial class Player : CharacterBody3D
 			CollisionMask = HittableMask
 		};
 
+		TravelRoot(RootLocomotion);
+
 
 #if DEBUG
 		// testing items
@@ -121,9 +129,6 @@ public partial class Player : CharacterBody3D
 
 	public override void _Process(double delta)
 	{
-		if (_hitCooldownAccum > 0)
-			_hitCooldownAccum -= (float)delta;
-
 		if (_lastCheckedPosition.DistanceSquaredTo(GlobalPosition) < BiomeCheckDistance * BiomeCheckDistance)
 			return;
 
@@ -169,20 +174,32 @@ public partial class Player : CharacterBody3D
 
 	private void UseActiveTool()
 	{
+		if (!CanSwing) return;
+
 		var tool = GetActiveTool();
 		if (tool == null) return;
+
+		_hitCooldownAccum = _hitCooldown;
+		_rootState = RootPunch;
+		_animPlayback?.Start(RootPunch);
 
 		AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, 0.1f);
 
 		var space = GetWorld3D().DirectSpaceState;
-		var swingDir = _aimDirection;
+		var swingDir = _aimDirection.Rotated(Vector3.Up, Mathf.DegToRad(45)).Normalized();
+
+		var targetAngle = Mathf.Atan2(swingDir.X, swingDir.Z);
+
+		Rotation = new Vector3(
+			Rotation.X,
+			targetAngle,
+			Rotation.Z
+		);
 
 		foreach (var dir in GetHitArcDirections(swingDir, tool.HitArcDegrees, tool.HitRayCount))
 		{
 			_toolQuery.From = GlobalPosition;
 			_toolQuery.To = GlobalPosition + dir * tool.HitRange;
-
-			_toolQuery.Exclude = [GetRid()];
 
 			var result = space.IntersectRay(_toolQuery);
 			if (result.Count == 0)
@@ -280,6 +297,25 @@ public partial class Player : CharacterBody3D
 		var viewport = GetViewport();
 		var camera = viewport.GetCamera3D();
 
+		if (_hitCooldownAccum > 0)
+			_hitCooldownAccum -= (float)delta;
+
+		var locked = IsActionLocked;
+		if (_wasActionLocked && !locked)
+		{
+			if (useToolHeld && !hudOpen && !(_equippedItem is PlaceableItem))
+			{
+				UseActiveTool();
+			}
+			else
+			{
+				TravelRoot(RootLocomotion);
+				_animState = "";
+			}
+		}
+
+		_wasActionLocked = locked;
+
 		var inputDir = new Vector2(
 			Input.GetActionStrength("move_right") - Input.GetActionStrength("move_left"),
 			Input.GetActionStrength("move_down") - Input.GetActionStrength("move_up")
@@ -318,19 +354,16 @@ public partial class Player : CharacterBody3D
 		if (camera != null && !hudOpen)
 			_aimDirection = GetAimDirection(camera, viewport.GetMousePosition());
 
-		if (useToolHeld && !hudOpen)
-			if (CanSwing)
-			{
-				_hitCooldownAccum = _hitCooldown;
 
-				if (_equippedItem is PlaceableItem)
-				{
-					if (_placement.TryPlace()) UpdateEquippedItem();
-				}
-				else
-				{
-					UseActiveTool();
-				}
+		if (useToolHeld && !hudOpen)
+
+			if (_equippedItem is PlaceableItem)
+			{
+				if (_placement.TryPlace()) UpdateEquippedItem();
+			}
+			else
+			{
+				UseActiveTool();
 			}
 
 		if (interactPressed && !hudOpen)
@@ -361,10 +394,11 @@ public partial class Player : CharacterBody3D
 
 	private void SetAnimState(string name)
 	{
+		if (IsActionLocked) return;
+
 		if (_animState == name) return;
 		_animState = name;
 
-		_animPlayback?.Travel("Locomotion");
 		_locomotionBlendTarget = name switch
 		{
 			"idle" => 0f,
@@ -408,7 +442,6 @@ public partial class Player : CharacterBody3D
 
 	private IEnumerable<Vector3> GetHitArcDirections(Vector3 centerDir, float arcDegrees, int rayCount)
 	{
-		centerDir = centerDir.Rotated(Vector3.Up, Mathf.DegToRad(45)).Normalized();
 		var halfArc = arcDegrees * 0.5f;
 		var step = rayCount > 1 ? arcDegrees / (rayCount - 1) : 0f;
 
@@ -454,5 +487,12 @@ public partial class Player : CharacterBody3D
 		FocusedInteractable?.OnFocusLost();
 		FocusedInteractable = newFocus;
 		FocusedInteractable?.OnFocusGained();
+	}
+
+	private void TravelRoot(string state)
+	{
+		if (_rootState == state) return;
+		_rootState = state;
+		_animPlayback?.Travel(state);
 	}
 }
