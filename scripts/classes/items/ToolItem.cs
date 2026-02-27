@@ -3,32 +3,32 @@ using System.Collections.Generic;
 
 public class ToolItem : Item
 {
-    public float Damage { get; set; } = 1.0f;
-    public string ToolType { get; set; } = "";
-    public string SwingSoundsKey { get; set; } = "fist_1";
-    public Dictionary<string, float> DamageMultipliers { get; set; } = new();
-    public float HitArcDegress { get; set; } = 70f;
-    public int HitRayCount { get; set; } = 5;
-    public float HitRange { get; set; } = 2.0f;
-    public ToolTier Tier { get; set; }
+	public float Damage { get; init; } = 1.0f;
+	public string ToolType { get; set; } = "";
+	public string SwingSoundsKey { get; set; } = "fist_1";
+	public Dictionary<string, float> DamageMultipliers { get; init; } = new();
+	public float HitArcDegrees { get; init; } = 70f;
+	public int HitRayCount { get; init; } = 5;
+	public float HitRange { get; init; } = 2.0f;
+	public ToolTier Tier { get; init; }
+	public PackedScene HeldItemScene { get; set; }
 
-    public void UseOn(Node3D target, Vector3 fromDirection)
-    {
-        if (target is WorldObject wo)
-        {
-            if (wo.RequiredTier > Tier)
-            {
-                wo.HitFailed();
-                return;
-            }
+	public void UseOn(Node3D target, Vector3 fromDirection)
+	{
+		if (target is not WorldObject wo) return;
 
-            float finalDamage = Damage;
+		if (wo.RequiredTier > Tier)
+		{
+			wo.HitFailed();
+			return;
+		}
 
-            if (DamageMultipliers.TryGetValue(wo.ObjectType, out float multiplier))
-                finalDamage *= multiplier;
+		var finalDamage = Damage;
+
+		if (DamageMultipliers.TryGetValue(wo.ObjectType, out var multiplier))
+			finalDamage *= multiplier;
 
 
-            wo.ApplyDamage(finalDamage, fromDirection);
-        }
-    }
+		wo.ApplyDamage(finalDamage, fromDirection);
+	}
 }

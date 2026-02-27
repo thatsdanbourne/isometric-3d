@@ -16,8 +16,9 @@ public partial class Player : CharacterBody3D
 	public ToolItem DefaultTool;
 	private Item _equippedItem;
 	private Item _lastEquippedItem;
+	private PlayerEquipment _equipment;
 
-	private bool _canSwing = true;
+	private bool CanSwing => _hitCooldownAccum <= 0;
 
 	private World _world;
 	public string CurrentBiome { get; private set; } = "";
@@ -34,7 +35,8 @@ public partial class Player : CharacterBody3D
 	private float _locomotionBlendTarget;
 	private const string LocomotionBlendPath = "parameters/Locomotion/IdleRun/blend_position";
 
-	private Timer _hitCooldown;
+	private float _hitCooldown = 0.5f;
+	private float _hitCooldownAccum;
 
 	private PlacementController _placement;
 
@@ -67,10 +69,11 @@ public partial class Player : CharacterBody3D
 		_animPlayback = _animTree.Get("parameters/playback").As<AnimationNodeStateMachinePlayback>();
 		_animPlayback?.Travel("Locomotion");
 		_tintOverlay = _world.GetNode<BiomeTintOverlay>("BiomeTint/BiomeOverlay");
-		_hitCooldown = GetNode<Timer>("HitCooldown");
 		HUD = GetNode<HUD>("/root/Game/HUD");
 		Hotbar = GetNode<Hotbar>("Hotbar");
 		Inventory = GetNode<Inventory>("Inventory");
+		_equipment = GetNode<PlayerEquipment>("PlayerEquipment");
+
 		CameraController = CameraControllerScene.Instantiate<CameraController>();
 		CameraController.Player = this;
 
@@ -118,6 +121,9 @@ public partial class Player : CharacterBody3D
 
 	public override void _Process(double delta)
 	{
+		if (_hitCooldownAccum > 0)
+			_hitCooldownAccum -= (float)delta;
+
 		if (_lastCheckedPosition.DistanceSquaredTo(GlobalPosition) < BiomeCheckDistance * BiomeCheckDistance)
 			return;
 
@@ -145,6 +151,11 @@ public partial class Player : CharacterBody3D
 		_lastEquippedItem = newItem;
 		_equippedItem = newItem;
 
+		if (newItem is ToolItem { HeldItemScene: not null } tool)
+			_equipment.EquipTool(tool.HeldItemScene);
+		else
+			_equipment.UnequipTool();
+
 		UpdatePlacementState(newItem);
 	}
 
@@ -166,7 +177,7 @@ public partial class Player : CharacterBody3D
 		var space = GetWorld3D().DirectSpaceState;
 		var swingDir = _aimDirection;
 
-		foreach (var dir in GetHitArcDirections(swingDir, tool.HitArcDegress, tool.HitRayCount))
+		foreach (var dir in GetHitArcDirections(swingDir, tool.HitArcDegrees, tool.HitRayCount))
 		{
 			_toolQuery.From = GlobalPosition;
 			_toolQuery.To = GlobalPosition + dir * tool.HitRange;
@@ -214,11 +225,6 @@ public partial class Player : CharacterBody3D
 		obj.ObjectHitFailed -= OnHitFailed;
 		AudioManager.Instance.PlayAt("hit_fail", obj.GlobalPosition, 0.1f);
 		CameraController?.Shake(0.1f, 0.3f);
-	}
-
-	private void OnHitCooldownTimeout()
-	{
-		_canSwing = true;
 	}
 
 	// inventory interaction
@@ -313,10 +319,9 @@ public partial class Player : CharacterBody3D
 			_aimDirection = GetAimDirection(camera, viewport.GetMousePosition());
 
 		if (useToolHeld && !hudOpen)
-			if (_canSwing)
+			if (CanSwing)
 			{
-				_canSwing = false;
-				_hitCooldown.Start();
+				_hitCooldownAccum = _hitCooldown;
 
 				if (_equippedItem is PlaceableItem)
 				{

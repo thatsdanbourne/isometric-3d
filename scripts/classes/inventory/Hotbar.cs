@@ -2,63 +2,70 @@ using Godot;
 
 public partial class Hotbar : Node, IItemContainer
 {
-    [Signal] public delegate void ContainerChangedEventHandler();
-    [Signal] public delegate void SelectedSlotChangedEventHandler(int slot);
+	[Signal]
+	public delegate void ContainerChangedEventHandler();
 
-    public string Label => "Hotbar";
+	[Signal]
+	public delegate void SelectedSlotChangedEventHandler(int slot);
 
-    public int SlotCount { get; private set; } = 9;
-    public int SelectedSlot { get; private set; } = 0;
+	public string Label => "Hotbar";
 
-    private ItemStack[] slots;
+	public int SlotCount { get; private set; } = 9;
+	public int SelectedSlot { get; private set; }
 
-    public ItemStack this[int index] => slots[index];
+	private readonly ItemStack[] _slots;
 
-    public Hotbar()
-    {
-        slots = new ItemStack[SlotCount];
-    }
+	public ItemStack this[int index] => _slots[index];
 
-    public ItemStack GetSlot(int index) => slots[index];
-    public ItemStack[] GetSlots() => slots;
+	public Hotbar()
+	{
+		_slots = new ItemStack[SlotCount];
+	}
 
-    public void SetSlot(int index, ItemStack stack)
-    {
-        slots[index] = stack;
-        EmitSignal(SignalName.ContainerChanged);
-    }
+	public ItemStack GetSlot(int index)
+	{
+		return _slots[index];
+	}
 
-    public int GetItemCount(Item item)
-    {
-        int count = 0;
-        for (int i = 0; i < SlotCount; i++)
-        {
-            var slot = GetSlot(i);
-            if (slot != null && slot.Item == item)
-            {
-                count += slot.Count;
-            }
-        }
+	public ItemStack[] GetSlots()
+	{
+		return _slots;
+	}
 
-        return count;
-    }
+	public void SetSlot(int index, ItemStack stack)
+	{
+		_slots[index] = stack;
+		EmitSignal(SignalName.ContainerChanged);
+	}
 
-    public void SelectSlot(int index)
-    {
-        if (index < 0 || index >= SlotCount)
-            return;
+	public int GetItemCount(Item item)
+	{
+		var count = 0;
+		for (var i = 0; i < SlotCount; i++)
+		{
+			var slot = GetSlot(i);
+			if (slot != null && slot.Item == item) count += slot.Count;
+		}
 
-        SelectedSlot = index;
-        EmitSignal(SignalName.SelectedSlotChanged, SelectedSlot);
-    }
+		return count;
+	}
 
-    public void SelectNext()
-    {
-        SelectSlot((SelectedSlot + 1) % SlotCount);
-    }
+	public void SelectSlot(int index)
+	{
+		if (index < 0 || index >= SlotCount)
+			return;
 
-    public void SelectPrev()
-    {
-        SelectSlot((SelectedSlot - 1 + SlotCount) % SlotCount);
-    }
+		SelectedSlot = index;
+		EmitSignal(SignalName.SelectedSlotChanged, SelectedSlot);
+	}
+
+	public void SelectNext()
+	{
+		SelectSlot((SelectedSlot + 1) % SlotCount);
+	}
+
+	public void SelectPrev()
+	{
+		SelectSlot((SelectedSlot - 1 + SlotCount) % SlotCount);
+	}
 }
