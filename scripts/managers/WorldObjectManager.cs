@@ -9,6 +9,8 @@ public partial class WorldObjectManager : Node
 	private readonly Queue<Chunk> _spawnChunkQueue = new();
 	private readonly Queue<ChunkObject> _activeSpawnQueue = new();
 	private readonly Queue<ChunkObject> _removeQueue = new();
+	
+	// private readonly Dictionary<string, Stack<WorldObject>> _pools = new();
 
 	private World _world;
 	private RandomNumberGenerator _rng;
@@ -41,6 +43,7 @@ public partial class WorldObjectManager : Node
 	{
 		if (data.RuntimeNode != null || data.MarkedForRemoval)
 			return;
+		
 
 		_activeSpawnQueue.Enqueue(data);
 	}
@@ -65,10 +68,15 @@ public partial class WorldObjectManager : Node
 		// clear chunk delta states
 		var delta = _world.GetOrCreateChunkDelta(data.ChunkCoord);
 
-		if (data.Source == ChunkObjectSource.Procedural)
-			delta.RemovedProceduralObjects.Add(data.TileCoord);
-		else if (data.Source == ChunkObjectSource.Placed)
-			delta.PlacedObjects.Remove(data);
+		switch (data.Source)
+		{
+			case ChunkObjectSource.Procedural:
+				delta.RemovedProceduralObjects.Add(data.TileCoord);
+				break;
+			case ChunkObjectSource.Placed:
+				delta.PlacedObjectsByTile.Remove(data.TileCoord);
+				break;
+		}
 
 		delta.StorageStates.Remove(data.TileCoord);
 
@@ -85,7 +93,7 @@ public partial class WorldObjectManager : Node
 
 		foreach (var entry in drops)
 		{
-			if (GD.Randf() > entry.Chance)
+			if (_rng.Randf() > entry.Chance)
 				continue;
 
 			var item = ItemRegistry.GetItem(entry.ItemId);
@@ -112,14 +120,22 @@ public partial class WorldObjectManager : Node
 		EnqueueSpawn(data);
 
 		var chunkDelta = _world.GetOrCreateChunkDelta(data.ChunkCoord);
-		chunkDelta.PlacedObjects.Add(data);
+		chunkDelta.PlacedObjectsByTile[data.TileCoord] = new PlacedObjectRecord
+		{
+			DefinitionTypeId =  data.Definition.TypeId,
+			TileCoord = data.TileCoord,
+			Position =  data.Position,
+		};
 
 		return true;
 	}
 
 	public void EnqueueRemoval(ChunkObject data)
 	{
-		_removeQueue.Enqueue(data);
+		data.MarkedForRemoval = true;
+		
+		if (data.RuntimeNode != null)
+			_removeQueue.Enqueue(data);
 	}
 
 	private void ProcessSpawns()
@@ -141,24 +157,17 @@ public partial class WorldObjectManager : Node
 			if (data.MarkedForRemoval || data.RuntimeNode != null)
 				continue;
 
-			var node = WorldObjectRegistry.GetScene(data.Definition.Id).Instantiate<WorldObject>();
-
-			node.Reset();
+			var node = WorldObjectRegistry.GetScene(data.Definition.TypeId).Instantiate<WorldObject>();
+			
 			node.Data = data;
 			node.World = _world;
 			data.RuntimeNode = node;
-
 			node.Initialise(data.Definition);
-
-			if (node.GetParent() != null)
-				node.Reparent(_world.WorldObjects);
-			else
-				_world.WorldObjects.AddChild(node);
-
-			node.Visible = true;
-			// node.SetPhysicsProcess(true);
-
+			
+			EnsureParent(node, _world.WorldObjects);
+			
 			node.GlobalPosition = data.Position;
+			node.Visible = true;
 
 			if (data.Definition.BlocksTile)
 				_world.BlockTile(data.TileCoord);
@@ -166,15 +175,20 @@ public partial class WorldObjectManager : Node
 			// Restore state if applicable
 			_world.TryGetChunkDelta(data.ChunkCoord, out var delta);
 
-			if (node is IChunkStateful<StationStateData> station)
+			switch (node)
 			{
-				if (delta.StationStates.TryGetValue(data.TileCoord, out var stationState))
-					station.RestoreState(stationState);
-			}
-			else if (node is IChunkStateful<StorageStateData> storage)
-			{
-				if (delta.StorageStates.TryGetValue(data.TileCoord, out var storageState))
-					storage.RestoreState(storageState);
+				case IChunkStateful<StationStateData> station:
+				{
+					if (delta.StationStates.TryGetValue(data.TileCoord, out var stationState))
+						station.RestoreState(stationState);
+					break;
+				}
+				case IChunkStateful<StorageStateData> storage:
+				{
+					if (delta.StorageStates.TryGetValue(data.TileCoord, out var storageState))
+						storage.RestoreState(storageState);
+					break;
+				}
 			}
 
 			count++;
@@ -189,14 +203,14 @@ public partial class WorldObjectManager : Node
 		{
 			var data = _removeQueue.Dequeue();
 
-			if (data.RuntimeNode != null)
-			{
-				if (data.Definition.BlocksTile)
-					_world.UnblockTile(data.TileCoord);
+			if (data.RuntimeNode == null)
+				continue;
+			
+			if (data.Definition.BlocksTile)
+				_world.UnblockTile(data.TileCoord);
 
-				Recycle(data.RuntimeNode);
-				data.RuntimeNode = null;
-			}
+			Recycle(data.RuntimeNode);
+			data.RuntimeNode = null;
 
 			count++;
 		}
@@ -212,20 +226,41 @@ public partial class WorldObjectManager : Node
 
 	private void Recycle(WorldObject node)
 	{
+		// if (!IsInstanceValid(node))
+		// 	return;
+		//
 		// node.Visible = false;
+		// node.SetProcess(false);
 		// node.SetPhysicsProcess(false);
-		// node.Reparent(_world.WorldObjectPool);
-
-		// var id = node.Data.Definition.Id;
-
-		// if (!pools.TryGetValue(id, out var stack))
-		//     pools[id] = stack = new Stack<WorldObjectBase>();
-
-		// if (stack.Count < maxPoolSizePerType)
+		//
+		// EnsureParent(node, _world.WorldObjectPool);
+		//
+		// var id = node.Data?.Definition?.Id;
+		// if (string.IsNullOrEmpty(id))
+		// {
+		// 	node.QueueFree();
+		// 	return;
+		// }
+		//
+		// if (!_pools.TryGetValue(id, out var stack))
+		//     _pools[id] = stack = new Stack<WorldObject>();
+		//
+		// if (stack.Count < _maxPoolSizePerType)
 		//     stack.Push(node);
 		// else
 		//     node.QueueFree();
-
+		
 		node.QueueFree();
+	}
+	
+	private static void EnsureParent(Node node, Node desiredParent)
+	{
+		if (node.GetParent() == desiredParent)
+			return;
+		
+		if (node.IsInsideTree() && node.GetParent() != null)
+			node.Reparent(desiredParent);
+		else
+			desiredParent.AddChild(node);
 	}
 }

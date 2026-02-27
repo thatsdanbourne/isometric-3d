@@ -137,8 +137,6 @@ public partial class Kiln : WorldObject, IInteractable, ICraftingStation, IChunk
     {
         return new StationStateData
         {
-            ObjectId = Data.Definition.Id,
-            TileCoord = Data.TileCoord,
             ActiveRecipeId = activeRecipe?.ResultItemId,
             TimeRemaining = timeRemaining,
             CompletedCount = CompletedCount,

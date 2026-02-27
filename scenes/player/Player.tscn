@@ -9,44 +9,35 @@
 [sub_resource type="SphereShape3D" id="SphereShape3D_c3xxp"]
 radius = 0.4
 
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_npwbq"]
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_tpg5x"]
 animation = &"idle"
 
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_v42im"]
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_c3xxp"]
 animation = &"run"
 
-[sub_resource type="AnimationNodeBlendSpace1D" id="AnimationNodeBlendSpace1D_pn6s4"]
-blend_point_0/node = SubResource("AnimationNodeAnimation_npwbq")
+[sub_resource type="AnimationNodeBlendSpace1D" id="AnimationNodeBlendSpace1D_npwbq"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_tpg5x")
 blend_point_0/pos = 0.0
-blend_point_1/node = SubResource("AnimationNodeAnimation_v42im")
+blend_point_1/node = SubResource("AnimationNodeAnimation_c3xxp")
 blend_point_1/pos = 1.0
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_7oing"]
-advance_mode = 2
-
-[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_5stf6"]
-states/IdleRun/node = SubResource("AnimationNodeBlendSpace1D_pn6s4")
-states/IdleRun/position = Vector2(364, 100.88)
-transitions = ["Start", "IdleRun", SubResource("AnimationNodeStateMachineTransition_7oing")]
-
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_tpg5x"]
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_npwbq"]
 animation = &"punch"
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_180ig"]
-advance_mode = 2
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_c3xxp"]
+filter_enabled = true
+filters = ["", "metarig/Skeleton3D:forearm.L", "metarig/Skeleton3D:forearm.R", "metarig/Skeleton3D:hand.L", "metarig/Skeleton3D:shoulder.L", "metarig/Skeleton3D:shoulder.R", "metarig/Skeleton3D:spine.001", "metarig/Skeleton3D:spine.002", "metarig/Skeleton3D:spine.003", "metarig/Skeleton3D:spine.006", "metarig/Skeleton3D:upper_arm.L", "metarig/Skeleton3D:upper_arm.R"]
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_tpg5x"]
-advance_mode = 0
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_c3xxp"]
-advance_mode = 0
-
-[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_20koh"]
-states/Locomotion/node = SubResource("AnimationNodeStateMachine_5stf6")
-states/Locomotion/position = Vector2(357.6, 100.24)
-states/Punch/node = SubResource("AnimationNodeAnimation_tpg5x")
-states/Punch/position = Vector2(357.60434, 198.80002)
-transitions = ["Start", "Locomotion", SubResource("AnimationNodeStateMachineTransition_180ig"), "Locomotion", "Punch", SubResource("AnimationNodeStateMachineTransition_tpg5x"), "Punch", "Locomotion", SubResource("AnimationNodeStateMachineTransition_c3xxp")]
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_tpg5x"]
+graph_offset = Vector2(-468.26947, 35.91323)
+nodes/output/position = Vector2(256, 192)
+nodes/PunchOS/node = SubResource("AnimationNodeOneShot_c3xxp")
+nodes/PunchOS/position = Vector2(-160, 304)
+nodes/Locomotion/node = SubResource("AnimationNodeBlendSpace1D_npwbq")
+nodes/Locomotion/position = Vector2(-480, 160)
+nodes/Punch/node = SubResource("AnimationNodeAnimation_npwbq")
+nodes/Punch/position = Vector2(-480, 464)
+node_connections = [&"output", 0, &"PunchOS", &"PunchOS", 0, &"Locomotion", &"PunchOS", 1, &"Punch"]
 
 [node name="Player" unique_id=24607941 instance=ExtResource("1_tpg5x")]
 collision_layer = 8
@@ -58,35 +49,34 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.404222, 0)
 shape = SubResource("SphereShape3D_c3xxp")
 
 [node name="Skeleton3D" parent="metarig" parent_id_path=PackedInt32Array(1330168197) index="0" unique_id=202370275]
-bones/0/position = Vector3(4.6277399e-10, 0.85873574, 0.0538749)
-bones/0/rotation = Quaternion(0.12581967, 1.18262e-07, 1.4998877e-08, 0.99205315)
-bones/1/rotation = Quaternion(0.045981552, -5.9952037e-14, 1.0962858e-08, 0.99894226)
-bones/2/rotation = Quaternion(-0.07746416, -3.8702426e-15, -1.8468894e-08, 0.99699515)
-bones/3/rotation = Quaternion(0.0016271637, -1.1920915e-07, 1.9397275e-10, 0.9999987)
-bones/6/rotation = Quaternion(-0.09371171, -1.18684696e-07, -1.1171305e-08, 0.9955994)
+bones/0/position = Vector3(3.4245669e-09, 0.8915893, -0.046705462)
+bones/0/rotation = Quaternion(0.20953879, 1.1656291e-07, 2.497898e-08, 0.9778003)
+bones/1/rotation = Quaternion(-0.06441759, 0.002752816, 0.042606086, 0.99700934)
+bones/2/rotation = Quaternion(-0.085522234, -0.10702725, 0.02355788, 0.990291)
+bones/3/rotation = Quaternion(0.0016271637, -1.1920915e-07, 1.9397359e-10, 0.9999987)
+bones/6/rotation = Quaternion(-0.04301659, -1.2167236e-07, -2.999101e-09, 0.9990744)
 bones/7/rotation = Quaternion(-0.65568066, -0.3405462, -0.4332763, 0.51612294)
-bones/8/rotation = Quaternion(-0.24903889, 0.59466165, -0.45316112, 0.6156315)
-bones/9/rotation = Quaternion(0.82798374, -0.023339653, -0.2448885, 0.5039125)
-bones/10/rotation = Quaternion(0.093454346, 0.44193804, -0.05277777, 0.8906019)
+bones/8/rotation = Quaternion(-0.24606326, 0.64361614, -0.46913502, 0.5523799)
+bones/9/rotation = Quaternion(0.7045351, -0.05590201, -0.28851807, 0.64595866)
+bones/10/rotation = Quaternion(0.056280278, -0.043827035, -0.09138773, 0.9932573)
 bones/11/rotation = Quaternion(-0.65568066, 0.3405462, 0.4332763, 0.51612294)
-bones/12/rotation = Quaternion(-0.33948907, -0.8019564, 0.20284778, 0.4477341)
-bones/13/rotation = Quaternion(0.88914305, -0.016779957, 0.012650797, 0.45714667)
-bones/17/rotation = Quaternion(0.93399626, 0.081853904, -0.029039977, 0.3465655)
-bones/18/rotation = Quaternion(0.32341108, 0.013875185, 0.07214438, 0.9434024)
-bones/19/rotation = Quaternion(-0.59593767, -0.06597591, -0.03205037, 0.79967386)
-bones/22/rotation = Quaternion(0.9487026, -0.10555193, 0.2854012, 0.08583958)
-bones/23/rotation = Quaternion(0.22716735, -0.0143021615, -0.050674938, 0.9724313)
-bones/24/rotation = Quaternion(-0.68351704, 0.10645625, -0.047282662, 0.7205802)
-bones/25/rotation = Quaternion(0.007925332, 0.97007877, -0.2401391, -0.034894474)
-bones/26/rotation = Quaternion(-0.67979324, 0.692096, -0.14528435, -0.19436255)
-bones/27/position = Vector3(0.17326252, 0.08874508, 0.24606253)
-bones/28/position = Vector3(-0.17326252, 0.08874508, -0.140992)
-bones/29/position = Vector3(0.17340013, 0.4725983, 0.94646466)
-bones/29/rotation = Quaternion(0.70708275, -0.0058232257, -0.005823225, 0.70708287)
-bones/30/position = Vector3(-0.73561454, 0.4725983, 0.94646466)
+bones/12/rotation = Quaternion(-0.38965547, -0.862404, 0.096135825, 0.3085221)
+bones/13/rotation = Quaternion(0.6714052, 0.073336095, 0.032620333, 0.7367312)
+bones/17/rotation = Quaternion(0.9965052, 0.05268053, 0.05761984, 0.029701492)
+bones/18/rotation = Quaternion(0.4952296, 0.012672295, 0.11047246, 0.86161643)
+bones/19/rotation = Quaternion(-0.48858398, -0.07757629, -0.030088967, 0.8685403)
+bones/22/rotation = Quaternion(0.8815029, -0.08429873, -0.10678364, 0.4521543)
+bones/23/rotation = Quaternion(0.028406607, -0.014699786, -0.006336747, 0.99946827)
+bones/24/rotation = Quaternion(-0.59591824, 0.07017346, 0.037237015, 0.7991062)
+bones/25/rotation = Quaternion(0.007925331, 0.97007877, -0.2401391, -0.03489448)
+bones/26/rotation = Quaternion(-0.67979324, 0.692096, -0.14528432, -0.19436255)
+bones/27/position = Vector3(0.123520836, 0.41261992, -0.53880346)
+bones/28/position = Vector3(-0.13110809, 0.14608549, 0.45396468)
+bones/29/position = Vector3(-0.017605647, 0.46416622, 0.9459489)
+bones/30/position = Vector3(0.032323062, 0.46531722, 0.94993156)
 
 [node name="RightHandAttach" type="BoneAttachment3D" parent="metarig/Skeleton3D" index="0" unique_id=1909800955]
-transform = Transform3D(-0.91858673, 0.27376217, 0.28504857, 0.26304784, -0.11478758, 0.9579298, 0.29496485, 0.9549228, 0.03342987, -0.2904929, 1.0472994, 0.17215565)
+transform = Transform3D(-0.9755615, -0.07051826, -0.20810263, -0.04531241, -0.86217564, 0.50457907, -0.21500315, 0.5016775, 0.8379098, -0.285317, 0.94391584, -0.19806142)
 bone_name = "hand.R"
 bone_idx = 14
 
@@ -96,9 +86,12 @@ bone_idx = 14
 autoplay = &"idle"
 
 [node name="AnimationTree" type="AnimationTree" parent="." index="3" unique_id=1323499225]
-tree_root = SubResource("AnimationNodeStateMachine_20koh")
+tree_root = SubResource("AnimationNodeBlendTree_tpg5x")
 anim_player = NodePath("../AnimationPlayer")
-parameters/Locomotion/IdleRun/blend_position = 0.0010604858
+parameters/PunchOS/active = false
+parameters/PunchOS/internal_active = false
+parameters/PunchOS/request = 0
+parameters/Locomotion/blend_position = 1.0
 
 [node name="PlayerEquipment" type="Node" parent="." index="4" unique_id=181002446]
 script = ExtResource("3_tpg5x")

@@ -3,39 +3,39 @@ using Godot;
 
 public static class WorldObjectRegistry
 {
-	private static readonly Dictionary<string, WorldObjectDefinition> Defs = new();
+	private static readonly Dictionary<int, WorldObjectDefinition> Defs = new();
 
 	private static void Register(string id, PackedScene scene, float maxHealth = 10, ToolTier toolTier = ToolTier.Fist,
-		bool blocksTile = true, bool canBeBroken = true, bool isDecor = false
+		bool blocksTile = true
 	)
 	{
-		Defs[id] = new WorldObjectDefinition
+		var typeId = StableHash(id);
+		Defs[typeId] = new WorldObjectDefinition
 		{
 			Id = id,
+			TypeId = typeId,
 			Scene = scene,
 			MaxHealth = maxHealth,
 			ToolTier = toolTier,
 			BlocksTile = blocksTile,
-			CanBeBroken = canBeBroken,
-			IsDecor = isDecor
 		};
 	}
 
-	public static PackedScene GetScene(string id)
+	public static PackedScene GetScene(int typeId)
 	{
-		if (Defs.TryGetValue(id, out var def))
+		if (Defs.TryGetValue(typeId, out var def))
 			return def.Scene;
 
-		GD.PrintErr($"WorldObjectRegistry: No definition found for id '{id}'");
+		GD.PrintErr($"WorldObjectRegistry: No definition found for typeId '{typeId}'");
 		return null;
 	}
 
-	public static WorldObjectDefinition GetDefinition(string id)
+	public static WorldObjectDefinition GetDefinition(int typeId)
 	{
-		if (Defs.TryGetValue(id, out var def))
+		if (Defs.TryGetValue(typeId, out var def))
 			return def;
 
-		GD.PrintErr($"WorldObjectRegistry: No definition found for id '{id}'");
+		GD.PrintErr($"WorldObjectRegistry: No definition found for typeId '{typeId}'");
 		return null;
 	}
 
@@ -54,15 +54,31 @@ public static class WorldObjectRegistry
 		Register("chest", GD.Load<PackedScene>("res://scenes/placeables/ChestOne.tscn"));
 		Register("flower_poppy", GD.Load<PackedScene>("res://scenes/terrain/decor/FlowerPoppy.tscn"));
 	}
+	
+	public static int StableHash(string s)
+	{
+		unchecked
+		{
+			const int fnvPrime = 16777619;
+			var hash = (int)2166136261;
+
+			foreach (var t in s)
+			{
+				hash ^= t;
+				hash *= fnvPrime;
+			}
+
+			return hash;
+		}
+	}
 }
 
 public class WorldObjectDefinition
 {
 	public string Id;
+	public int TypeId;
 	public PackedScene Scene;
 	public ToolTier ToolTier;
 	public float MaxHealth;
-	public bool BlocksTile = true;
-	public bool CanBeBroken = true;
-	public bool IsDecor;
+	public bool BlocksTile;
 }

@@ -4,16 +4,20 @@ using System.Collections.Generic;
 public class ChunkDeltaData
 {
     public HashSet<Vector2I> RemovedProceduralObjects = new();
-    public List<ChunkObject> PlacedObjects = new();
+    public Dictionary<Vector2I, PlacedObjectRecord> PlacedObjectsByTile = new();
     public Dictionary<Vector2I, StationStateData> StationStates = new();
     public Dictionary<Vector2I, StorageStateData> StorageStates = new();
 }
 
+public struct PlacedObjectRecord
+{
+    public int DefinitionTypeId;
+    public Vector2I TileCoord;
+    public Vector3 Position;
+}
+
 public class StationStateData
 {
-    public string ObjectId;
-    public Vector2I TileCoord;
-
     public string ActiveRecipeId;
     public float TimeRemaining;
     public int CompletedCount;
@@ -25,8 +29,5 @@ public class StationStateData
 
 public class StorageStateData
 {
-    public string ObjectId;
-    public Vector2I TileCoord;
-
     public ItemStack[] Slots;
 }

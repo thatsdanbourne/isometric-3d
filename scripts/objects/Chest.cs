@@ -10,8 +10,6 @@ public partial class Chest : WorldObject, IItemContainer, IInteractable, IChunkS
     {
         return new StorageStateData
         {
-            ObjectId = Data.Definition.Id,
-            TileCoord = Data.TileCoord,
             Slots = slots
         };
     }

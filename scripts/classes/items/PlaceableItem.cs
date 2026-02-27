@@ -2,6 +2,9 @@ using Godot;
 
 public class PlaceableItem : Item
 {
-    public WorldObjectDefinition PlaceableObjectDefinition { get; set; }
+    public int PlaceableObjectTypeId;
     public PackedScene PreviewScene { get; set; }
+    
+    public WorldObjectDefinition PlaceableObjectDefinition =>
+        WorldObjectRegistry.GetDefinition(PlaceableObjectTypeId);
 }

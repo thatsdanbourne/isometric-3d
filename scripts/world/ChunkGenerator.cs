@@ -162,8 +162,16 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 
 		// build player placed objects
 		if (chunkDelta != null)
-			foreach (var placed in chunkDelta.PlacedObjects)
-				objects.Add(placed);
+			foreach (var placed in chunkDelta.PlacedObjectsByTile.Values)
+				objects.Add(new ChunkObject
+				{
+					Definition = WorldObjectRegistry.GetDefinition(placed.DefinitionTypeId),
+					TileCoord = placed.TileCoord,
+					Position = placed.Position,
+					ChunkCoord = coord,
+					Source =  ChunkObjectSource.Placed
+				});
+			
 
 		sw.Stop();
 		chunk.BuildTimeMs = sw.Elapsed.TotalMilliseconds;

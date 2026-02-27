@@ -11,7 +11,7 @@ public static class PlaceableItems
             Description = "A small campfire to keep you warm. Can also be used for cooking and to sleep.",
             Icon = LoadIcon("campfire"),
             StackSize = 1,
-            PlaceableObjectDefinition = WorldObjectRegistry.GetDefinition("campfire"),
+            PlaceableObjectTypeId = WorldObjectRegistry.StableHash("campfire"),
             PreviewScene = GD.Load<PackedScene>("res://assets/meshes/campfire/Campfire.glb"),
         });
 
@@ -22,7 +22,7 @@ public static class PlaceableItems
             Description = "A basic crafting table for crafting simple items and tools.",
             Icon = LoadIcon("crafting_table"),
             StackSize = 1,
-            PlaceableObjectDefinition = WorldObjectRegistry.GetDefinition("crafting_table"),
+            PlaceableObjectTypeId = WorldObjectRegistry.StableHash("crafting_table"),
             PreviewScene = GD.Load<PackedScene>("res://assets/meshes/crafting-table/CraftingTable.glb"),
         });
 
@@ -33,7 +33,7 @@ public static class PlaceableItems
             Description = "A kiln for smelting ores.",
             Icon = LoadIcon("kiln"),
             StackSize = 1,
-            PlaceableObjectDefinition = WorldObjectRegistry.GetDefinition("kiln"),
+            PlaceableObjectTypeId = WorldObjectRegistry.StableHash("kiln"),
             PreviewScene = GD.Load<PackedScene>("res://assets/meshes/kiln/Kiln.glb"),
         });
 
@@ -44,7 +44,7 @@ public static class PlaceableItems
             Description = "A chest for storing items.",
             Icon = LoadIcon("chest_one"),
             StackSize = 1,
-            PlaceableObjectDefinition = WorldObjectRegistry.GetDefinition("chest"),
+            PlaceableObjectTypeId = WorldObjectRegistry.StableHash("chest"),
             PreviewScene = GD.Load<PackedScene>("res://assets/meshes/chest/ChestOne.fbx"),
         });
     }

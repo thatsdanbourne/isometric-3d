@@ -33,14 +33,10 @@ public partial class WorldObject : Node3D
 
 	public void Initialise(WorldObjectDefinition definition)
 	{
+		MarkedForRemoval = false;
+		CurrentHealth = MaxHealth;
 		RequiredTier = definition.ToolTier;
 		MaxHealth = definition.MaxHealth;
-		CurrentHealth = MaxHealth;
-	}
-
-	public void Reset()
-	{
-		MarkedForRemoval = false;
 		CurrentHealth = MaxHealth;
 	}
 

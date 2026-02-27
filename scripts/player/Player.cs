@@ -26,23 +26,18 @@ public partial class Player : CharacterBody3D
 
 	private BiomeTintOverlay _tintOverlay;
 
-	private const string RootLocomotion = "Locomotion";
-	private const string RootPunch = "Punch";
-	private string _rootState = RootLocomotion;
-
 	private AnimationTree _animTree;
 	private Vector3 _aimDirection = Vector3.Forward;
 	private string _animState = "";
-	private AnimationNodeStateMachinePlayback _animPlayback;
 	private float _locomotionBlend;
 	private float _locomotionBlendTarget;
-	private const string LocomotionBlendPath = "parameters/Locomotion/IdleRun/blend_position";
+
+	private const string LocomotionBlendPath = "parameters/Locomotion/blend_position";
+	private const string PunchRequestPath = "parameters/PunchOS/request";
 
 	private float _hitCooldown = 0.5f;
 	private float _hitCooldownAccum;
 	private bool CanSwing => _hitCooldownAccum <= 0;
-	private bool IsActionLocked => _hitCooldownAccum > 0;
-	private bool _wasActionLocked;
 
 	private PlacementController _placement;
 
@@ -72,8 +67,6 @@ public partial class Player : CharacterBody3D
 
 		_world = GetNode<World>("/root/Game/World");
 		_animTree = GetNode<AnimationTree>("AnimationTree");
-		_animPlayback = _animTree.Get("parameters/playback").As<AnimationNodeStateMachinePlayback>();
-		_animPlayback?.Travel("Locomotion");
 		_tintOverlay = _world.GetNode<BiomeTintOverlay>("BiomeTint/BiomeOverlay");
 		HUD = GetNode<HUD>("/root/Game/HUD");
 		Hotbar = GetNode<Hotbar>("Hotbar");
@@ -109,8 +102,6 @@ public partial class Player : CharacterBody3D
 			CollideWithBodies = true,
 			CollisionMask = HittableMask
 		};
-
-		TravelRoot(RootLocomotion);
 
 
 #if DEBUG
@@ -180,8 +171,7 @@ public partial class Player : CharacterBody3D
 		if (tool == null) return;
 
 		_hitCooldownAccum = _hitCooldown;
-		_rootState = RootPunch;
-		_animPlayback?.Start(RootPunch);
+		_animTree.Set(PunchRequestPath, (int)AnimationNodeOneShot.OneShotRequest.Fire);
 
 		AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, 0.1f);
 
@@ -250,11 +240,6 @@ public partial class Player : CharacterBody3D
 		InventoryManager.Instance.AddItem(this, item, count);
 	}
 
-	public void OpenCraftingUI(ICraftingStation station)
-	{
-		HUD.OpenCraftingUI(station);
-	}
-
 	// input 
 	public override void _UnhandledInput(InputEvent e)
 	{
@@ -298,23 +283,8 @@ public partial class Player : CharacterBody3D
 		var camera = viewport.GetCamera3D();
 
 		if (_hitCooldownAccum > 0)
-			_hitCooldownAccum -= (float)delta;
+			_hitCooldownAccum -= dt;
 
-		var locked = IsActionLocked;
-		if (_wasActionLocked && !locked)
-		{
-			if (useToolHeld && !hudOpen && !(_equippedItem is PlaceableItem))
-			{
-				UseActiveTool();
-			}
-			else
-			{
-				TravelRoot(RootLocomotion);
-				_animState = "";
-			}
-		}
-
-		_wasActionLocked = locked;
 
 		var inputDir = new Vector2(
 			Input.GetActionStrength("move_right") - Input.GetActionStrength("move_left"),
@@ -394,8 +364,6 @@ public partial class Player : CharacterBody3D
 
 	private void SetAnimState(string name)
 	{
-		if (IsActionLocked) return;
-
 		if (_animState == name) return;
 		_animState = name;
 
@@ -487,12 +455,5 @@ public partial class Player : CharacterBody3D
 		FocusedInteractable?.OnFocusLost();
 		FocusedInteractable = newFocus;
 		FocusedInteractable?.OnFocusGained();
-	}
-
-	private void TravelRoot(string state)
-	{
-		if (_rootState == state) return;
-		_rootState = state;
-		_animPlayback?.Travel(state);
 	}
 }
