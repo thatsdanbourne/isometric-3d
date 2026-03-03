@@ -4,6 +4,18 @@
 [ext_resource type="StyleBox" uid="uid://c8b7cb2e3xdt6" path="res://resources/ui/ItemContainerSlotStyle.tres" id="1_tram2"]
 [ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="2_tram2"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3o7ux"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.9098039, 0.6039216, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tram2"]
 bg_color = Color(1, 0.9098039, 0.6039216, 1)
 
@@ -28,6 +40,11 @@ grow_vertical = 2
 pivot_offset = Vector2(33, 33)
 theme_override_styles/panel = ExtResource("1_tram2")
 script = ExtResource("1_tjon7")
+
+[node name="Highlight" type="Panel" parent="." unique_id=452930081]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_3o7ux")
 
 [node name="ProgressBar" type="ProgressBar" parent="." unique_id=1517229381]
 visible = false

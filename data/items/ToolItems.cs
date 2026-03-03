@@ -19,6 +19,24 @@ public static class ToolItems
 
 		ItemRegistry.RegisterItem(new ToolItem
 		{
+			Id = "stone_sword",
+			ToolType = "sword",
+			DisplayName = "Stone Sword",
+			Description = "A decent starter sword.",
+			Icon = LoadTexture("stone_sword"),
+			StackSize = 1,
+			Damage = 1.5f,
+			DamageMultipliers = new Dictionary<string, float>
+			{
+				{ "stone", 1.5f },
+				{ "ore", 1.5f },
+				{ "wood", 1.5f }
+			},
+			HeldItemScene = GD.Load<PackedScene>("res://scenes/tools/StoneSword.tscn")
+		});
+
+		ItemRegistry.RegisterItem(new ToolItem
+		{
 			Id = "stone_pickaxe",
 			ToolType = "pickaxe",
 			DisplayName = "Stone Pickaxe",

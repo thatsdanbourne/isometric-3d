@@ -6,12 +6,6 @@ public partial class HUD : CanvasLayer
 	private PackedScene _slotPanelScene =
 		ResourceLoader.Load<PackedScene>("res://scenes/ui/HUD/ItemContainerSlot.tscn");
 
-	private StyleBoxFlat _slotStyle =
-		ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotStyle.tres");
-
-	private StyleBoxFlat _slotHighlightStyle =
-		ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotHighlight.tres");
-
 	private Inventory _inventory;
 	private Hotbar _hotbar;
 	private IItemContainer _storage;
@@ -48,8 +42,8 @@ public partial class HUD : CanvasLayer
 	public override void _Ready()
 	{
 		_cursorItem = GetNode<Control>("CursorItem");
-		_cursorIcon = _cursorItem.GetNode<TextureRect>("Icon");
-		_cursorCount = _cursorItem.GetNode<Label>("Label");
+		_cursorIcon = _cursorItem.GetNode<TextureRect>("Container/Icon");
+		_cursorCount = _cursorItem.GetNode<Label>("Container/Label");
 
 		GameManager.Instance.LocalPlayerChanged += (p) =>
 		{
@@ -167,9 +161,9 @@ public partial class HUD : CanvasLayer
 		{
 			if (WindowOpen)
 			{
-				_inventoryRoot.Visible = false;
-				_craftingUI.Visible = false;
-				_tooltip.Visible = false;
+				CloseCraftingUI();
+				CloseInventoryUI();
+				CloseStorageUI();
 			}
 			else
 			{
@@ -211,7 +205,6 @@ public partial class HUD : CanvasLayer
 		for (var i = 0; i < _inventory.SlotCount; i++)
 		{
 			var slot = _slotPanelScene.Instantiate<ItemContainerSlot>();
-			slot.AddThemeStyleboxOverride("panel", _slotStyle);
 			slot.SetSlot(_inventory, i);
 			slot.SetStack(_inventory[i]);
 			slot.SlotLeftClicked += OnSlotLeftClick;
@@ -231,7 +224,6 @@ public partial class HUD : CanvasLayer
 		for (var i = 0; i < _hotbar.SlotCount; i++)
 		{
 			var slot = _slotPanelScene.Instantiate<ItemContainerSlot>();
-			slot.AddThemeStyleboxOverride("panel", _slotStyle);
 			slot.SetSlot(_hotbar, i);
 			slot.SetStack(_hotbar[i]);
 			slot.SlotLeftClicked += OnSlotLeftClick;
@@ -251,7 +243,6 @@ public partial class HUD : CanvasLayer
 		for (var i = 0; i < storage.SlotCount; i++)
 		{
 			var slot = _slotPanelScene.Instantiate<ItemContainerSlot>();
-			slot.AddThemeStyleboxOverride("panel", _slotStyle);
 			slot.SetSlot(storage, i);
 			slot.SetStack(storage.GetSlot(i));
 			slot.SlotLeftClicked += OnSlotLeftClick;
@@ -291,18 +282,19 @@ public partial class HUD : CanvasLayer
 		for (var i = 0; i < _hotbarSlots.Count; i++)
 		{
 			var slot = _hotbarSlots[i];
+			slot.ScaleTween?.Kill();
+			slot.ScaleTween = null;
+			slot.Scale = Vector2.One;
+			slot.Highlight.Visible = false;
 
 			if (i == _hotbar.SelectedSlot)
 			{
-				slot.AddThemeStyleboxOverride("panel", _slotHighlightStyle);
+				slot.Highlight.Visible = true;
 
-				var tween = CreateTween();
-				tween.TweenProperty(slot, "scale", new Vector2(1.1f, 1.1f), 0.1f).SetTrans(Tween.TransitionType.Back)
+				slot.ScaleTween = CreateTween();
+				slot.ScaleTween.TweenProperty(slot, "scale", new Vector2(1.2f, 1.2f), 0.1f)
+					.SetTrans(Tween.TransitionType.Back)
 					.SetEase(Tween.EaseType.Out);
-			}
-			else
-			{
-				slot.AddThemeStyleboxOverride("panel", _slotStyle);
 			}
 		}
 	}

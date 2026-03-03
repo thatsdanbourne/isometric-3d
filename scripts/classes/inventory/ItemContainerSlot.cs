@@ -9,6 +9,7 @@ public partial class ItemContainerSlot : PanelContainer
 	public event Action SlotHoldStarted;
 	public event Action SlotHoldCompleted;
 
+	public Panel Highlight;
 	private Tooltip _tooltip;
 
 	private ItemStack Stack { get; set; }
@@ -29,10 +30,21 @@ public partial class ItemContainerSlot : PanelContainer
 	private double _holdProgress;
 	private ProgressBar _holdProgressBar;
 
+	public Tween ScaleTween;
+
+	private StyleBoxFlat _slotStyle =
+		ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotStyle.tres");
+
+	private StyleBoxFlat _slotFilledStyle =
+		ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotFilledStyle.tres");
+
 
 	public override void _Ready()
 	{
 		_tooltip = GetTree().Root.GetNode<HUD>("Game/HUD").GetNode<Tooltip>("TooltipManager");
+		Highlight = GetNode<Panel>("Highlight");
+		Highlight.Visible = false;
+
 		_icon = GetNode<TextureRect>("Icon");
 		CountLabel = GetNode<Label>("Label");
 		_holdProgressBar = GetNode<ProgressBar>("ProgressBar");
@@ -69,12 +81,14 @@ public partial class ItemContainerSlot : PanelContainer
 
 		if (Stack?.Item == null)
 		{
+			AddThemeStyleboxOverride("panel", _slotStyle);
 			_icon.Texture = null;
 			CountLabel.Text = "";
 			TooltipText = "";
 			return;
 		}
 
+		AddThemeStyleboxOverride("panel", _slotFilledStyle);
 		_icon.Texture = Stack.Item.Icon;
 
 		if (IsCraftingSlot)

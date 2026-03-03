@@ -139,8 +139,7 @@ public partial class CraftingUI : Control
 
 			entry.Result.HoldToActivate = canCraft;
 
-			entry.Result.AddThemeStyleboxOverride("panel",
-				canCraft ? entry.SlotHighlightStyle : entry.SlotDefaultStyle);
+			entry.Result.Highlight.Visible = canCraft;
 
 			for (var i = 0; i < entry.IngredientSlots.Count; i++)
 			{

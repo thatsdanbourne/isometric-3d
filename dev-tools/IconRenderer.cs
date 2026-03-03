@@ -10,23 +10,12 @@ public partial class IconRenderer : Node3D
 	[Export] public Camera3D Camera;
 	[Export] public DirectionalLight3D Light;
 
-	[Export] public Vector2I IconSize = new Vector2I(128, 128);
+	[Export] public Vector2I IconSize = new(128, 128);
 	[Export] public float PaddingMultiplier = 1.2f;
+	[Export] public string OutputFile = "icon.png";
 
-	private bool isGenerating = false;
+	private bool _isGenerating;
 
-	[Export]
-	public bool GenerateTestIcon
-	{
-		get => false;
-		set
-		{
-			if (!Engine.IsEditorHint() || !value || isGenerating)
-				return;
-
-			_ = GenerateTestIconAsync();
-		}
-	}
 
 	[Export]
 	public bool ExportIcon
@@ -34,28 +23,13 @@ public partial class IconRenderer : Node3D
 		get => false;
 		set
 		{
-			if (!Engine.IsEditorHint() || !value || isGenerating)
+			if (!Engine.IsEditorHint() || !value || _isGenerating)
 				return;
 
-			Image img = Viewport.GetTexture().GetImage();
-			img.SavePng("res://assets/icons/campfire.png");
-			GD.Print("Icon exported: res://assets/icons/campfire.png");
+			var img = Viewport.GetTexture().GetImage();
+			img.SavePng("res://assets/icons/" + OutputFile + ".png");
+			GD.Print("Icon exported: res://assets/icons/" + OutputFile + ".png");
 		}
-	}
-
-	private async Task GenerateTestIconAsync()
-	{
-		isGenerating = true;
-
-		await GenerateIcon(
-			GD.Load<PackedScene>("res://assets/meshes/kiln/Kiln.glb"),
-			"res://assets/icons/kiln.png"
-		);
-
-		isGenerating = false;
-
-		// Reset the checkbox cleanly
-		NotifyPropertyListChanged();
 	}
 
 	public override void _Ready()
@@ -74,7 +48,7 @@ public partial class IconRenderer : Node3D
 		ClearPreview();
 
 		// Instantiate preview
-		Node3D instance = sourceScene.Instantiate<Node3D>();
+		var instance = sourceScene.Instantiate<Node3D>();
 		instance.Visible = true;
 		PreviewRoot.Visible = true;
 		PreviewRoot.AddChild(instance);
@@ -102,7 +76,7 @@ public partial class IconRenderer : Node3D
 		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
-		Image img = Viewport.GetTexture().GetImage();
+		var img = Viewport.GetTexture().GetImage();
 		img.SavePng(outputPath);
 
 		GD.Print($"Icon saved: {outputPath}");
@@ -114,20 +88,19 @@ public partial class IconRenderer : Node3D
 
 	private void ClearPreview()
 	{
-		foreach (Node child in PreviewRoot.GetChildren())
+		foreach (var child in PreviewRoot.GetChildren())
 			child.QueueFree();
 	}
 
 	private Aabb CalculateCombinedAabb(Node root)
 	{
-		bool hasBounds = false;
-		Aabb combined = new Aabb();
+		var hasBounds = false;
+		var combined = new Aabb();
 
-		foreach (Node node in GetAllChildren(root))
-		{
+		foreach (var node in GetAllChildren(root))
 			if (node is MeshInstance3D mesh && mesh.Mesh != null)
 			{
-				Aabb aabb = mesh.Mesh.GetAabb();
+				var aabb = mesh.Mesh.GetAabb();
 				aabb = aabb * mesh.GlobalTransform;
 
 				if (!hasBounds)
@@ -140,18 +113,17 @@ public partial class IconRenderer : Node3D
 					combined = combined.Merge(aabb);
 				}
 			}
-		}
 
 		return combined;
 	}
 
 	private IEnumerable<Node> GetAllChildren(Node root)
 	{
-		foreach (Node child in root.GetChildren())
+		foreach (var child in root.GetChildren())
 		{
 			yield return child;
 
-			foreach (Node sub in GetAllChildren(child))
+			foreach (var sub in GetAllChildren(child))
 				yield return sub;
 		}
 	}

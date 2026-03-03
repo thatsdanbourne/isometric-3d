@@ -11,7 +11,7 @@ public class ToolItem : Item
 	public int HitRayCount { get; init; } = 5;
 	public float HitRange { get; init; } = 2.0f;
 	public ToolTier Tier { get; init; }
-	public PackedScene HeldItemScene { get; set; }
+	public PackedScene HeldItemScene { get; init; }
 
 	public void UseOn(Node3D target, Vector3 fromDirection)
 	{

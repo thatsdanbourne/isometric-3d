@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cc50g6x1vwk1p"]
 
 [ext_resource type="Script" uid="uid://cgks33m4rrgo3" path="res://dev-tools/IconRenderer.cs" id="1_v1bn5"]
-[ext_resource type="PackedScene" uid="uid://6lkpw6gskqw3" path="res://assets/meshes/campfire/Campfire.glb" id="2_c7faj"]
+[ext_resource type="PackedScene" uid="uid://5wjis6srns0q" path="res://scenes/tools/Axe.tscn" id="2_c7faj"]
 
 [node name="IconRenderer" type="Node3D" unique_id=683127452 node_paths=PackedStringArray("Viewport", "PreviewRoot", "Camera", "Light")]
 script = ExtResource("1_v1bn5")
@@ -9,14 +9,17 @@ Viewport = NodePath("SubViewport")
 PreviewRoot = NodePath("SubViewport/PreviewRoot")
 Camera = NodePath("SubViewport/Camera3D")
 Light = NodePath("SubViewport/DirectionalLight3D")
+OutputFile = "stone_axe"
 
 [node name="SubViewport" type="SubViewport" parent="." unique_id=1922719966]
 transparent_bg = true
 size = Vector2i(128, 128)
+render_target_update_mode = 4
 
 [node name="PreviewRoot" type="Node3D" parent="SubViewport" unique_id=2077730827]
 
-[node name="Campfire" parent="SubViewport/PreviewRoot" unique_id=1569149356 instance=ExtResource("2_c7faj")]
+[node name="Axe" parent="SubViewport/PreviewRoot" unique_id=908074354 instance=ExtResource("2_c7faj")]
+transform = Transform3D(0.95444345, 1.0865163, 0.3981453, 0.38174486, -0.7828526, 1.2212338, 1.0923867, -0.67573905, -0.77464044, -0.15695286, -0.041475892, 0.54813385)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="SubViewport" unique_id=1155517337]
 transform = Transform3D(0.8508111, 0.2861924, -0.44069764, 0, 0.83867055, 0.54463905, 0.5254717, -0.46338496, 0.7135502, 3.3626094, 3.251422, 3.3626094)

@@ -7,6 +7,12 @@
 [ext_resource type="PackedScene" uid="uid://d34hhl3mhgyeh" path="res://scenes/ui/HUD/Tooltip.tscn" id="4_ig75s"]
 [ext_resource type="PackedScene" uid="uid://b5jqdxgjquxim" path="res://scenes/ui/HUD/ItemContainerSlot.tscn" id="5_tsn87"]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tsn87"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_tsn87"]
+font = ExtResource("2_atyv1")
+font_size = 20
+
 [sub_resource type="LabelSettings" id="LabelSettings_6ll6g"]
 font = ExtResource("2_atyv1")
 font_size = 32
@@ -28,18 +34,34 @@ offset_right = 40.0
 offset_bottom = 40.0
 mouse_filter = 2
 
-[node name="Icon" type="TextureRect" parent="CursorItem" unique_id=145807875]
-custom_minimum_size = Vector2(32, 32)
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-mouse_filter = 2
-stretch_mode = 4
+[node name="Container" type="PanelContainer" parent="CursorItem" unique_id=10245302]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(32, 32)
+theme_override_styles/panel = SubResource("StyleBoxEmpty_tsn87")
 
-[node name="Label" type="Label" parent="CursorItem" unique_id=1201468156]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
+[node name="Icon" type="TextureRect" parent="CursorItem/Container" unique_id=145807875]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="CursorItem/Container" unique_id=1201468156]
+layout_mode = 2
+size_flags_vertical = 1
+label_settings = SubResource("LabelSettings_tsn87")
 horizontal_alignment = 2
 vertical_alignment = 2
 

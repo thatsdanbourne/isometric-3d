@@ -15,12 +15,6 @@ public partial class RecipeEntry : HBoxContainer
 
 	private PackedScene _containerSlotScene = GD.Load<PackedScene>("res://scenes/ui/HUD/ItemContainerSlot.tscn");
 
-	public StyleBoxFlat SlotDefaultStyle =
-		ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotStyle.tres");
-
-	public StyleBoxFlat SlotHighlightStyle =
-		ResourceLoader.Load<StyleBoxFlat>("res://resources/ui/ItemContainerSlotHighlight.tres");
-
 
 	public void SetRecipe(CraftingRecipe r)
 	{
@@ -57,7 +51,6 @@ public partial class RecipeEntry : HBoxContainer
 		Result.SetStack(new ItemStack(recipeResultItem, r.ResultCount));
 		Result.HoldToActivate = true;
 		Result.SlotHoldCompleted += OnCraftHoldCompleted;
-		Result.AddThemeStyleboxOverride("panel", SlotHighlightStyle);
 	}
 
 	private void OnCraftHoldCompleted()
