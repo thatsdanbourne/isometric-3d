@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://cwk7lmbmxx6se"]
+
+[ext_resource type="PackedScene" uid="uid://cevplwxx5t3jk" path="res://assets/meshes/tools/StoneSword.glb" id="1_13gex"]
+
+[node name="StoneSword" unique_id=169175897 instance=ExtResource("1_13gex")]
+
+[node name="sword stone" parent="." index="0" unique_id=1677463155]
+transform = Transform3D(2.2928227e-15, 5.2453668e-08, 1.2, 1.2, -5.2453668e-08, 0, 5.2453668e-08, 1.2, -5.2453668e-08, -0.035, 0.15, 0)

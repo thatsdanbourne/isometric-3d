@@ -1,12 +1,13 @@
+using System.Threading.Tasks;
 using Godot;
 
-public partial class WorldObject : Node3D
+public partial class WorldObject : Node3D, IToolHittable
 {
-	[Signal]
-	public delegate void ObjectBrokenEventHandler(WorldObject obj);
-
-	[Signal]
-	public delegate void ObjectHitFailedEventHandler(WorldObject obj);
+	// [Signal]
+	// public delegate void ObjectBrokenEventHandler(WorldObject obj);
+	//
+	// [Signal]
+	// public delegate void ObjectHitFailedEventHandler(WorldObject obj);
 
 	[Export] public string HitSoundsKey { get; set; } = "hit_wood";
 	[Export] public string ObjectType { get; set; }
@@ -40,23 +41,51 @@ public partial class WorldObject : Node3D
 		CurrentHealth = MaxHealth;
 	}
 
-	public void HitFailed()
+	public Node3D GetHitRoot()
 	{
-		EmitSignal(SignalName.ObjectHitFailed, this);
+		return this;
 	}
 
-	public async void ApplyDamage(float amount, Vector3 fromDirection)
+	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint)
+	{
+		return ApplyDamage(damage, fromDirection);
+	}
+
+	public ToolHitOutcome ApplyDamage(float amount, Vector3 fromDirection)
+	{
+		CurrentHealth -= amount;
+		var destroyed = CurrentHealth <= 0;
+
+		if (destroyed)
+			BreakObject();
+
+		_ = PlayHitEffectsAsync();
+
+		return destroyed ? ToolHitOutcome.Destroyed : ToolHitOutcome.Hit;
+	}
+
+	private async Task PlayHitEffectsAsync()
 	{
 		await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
 		AudioManager.Instance.PlayVariantAt(HitSoundsKey, GlobalPosition, 0.1f);
-		// ApplyHitShake(fromDirection);
-		CurrentHealth -= amount;
-		if (CurrentHealth <= 0) BreakObject();
 	}
 
-	public void BreakObject()
+	public ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint)
 	{
-		EmitSignal(SignalName.ObjectBroken, this);
+		AudioManager.Instance.PlayAt("hit_fail", GlobalPosition, 0.1f);
+		return ToolHitOutcome.Failed;
+	}
+
+	private void BreakObject()
+	{
 		World.WorldObjectManager.RequestBreak(Data);
+	}
+
+	public float ModifyIncomingToolDamage(ToolItem tool, float damage, float baseDamage)
+	{
+		if (tool.DamageMultipliers != null && tool.DamageMultipliers.TryGetValue(ObjectType, out var mult))
+			return baseDamage * mult;
+
+		return baseDamage;
 	}
 }

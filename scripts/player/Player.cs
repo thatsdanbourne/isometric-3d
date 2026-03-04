@@ -199,39 +199,43 @@ public partial class Player : CharacterBody3D
 			if (!result.TryGetValue("collider", out var col))
 				continue;
 
-			var collider = col.As<Node>();
+			var colliderNode = col.As<Node>();
 
-			var body = collider as WorldObjectCollider;
-			var worldObject = body?.ObjectOwner;
+			var hittable = FindToolHittable(colliderNode);
+			if (hittable == null)
+				continue;
 
-			if (worldObject == null) continue;
+			if (!result.TryGetValue("position", out var pos))
+				continue;
 
-			worldObject.ObjectBroken -= OnObjectBroken;
-			worldObject.ObjectBroken += OnObjectBroken;
-
-			worldObject.ObjectHitFailed -= OnHitFailed;
-			worldObject.ObjectHitFailed += OnHitFailed;
-
-			if (!result.TryGetValue("position", out var pos)) continue;
 			var hitPoint = pos.AsVector3();
-			var hitDir = (worldObject.GlobalPosition - hitPoint).Normalized();
 
-			tool.UseOn(worldObject, hitDir);
+			var hitRoot = hittable.GetHitRoot();
+			var hitDir = (hitRoot.GlobalPosition - hitPoint).Normalized();
+
+			var hitResult = tool.UseOn(hittable, hitDir, hitPoint);
+
+			switch (hitResult.Outcome)
+			{
+				case ToolHitOutcome.Failed:
+					OnHitFailed();
+					break;
+				case ToolHitOutcome.Destroyed:
+					OnObjectBroken();
+					break;
+			}
+
 			return;
 		}
 	}
 
-	// event handlers
-	private void OnObjectBroken(WorldObject obj)
+	private void OnObjectBroken()
 	{
-		obj.ObjectBroken -= OnObjectBroken;
 		CameraController?.Shake(0.3f, 0.7f);
 	}
 
-	private void OnHitFailed(WorldObject obj)
+	private void OnHitFailed()
 	{
-		obj.ObjectHitFailed -= OnHitFailed;
-		AudioManager.Instance.PlayAt("hit_fail", obj.GlobalPosition, 0.1f);
 		CameraController?.Shake(0.1f, 0.3f);
 	}
 
@@ -456,5 +460,14 @@ public partial class Player : CharacterBody3D
 		FocusedInteractable?.OnFocusLost();
 		FocusedInteractable = newFocus;
 		FocusedInteractable?.OnFocusGained();
+	}
+
+	private static IToolHittable FindToolHittable(Node node)
+	{
+		for (var n = node; n != null; n = n.GetParent())
+			if (n is IToolHittable h)
+				return h;
+
+		return null;
 	}
 }

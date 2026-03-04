@@ -1,3 +1,5 @@
+using Godot;
+
 public interface IItemContainer
 {
 	string Label { get; }
@@ -37,4 +39,16 @@ public interface IChunkStateful<TState>
 {
 	TState CaptureState();
 	void RestoreState(TState state);
+}
+
+public interface IToolHittable
+{
+	Node3D GetHitRoot();
+	ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint);
+	ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint);
+
+	float ModifyIncomingToolDamage(ToolItem tool, float damage, float baseDamage)
+	{
+		return baseDamage;
+	}
 }

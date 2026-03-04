@@ -19,6 +19,7 @@
 [ext_resource type="Texture2D" uid="uid://cxxnlf6fco4uc" path="res://assets/particles/weather/raindrop.png" id="16_rpuxp"]
 [ext_resource type="Texture2D" uid="uid://b0rvrpykafb60" path="res://assets/particles/weather/snowflake.png" id="17_nthub"]
 [ext_resource type="Script" uid="uid://biupxf38shvsk" path="res://scripts/managers/WorldObjectManager.cs" id="18_nthub"]
+[ext_resource type="PackedScene" uid="uid://18eedyal7yx5" path="res://scenes/mobs/Deer.tscn" id="20_dwmkc"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_d1c63"]
 font = ExtResource("3_h1bdy")
@@ -246,6 +247,11 @@ cell_center_z = false
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="WorldObjects" type="Node3D" parent="World" unique_id=1677955676]
+
+[node name="WorldMobs" type="Node3D" parent="World" unique_id=726044059]
+
+[node name="Deer" parent="World/WorldMobs" unique_id=430655246 instance=ExtResource("20_dwmkc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.703995)
 
 [node name="PlayerContainer" type="Node3D" parent="World" unique_id=2019630338]
 
