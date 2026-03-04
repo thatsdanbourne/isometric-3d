@@ -32,7 +32,7 @@ public partial class WeatherManager : Node
 
 	private float _currentFog;
 
-	private string _currentBiome = "";
+	private BiomeId _currentBiome = BiomeId.Unknown;
 
 	private RandomNumberGenerator _rng = new();
 
@@ -57,7 +57,7 @@ public partial class WeatherManager : Node
 			_weatherTimer = 0f;
 			_nextWeatherChange = _rng.RandfRange(60f, 180f);
 
-			if (!string.IsNullOrEmpty(_currentBiome))
+			if (_currentBiome != BiomeId.Unknown)
 				ChooseWeatherForBiome(_currentBiome);
 		}
 
@@ -67,7 +67,7 @@ public partial class WeatherManager : Node
 		UpdateLightingAndFog(dt);
 	}
 
-	public void SetBiome(string biome)
+	public void SetBiome(BiomeId biome)
 	{
 		if (biome == _currentBiome) return;
 
@@ -163,7 +163,7 @@ public partial class WeatherManager : Node
 		env.FogDensity = _currentFog;
 	}
 
-	private void ChooseWeatherForBiome(string biome)
+	private void ChooseWeatherForBiome(BiomeId biome)
 	{
 		if (!BiomeWeather.Rules.TryGetValue(biome, out var rules))
 			return;

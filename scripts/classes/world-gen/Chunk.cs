@@ -6,12 +6,14 @@ public partial class Chunk(
 	TileInstance[,] tiles,
 	List<ChunkObject> objects,
 	List<ChunkDecor> decors,
+	List<ChunkMob> mobs,
 	Dictionary<string, ChunkTileMeshData> detailMeshes)
 {
 	public Vector2I Coord = coord;
 	public readonly TileInstance[,] Tiles = tiles;
 	public readonly List<ChunkObject> Objects = objects;
 	public List<ChunkDecor> Decors = decors;
+	public List<ChunkMob> Mobs = mobs;
 
 	public double BuildTimeMs;
 	public double FinaliseTimeMs;

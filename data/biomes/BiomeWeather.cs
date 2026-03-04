@@ -2,34 +2,34 @@ using System.Collections.Generic;
 
 public static class BiomeWeather
 {
-	public static readonly Dictionary<string, (WeatherType type, float chance)[]> Rules = new()
+	public static readonly Dictionary<BiomeId, (WeatherType type, float chance)[]> Rules = new()
 	{
 		{
-			"Plains", [
+			BiomeId.Plains, [
 				(WeatherType.Clear, 0.8f),
 				(WeatherType.Rain, 0.2f)
 			]
 		},
 		{
-			"Forest", [
+			BiomeId.Forest, [
 				(WeatherType.Clear, 0.7f),
 				(WeatherType.Rain, 0.3f)
 			]
 		},
 		{
-			"Desert", [
+			BiomeId.Desert, [
 				(WeatherType.Clear, 0.9f),
 				(WeatherType.Rain, 0.1f)
 			]
 		},
 		{
-			"Tundra", [
+			BiomeId.Tundra, [
 				(WeatherType.Clear, 0.8f),
 				(WeatherType.Snow, 0.2f)
 			]
 		},
 		{
-			"Taiga", [
+			BiomeId.Taiga, [
 				(WeatherType.Clear, 0.7f),
 				(WeatherType.Snow, 0.3f)
 			]

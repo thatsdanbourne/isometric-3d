@@ -1,25 +1,19 @@
 using System.Collections.Generic;
 
-public class BiomeAmbiance
+public class BiomeAmbiance(string dayKey, string nightKey)
 {
-    public string DayAmbianceKey;
-    public string NightAmbianceKey;
-
-    public BiomeAmbiance(string dayKey, string nightKey)
-    {
-        DayAmbianceKey = dayKey;
-        NightAmbianceKey = nightKey;
-    }
+	public readonly string DayAmbianceKey = dayKey;
+	public readonly string NightAmbianceKey = nightKey;
 }
 
 public static class BiomeAmbiances
 {
-    public static readonly Dictionary<string, BiomeAmbiance> AmbianceMap = new()
-    {
-        { "Plains", new BiomeAmbiance("forest_day", "forest_night") },
-        { "Forest", new BiomeAmbiance("forest_day", "forest_night") },
-        { "Desert", new BiomeAmbiance("desert", "desert") },
-        { "Tundra", new BiomeAmbiance("snowstorm", "snowstorm") },
-        { "Taiga", new BiomeAmbiance("snowstorm", "snowstorm") },
-    };
+	public static readonly Dictionary<BiomeId, BiomeAmbiance> AmbianceMap = new()
+	{
+		{ BiomeId.Plains, new BiomeAmbiance("forest_day", "forest_night") },
+		{ BiomeId.Forest, new BiomeAmbiance("forest_day", "forest_night") },
+		{ BiomeId.Desert, new BiomeAmbiance("desert", "desert") },
+		{ BiomeId.Tundra, new BiomeAmbiance("snowstorm", "snowstorm") },
+		{ BiomeId.Taiga, new BiomeAmbiance("snowstorm", "snowstorm") }
+	};
 }

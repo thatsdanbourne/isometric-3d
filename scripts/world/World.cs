@@ -8,6 +8,7 @@ public partial class World : Node3D
 	public delegate void WorldReadyEventHandler();
 
 	[Export] public Node3D WorldObjects;
+	[Export] public Node3D WorldMobs;
 	[Export] public GridMap GroundMap;
 	[Export] public GridMap WaterMap;
 	[Export] public Node3D PlayerContainer;
@@ -195,7 +196,7 @@ public partial class World : Node3D
 		return delta;
 	}
 
-	public string GetBiomeAtPos(Vector3 worldPos)
+	public BiomeId GetBiomeAtPos(Vector3 worldPos)
 	{
 		var tileX = (int)worldPos.X;
 		var tileY = (int)worldPos.Z;
@@ -208,7 +209,7 @@ public partial class World : Node3D
 		Vector2I chunkCoord = new(cx, cy);
 
 		if (!ActiveChunks.TryGetValue(chunkCoord, out var chunk))
-			return "";
+			return BiomeId.Unknown;
 
 		// Local tile inside chunk
 		var localX = tileX & (ChunkSize - 1);

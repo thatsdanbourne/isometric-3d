@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 
@@ -6,8 +7,7 @@ public partial class Player : CharacterBody3D
 	[Signal]
 	public delegate void PlayerReadyEventHandler();
 
-	[Signal]
-	public delegate void BiomeChangedEventHandler(string newBiome);
+	public event Action<BiomeId> BiomeChanged;
 
 	private static readonly PackedScene CameraControllerScene =
 		GD.Load<PackedScene>("res://scenes/player/CameraController.tscn");
@@ -20,7 +20,7 @@ public partial class Player : CharacterBody3D
 
 
 	private World _world;
-	public string CurrentBiome { get; private set; } = "";
+	public BiomeId CurrentBiome = BiomeId.Unknown;
 	private Vector3 _lastCheckedPosition;
 	private const float BiomeCheckDistance = 0.5f;
 
@@ -131,7 +131,8 @@ public partial class Player : CharacterBody3D
 	public void CheckBiome()
 	{
 		var biome = _world.GetBiomeAtPos(GlobalPosition);
-		if (!string.IsNullOrEmpty(biome) && biome != CurrentBiome)
+
+		if (biome != CurrentBiome)
 			OnBiomeChanged(biome);
 	}
 
@@ -381,11 +382,11 @@ public partial class Player : CharacterBody3D
 	}
 
 	// biome updates
-	public void OnBiomeChanged(string newBiome)
+	public void OnBiomeChanged(BiomeId newBiome)
 	{
 		CurrentBiome = newBiome;
 		_tintOverlay.SetTintForBiome(newBiome);
-		EmitSignal(SignalName.BiomeChanged, newBiome);
+		BiomeChanged?.Invoke(newBiome);
 	}
 
 	// helpers

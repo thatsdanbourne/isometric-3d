@@ -34,10 +34,8 @@ public partial class Debug : CanvasLayer
 		var p = TileManager.WorldToTile(player.Position);
 		positionLabel.Text = $"x: {p.X}, y: {p.Y}";
 
-		var biomeName = player.CurrentBiome;
-		if (!string.IsNullOrEmpty(biomeName))
-			biomeName = char.ToUpper(biomeName[0]) + biomeName[1..];
+		var biomeId = player.CurrentBiome;
 
-		biomeLabel.Text = $"Biome: {biomeName}";
+		biomeLabel.Text = $"Biome: {biomeId}";
 	}
 }

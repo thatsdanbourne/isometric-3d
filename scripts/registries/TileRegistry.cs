@@ -3,14 +3,14 @@ using Godot;
 
 public static class TileRegistry
 {
-	private static readonly Dictionary<string, TileDefinition> Tiles = new();
+	private static readonly Dictionary<TileId, TileDefinition> Tiles = new();
 
 	public static void Register(TileDefinition def)
 	{
-		Tiles[def.Name] = def;
+		Tiles[def.Id] = def;
 	}
 
-	public static TileDefinition GetByName(string id)
+	public static TileDefinition Get(TileId id)
 	{
 		if (Tiles.TryGetValue(id, out var def))
 			return def;
@@ -27,11 +27,6 @@ public static class TileRegistry
 
 		GD.PushError($"TileRegistry: Tile with GridTileId '{gridTileId}' not found.");
 		return null;
-	}
-
-	public static bool Has(string id)
-	{
-		return Tiles.ContainsKey(id);
 	}
 
 	public static IEnumerable<TileDefinition> All => Tiles.Values;

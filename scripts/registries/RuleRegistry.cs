@@ -24,4 +24,13 @@ public static class RuleRegistry
 
 		return BiomeList[0];
 	}
+
+	public static BiomeDefinition GetBiomeById(BiomeId biomeId)
+	{
+		foreach (var biome in BiomeList)
+			if (biome.Id == biomeId)
+				return biome;
+
+		return BiomeList[0];
+	}
 }

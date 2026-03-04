@@ -77,10 +77,13 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 		var tiles = new TileInstance[c, c];
 		var objects = new List<ChunkObject>();
 		var decors = new List<ChunkDecor>();
+		var mobs = new List<ChunkMob>();
 		var blocked = new bool[c, c];
 
-		var chunk = new Chunk(coord, tiles, objects, decors, new Dictionary<string, ChunkTileMeshData>());
+		var chunk = new Chunk(coord, tiles, objects, decors, mobs, new Dictionary<string, ChunkTileMeshData>());
 		world.TryGetChunkDelta(coord, out var chunkDelta);
+
+		var mobCandidates = new Dictionary<MobSpawnRule, List<Vector2I>>();
 
 		for (var x = 0; x < c; x++)
 		for (var y = 0; y < c; y++)
@@ -102,17 +105,17 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 			// determine biome
 			var biome = RuleRegistry.GetBiome(temp, humidity);
 			// int tileId = PickWeightedVariant(biome.GroundTileType, globalX, globalY);
-			var tileDef = TileRegistry.GetByName(biome.GroundTileType);
+			var tileDef = TileRegistry.Get(biome.GroundTileId);
 
 			var biomeAllowsRivers = humidity > 0.45f;
 			var isRiver = riverDist < 0.035f && biomeAllowsRivers;
 			var isRiverBank = riverDist < 0.085f && biomeAllowsRivers;
 
 			if (isRiver)
-				tileDef = TileRegistry.GetByName("water");
-			else if (isRiverBank) tileDef = TileRegistry.GetByName("sand");
+				tileDef = TileRegistry.Get(TileId.Water);
+			else if (isRiverBank) tileDef = TileRegistry.Get(TileId.Sand);
 
-			tiles[x, y] = new TileInstance(tileDef, biome.Name, temp, humidity);
+			tiles[x, y] = new TileInstance(tileDef, biome.Id, temp, humidity);
 
 			// foreach (var rule in tileDef.DetailMeshes)
 			// {
@@ -130,7 +133,9 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 			// 		meshData.Transforms.Add(t);
 			// 	}
 			// }
+
 			if (!isRiver)
+			{
 				// build procedural objects
 				foreach (var spawn in biome.ObjectRules)
 					if (spawn.Algorithm.ShouldPlace(globalX, globalY, spawn.Density))
@@ -148,7 +153,7 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 						var obj = new ChunkObject
 						{
 							Definition = def,
-							TileCoord = new Vector2I(globalX, globalY),
+							TileCoord = tilePos,
 							Position = new Vector3(globalX, 0, globalY),
 							ChunkCoord = coord,
 							Source = ChunkObjectSource.Procedural
@@ -158,6 +163,42 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 
 						blocked[x, y] = obj.Definition.BlocksTile;
 					}
+
+				foreach (var spawn in biome.MobRules)
+				{
+					if (!spawn.Algorithm.ShouldPlace(globalX, globalY, spawn.Density))
+						continue;
+
+					if (!mobCandidates.TryGetValue(spawn, out var list))
+						mobCandidates[spawn] = list = new List<Vector2I>();
+
+					list.Add(new Vector2I(globalX, globalY));
+				}
+			}
+		}
+
+		// spawn mobs
+		var picked = new List<Vector2I>(8);
+
+		foreach (var kvp in mobCandidates)
+		{
+			var rule = kvp.Key;
+			var candidates = kvp.Value;
+
+			var count = DetermineMobCount(rule, coord, terrainSeed, candidates.Count);
+			if (count <= 0) continue;
+
+			var rng = new Random(HashSeed(terrainSeed, coord, rule.Id));
+			PickUniqueTilesDeterministic(candidates, count, rng, picked);
+
+			foreach (var tile in picked)
+				mobs.Add(new ChunkMob
+				{
+					MobId = rule.MobId,
+					TileCoord = tile,
+					Position = new Vector3(tile.X, 0, tile.Y),
+					ChunkCoord = coord
+				});
 		}
 
 		// build player placed objects
@@ -169,9 +210,9 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 					TileCoord = placed.TileCoord,
 					Position = placed.Position,
 					ChunkCoord = coord,
-					Source =  ChunkObjectSource.Placed
+					Source = ChunkObjectSource.Placed
 				});
-			
+
 
 		sw.Stop();
 		chunk.BuildTimeMs = sw.Elapsed.TotalMilliseconds;
@@ -250,6 +291,14 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 		//     _world.WorldObjects.AddChild(instance);
 		// }
 
+		foreach (var mob in chunk.Mobs)
+		{
+			var scene = MobRegistry.Instance.GetScene(mob.MobId);
+			var instance = scene.Instantiate<Mob>();
+			instance.Position = mob.Position;
+			world.WorldMobs.AddChild(instance);
+		}
+
 		world.WorldObjectManager.EnqueueChunk(chunk);
 
 		sw.Stop();
@@ -265,5 +314,66 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 
 		var index = _rng.RandWeighted(_tileVariantWeights[tileType]);
 		return _tileVariants[tileType][(int)index];
+	}
+
+	private int DetermineMobCount(MobSpawnRule rule, Vector2I chunk, int seed, int candidateCount)
+	{
+		if (candidateCount == 0) return 0;
+
+		var rng = new Random(HashSeed(seed, chunk, rule.Id));
+
+		var expected = rule.Density;
+
+		var count = 0;
+
+		// Guaranteed part
+		var guaranteed = (int)Math.Floor(expected);
+		count += guaranteed;
+
+		// Fractional chance for one more
+		var frac = expected - guaranteed;
+		if (rng.NextDouble() < frac) count++;
+
+		// Clamp by rule and candidates
+		count = Math.Clamp(count, rule.MinPerChunk, rule.MaxPerChunk);
+		count = Math.Min(count, candidateCount);
+
+		return count;
+	}
+
+	private void PickUniqueTilesDeterministic(List<Vector2I> candidates, int count, Random rng, List<Vector2I> picked)
+	{
+		picked.Clear();
+
+		// Fisher-Yates partial shuffle (in-place)
+		for (var i = 0; i < count; i++)
+		{
+			var j = rng.Next(i, candidates.Count);
+			(candidates[i], candidates[j]) = (candidates[j], candidates[i]);
+			picked.Add(candidates[i]);
+		}
+	}
+
+	private static int StableHash(string s)
+	{
+		unchecked
+		{
+			var hash = 23;
+			for (var i = 0; i < s.Length; i++)
+				hash = hash * 31 + s[i];
+			return hash;
+		}
+	}
+
+	private static int HashSeed(int worldSeed, Vector2I chunkCoord, string ruleId)
+	{
+		unchecked
+		{
+			var hash = worldSeed;
+			hash = hash * 31 + chunkCoord.X;
+			hash = hash * 31 + chunkCoord.Y;
+			hash = hash * 31 + StableHash(ruleId);
+			return hash;
+		}
 	}
 }
