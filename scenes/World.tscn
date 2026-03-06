@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" uid="uid://cxwbi3kugkjk2" path="res://scenes/menus/settings/SettingsVideo.tscn" id="7_o1tcx"]
 [ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/managers/DayNightCycle.cs" id="8_nrtoj"]
 [ext_resource type="MeshLibrary" uid="uid://hvr6yjpo0ajd" path="res://water_meshlibrary.tres" id="8_pdh0q"]
+[ext_resource type="Script" uid="uid://ttuek37sjb7f" path="res://scripts/managers/MobStreamer.cs" id="13_dwmkc"]
 [ext_resource type="Texture2D" uid="uid://dpinrv3mnffj4" path="res://assets/particles/spotlight_01_a.png" id="15_30fn3"]
 [ext_resource type="Script" uid="uid://dgarnp7014d6a" path="res://scripts/managers/WeatherManager.cs" id="15_nthub"]
 [ext_resource type="Texture2D" uid="uid://cxxnlf6fco4uc" path="res://assets/particles/weather/raindrop.png" id="16_rpuxp"]
@@ -169,6 +170,9 @@ DayLength = 1200.0
 Sun = NodePath("../Sun")
 TimeOfDay = 0.345
 WorldEnvironment = NodePath("../WorldEnvironment")
+
+[node name="MobStreamer" type="Node" parent="World" unique_id=1837787183]
+script = ExtResource("13_dwmkc")
 
 [node name="WeatherManager" type="Node3D" parent="World" unique_id=1098148997 node_paths=PackedStringArray("ParticleAnchor", "RainParticles", "SnowParticles", "WorldEnvironment")]
 script = ExtResource("15_nthub")

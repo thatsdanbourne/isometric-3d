@@ -121,6 +121,7 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 
 
 			world.WorldObjectManager.EnqueueRemoval(obj);
+			world.MobStreamer.OnChunkUnloaded(coord);
 		}
 
 		// foreach (var decor in chunk.Decors)

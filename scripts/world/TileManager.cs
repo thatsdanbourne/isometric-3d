@@ -40,6 +40,11 @@ public static class TileManager
 		return TileToChunk(WorldToTile(worldPos));
 	}
 
+	public static Vector3 ChunkToWorld(Vector2I chunkCoord)
+	{
+		return TileToWorld(chunkCoord * ChunkSize);
+	}
+
 	private static Vector3 GetMouseWorldPosition(Camera3D camera, float groundY = 0f)
 	{
 		var viewport = camera.GetViewport();

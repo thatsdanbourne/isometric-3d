@@ -54,9 +54,8 @@ public static class BiomeDefinitions
 				new MobSpawnRule
 				{
 					Id = "plains_deer",
-					Density = 0.2f,
 					MobId = "deer",
-					Algorithm = NoisePresets.BaseMob(seed, worldOffset),
+					ChunkChance = 0.2f,
 					MinPerChunk = 0,
 					MaxPerChunk = 2
 				}

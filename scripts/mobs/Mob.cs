@@ -4,6 +4,7 @@ public partial class Mob : CharacterBody3D, IToolHittable
 {
 	[Export] public float MaxHealth = 10f;
 
+	public ulong Uid { get; private set; }
 	private float _health;
 
 	public override void _Ready()
@@ -41,5 +42,10 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	private void Die()
 	{
 		QueueFree();
+	}
+
+	public void SetUid(ulong uid)
+	{
+		Uid = uid;
 	}
 }

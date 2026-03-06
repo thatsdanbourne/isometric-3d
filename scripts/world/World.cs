@@ -31,7 +31,7 @@ public partial class World : Node3D
 
 	public Vector2I LastPlayerChunk = new(-999, -999);
 
-	private int _terrainSeed;
+	public int TerrainSeed;
 	public Vector2I WorldOffset; // prevents sampling noise at (0,0)
 
 	private RandomNumberGenerator _rng;
@@ -40,6 +40,7 @@ public partial class World : Node3D
 	public ChunkGenerator ChunkGenerator { get; private set; }
 	public WorldObjectManager WorldObjectManager { get; private set; }
 	public Node3D WorldObjectPool;
+	public MobStreamer MobStreamer;
 
 
 	public override void _Ready()
@@ -54,13 +55,14 @@ public partial class World : Node3D
 
 		SetupNoise();
 
-		RuleRegistry.LoadAll(_terrainSeed, WorldOffset);
+		RuleRegistry.LoadAll(TerrainSeed, WorldOffset);
 
 		ChunkManager = new ChunkManager(this, ChunkSize, ChunkRadius);
 		WorldObjectManager = GetNode<WorldObjectManager>("WorldObjectManager");
 		WorldObjectPool = GetNode<Node3D>("WorldObjectPool");
+		MobStreamer = GetNode<MobStreamer>("MobStreamer");
 
-		ChunkGenerator = new ChunkGenerator(this, ChunkManager, _terrainSeed);
+		ChunkGenerator = new ChunkGenerator(this, ChunkManager, TerrainSeed);
 		ChunkGenerator.Start();
 
 		GameManager.Instance.RegisterWorld(this);
@@ -97,11 +99,11 @@ public partial class World : Node3D
 
 	private void SetupNoise()
 	{
-		_terrainSeed = (int)_rng.Randi();
+		TerrainSeed = (int)_rng.Randi();
 
 		TempNoise = new FastNoiseLite
 		{
-			Seed = _terrainSeed + 1000,
+			Seed = TerrainSeed + 1000,
 			NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
 			Frequency = 0.0015f,
 			FractalOctaves = 3,
@@ -111,7 +113,7 @@ public partial class World : Node3D
 
 		HumidityNoise = new FastNoiseLite
 		{
-			Seed = _terrainSeed + 2000,
+			Seed = TerrainSeed + 2000,
 			NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
 			Frequency = 0.003f,
 			FractalOctaves = 4,
@@ -121,7 +123,7 @@ public partial class World : Node3D
 
 		RiverNoise = new FastNoiseLite
 		{
-			Seed = _terrainSeed + 3000,
+			Seed = TerrainSeed + 3000,
 			NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
 			Frequency = 0.0025f,
 			FractalOctaves = 3,
@@ -198,22 +200,14 @@ public partial class World : Node3D
 
 	public BiomeId GetBiomeAtPos(Vector3 worldPos)
 	{
-		var tileX = (int)worldPos.X;
-		var tileY = (int)worldPos.Z;
-
-		var shift = (int)Math.Log2(ChunkSize);
-
-		var cx = tileX >> shift;
-		var cy = tileY >> shift;
-
-		Vector2I chunkCoord = new(cx, cy);
+		var tile = TileManager.WorldToTile(worldPos);
+		var chunkCoord = TileManager.WorldToChunk(worldPos);
 
 		if (!ActiveChunks.TryGetValue(chunkCoord, out var chunk))
 			return BiomeId.Unknown;
 
-		// Local tile inside chunk
-		var localX = tileX & (ChunkSize - 1);
-		var localY = tileY & (ChunkSize - 1);
+		var localX = tile.X - chunkCoord.X * ChunkSize;
+		var localY = tile.Y - chunkCoord.Y * ChunkSize;
 
 		return chunk.Tiles[localX, localY].Biome;
 	}

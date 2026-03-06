@@ -1,11 +1,10 @@
 public class MobSpawnRule
 {
 	public string Id { get; set; }
-	public float Density { get; set; } = 0.1f;
 	public string MobId { get; set; }
 
-	public NoiseAlgorithm Algorithm;
+	public float ChunkChance { get; set; } = 0.2f;
 
-	public int MinPerChunk { get; set; } = 0;
+	public int MinPerChunk { get; set; } = 1;
 	public int MaxPerChunk { get; set; } = 3;
 }
