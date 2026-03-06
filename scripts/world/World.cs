@@ -19,7 +19,7 @@ public partial class World : Node3D
 	public double WorldTimeSeconds;
 
 	public int ChunkSize = TileManager.ChunkSize;
-	public int ChunkRadius = 3;
+	public int ChunkRadius = 4;
 
 	public FastNoiseLite TempNoise;
 	public FastNoiseLite HumidityNoise;

@@ -251,6 +251,7 @@ cell_center_z = false
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="WorldObjects" type="Node3D" parent="World" unique_id=1677955676]
+visible = false
 
 [node name="WorldMobs" type="Node3D" parent="World" unique_id=726044059]
 

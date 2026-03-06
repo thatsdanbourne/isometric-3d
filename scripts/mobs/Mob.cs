@@ -4,8 +4,21 @@ public partial class Mob : CharacterBody3D, IToolHittable
 {
 	[Export] public float MaxHealth = 10f;
 
+	public World World;
 	public ulong Uid { get; private set; }
+	public string MobId { get; private set; }
+	public Vector2I SpawnChunk { get; private set; }
+	public Vector2I? SavedChunk { get; internal set; }
 	private float _health;
+
+
+	public void Initialise(ulong uid, string mobId, Vector2I spawnChunk)
+	{
+		Uid = uid;
+		MobId = mobId;
+		SpawnChunk = spawnChunk;
+		SavedChunk = null;
+	}
 
 	public override void _Ready()
 	{
@@ -41,11 +54,12 @@ public partial class Mob : CharacterBody3D, IToolHittable
 
 	private void Die()
 	{
-		QueueFree();
+		World.MobStreamer.HandleMobDeath(this);
 	}
 
-	public void SetUid(ulong uid)
+	public void LoadFromSaveData(MobRecord data, Vector2I savedChunk)
 	{
-		Uid = uid;
+		Initialise(data.Uid, data.MobId, savedChunk);
+		SavedChunk = savedChunk;
 	}
 }

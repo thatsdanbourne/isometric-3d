@@ -246,8 +246,6 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 
 		world.WorldObjectManager.EnqueueChunk(chunk);
 
-		world.MobStreamer.OnChunkFinalised(chunkCoord);
-
 		sw.Stop();
 		chunk.FinaliseTimeMs = sw.Elapsed.TotalMilliseconds;
 

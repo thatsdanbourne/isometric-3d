@@ -9,29 +9,17 @@ public partial class MobStreamer : Node
 	[Export] public float UpdateInterval = 0.75f;
 
 	private World _world;
-	private Node3D _worldMobs;
 
 	private readonly Dictionary<ulong, Mob> _activeMobs = new();
+	private readonly List<ulong> _uidsToCull = new();
 	private readonly HashSet<Vector2I> _activeMobChunks = new();
-	private readonly HashSet<Vector2I> _pendingChunks = new();
+	private readonly HashSet<Vector2I> _currentInterestChunks = new();
 
 	private double _accum;
 
 	public override void _Ready()
 	{
 		_world = GetNode<World>("/root/Game/World");
-		_worldMobs = _world.GetNode<Node3D>("WorldMobs");
-	}
-
-	public void OnChunkFinalised(Vector2I chunkCoord)
-	{
-		_pendingChunks.Add(chunkCoord);
-	}
-
-	public void OnChunkUnloaded(Vector2I chunkCoord)
-	{
-		_pendingChunks.Remove(chunkCoord);
-		_activeMobChunks.Remove(chunkCoord);
 	}
 
 	public override void _Process(double delta)
@@ -40,8 +28,32 @@ public partial class MobStreamer : Node
 		if (_accum < UpdateInterval) return;
 		_accum = 0;
 
-		ActivatePendingChunks();
+		UpdateInterestChunks();
+		ActivateInterestChunks();
 		CullFarMobs();
+	}
+
+	private void UpdateInterestChunks()
+	{
+		_currentInterestChunks.Clear();
+		_currentInterestChunks.UnionWith(ComputeTargetChunks(_world.Player));
+	}
+
+	private void ActivateInterestChunks()
+	{
+		foreach (var chunkCoord in _currentInterestChunks)
+		{
+			if (_activeMobChunks.Contains(chunkCoord))
+				continue;
+
+			if (!_world.ActiveChunks.TryGetValue(chunkCoord, out var chunk))
+				continue;
+
+			ActivateChunkMobs(chunk);
+			_activeMobChunks.Add(chunkCoord);
+		}
+
+		_activeMobChunks.RemoveWhere(chunkCoord => !_currentInterestChunks.Contains(chunkCoord));
 	}
 
 	private HashSet<Vector2I> ComputeTargetChunks(Player player)
@@ -58,30 +70,19 @@ public partial class MobStreamer : Node
 		return set;
 	}
 
-	private void ActivatePendingChunks()
+	private void ActivateChunkMobs(Chunk chunk)
 	{
-		if (_pendingChunks.Count == 0) return;
+		if (_world.TryGetChunkDelta(chunk.Coord, out var delta) && delta != null)
+			SpawnDeltaMobs(chunk.Coord, delta);
 
-		var interest = ComputeTargetChunks(_world.Player);
-
-		var toCheck = new List<Vector2I>(_pendingChunks);
-		foreach (var chunkCoord in toCheck)
-		{
-			if (!interest.Contains(chunkCoord)) continue;
-
-			if (_activeMobChunks.Contains(chunkCoord)) continue;
-
-			if (!_world.ActiveChunks.TryGetValue(chunkCoord, out var chunk)) continue;
-
-			SpawnProceduralForChunk(chunk);
-			_activeMobChunks.Add(chunkCoord);
-			_pendingChunks.Remove(chunkCoord);
-		}
+		SpawnProceduralForChunk(chunk);
 	}
 
 	private void SpawnProceduralForChunk(Chunk chunk)
 	{
 		var mobCandidates = new Dictionary<MobSpawnRule, List<Vector2I>>(16);
+
+		_world.TryGetChunkDelta(chunk.Coord, out var delta);
 
 		for (var x = 0; x < chunk.Tiles.GetLength(0); x++)
 		for (var y = 0; y < chunk.Tiles.GetLength(1); y++)
@@ -131,39 +132,100 @@ public partial class MobStreamer : Node
 				var uid = HashUid(_world.TerrainSeed, chunk.Coord, rule.Id, i);
 				if (_activeMobs.ContainsKey(uid)) continue;
 
+				if (delta != null && delta.Mobs.ContainsKey(uid)) continue;
+
 				var instance = scene.Instantiate<Mob>();
-				instance.SetUid(uid);
-				instance.Position = TileManager.TileToWorld(picked[i]);
+				instance.Initialise(uid, rule.MobId, chunk.Coord);
+				instance.World = _world;
 				_world.WorldMobs.AddChild(instance);
+				instance.GlobalPosition = TileManager.TileToWorld(picked[i]);
 
 				_activeMobs[uid] = instance;
 			}
 		}
 	}
 
+	private void SpawnDeltaMobs(Vector2I chunkCoord, ChunkDeltaData delta)
+	{
+		foreach (var mob in delta.Mobs.Values)
+		{
+			if (_activeMobs.ContainsKey(mob.Uid)) continue;
+
+			var scene = MobRegistry.Instance.GetScene(mob.MobId);
+			var instance = scene.Instantiate<Mob>();
+			instance.LoadFromSaveData(mob, chunkCoord);
+			instance.World = _world;
+			_world.WorldMobs.AddChild(instance);
+			instance.GlobalPosition = mob.Position;
+			_activeMobs[mob.Uid] = instance;
+		}
+	}
+
 	private void CullFarMobs()
 	{
+		_uidsToCull.Clear();
+
 		foreach (var (uid, mob) in _activeMobs)
 		{
 			if (!IsInstanceValid(mob))
 			{
-				_activeMobs.Remove(uid);
+				_uidsToCull.Add(uid);
 				continue;
 			}
 
 			var mobTile = TileManager.WorldToTile(mob.GlobalPosition);
 			var playerTile = TileManager.WorldToTile(_world.Player.GlobalPosition);
 
-			var inRange = false;
-			var distance = ChebyshevTileDistance(mobTile, playerTile);
-			if (distance <= SaveRadiusTiles)
-				inRange = true;
+			var dx = Math.Abs(playerTile.X - mobTile.X);
+			var dy = Math.Abs(playerTile.Y - mobTile.Y);
+			var inRange = Math.Max(dx, dy) <= SaveRadiusTiles;
 
-			if (inRange) continue;
+			if (!inRange)
+				_uidsToCull.Add(uid);
+		}
 
-			mob.QueueFree();
+		foreach (var uid in _uidsToCull)
+		{
+			if (!_activeMobs.TryGetValue(uid, out var mob)) continue;
+
+			if (IsInstanceValid(mob))
+			{
+				SaveMobToDelta(mob);
+				mob.QueueFree();
+			}
+
 			_activeMobs.Remove(uid);
 		}
+	}
+
+	public void HandleMobDeath(Mob mob)
+	{
+		if (mob.SavedChunk.HasValue && _world.TryGetChunkDelta(mob.SavedChunk.Value, out var delta) &&
+		    delta != null)
+			delta.Mobs.Remove(mob.Uid);
+
+		_activeMobs.Remove(mob.Uid);
+
+		if (IsInstanceValid(mob)) mob.QueueFree();
+	}
+
+	private void SaveMobToDelta(Mob mob)
+	{
+		var chunkCoord = TileManager.WorldToChunk(mob.GlobalPosition);
+
+		if (mob.SavedChunk.HasValue && _world.TryGetChunkDelta(mob.SavedChunk.Value, out var oldDelta) &&
+		    oldDelta != null)
+			oldDelta.Mobs.Remove(mob.Uid);
+
+		var newDelta = _world.GetOrCreateChunkDelta(chunkCoord);
+		newDelta.Mobs[mob.Uid] = new MobRecord
+		{
+			Uid = mob.Uid,
+			MobId = mob.MobId,
+			Position = mob.GlobalPosition
+		};
+
+		mob.SavedChunk = chunkCoord;
 	}
 
 	private void PickUniqueTilesDeterministic(List<Vector2I> candidates, int count, Random rng, List<Vector2I> picked)
@@ -225,10 +287,5 @@ public partial class MobStreamer : Node
 				h *= 1099511628211UL;
 			}
 		}
-	}
-
-	private static int ChebyshevTileDistance(Vector2I a, Vector2I b)
-	{
-		return (int)a.DistanceTo(b);
 	}
 }
