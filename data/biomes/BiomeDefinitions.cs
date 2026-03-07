@@ -208,5 +208,38 @@ public static class BiomeDefinitions
 				}
 			}
 		});
+
+		RuleRegistry.RegisterBiome(new BiomeDefinition
+		{
+			Id = BiomeId.River,
+			Name = "River",
+			Kind = BiomeKind.Overlay,
+			GroundTileId = TileId.Water
+		});
+
+		RuleRegistry.RegisterBiome(new BiomeDefinition
+		{
+			Id = BiomeId.Riverbank,
+			Name = "Riverbank",
+			Kind = BiomeKind.Overlay,
+			GroundTileId = TileId.Sand
+		});
+
+		RuleRegistry.RegisterBiome(new BiomeDefinition
+		{
+			Id = BiomeId.Lake,
+			Name = "Lake",
+			Kind = BiomeKind.Overlay,
+			GroundTileId = TileId.Water
+		});
+
+		RuleRegistry.RegisterBiome(new BiomeDefinition
+			{
+				Id = BiomeId.LakeShore,
+				Name = "Lake Shore",
+				Kind = BiomeKind.Overlay,
+				GroundTileId = TileId.Sand
+			}
+		);
 	}
 }

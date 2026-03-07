@@ -3,6 +3,7 @@ using System.Collections.Generic;
 public class BiomeDefinition
 {
 	public BiomeId Id { get; set; }
+	public BiomeKind Kind { get; set; } = BiomeKind.Base;
 	public string Name { get; set; }
 	public TileId GroundTileId { get; set; }
 

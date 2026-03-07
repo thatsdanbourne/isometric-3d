@@ -5,8 +5,32 @@ public enum BiomeId : ushort
 	Forest = 2,
 	Desert = 3,
 	Tundra = 4,
-	Taiga = 5
+	Taiga = 5,
+	River = 6,
+	Riverbank = 7,
+	Lake = 8,
+	LakeShore = 9
 }
+
+public enum BiomeKind
+{
+	Base,
+	Overlay
+}
+
+public enum WaterFeatureType
+{
+	None,
+	River,
+	RiverBank,
+	Lake,
+	LakeShore
+}
+
+public readonly record struct WaterFeatureResult(
+	WaterFeatureType Type,
+	BiomeDefinition BiomeOverride
+);
 
 public enum TileId : ushort
 {

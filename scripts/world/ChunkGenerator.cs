@@ -101,19 +101,13 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 
 
 			// determine biome
-			var biome = RuleRegistry.GetBiome(temp, humidity);
+			var baseBiome = RuleRegistry.GetBiome(temp, humidity);
+			var featureResult = ResolveWaterFeature(globalX, globalY, humidity, baseBiome);
+			var finalBiome = featureResult.BiomeOverride ?? baseBiome;
 			// int tileId = PickWeightedVariant(biome.GroundTileType, globalX, globalY);
-			var tileDef = TileRegistry.Get(biome.GroundTileId);
+			var tileDef = TileRegistry.Get(finalBiome.GroundTileId);
 
-			var biomeAllowsRivers = humidity > 0.45f;
-			var isRiver = riverDist < 0.035f && biomeAllowsRivers;
-			var isRiverBank = riverDist < 0.085f && biomeAllowsRivers;
-
-			if (isRiver)
-				tileDef = TileRegistry.Get(TileId.Water);
-			else if (isRiverBank) tileDef = TileRegistry.Get(TileId.Sand);
-
-			tiles[x, y] = new TileInstance(tileDef, biome.Id, temp, humidity);
+			tiles[x, y] = new TileInstance(tileDef, finalBiome.Id, temp, humidity);
 
 			// foreach (var rule in tileDef.DetailMeshes)
 			// {
@@ -132,34 +126,33 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 			// 	}
 			// }
 
-			if (!isRiver)
-				// build procedural objects
-				foreach (var spawn in biome.ObjectRules)
-					if (spawn.Algorithm.ShouldPlace(globalX, globalY, spawn.Density))
+			// build procedural objects
+			foreach (var spawn in finalBiome.ObjectRules)
+				if (spawn.Algorithm.ShouldPlace(globalX, globalY, spawn.Density))
+				{
+					// skip if removed in chunk delta
+					if (chunkDelta != null && chunkDelta.RemovedProceduralObjects.Contains(tilePos))
+						continue;
+
+					if (blocked[x, y])
+						continue;
+
+					var variant = spawn.PickVariant(terrainSeed, globalX, globalY);
+					var def = variant.Definition;
+
+					var obj = new ChunkObject
 					{
-						// skip if removed in chunk delta
-						if (chunkDelta != null && chunkDelta.RemovedProceduralObjects.Contains(tilePos))
-							continue;
+						Definition = def,
+						TileCoord = tilePos,
+						Position = new Vector3(globalX, 0, globalY),
+						ChunkCoord = chunkCoord,
+						Source = ChunkObjectSource.Procedural
+					};
 
-						if (blocked[x, y])
-							continue;
+					objects.Add(obj);
 
-						var variant = spawn.PickVariant(terrainSeed, globalX, globalY);
-						var def = variant.Definition;
-
-						var obj = new ChunkObject
-						{
-							Definition = def,
-							TileCoord = tilePos,
-							Position = new Vector3(globalX, 0, globalY),
-							ChunkCoord = chunkCoord,
-							Source = ChunkObjectSource.Procedural
-						};
-
-						objects.Add(obj);
-
-						blocked[x, y] = obj.Definition.BlocksTile;
-					}
+					blocked[x, y] = obj.Definition.BlocksTile;
+				}
 		}
 
 		// build player placed objects
@@ -259,5 +252,51 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 
 		var index = _rng.RandWeighted(_tileVariantWeights[tileType]);
 		return _tileVariants[tileType][(int)index];
+	}
+
+	private WaterFeatureResult ResolveWaterFeature(
+		int globalX,
+		int globalY,
+		float humidity,
+		BiomeDefinition baseBiome)
+	{
+		var biomeAllowsRivers = humidity > 0.45f;
+
+		if (!biomeAllowsRivers)
+			return new WaterFeatureResult(WaterFeatureType.None, null);
+
+		var riverVal = world.RiverNoise.GetNoise2D(globalX, globalY + world.WorldOffset.Y);
+		var riverDist = Math.Abs(riverVal);
+
+		var lakeVal = (world.LakeNoise.GetNoise2D(globalX, globalY + world.WorldOffset.Y) + 1) / 2f;
+		var lakeMask = lakeVal * humidity;
+
+		var isLake = lakeMask > 0.34f;
+		// var isLakeShore = lakeMask > 0.33f;
+
+		if (isLake)
+			return new WaterFeatureResult(
+				WaterFeatureType.Lake,
+				RuleRegistry.GetBiomeById(BiomeId.Lake));
+
+		// if (isLakeShore)
+		// 	return new WaterFeatureResult(
+		// 		WaterFeatureType.LakeShore,
+		// 		RuleRegistry.GetBiomeById(BiomeId.LakeShore));
+
+		var isRiver = riverDist < 0.035f;
+		var isRiverBank = riverDist < 0.065f;
+
+		if (isRiver)
+			return new WaterFeatureResult(
+				WaterFeatureType.River,
+				RuleRegistry.GetBiomeById(BiomeId.River));
+
+		if (isRiverBank)
+			return new WaterFeatureResult(
+				WaterFeatureType.RiverBank,
+				RuleRegistry.GetBiomeById(BiomeId.Riverbank));
+
+		return new WaterFeatureResult(WaterFeatureType.None, null);
 	}
 }
