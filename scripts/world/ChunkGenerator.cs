@@ -260,32 +260,47 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 		float humidity,
 		BiomeDefinition baseBiome)
 	{
+		float x = globalX + world.WorldOffset.X;
+		float y = globalY + world.WorldOffset.Y;
+
 		var biomeAllowsRivers = humidity > 0.45f;
 
 		if (!biomeAllowsRivers)
 			return new WaterFeatureResult(WaterFeatureType.None, null);
 
-		var riverVal = world.RiverNoise.GetNoise2D(globalX, globalY + world.WorldOffset.Y);
-		var riverDist = Math.Abs(riverVal);
+		var riverRaw = world.RiverNoise.GetNoise2D(x, y);
+		var lakeRaw = world.LakeNoise.GetNoise2D(x, y);
+		var drainageRaw = world.DrainageNoise.GetNoise2D(x, y);
+		var bankRaw = world.BankNoise.GetNoise2D(x, y);
 
-		var lakeVal = (world.LakeNoise.GetNoise2D(globalX, globalY + world.WorldOffset.Y) + 1) / 2f;
-		var lakeMask = lakeVal * humidity;
+		var riverLine = Math.Abs(riverRaw);
+		var drainage = (drainageRaw + 1f) * 0.5f;
+		var lake = (lakeRaw + 1f) * 0.5f;
+
+		var drainageMask = Mathf.SmoothStep(0.45f, 0.75f, drainage);
+		var lakeMask = lake * humidity;
 
 		var isLake = lakeMask > 0.34f;
-		// var isLakeShore = lakeMask > 0.33f;
+
+		var bankJitter = bankRaw * 0.006f;
+
+		var baseRiverWidth = 0.018f;
+		var drainageWidth = drainageMask * 0.018f;
+		var lakeWidthBoost = lakeMask > 0.26 ? 0.02f : 0f;
+
+		var riverWidth = baseRiverWidth + drainageMask * 0.015f + (lakeMask > 0.72f ? 0.02f : 0f) + bankJitter;
+		var riverBankWidth = riverWidth + 0.045f;
+
+		var riverAllowed = humidity > 0.45f && drainageMask > 0.15f;
+
+		var isRiver = riverAllowed && riverLine < riverWidth;
+		var isRiverBank = riverAllowed && !isLake && riverLine < riverBankWidth;
 
 		if (isLake)
 			return new WaterFeatureResult(
 				WaterFeatureType.Lake,
 				RuleRegistry.GetBiomeById(BiomeId.Lake));
 
-		// if (isLakeShore)
-		// 	return new WaterFeatureResult(
-		// 		WaterFeatureType.LakeShore,
-		// 		RuleRegistry.GetBiomeById(BiomeId.LakeShore));
-
-		var isRiver = riverDist < 0.035f;
-		var isRiverBank = riverDist < 0.065f;
 
 		if (isRiver)
 			return new WaterFeatureResult(

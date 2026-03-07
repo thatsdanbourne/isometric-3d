@@ -24,7 +24,9 @@ public partial class World : Node3D
 	public FastNoiseLite TempNoise;
 	public FastNoiseLite HumidityNoise;
 	public FastNoiseLite RiverNoise;
+	public FastNoiseLite DrainageNoise;
 	public FastNoiseLite LakeNoise;
+	public FastNoiseLite BankNoise;
 
 	public readonly Dictionary<Vector2I, Chunk> ActiveChunks = new();
 	public Dictionary<Vector2I, ChunkDeltaData> ChunkDeltas = new();
@@ -138,6 +140,26 @@ public partial class World : Node3D
 			NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
 			Frequency = 0.01f,
 			FractalOctaves = 3,
+			FractalGain = 0.5f,
+			FractalLacunarity = 2.0f
+		};
+
+		DrainageNoise = new FastNoiseLite
+		{
+			Seed = TerrainSeed + 5000,
+			NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
+			Frequency = 0.001f,
+			FractalOctaves = 2,
+			FractalGain = 0.5f,
+			FractalLacunarity = 2.0f
+		};
+
+		BankNoise = new FastNoiseLite
+		{
+			Seed = TerrainSeed + 6000,
+			NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
+			Frequency = 0.025f,
+			FractalOctaves = 2,
 			FractalGain = 0.5f,
 			FractalLacunarity = 2.0f
 		};
