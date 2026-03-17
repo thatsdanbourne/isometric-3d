@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Godot;
 
 public partial class Player : CharacterBody3D
@@ -34,6 +35,7 @@ public partial class Player : CharacterBody3D
 
 	private const string LocomotionBlendPath = "parameters/Locomotion/blend_position";
 	private const string PunchRequestPath = "parameters/PunchOS/request";
+	private const string AxeRequestPath = "parameters/AxeOS/request";
 
 	private float _hitCooldown = 0.5f;
 	private float _hitCooldownAccum;
@@ -165,7 +167,7 @@ public partial class Player : CharacterBody3D
 		return DefaultTool;
 	}
 
-	private void UseActiveTool()
+	private async Task UseActiveTool()
 	{
 		if (!CanSwing) return;
 
@@ -173,7 +175,18 @@ public partial class Player : CharacterBody3D
 		if (tool == null) return;
 
 		_hitCooldownAccum = _hitCooldown;
-		_animTree.Set(PunchRequestPath, (int)AnimationNodeOneShot.OneShotRequest.Fire);
+
+		switch (tool.ToolType)
+		{
+			case "axe":
+			case "sword":
+				_animTree.Set(AxeRequestPath, (int)AnimationNodeOneShot.OneShotRequest.Fire);
+				break;
+			default:
+				_animTree.Set(PunchRequestPath, (int)AnimationNodeOneShot.OneShotRequest.Fire);
+				break;
+		}
+
 
 		AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, 0.1f);
 
@@ -187,6 +200,8 @@ public partial class Player : CharacterBody3D
 			targetAngle,
 			Rotation.Z
 		);
+
+		await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
 
 		foreach (var dir in GetHitArcDirections(swingDir, tool.HitArcDegrees, tool.HitRayCount))
 		{
@@ -339,7 +354,7 @@ public partial class Player : CharacterBody3D
 			}
 			else
 			{
-				UseActiveTool();
+				_ = UseActiveTool();
 			}
 
 		if (interactPressed && !hudOpen)

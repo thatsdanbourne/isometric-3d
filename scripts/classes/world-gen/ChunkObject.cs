@@ -2,26 +2,26 @@ using Godot;
 
 public partial class ChunkObject : RefCounted
 {
-    public WorldObjectDefinition Definition;
-    public Vector2I ChunkCoord;
-    public Vector2I TileCoord;
-    public Vector3 Position;
+	public WorldObjectDefinition Definition;
+	public Vector2I ChunkCoord;
+	public Vector2I TileCoord;
+	public Vector3 Position;
 
-    public ChunkObjectSource Source;
+	public ChunkObjectSource Source;
 
-    // runtime
-    public WorldObject RuntimeNode;
-    public bool MarkedForRemoval;
+	// runtime
+	public WorldObject RuntimeNode;
+	public bool MarkedForRemoval;
 }
 
 public partial class ChunkDecor : RefCounted
 {
-    public Vector3 Position;
-    public DecorSpawnRule DecorRule;
+	public Vector3 Position;
+	public DecorSpawnRule DecorRule;
 }
 
 public enum ChunkObjectSource
 {
-    Procedural,
-    Placed,
+	Procedural,
+	Placed
 }

@@ -32,6 +32,21 @@ public readonly record struct WaterFeatureResult(
 	BiomeDefinition BiomeOverride
 );
 
+public enum NeighbourTargetType
+{
+	WaterFeature,
+	ObjectCategory,
+	ObjectTag,
+	BiomeId
+}
+
+public enum DistanceFalloffMode
+{
+	None,
+	Linear,
+	Inverse
+}
+
 public enum TileId : ushort
 {
 	Unknown = 0,

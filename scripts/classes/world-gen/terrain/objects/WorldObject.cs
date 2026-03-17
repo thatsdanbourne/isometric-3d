@@ -59,15 +59,9 @@ public partial class WorldObject : Node3D, IToolHittable
 		if (destroyed)
 			BreakObject();
 
-		_ = PlayHitEffectsAsync();
+		AudioManager.Instance.PlayVariantAt(HitSoundsKey, GlobalPosition, 0.1f);
 
 		return destroyed ? ToolHitOutcome.Destroyed : ToolHitOutcome.Hit;
-	}
-
-	private async Task PlayHitEffectsAsync()
-	{
-		await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
-		AudioManager.Instance.PlayVariantAt(HitSoundsKey, GlobalPosition, 0.1f);
 	}
 
 	public ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint)

@@ -222,7 +222,46 @@ public static class BiomeDefinitions
 			Id = BiomeId.Riverbank,
 			Name = "Riverbank",
 			Kind = BiomeKind.Overlay,
-			GroundTileId = TileId.Sand
+			GroundTileId = TileId.Sand,
+			ObjectRules =
+			{
+				new ObjectSpawnRule
+				{
+					Id = "riverbank_reeds",
+					Density = 0.3f,
+					Algorithm = NoisePresets.Reeds(seed, worldOffset),
+					Variants =
+					{
+						new SpawnVariant { Id = "reeds", Weight = 1f }
+					},
+					Conditions = new SpawnConditions
+					{
+						NeighbourRequirements =
+						{
+							new NeighbourRequirement
+							{
+								TargetType = NeighbourTargetType.WaterFeature,
+								TargetId = nameof(WaterFeatureType.River),
+								Radius = 3,
+								MinCount = 1
+							}
+						},
+						DensityModifiers =
+						{
+							new DensityModifier
+							{
+								TargetType = NeighbourTargetType.WaterFeature,
+								TargetId = nameof(WaterFeatureType.River),
+								Radius = 3,
+								MinCount = 1,
+								MaxCount = 4,
+								MinMultiplier = 0.4f,
+								MaxMultiplier = 1.5f
+							}
+						}
+					}
+				}
+			}
 		});
 
 		RuleRegistry.RegisterBiome(new BiomeDefinition

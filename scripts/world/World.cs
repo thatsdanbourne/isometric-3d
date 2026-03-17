@@ -44,6 +44,7 @@ public partial class World : Node3D
 	public WorldObjectManager WorldObjectManager { get; private set; }
 	public Node3D WorldObjectPool;
 	public MobStreamer MobStreamer;
+	public BiomeSampler BiomeSampler;
 
 
 	public override void _Ready()
@@ -71,6 +72,9 @@ public partial class World : Node3D
 		GameManager.Instance.RegisterWorld(this);
 		EmitSignal(SignalName.WorldReady);
 
+		BiomeSampler = new BiomeSampler(TempNoise, HumidityNoise, RiverNoise, LakeNoise, DrainageNoise, BankNoise,
+			WorldOffset);
+
 		GameManager.Instance.LocalPlayerChanged += (p) =>
 		{
 			Player = p;
@@ -82,6 +86,10 @@ public partial class World : Node3D
 		};
 
 		GameManager.Instance.SpawnLocalPlayer();
+
+		var debugTeleporter = GetNode<DebugBiomeTeleporter>("DebugBiomeTeleporter");
+		debugTeleporter.World = this;
+		debugTeleporter.Player = Player;
 	}
 
 	public override void _ExitTree()

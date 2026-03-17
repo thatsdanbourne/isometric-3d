@@ -78,6 +78,7 @@ public class AudioRegistry
 	{
 		Music.Add(GD.Load<AudioStream>("res://assets/audio/music/relativity.mp3"));
 		Music.Add(GD.Load<AudioStream>("res://assets/audio/music/explorers.mp3"));
+		Music.Add(GD.Load<AudioStream>("res://assets/audio/music/the-deer-who-ran.mp3"));
 	}
 
 	public AudioStream GetSfx(string key)

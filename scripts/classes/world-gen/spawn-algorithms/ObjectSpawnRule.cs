@@ -7,6 +7,7 @@ public class ObjectSpawnRule
 	public SpawnAlgorithm Algorithm { get; set; }
 	public float Density { get; set; } = 0.5f;
 	public List<SpawnVariant> Variants { get; set; } = new();
+	public SpawnConditions Conditions { get; set; } = new();
 
 	public bool ShouldPlace(int x, int y)
 	{

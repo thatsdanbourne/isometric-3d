@@ -17,7 +17,7 @@ public static class WorldObjectRegistry
 			Scene = scene,
 			MaxHealth = maxHealth,
 			ToolTier = toolTier,
-			BlocksTile = blocksTile,
+			BlocksTile = blocksTile
 		};
 	}
 
@@ -53,8 +53,9 @@ public static class WorldObjectRegistry
 		Register("kiln", GD.Load<PackedScene>("res://scenes/placeables/Kiln.tscn"));
 		Register("chest", GD.Load<PackedScene>("res://scenes/placeables/ChestOne.tscn"));
 		Register("flower_poppy", GD.Load<PackedScene>("res://scenes/terrain/decor/FlowerPoppy.tscn"));
+		Register("reeds", GD.Load<PackedScene>("res://scenes/terrain/objects/Reeds.tscn"));
 	}
-	
+
 	public static int StableHash(string s)
 	{
 		unchecked

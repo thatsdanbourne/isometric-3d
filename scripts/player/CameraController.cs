@@ -83,7 +83,13 @@ public partial class CameraController : Node3D
 		}
 		else
 		{
-			desiredVelocity = diff.Normalized() * _maxVelocity;
+			GlobalPosition = new Vector3(
+				playerPos.X,
+				GlobalPosition.Y,
+				playerPos.Z
+			);
+
+			return;
 		}
 
 		var accel = desiredVelocity.Length() > _camVelocity.Length()

@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://uly05nerhiw1"
-path="res://.godot/imported/poppy.glb-19f3bd2e04267124eef2649aa38e3e39.scn"
+uid="uid://dh01imccbovh4"
+path="res://.godot/imported/reeds.glb-5e076e1e0edeb612ede49a42923ffeb0.scn"
 
 [deps]
 
-source_file="res://assets/meshes/flowers/poppy.glb"
-dest_files=["res://.godot/imported/poppy.glb-19f3bd2e04267124eef2649aa38e3e39.scn"]
+source_file="res://assets/meshes/reeds/reeds.glb"
+dest_files=["res://.godot/imported/reeds.glb-5e076e1e0edeb612ede49a42923ffeb0.scn"]
 
 [params]
 

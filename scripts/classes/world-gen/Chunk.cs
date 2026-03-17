@@ -6,14 +6,14 @@ public partial class Chunk(
 	TileInstance[,] tiles,
 	List<ChunkObject> objects,
 	List<ChunkDecor> decors,
-	List<ChunkMob> mobs,
 	Dictionary<string, ChunkTileMeshData> detailMeshes)
 {
 	public Vector2I Coord = coord;
 	public readonly TileInstance[,] Tiles = tiles;
 	public readonly List<ChunkObject> Objects = objects;
 	public List<ChunkDecor> Decors = decors;
-	public List<ChunkMob> Mobs = mobs;
+
+	public ChunkSpawnContext SpawnContext;
 
 	public double BuildTimeMs;
 	public double FinaliseTimeMs;
@@ -36,4 +36,11 @@ public partial class Chunk(
 	}
 
 	public IEnumerable<ChunkTileMeshData> GetAllDetailMeshes => detailMeshes.Values;
+}
+
+public class ChunkSpawnContext
+{
+	public required BiomeDefinition[,] BaseBiomes { get; init; }
+	public required BiomeDefinition[,] FinalBiomes { get; init; }
+	public required WaterFeatureType[,] WaterFeatures { get; init; }
 }

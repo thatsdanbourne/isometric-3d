@@ -20,6 +20,7 @@
 [ext_resource type="Texture2D" uid="uid://cxxnlf6fco4uc" path="res://assets/particles/weather/raindrop.png" id="16_rpuxp"]
 [ext_resource type="Texture2D" uid="uid://b0rvrpykafb60" path="res://assets/particles/weather/snowflake.png" id="17_nthub"]
 [ext_resource type="Script" uid="uid://biupxf38shvsk" path="res://scripts/managers/WorldObjectManager.cs" id="18_nthub"]
+[ext_resource type="Script" uid="uid://7ptg4plty0r7" path="res://dev-tools/DebugBiomeTeleporter.cs" id="21_30fn3"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_d1c63"]
 font = ExtResource("3_h1bdy")
@@ -256,3 +257,6 @@ metadata/_editor_floor_ = Vector3(0, 0, 0)
 [node name="PlayerContainer" type="Node3D" parent="World" unique_id=2019630338]
 
 [node name="ItemPickupContainer" type="Node3D" parent="World" unique_id=512490873]
+
+[node name="DebugBiomeTeleporter" type="Node" parent="World" unique_id=2128277119]
+script = ExtResource("21_30fn3")

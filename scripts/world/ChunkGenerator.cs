@@ -30,7 +30,6 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 		{ "snow", [1f] }
 	};
 
-
 	// start/stop/update
 	public void Start()
 	{
@@ -77,12 +76,44 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 		var tiles = new TileInstance[c, c];
 		var objects = new List<ChunkObject>();
 		var decors = new List<ChunkDecor>();
-		var mobs = new List<ChunkMob>();
 		var blocked = new bool[c, c];
 
-		var chunk = new Chunk(chunkCoord, tiles, objects, decors, mobs, new Dictionary<string, ChunkTileMeshData>());
+		var baseBiomes = new BiomeDefinition[c, c];
+		var finalBiomes = new BiomeDefinition[c, c];
+		var waterFeatures = new WaterFeatureType[c, c];
+
+		var chunk = new Chunk(chunkCoord, tiles, objects, decors, new Dictionary<string, ChunkTileMeshData>());
 		world.TryGetChunkDelta(chunkCoord, out var chunkDelta);
 
+		// pass 1, tile data
+		for (var x = 0; x < c; x++)
+		for (var y = 0; y < c; y++)
+		{
+			var globalX = chunkCoord.X * c + x;
+			var globalY = chunkCoord.Y * c + y;
+
+			// determine biome
+			var sample = world.BiomeSampler.SampleTile(globalX, globalY);
+			var baseBiome = sample.BaseBiome;
+			var featureResult = sample.WaterFeature;
+			var finalBiome = sample.FinalBiome;
+
+			baseBiomes[x, y] = baseBiome;
+			finalBiomes[x, y] = finalBiome;
+			waterFeatures[x, y] = featureResult.Type;
+
+			var tileDef = TileRegistry.Get(finalBiome.GroundTileId);
+			tiles[x, y] = new TileInstance(tileDef, finalBiome.Id, sample.Temperature, sample.Humidity);
+		}
+
+		chunk.SpawnContext = new ChunkSpawnContext
+		{
+			BaseBiomes = baseBiomes,
+			FinalBiomes = finalBiomes,
+			WaterFeatures = waterFeatures
+		};
+
+		// pass 2, object data
 		for (var x = 0; x < c; x++)
 		for (var y = 0; y < c; y++)
 		{
@@ -90,69 +121,48 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 			var globalY = chunkCoord.Y * c + y;
 			var tilePos = new Vector2I(globalX, globalY);
 
-			var tempRaw = world.TempNoise.GetNoise2D(globalX + world.WorldOffset.X, globalY + world.WorldOffset.Y);
-			var humidityRaw =
-				world.HumidityNoise.GetNoise2D(globalX + world.WorldOffset.X, globalY + world.WorldOffset.Y);
-			var riverVal = world.RiverNoise.GetNoise2D(globalX, globalY + world.WorldOffset.Y);
-
-			var temp = AdjustContrast((tempRaw + 1f) / 2f);
-			var humidity = AdjustContrast((humidityRaw + 1f) / 2f);
-			var riverDist = Math.Abs(riverVal);
-
-
-			// determine biome
-			var baseBiome = RuleRegistry.GetBiome(temp, humidity);
-			var featureResult = ResolveWaterFeature(globalX, globalY, humidity, baseBiome);
-			var finalBiome = featureResult.BiomeOverride ?? baseBiome;
-			// int tileId = PickWeightedVariant(biome.GroundTileType, globalX, globalY);
-			var tileDef = TileRegistry.Get(finalBiome.GroundTileId);
-
-			tiles[x, y] = new TileInstance(tileDef, finalBiome.Id, temp, humidity);
-
-			// foreach (var rule in tileDef.DetailMeshes)
-			// {
-			// 	if (rng.Randf() > rule.Density)
-			// 		continue;
-			// 	int count = rng.RandiRange(rule.MinPerTile, rule.MaxPerTile);
-			// 	var meshData = chunk.GetOrCreateDetailMesh(rule.MeshId);
-			// 	for (int i = 0; i < count; i++)
-			// 	{
-			// 		Transform3D t = Transform3D.Identity;
-			// 		Vector3 basePos = TileManager.TileToWorld(tilePos);
-			// 		basePos.X += rng.RandfRange(-0.5f, 0.5f);
-			// 		basePos.Z += rng.RandfRange(-0.5f, 0.5f);
-			// 		t.Origin = basePos;
-			// 		meshData.Transforms.Add(t);
-			// 	}
-			// }
+			var tileContext = new TileSpawnContext(
+				x,
+				y,
+				globalX,
+				globalY,
+				chunk.SpawnContext.BaseBiomes[x, y],
+				chunk.SpawnContext.FinalBiomes[x, y],
+				chunk.SpawnContext.WaterFeatures[x, y]
+			);
 
 			// build procedural objects
-			foreach (var spawn in finalBiome.ObjectRules)
-				if (spawn.Algorithm.ShouldPlace(globalX, globalY, spawn.Density))
+			foreach (var spawn in finalBiomes[x, y].ObjectRules)
+			{
+				if (!TryGetEffectiveDensity(spawn, chunk.SpawnContext, tileContext, out var effectiveDensity))
+					continue;
+
+				if (!spawn.Algorithm.ShouldPlace(globalX, globalY, effectiveDensity))
+					continue;
+
+				// skip if removed in chunk delta
+				if (chunkDelta != null && chunkDelta.RemovedProceduralObjects.Contains(tilePos))
+					continue;
+
+				if (blocked[x, y])
+					continue;
+
+				var variant = spawn.PickVariant(terrainSeed, globalX, globalY);
+				var def = variant.Definition;
+
+				var obj = new ChunkObject
 				{
-					// skip if removed in chunk delta
-					if (chunkDelta != null && chunkDelta.RemovedProceduralObjects.Contains(tilePos))
-						continue;
+					Definition = def,
+					TileCoord = tilePos,
+					Position = new Vector3(globalX, 0, globalY),
+					ChunkCoord = chunkCoord,
+					Source = ChunkObjectSource.Procedural
+				};
 
-					if (blocked[x, y])
-						continue;
+				objects.Add(obj);
 
-					var variant = spawn.PickVariant(terrainSeed, globalX, globalY);
-					var def = variant.Definition;
-
-					var obj = new ChunkObject
-					{
-						Definition = def,
-						TileCoord = tilePos,
-						Position = new Vector3(globalX, 0, globalY),
-						ChunkCoord = chunkCoord,
-						Source = ChunkObjectSource.Procedural
-					};
-
-					objects.Add(obj);
-
-					blocked[x, y] = obj.Definition.BlocksTile;
-				}
+				blocked[x, y] = obj.Definition.BlocksTile;
+			}
 		}
 
 		// build player placed objects
@@ -171,12 +181,6 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 		sw.Stop();
 		chunk.BuildTimeMs = sw.Elapsed.TotalMilliseconds;
 		return chunk;
-	}
-
-	private float AdjustContrast(float v)
-	{
-		var contrast = 1.4f;
-		return Mathf.Clamp((v - 0.5f) * contrast + 0.5f, 0f, 1f);
 	}
 
 	private void FinaliseChunk(Chunk chunk)
@@ -217,26 +221,6 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 				world.GroundMap.SetCellItem(pos, id);
 		}
 
-		// foreach (var meshData in chunk.DetailMeshes)
-		// {
-		// 	var mmi = new MultiMeshInstance3D();
-		// 	var mm = new MultiMesh();
-
-		// 	mm.TransformFormat = MultiMesh.TransformFormatEnum.Transform3D;
-		// 	mm.Mesh = meshData.Value.Mesh;
-		// 	mm.InstanceCount = meshData.Value.Transforms.Count;
-
-		// 	for (int i = 0; i < mm.InstanceCount; i++)
-		// 	{
-		// 		mm.SetInstanceTransform(i, meshData.Value.Transforms[i]);
-		// 	}
-
-		// 	meshData.Value.Mesh.SurfaceSetMaterial(0, meshData.Value.Material);
-		// 	mmi.Multimesh = mm;
-		// 	mmi.Name = meshData.Value.MeshId;
-		// 	_world.WorldObjects.AddChild(mmi);
-		// }
-
 		world.WorldObjectManager.EnqueueChunk(chunk);
 
 		sw.Stop();
@@ -254,64 +238,134 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 		return _tileVariants[tileType][(int)index];
 	}
 
-	private WaterFeatureResult ResolveWaterFeature(
-		int globalX,
-		int globalY,
-		float humidity,
-		BiomeDefinition baseBiome)
+	private bool TryGetEffectiveDensity(
+		ObjectSpawnRule rule,
+		ChunkSpawnContext chunkCtx,
+		in TileSpawnContext tileCtx,
+		out float effectiveDensity)
 	{
-		float x = globalX + world.WorldOffset.X;
-		float y = globalY + world.WorldOffset.Y;
+		effectiveDensity = 0f;
 
-		var biomeAllowsRivers = humidity > 0.45f;
+		var conditions = rule.Conditions;
+		if (conditions == null)
+		{
+			effectiveDensity = rule.Density;
+			return true;
+		}
 
-		if (!biomeAllowsRivers)
-			return new WaterFeatureResult(WaterFeatureType.None, null);
+		var cache = new Dictionary<NeighborKey, int>();
 
-		var riverRaw = world.RiverNoise.GetNoise2D(x, y);
-		var lakeRaw = world.LakeNoise.GetNoise2D(x, y);
-		var drainageRaw = world.DrainageNoise.GetNoise2D(x, y);
-		var bankRaw = world.BankNoise.GetNoise2D(x, y);
+		// Hard requirements
+		foreach (var requirement in conditions.NeighbourRequirements)
+		{
+			var count = GetNeighbourCountCached(
+				cache,
+				chunkCtx,
+				tileCtx.LocalX,
+				tileCtx.LocalY,
+				requirement.TargetType,
+				requirement.TargetId,
+				requirement.Radius);
 
-		var riverLine = Math.Abs(riverRaw);
-		var drainage = (drainageRaw + 1f) * 0.5f;
-		var lake = (lakeRaw + 1f) * 0.5f;
+			if (count < requirement.MinCount || count > requirement.MaxCount)
+				return false;
+		}
 
-		var drainageMask = Mathf.SmoothStep(0.45f, 0.75f, drainage);
-		var lakeMask = lake * humidity;
+		// Soft density modifiers
+		var multiplier = 1f;
 
-		var isLake = lakeMask > 0.34f;
+		foreach (var modifier in conditions.DensityModifiers)
+		{
+			var count = GetNeighbourCountCached(
+				cache,
+				chunkCtx,
+				tileCtx.LocalX,
+				tileCtx.LocalY,
+				modifier.TargetType,
+				modifier.TargetId,
+				modifier.Radius);
 
-		var bankJitter = bankRaw * 0.006f;
+			float t;
+			if (modifier.MaxCount <= modifier.MinCount)
+				t = count >= modifier.MinCount ? 1f : 0f;
+			else
+				t = Mathf.Clamp(
+					(count - modifier.MinCount) / (float)(modifier.MaxCount - modifier.MinCount),
+					0f,
+					1f);
 
-		var baseRiverWidth = 0.018f;
-		var drainageWidth = drainageMask * 0.018f;
-		var lakeWidthBoost = lakeMask > 0.26 ? 0.02f : 0f;
+			var localMultiplier = modifier.FalloffMode switch
+			{
+				DistanceFalloffMode.Linear => Mathf.Lerp(modifier.MinMultiplier, modifier.MaxMultiplier, t),
+				_ => 1f
+			};
 
-		var riverWidth = baseRiverWidth + drainageMask * 0.015f + (lakeMask > 0.72f ? 0.02f : 0f) + bankJitter;
-		var riverBankWidth = riverWidth + 0.045f;
+			multiplier *= localMultiplier;
+		}
 
-		var riverAllowed = humidity > 0.45f && drainageMask > 0.15f;
+		effectiveDensity = rule.Density * multiplier;
+		return effectiveDensity > 0f;
+	}
 
-		var isRiver = riverAllowed && riverLine < riverWidth;
-		var isRiverBank = riverAllowed && !isLake && riverLine < riverBankWidth;
+	private int CountMatchingNeighbours(ChunkSpawnContext chunkContext, int localX, int localY,
+		NeighbourTargetType targetType, string targetId, int radius)
+	{
+		var count = 0;
 
-		if (isLake)
-			return new WaterFeatureResult(
-				WaterFeatureType.Lake,
-				RuleRegistry.GetBiomeById(BiomeId.Lake));
+		for (var dx = -radius; dx <= radius; dx++)
+		for (var dy = -radius; dy <= radius; dy++)
+		{
+			if (dx == 0 && dy == 0)
+				continue;
 
+			var nx = localX + dx;
+			var ny = localY + dy;
 
-		if (isRiver)
-			return new WaterFeatureResult(
-				WaterFeatureType.River,
-				RuleRegistry.GetBiomeById(BiomeId.River));
+			if (nx < 0 || ny < 0 || nx >= world.ChunkSize || ny >= world.ChunkSize)
+				continue;
 
-		if (isRiverBank)
-			return new WaterFeatureResult(
-				WaterFeatureType.RiverBank,
-				RuleRegistry.GetBiomeById(BiomeId.Riverbank));
+			if (MatchesTarget(chunkContext, nx, ny, targetType, targetId))
+				count++;
+		}
 
-		return new WaterFeatureResult(WaterFeatureType.None, null);
+		return count;
+	}
+
+	private bool MatchesTarget(ChunkSpawnContext chunkContext, int localX, int localY,
+		NeighbourTargetType targetType, string targetId)
+	{
+		switch (targetType)
+		{
+			case NeighbourTargetType.WaterFeature:
+				return chunkContext.WaterFeatures[localX, localY].ToString() == targetId;
+
+			default:
+				return false;
+		}
+	}
+
+	private int GetNeighbourCountCached(
+		Dictionary<NeighborKey, int> cache,
+		ChunkSpawnContext chunkCtx,
+		int localX,
+		int localY,
+		NeighbourTargetType targetType,
+		string targetId,
+		int radius)
+	{
+		var key = new NeighborKey(targetType, targetId, radius);
+
+		if (cache.TryGetValue(key, out var count))
+			return count;
+
+		count = CountMatchingNeighbours(chunkCtx, localX, localY, targetType, targetId, radius);
+		cache[key] = count;
+		return count;
 	}
 }
+
+public readonly record struct NeighborKey(
+	NeighbourTargetType TargetType,
+	string TargetId,
+	int Radius
+);

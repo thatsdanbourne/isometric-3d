@@ -145,6 +145,20 @@ public static class NoisePresets
 		);
 	}
 
+	public static NoiseAlgorithm Reeds(int seed, Vector2I offset)
+	{
+		return new NoiseAlgorithm(
+			seed,
+			offset,
+			FastNoiseLite.NoiseTypeEnum.Perlin,
+			0.08f,
+			0.1f,
+			2,
+			0.5f,
+			2f,
+			false
+		);
+	}
 
 	// ---------------------------------------------------------------------
 	// ROCKS / ORE — Small tight clusters
@@ -166,24 +180,6 @@ public static class NoisePresets
 			detailNoiseOctaves: 2,
 			detailNoiseGain: 0.4f,
 			detailNoiseLacunarity: 2f
-		);
-	}
-
-	// ---------------------------------------------------------------------
-	// MOBS
-	// ---------------------------------------------------------------------
-	public static NoiseAlgorithm BaseMob(int seed, Vector2I worldOffset)
-	{
-		return new NoiseAlgorithm(
-			seed,
-			worldOffset,
-			FastNoiseLite.NoiseTypeEnum.Perlin,
-			0.08f,
-			0.55f,
-			1,
-			0.5f,
-			2f,
-			false
 		);
 	}
 }

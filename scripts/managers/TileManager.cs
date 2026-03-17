@@ -27,11 +27,21 @@ public static class TileManager
 	//tile <> chunk conversions
 	private static Vector2I TileToChunk(Vector2I tilePos)
 	{
-		var shift = (int)Math.Log2(ChunkSize);
 		return new Vector2I(
-			tilePos.X >> shift,
-			tilePos.Y >> shift
+			Mathf.FloorToInt((float)tilePos.X / ChunkSize),
+			Mathf.FloorToInt((float)tilePos.Y / ChunkSize)
 		);
+	}
+
+	public static Vector2I ChunkToTile(Vector2I chunkCoord)
+	{
+		return chunkCoord * ChunkSize;
+	}
+
+	public static Vector2I GetChunkCenterTile(Vector2I chunkCoord)
+	{
+		var origin = ChunkToTile(chunkCoord);
+		return origin + new Vector2I(ChunkSize / 2, ChunkSize / 2);
 	}
 
 	// world <> chunk conversions

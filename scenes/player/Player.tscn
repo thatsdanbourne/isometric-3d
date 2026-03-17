@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://6bgqs0ysmjmo"]
 
-[ext_resource type="PackedScene" uid="uid://i74vdaow5apo" path="res://assets/meshes/player/Player.glb" id="1_tpg5x"]
+[ext_resource type="PackedScene" uid="uid://i74vdaow5apo" path="res://assets/meshes/player/player.glb" id="1_tpg5x"]
 [ext_resource type="Script" uid="uid://8r8g7hu8j14l" path="res://scripts/player/Player.cs" id="2_gfjak"]
 [ext_resource type="Script" uid="uid://dyefb2kjf7pic" path="res://scripts/classes/inventory/Hotbar.cs" id="3_524rm"]
 [ext_resource type="Script" uid="uid://dm2vn27p7itv0" path="res://scripts/player/PlayerEquipment.cs" id="3_tpg5x"]
@@ -8,6 +8,13 @@
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_c3xxp"]
 radius = 0.4
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_v42im"]
+animation = &"attack_axe"
+
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_pn6s4"]
+filter_enabled = true
+filters = ["", "metarig/Skeleton3D:forearm.L", "metarig/Skeleton3D:forearm.R", "metarig/Skeleton3D:hand.L", "metarig/Skeleton3D:hand.R", "metarig/Skeleton3D:shoulder.L", "metarig/Skeleton3D:shoulder.R", "metarig/Skeleton3D:spine.001", "metarig/Skeleton3D:spine.002", "metarig/Skeleton3D:spine.003", "metarig/Skeleton3D:spine.006", "metarig/Skeleton3D:upper_arm.L", "metarig/Skeleton3D:upper_arm.R"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_tpg5x"]
 animation = &"idle"
@@ -22,24 +29,28 @@ blend_point_1/node = SubResource("AnimationNodeAnimation_c3xxp")
 blend_point_1/pos = 1.0
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_npwbq"]
-animation = &"punch"
+animation = &"attack_fist"
 
 [sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_c3xxp"]
 filter_enabled = true
 filters = ["", "metarig/Skeleton3D:forearm.L", "metarig/Skeleton3D:forearm.R", "metarig/Skeleton3D:hand.L", "metarig/Skeleton3D:shoulder.L", "metarig/Skeleton3D:shoulder.R", "metarig/Skeleton3D:spine.001", "metarig/Skeleton3D:spine.002", "metarig/Skeleton3D:spine.003", "metarig/Skeleton3D:spine.006", "metarig/Skeleton3D:upper_arm.L", "metarig/Skeleton3D:upper_arm.R"]
 
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_tpg5x"]
-graph_offset = Vector2(-468.26947, 35.91323)
-nodes/output/position = Vector2(256, 192)
+graph_offset = Vector2(-467.99976, 66.5104)
+nodes/output/position = Vector2(400, 304)
 nodes/PunchOS/node = SubResource("AnimationNodeOneShot_c3xxp")
 nodes/PunchOS/position = Vector2(-160, 304)
 nodes/Locomotion/node = SubResource("AnimationNodeBlendSpace1D_npwbq")
 nodes/Locomotion/position = Vector2(-480, 160)
 nodes/Punch/node = SubResource("AnimationNodeAnimation_npwbq")
 nodes/Punch/position = Vector2(-480, 464)
-node_connections = [&"output", 0, &"PunchOS", &"PunchOS", 0, &"Locomotion", &"PunchOS", 1, &"Punch"]
+nodes/AxeOS/node = SubResource("AnimationNodeOneShot_pn6s4")
+nodes/AxeOS/position = Vector2(48, 304)
+nodes/AtrtackAxe/node = SubResource("AnimationNodeAnimation_v42im")
+nodes/AtrtackAxe/position = Vector2(-128, 608)
+node_connections = [&"output", 0, &"AxeOS", &"PunchOS", 0, &"Locomotion", &"PunchOS", 1, &"Punch", &"AxeOS", 0, &"PunchOS", &"AxeOS", 1, &"AtrtackAxe"]
 
-[node name="Player" unique_id=1951664577 instance=ExtResource("1_tpg5x")]
+[node name="Player" unique_id=282697417 instance=ExtResource("1_tpg5x")]
 collision_layer = 8
 collision_mask = 3
 script = ExtResource("2_gfjak")
@@ -48,41 +59,41 @@ script = ExtResource("2_gfjak")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.404222, 0)
 shape = SubResource("SphereShape3D_c3xxp")
 
-[node name="Skeleton3D" parent="metarig" parent_id_path=PackedInt32Array(1236583405) index="0" unique_id=1600389048]
-bones/0/position = Vector3(3.759462e-09, 0.82512635, -0.04670546)
+[node name="Skeleton3D" parent="metarig" parent_id_path=PackedInt32Array(1277878573) index="0" unique_id=59797114]
+bones/0/position = Vector3(2.3840477e-10, 0.88428515, -0.04670546)
 bones/0/rotation = Quaternion(0.20953879, 1.1656291e-07, 2.497898e-08, 0.9778003)
-bones/1/rotation = Quaternion(-0.064433984, -0.0023384565, -0.03619295, 0.99726266)
-bones/2/rotation = Quaternion(-0.08230599, 0.090571895, -0.01993591, 0.99228275)
+bones/1/rotation = Quaternion(-0.064418785, -0.0027254936, -0.042183243, 0.9970273)
+bones/2/rotation = Quaternion(-0.08532529, 0.10561069, -0.023246117, 0.9904674)
 bones/3/rotation = Quaternion(0.0016271637, -1.1920915e-07, 1.9397359e-10, 0.9999987)
-bones/6/rotation = Quaternion(-0.02413208, -1.18871604e-07, -3.525476e-09, 0.99970883)
+bones/6/rotation = Quaternion(-0.03903295, -1.1798352e-07, -5.7653065e-09, 0.9992379)
 bones/7/rotation = Quaternion(-0.65568066, -0.3405462, -0.4332763, 0.51612294)
-bones/8/rotation = Quaternion(-0.36211833, 0.81655675, -0.21293707, 0.3959333)
-bones/9/rotation = Quaternion(0.68273365, -0.044841368, -0.033790655, 0.7285068)
+bones/8/rotation = Quaternion(-0.3865995, 0.85982275, -0.10499492, 0.31657815)
+bones/9/rotation = Quaternion(0.66992944, -0.06869343, -0.03309418, 0.7384989)
 bones/10/rotation = Quaternion(0.056280278, -0.043827035, -0.09138773, 0.9932573)
 bones/11/rotation = Quaternion(-0.65568066, 0.3405462, 0.4332763, 0.51612294)
-bones/12/rotation = Quaternion(-0.3342058, -0.71456003, 0.39049762, 0.47457573)
-bones/13/rotation = Quaternion(0.7125495, 0.16359721, 0.22470343, 0.64421856)
-bones/17/rotation = Quaternion(0.84850144, 0.07973006, 0.06879111, 0.5186098)
-bones/18/rotation = Quaternion(0.3707447, 0.013603726, 0.082703225, 0.9249452)
-bones/19/rotation = Quaternion(-0.5987641, -0.07264978, -0.03852797, 0.79669267)
-bones/22/rotation = Quaternion(0.9899044, -0.07182518, -0.07749216, 0.094474174)
-bones/23/rotation = Quaternion(0.73410714, -0.009691108, -0.16375946, 0.6589201)
-bones/24/rotation = Quaternion(-0.53155637, 0.07265318, 0.031290106, 0.843321)
+bones/12/rotation = Quaternion(-0.25424922, -0.6500994, 0.46328864, 0.5459779)
+bones/13/rotation = Quaternion(0.7034484, 0.07008344, 0.28679347, 0.64652777)
+bones/17/rotation = Quaternion(0.8887465, 0.08005139, 0.10106771, 0.43989393)
+bones/18/rotation = Quaternion(0.023245735, 0.014701834, 0.0051855007, 0.9996083)
+bones/19/rotation = Quaternion(-0.5963068, -0.07067361, -0.03753422, 0.7987582)
+bones/22/rotation = Quaternion(0.9950485, -0.058132537, -0.060530134, 0.053247668)
+bones/23/rotation = Quaternion(0.55578387, -0.01208876, -0.12398038, 0.82194096)
+bones/24/rotation = Quaternion(-0.49129304, 0.07751174, 0.029991824, 0.86701995)
 bones/25/rotation = Quaternion(0.007925331, 0.97007877, -0.2401391, -0.03489448)
 bones/26/rotation = Quaternion(-0.67979324, 0.692096, -0.14528432, -0.19436255)
-bones/27/position = Vector3(0.13062632, 0.096567884, 0.2889545)
-bones/28/position = Vector3(-0.12580216, 0.52207744, -0.45964587)
-bones/29/position = Vector3(-0.011763424, 0.46370935, 0.94436795)
-bones/30/position = Vector3(0.03816527, 0.4657741, 0.95151246)
+bones/27/position = Vector3(0.13168664, 0.12945005, 0.43435937)
+bones/28/position = Vector3(-0.12413784, 0.43531647, -0.5240823)
+bones/29/position = Vector3(-0.02976963, 0.4651175, 0.9492406)
+bones/30/position = Vector3(0.020159036, 0.46436593, 0.94663984)
 
 [node name="RightHandAttach" type="BoneAttachment3D" parent="metarig/Skeleton3D" index="0" unique_id=1909800955]
-transform = Transform3D(-0.8884234, 0.3000355, -0.34739375, -0.37968975, -0.055046067, 0.92347467, 0.25795242, 0.95233834, 0.16282462, -0.2290414, 0.9248183, 0.24019477)
+transform = Transform3D(-0.7675862, 0.577289, -0.27847555, -0.227622, 0.16063178, 0.9604091, 0.5991656, 0.8005839, 0.008104872, -0.16576451, 1.0344015, 0.3266558)
 bone_name = "hand.R"
 bone_idx = 14
 
 [node name="RightHandContainer" type="Node3D" parent="metarig/Skeleton3D/RightHandAttach" index="0" unique_id=2056471369]
 
-[node name="AnimationPlayer" parent="." index="2" unique_id=123833608]
+[node name="AnimationPlayer" parent="." index="2" unique_id=723109139]
 autoplay = &"idle"
 
 [node name="AnimationTree" type="AnimationTree" parent="." index="3" unique_id=1323499225]
@@ -92,6 +103,9 @@ parameters/PunchOS/active = false
 parameters/PunchOS/internal_active = false
 parameters/PunchOS/request = 0
 parameters/Locomotion/blend_position = 1.0
+parameters/AxeOS/active = false
+parameters/AxeOS/internal_active = false
+parameters/AxeOS/request = 0
 
 [node name="PlayerEquipment" type="Node" parent="." index="4" unique_id=181002446]
 script = ExtResource("3_tpg5x")
