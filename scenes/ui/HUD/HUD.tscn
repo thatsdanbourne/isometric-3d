@@ -21,6 +21,10 @@ font_size = 32
 font = ExtResource("2_atyv1")
 font_size = 32
 
+[sub_resource type="LabelSettings" id="LabelSettings_qamap"]
+font = ExtResource("2_atyv1")
+font_size = 24
+
 [node name="HUD" type="CanvasLayer" unique_id=419892391]
 process_mode = 3
 script = ExtResource("1_kw0id")
@@ -233,3 +237,23 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="TooltipManager" parent="." unique_id=96215466 instance=ExtResource("4_ig75s")]
+
+[node name="HealthContainer" type="MarginContainer" parent="." unique_id=63635883]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -30.5
+offset_top = -40.0
+offset_right = 30.5
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/margin_bottom = 100
+
+[node name="HealthLabel" type="Label" parent="HealthContainer" unique_id=1387358004]
+layout_mode = 2
+text = "Health: "
+label_settings = SubResource("LabelSettings_qamap")
+horizontal_alignment = 1
+vertical_alignment = 1

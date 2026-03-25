@@ -9,7 +9,8 @@ public class ToolItem : Item
 	public Dictionary<string, float> DamageMultipliers { get; init; } = new();
 	public float HitArcDegrees { get; init; } = 70f;
 	public int HitRayCount { get; init; } = 5;
-	public float HitRange { get; init; } = 2.0f;
+	public float HitRange { get; init; } = 1.0f;
+	public float CooldownSeconds { get; init; } = 0.5f;
 	public ToolTier Tier { get; init; }
 	public PackedScene HeldItemScene { get; init; }
 

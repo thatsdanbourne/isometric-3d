@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Godot;
 
-public partial class Player : CharacterBody3D
+public partial class Player : CharacterBody3D, IToolHittable
 {
 	[Signal]
 	public delegate void PlayerReadyEventHandler();
@@ -13,12 +13,18 @@ public partial class Player : CharacterBody3D
 	private static readonly PackedScene CameraControllerScene =
 		GD.Load<PackedScene>("res://scenes/player/CameraController.tscn");
 
+	public float MaxHealth = 20f;
+	public float Health;
 	public float Speed = 5.0f;
+	public float AimLockTime = 0.2f;
+	private float _aimLockTimer;
+	private float _knockbackResistance = 1f;
+	private float _knockbackDecay = 14f;
+	private Vector3 _knockbackVelocity;
 	public ToolItem DefaultTool;
 	private Item _equippedItem;
 	private Item _lastEquippedItem;
 	private PlayerEquipment _equipment;
-
 
 	private World _world;
 	public BiomeId CurrentBiome = BiomeId.Unknown;
@@ -37,7 +43,6 @@ public partial class Player : CharacterBody3D
 	private const string PunchRequestPath = "parameters/PunchOS/request";
 	private const string AxeRequestPath = "parameters/AxeOS/request";
 
-	private float _hitCooldown = 0.5f;
 	private float _hitCooldownAccum;
 	private bool CanSwing => _hitCooldownAccum <= 0;
 
@@ -86,6 +91,7 @@ public partial class Player : CharacterBody3D
 		Hotbar.ContainerChanged += UpdateEquippedItem;
 
 		DefaultTool = ItemRegistry.GetItem("fist") as ToolItem;
+		Health = MaxHealth;
 
 		_placement = new PlacementController();
 		AddChild(_placement);
@@ -174,7 +180,7 @@ public partial class Player : CharacterBody3D
 		var tool = GetActiveTool();
 		if (tool == null) return;
 
-		_hitCooldownAccum = _hitCooldown;
+		_hitCooldownAccum = tool.CooldownSeconds;
 
 		switch (tool.ToolType)
 		{
@@ -191,7 +197,9 @@ public partial class Player : CharacterBody3D
 		AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, 0.1f);
 
 		var space = GetWorld3D().DirectSpaceState;
-		var swingDir = _aimDirection.Rotated(Vector3.Up, Mathf.DegToRad(45)).Normalized();
+		var swingDir = _aimLockTimer > AimLockTime
+			? Velocity.Normalized()
+			: _aimDirection.Rotated(Vector3.Up, Mathf.DegToRad(45)).Normalized();
 
 		var targetAngle = Mathf.Atan2(swingDir.X, swingDir.Z);
 
@@ -205,7 +213,7 @@ public partial class Player : CharacterBody3D
 
 		foreach (var dir in GetHitArcDirections(swingDir, tool.HitArcDegrees, tool.HitRayCount))
 		{
-			_toolQuery.From = GlobalPosition;
+			_toolQuery.From = new Vector3(GlobalPosition.X, GlobalPosition.Y + 0.1f, GlobalPosition.Z);
 			_toolQuery.To = GlobalPosition + dir * tool.HitRange;
 
 			var result = space.IntersectRay(_toolQuery);
@@ -312,13 +320,16 @@ public partial class Player : CharacterBody3D
 			Input.GetActionStrength("move_down") - Input.GetActionStrength("move_up")
 		).Normalized();
 
+		var moveVelocity = Vector3.Zero;
+
 		if (inputDir != Vector2.Zero)
 		{
+			_aimLockTimer += dt;
+
 			var moveVec = new Vector3(inputDir.X, 0, inputDir.Y)
 				.Rotated(Vector3.Up, Mathf.DegToRad(45));
 
-			Velocity = moveVec * Speed;
-			MoveAndSlide();
+			moveVelocity = moveVec * Speed;
 
 			var targetAngle = Mathf.Atan2(moveVec.X, moveVec.Z);
 
@@ -332,9 +343,15 @@ public partial class Player : CharacterBody3D
 		}
 		else
 		{
-			Velocity = Vector3.Zero;
+			_aimLockTimer = 0f;
 			SetAnimState("idle");
 		}
+
+		_knockbackVelocity = _knockbackVelocity.MoveToward(Vector3.Zero, _knockbackDecay * dt);
+		_knockbackVelocity.Y = 0f;
+		Velocity = new Vector3(moveVelocity.X + _knockbackVelocity.X, 0, moveVelocity.Z + _knockbackVelocity.Z);
+
+		MoveAndSlide();
 
 		const float k = 14f;
 		var a = 1f - Mathf.Exp(-k * dt);
@@ -485,5 +502,37 @@ public partial class Player : CharacterBody3D
 				return h;
 
 		return null;
+	}
+
+	public Node3D GetHitRoot()
+	{
+		return this;
+	}
+
+	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint)
+	{
+		ApplyKnockback(fromDirection, 5f);
+		Health -= damage;
+		if (Health <= 0)
+		{
+			GD.Print("bro is dead");
+			return ToolHitOutcome.Destroyed;
+		}
+
+		return ToolHitOutcome.Hit;
+	}
+
+	private void ApplyKnockback(Vector3 direction, float strength)
+	{
+		direction.Y = 0;
+
+		if (direction.LengthSquared() < 0.001f) return;
+
+		_knockbackVelocity += direction.Normalized() * (strength / _knockbackResistance);
+	}
+
+	public ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint)
+	{
+		return ToolHitOutcome.Failed;
 	}
 }

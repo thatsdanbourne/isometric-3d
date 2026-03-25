@@ -19,11 +19,12 @@ public partial class Deer : Mob
 		base._Ready();
 
 		_animPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
+		_knockbackResistance = 1.5f;
 
 		PickNewDirection();
 	}
 
-	public override void _PhysicsProcess(double delta)
+	public override void TickAI(double delta)
 	{
 		var dt = (float)delta;
 
@@ -53,14 +54,12 @@ public partial class Deer : Mob
 			moveDir.Y = 0;
 			moveDir = moveDir.Normalized();
 
-			Velocity = new Vector3(moveDir.X * MoveSpeed, Velocity.Y, moveDir.Z * MoveSpeed);
+			MoveVelocity = new Vector3(moveDir.X * MoveSpeed, MoveVelocity.Y, moveDir.Z * MoveSpeed);
 		}
 		else
 		{
-			Velocity = new Vector3(0f, Velocity.Y, 0f);
+			MoveVelocity = new Vector3(0f, MoveVelocity.Y, 0f);
 		}
-
-		MoveAndSlide();
 
 		UpdateAnim();
 	}
@@ -80,7 +79,7 @@ public partial class Deer : Mob
 	{
 		if (_animPlayer == null) return;
 
-		var isMoving = new Vector2(Velocity.X, Velocity.Z).Length() > 0.1f;
+		var isMoving = new Vector2(MoveVelocity.X, MoveVelocity.Z).Length() > 0.1f;
 
 		if (isMoving)
 		{

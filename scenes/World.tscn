@@ -86,6 +86,7 @@ turbulence_noise_strength = 20.0
 ambient_light_source = 2
 ambient_light_color = Color(0.9946967, 0.9946967, 0.99469656, 1)
 ambient_light_sky_contribution = 0.74
+ssao_enabled = true
 ssao_radius = 5.0
 fog_enabled = true
 fog_mode = 1

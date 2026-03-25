@@ -34,6 +34,7 @@ public partial class HUD : CanvasLayer
 	private readonly List<ItemContainerSlot> _storageSlots = new();
 
 	private Player _player;
+	private Label _healthLabel;
 
 	public bool WindowOpen => _inventoryRoot.Visible || _craftingUI.Visible || _storageWindow.Visible;
 	public bool IsCraftingOpen => _craftingUI.Visible;
@@ -65,6 +66,7 @@ public partial class HUD : CanvasLayer
 		_storageWindow = _inventoryRoot.GetNode<PanelContainer>("HBoxContainer/StorageWindow");
 		_storageSlotGrid = _storageWindow.GetNode<GridContainer>("MarginContainer/SlotGrid");
 		_storageLabel = _storageWindow.GetNode<Label>("Label");
+		_healthLabel = GetNode<Label>("HealthContainer/HealthLabel");
 
 		_hotbarBox = GetNode<HBoxContainer>("MarginContainer/Hotbar");
 
@@ -95,6 +97,8 @@ public partial class HUD : CanvasLayer
 			var mousePos = GetViewport().GetMousePosition();
 			_cursorItem.GlobalPosition = mousePos + new Vector2(6, 6);
 		}
+
+		_healthLabel.Text = $"Health: {_player.Health}/{_player.MaxHealth}";
 	}
 
 	public void OpenInventoryUI()

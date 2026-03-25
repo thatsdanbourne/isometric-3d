@@ -1,0 +1,102 @@
+[gd_scene format=3 uid="uid://bwkv85lqa6xs6"]
+
+[ext_resource type="PackedScene" uid="uid://i74vdaow5apo" path="res://assets/meshes/player/player.glb" id="1_ieb7h"]
+[ext_resource type="Script" uid="uid://cx2r3gq62x188" path="res://scripts/mobs/Bandit.cs" id="2_aviji"]
+[ext_resource type="PackedScene" uid="uid://5wjis6srns0q" path="res://scenes/tools/Axe.tscn" id="3_dlf5q"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_aviji"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_v42im"]
+animation = &"attack_axe"
+
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_pn6s4"]
+filter_enabled = true
+filters = ["", "metarig/Skeleton3D:forearm.L", "metarig/Skeleton3D:forearm.R", "metarig/Skeleton3D:hand.L", "metarig/Skeleton3D:hand.R", "metarig/Skeleton3D:shoulder.L", "metarig/Skeleton3D:shoulder.R", "metarig/Skeleton3D:spine.001", "metarig/Skeleton3D:spine.002", "metarig/Skeleton3D:spine.003", "metarig/Skeleton3D:spine.006", "metarig/Skeleton3D:upper_arm.L", "metarig/Skeleton3D:upper_arm.R"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_aviji"]
+animation = &"idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_6aanm"]
+animation = &"run"
+
+[sub_resource type="AnimationNodeBlendSpace1D" id="AnimationNodeBlendSpace1D_npwbq"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_aviji")
+blend_point_0/pos = 0.0
+blend_point_1/node = SubResource("AnimationNodeAnimation_6aanm")
+blend_point_1/pos = 1.0
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_npwbq"]
+animation = &"attack_fist"
+
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_c3xxp"]
+filter_enabled = true
+filters = ["", "metarig/Skeleton3D:forearm.L", "metarig/Skeleton3D:forearm.R", "metarig/Skeleton3D:hand.L", "metarig/Skeleton3D:shoulder.L", "metarig/Skeleton3D:shoulder.R", "metarig/Skeleton3D:spine.001", "metarig/Skeleton3D:spine.002", "metarig/Skeleton3D:spine.003", "metarig/Skeleton3D:spine.006", "metarig/Skeleton3D:upper_arm.L", "metarig/Skeleton3D:upper_arm.R"]
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_uow05"]
+graph_offset = Vector2(-405.7146, 33.344654)
+nodes/output/position = Vector2(400, 304)
+nodes/PunchOS/node = SubResource("AnimationNodeOneShot_c3xxp")
+nodes/PunchOS/position = Vector2(-160, 304)
+nodes/Locomotion/node = SubResource("AnimationNodeBlendSpace1D_npwbq")
+nodes/Locomotion/position = Vector2(-480, 160)
+nodes/Punch/node = SubResource("AnimationNodeAnimation_npwbq")
+nodes/Punch/position = Vector2(-480, 464)
+nodes/AxeOS/node = SubResource("AnimationNodeOneShot_pn6s4")
+nodes/AxeOS/position = Vector2(48, 304)
+nodes/AtrtackAxe/node = SubResource("AnimationNodeAnimation_v42im")
+nodes/AtrtackAxe/position = Vector2(-128, 608)
+node_connections = [&"output", 0, &"AxeOS", &"PunchOS", 0, &"Locomotion", &"PunchOS", 1, &"Punch", &"AxeOS", 0, &"PunchOS", &"AxeOS", 1, &"AtrtackAxe"]
+
+[node name="Bandit" unique_id=282697417 instance=ExtResource("1_ieb7h")]
+collision_layer = 2
+collision_mask = 11
+script = ExtResource("2_aviji")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." index="0" unique_id=483359325]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47659922, 0)
+shape = SubResource("SphereShape3D_aviji")
+
+[node name="Skeleton3D" parent="metarig" parent_id_path=PackedInt32Array(1277878573) index="0" unique_id=59797114]
+bones/0/position = Vector3(2.21397e-09, 0.8510929, -0.04670545)
+bones/0/rotation = Quaternion(0.20953879, 1.1656291e-07, 2.497898e-08, 0.9778003)
+bones/1/rotation = Quaternion(-0.064467594, -0.0010655975, -0.016492562, 0.997783)
+bones/2/rotation = Quaternion(-0.078194164, 0.041287858, -0.00908794, 0.9960414)
+bones/3/rotation = Quaternion(0.0016271637, -1.1920915e-07, 1.9397359e-10, 0.9999987)
+bones/6/rotation = Quaternion(-0.072384164, -1.1881463e-07, -7.6076825e-09, 0.99737686)
+bones/7/rotation = Quaternion(-0.65568066, -0.3405462, -0.4332763, 0.51612294)
+bones/8/rotation = Quaternion(-0.3379516, 0.71630937, -0.38554177, 0.47333634)
+bones/9/rotation = Quaternion(0.70502007, -0.01786449, -0.043255966, 0.7076415)
+bones/10/rotation = Quaternion(0.056280278, -0.043827035, -0.09138773, 0.9932573)
+bones/11/rotation = Quaternion(-0.65568066, 0.3405462, 0.4332763, 0.51612294)
+bones/12/rotation = Quaternion(-0.3718981, -0.79956335, 0.24867634, 0.4006874)
+bones/13/rotation = Quaternion(0.7347913, 0.13658515, 0.07056378, 0.66064143)
+bones/17/rotation = Quaternion(0.90180916, 0.06687746, 0.04687413, 0.42434707)
+bones/18/rotation = Quaternion(0.3945289, 0.013450978, 0.088008866, 0.9145602)
+bones/19/rotation = Quaternion(-0.6486176, -0.07289037, -0.028032206, 0.7570973)
+bones/22/rotation = Quaternion(0.96388, -0.081162855, -0.07923, 0.24097842)
+bones/23/rotation = Quaternion(0.7480251, -0.0094464095, -0.1668642, 0.64228153)
+bones/24/rotation = Quaternion(-0.5860445, 0.06696116, 0.031987343, 0.80687356)
+bones/25/rotation = Quaternion(0.007925331, 0.97007877, -0.2401391, -0.03489448)
+bones/26/rotation = Quaternion(-0.67979324, 0.692096, -0.14528432, -0.19436255)
+bones/27/position = Vector3(0.12636586, 0.08555679, 0.09545645)
+bones/28/position = Vector3(-0.12952605, 0.44083595, -0.33533978)
+bones/29/position = Vector3(0.006159961, 0.46230772, 0.9395177)
+bones/30/position = Vector3(0.05608864, 0.46717575, 0.9563627)
+
+[node name="RightHandAttach" type="BoneAttachment3D" parent="metarig/Skeleton3D" index="0" unique_id=257714521]
+transform = Transform3D(-0.99776274, 0.046809882, -0.047732566, -0.063289724, -0.43131322, 0.89997953, 0.021540113, 0.90098673, 0.4333107, -0.3187044, 0.9295518, 0.079264924)
+bone_name = "hand.R"
+bone_idx = 14
+
+[node name="Axe" parent="metarig/Skeleton3D/RightHandAttach" index="0" unique_id=908074354 instance=ExtResource("3_dlf5q")]
+
+[node name="AnimationTree" type="AnimationTree" parent="." index="3" unique_id=1229928756]
+tree_root = SubResource("AnimationNodeBlendTree_uow05")
+anim_player = NodePath("../AnimationPlayer")
+parameters/PunchOS/active = false
+parameters/PunchOS/internal_active = false
+parameters/PunchOS/request = 0
+parameters/Locomotion/blend_position = 1.0
+parameters/AxeOS/active = false
+parameters/AxeOS/internal_active = false
+parameters/AxeOS/request = 0

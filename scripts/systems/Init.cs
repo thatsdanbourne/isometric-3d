@@ -11,6 +11,7 @@ public partial class Init : Node
 		TileDataLoader.LoadAllTiles();
 		DetailMeshDataLoader.LoadAllDetailMeshes();
 		MobRegistry.Instance.Register("deer", "res://scenes/mobs/Deer.tscn");
+		MobRegistry.Instance.Register("bandit", "res://scenes/mobs/Bandit.tscn");
 		GD.Print("Registries loaded! 🔥");
 	}
 }

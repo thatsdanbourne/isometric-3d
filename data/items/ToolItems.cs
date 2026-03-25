@@ -25,12 +25,16 @@ public static class ToolItems
 			Description = "A decent starter sword.",
 			Icon = LoadTexture("stone_sword"),
 			StackSize = 1,
-			Damage = 1.5f,
+			Damage = 1.25f,
+			HitArcDegrees = 85f,
+			HitRayCount = 5,
+			HitRange = 1.35f,
+			CooldownSeconds = 0.45f,
 			DamageMultipliers = new Dictionary<string, float>
 			{
 				{ "stone", 1.5f },
 				{ "ore", 1.5f },
-				{ "wood", 1.5f }
+				{ "wood", 1f }
 			},
 			HeldItemScene = GD.Load<PackedScene>("res://scenes/tools/StoneSword.tscn")
 		});
@@ -43,7 +47,7 @@ public static class ToolItems
 			Description = "Now go find some iron!",
 			Icon = LoadTexture("stone_pickaxe"),
 			StackSize = 1,
-			Damage = 1.25f,
+			Damage = 1.5f,
 			DamageMultipliers = new Dictionary<string, float>
 			{
 				{ "stone", 2.0f },
@@ -72,7 +76,8 @@ public static class ToolItems
 			},
 			HitArcDegrees = 75f,
 			HitRayCount = 5,
-			HitRange = 2.2f,
+			HitRange = 1.5f,
+			CooldownSeconds = 0.6f,
 			Tier = ToolTier.Stone,
 			HeldItemScene = GD.Load<PackedScene>("res://scenes/tools/Axe.tscn")
 		});

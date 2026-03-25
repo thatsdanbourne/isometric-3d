@@ -58,6 +58,14 @@ public static class BiomeDefinitions
 					ChunkChance = 0.2f,
 					MinPerChunk = 0,
 					MaxPerChunk = 2
+				},
+				new MobSpawnRule
+				{
+					Id = "plains_bandit",
+					MobId = "bandit",
+					ChunkChance = 0.05f,
+					MinPerChunk = 0,
+					MaxPerChunk = 3
 				}
 			}
 		});
