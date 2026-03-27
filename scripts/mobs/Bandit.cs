@@ -14,7 +14,7 @@ public partial class Bandit : Mob
 
 	public float AttackStartRange;
 	public float AggroRange = 15f;
-	public float MoveSpeed = 3f;
+	public float MoveSpeed = 4f;
 	public float AttackWindup = 0.25f;
 	public float AttackRecovery = 0.35f;
 
@@ -31,6 +31,9 @@ public partial class Bandit : Mob
 	private const string LocomotionBlendPath = "parameters/Locomotion/blend_position";
 	private const string AxeRequestPath = "parameters/AxeOS/request";
 
+	private PhysicsRayQueryParameters3D _toolQuery;
+	private const uint HittableMask = 1u << 1;
+
 	public override void _Ready()
 	{
 		base._Ready();
@@ -38,6 +41,13 @@ public partial class Bandit : Mob
 		_player = World.Player;
 		_equippedTool = ItemRegistry.GetItem("stone_axe") as ToolItem;
 		AttackStartRange = _equippedTool!.HitRange - 0.3f;
+
+		_toolQuery = new PhysicsRayQueryParameters3D
+		{
+			CollideWithAreas = false,
+			CollideWithBodies = true,
+			CollisionMask = HittableMask
+		};
 	}
 
 	public override void TickAI(double delta)
@@ -159,8 +169,15 @@ public partial class Bandit : Mob
 		_animTree.Set(AxeRequestPath, (int)AnimationNodeOneShot.OneShotRequest.Fire);
 		await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
 
-		var dir = (_player.GlobalPosition - GlobalPosition).Normalized();
-		_equippedTool.UseOn(_player, dir, _player.GlobalPosition);
+		var swingDir = _player.GlobalPosition - GlobalPosition;
+
+		if (swingDir.LengthSquared() < 0.001f) return;
+
+		var angleOffset = (float)Mathf.DegToRad(GD.RandRange(-5f, 5f));
+		swingDir = swingDir.Rotated(Vector3.Up, angleOffset).Normalized();
+
+		var space = GetWorld3D().DirectSpaceState;
+		CombatUtils.PerformMeleeHit(this, _equippedTool, swingDir, space, _toolQuery, _player);
 	}
 
 	public override void ApplyKnockback(Vector3 direction, float strength)

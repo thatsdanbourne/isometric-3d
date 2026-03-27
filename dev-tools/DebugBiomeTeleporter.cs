@@ -31,7 +31,7 @@ public partial class DebugBiomeTeleporter : Node
 
 	private void TeleportToBiome(BiomeId biomeId)
 	{
-		var playerChunk = TileManager.WorldToChunk(Player.GlobalPosition);
+		var playerChunk = TileUtils.WorldToChunk(Player.GlobalPosition);
 
 		var result = UseFinalBiome
 			? World.BiomeSampler.FindNearestChunkWithFinalBiome(biomeId, playerChunk, SearchRadius)
@@ -44,8 +44,8 @@ public partial class DebugBiomeTeleporter : Node
 		}
 
 		var targetChunk = result.Value;
-		var targetTile = TileManager.GetChunkCenterTile(targetChunk);
-		var targetWorld = TileManager.TileToWorld(targetTile);
+		var targetTile = TileUtils.GetChunkCenterTile(targetChunk);
+		var targetWorld = TileUtils.TileToWorld(targetTile);
 
 		Player.GlobalPosition = targetWorld;
 

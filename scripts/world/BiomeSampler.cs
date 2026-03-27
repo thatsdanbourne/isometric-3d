@@ -37,13 +37,13 @@ public class BiomeSampler(
 
 	public BiomeDefinition GetBaseBiomeForChunk(Vector2I chunkCoord)
 	{
-		var tile = TileManager.GetChunkCenterTile(chunkCoord);
+		var tile = TileUtils.GetChunkCenterTile(chunkCoord);
 		return GetBaseBiomeAtTile(tile.X, tile.Y);
 	}
 
 	public BiomeDefinition GetFinalBiomeForChunk(Vector2I chunkCoord)
 	{
-		var tile = TileManager.GetChunkCenterTile(chunkCoord);
+		var tile = TileUtils.GetChunkCenterTile(chunkCoord);
 		return GetFinalBiomeAtTile(tile.X, tile.Y);
 	}
 

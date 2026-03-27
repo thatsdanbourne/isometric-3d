@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public static class TileManager
+public static class TileUtils
 {
 	public const int ChunkSize = 16;
 	private const int TileSize = 1;

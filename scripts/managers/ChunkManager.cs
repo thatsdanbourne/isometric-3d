@@ -14,7 +14,7 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 
 	public void ForceInitialChunks(Vector3 playerPos)
 	{
-		var playerChunk = TileManager.WorldToChunk(playerPos);
+		var playerChunk = TileUtils.WorldToChunk(playerPos);
 		world.LastPlayerChunk = playerChunk;
 
 		PendingInitialChunks.Clear();
@@ -32,7 +32,7 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 
 	public void UpdateChunks(Vector3 playerPos)
 	{
-		var playerChunk = TileManager.WorldToChunk(playerPos);
+		var playerChunk = TileUtils.WorldToChunk(playerPos);
 
 		if (playerChunk == world.LastPlayerChunk)
 			return;

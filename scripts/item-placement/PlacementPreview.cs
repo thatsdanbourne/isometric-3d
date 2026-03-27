@@ -34,14 +34,14 @@ public partial class PlacementPreview : Node3D
 		if (!shouldBeVisible || camera == null || _world == null || _placeable == null)
 			return _hasLastTile ? _lastTile : default;
 
-		var tile = TileManager.GetMouseTilePosition(camera);
+		var tile = TileUtils.GetMouseTilePosition(camera);
 
 		if (!_hasLastTile && tile == _lastTile) return tile;
 
 		_lastTile = tile;
 		_hasLastTile = true;
 
-		GlobalPosition = TileManager.TileToWorld(tile);
+		GlobalPosition = TileUtils.TileToWorld(tile);
 
 		CanPlaceCurrent = _world.CanPlace(tile, _placeable);
 		SetValid(CanPlaceCurrent);

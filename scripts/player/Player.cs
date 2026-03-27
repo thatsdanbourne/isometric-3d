@@ -16,7 +16,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public float MaxHealth = 20f;
 	public float Health;
 	public float Speed = 5.0f;
-	public float AimLockTime = 0.2f;
+	public float AimLockTime = 0.5f;
 	private float _aimLockTimer;
 	private float _knockbackResistance = 1f;
 	private float _knockbackDecay = 14f;
@@ -211,45 +211,16 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
 
-		foreach (var dir in GetHitArcDirections(swingDir, tool.HitArcDegrees, tool.HitRayCount))
+		var hitResult = CombatUtils.PerformMeleeHit(this, tool, swingDir, space, _toolQuery);
+
+		switch (hitResult.Outcome)
 		{
-			_toolQuery.From = new Vector3(GlobalPosition.X, GlobalPosition.Y + 0.1f, GlobalPosition.Z);
-			_toolQuery.To = GlobalPosition + dir * tool.HitRange;
-
-			var result = space.IntersectRay(_toolQuery);
-			if (result.Count == 0)
-				continue;
-
-			if (!result.TryGetValue("collider", out var col))
-				continue;
-
-			var colliderNode = col.As<Node>();
-
-			var hittable = FindToolHittable(colliderNode);
-			if (hittable == null)
-				continue;
-
-			if (!result.TryGetValue("position", out var pos))
-				continue;
-
-			var hitPoint = pos.AsVector3();
-
-			var hitRoot = hittable.GetHitRoot();
-			var hitDir = (hitRoot.GlobalPosition - hitPoint).Normalized();
-
-			var hitResult = tool.UseOn(hittable, hitDir, hitPoint);
-
-			switch (hitResult.Outcome)
-			{
-				case ToolHitOutcome.Failed:
-					OnHitFailed();
-					break;
-				case ToolHitOutcome.Destroyed:
-					OnObjectBroken();
-					break;
-			}
-
-			return;
+			case ToolHitOutcome.Failed:
+				OnHitFailed();
+				break;
+			case ToolHitOutcome.Destroyed:
+				OnObjectBroken();
+				break;
 		}
 	}
 
@@ -314,7 +285,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (_hitCooldownAccum > 0)
 			_hitCooldownAccum -= dt;
 
-
 		var inputDir = new Vector2(
 			Input.GetActionStrength("move_right") - Input.GetActionStrength("move_left"),
 			Input.GetActionStrength("move_down") - Input.GetActionStrength("move_up")
@@ -349,7 +319,10 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		_knockbackVelocity = _knockbackVelocity.MoveToward(Vector3.Zero, _knockbackDecay * dt);
 		_knockbackVelocity.Y = 0f;
+
 		Velocity = new Vector3(moveVelocity.X + _knockbackVelocity.X, 0, moveVelocity.Z + _knockbackVelocity.Z);
+
+		if (_knockbackVelocity > Vector3.Zero) GD.Print("moving");
 
 		MoveAndSlide();
 
@@ -364,7 +337,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 
 		if (useToolHeld && !hudOpen)
-
 			if (_equippedItem is PlaceableItem)
 			{
 				if (_placement.TryPlace()) UpdateEquippedItem();
@@ -446,18 +418,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		return dir.Normalized();
 	}
 
-	private IEnumerable<Vector3> GetHitArcDirections(Vector3 centerDir, float arcDegrees, int rayCount)
-	{
-		var halfArc = arcDegrees * 0.5f;
-		var step = rayCount > 1 ? arcDegrees / (rayCount - 1) : 0f;
-
-		for (var i = 0; i < rayCount; i++)
-		{
-			var angle = -halfArc + step * i;
-			yield return centerDir.Rotated(Vector3.Up, Mathf.DegToRad(angle)).Normalized();
-		}
-	}
-
 	private void UpdatePlacementState(Item item)
 	{
 		if (item is PlaceableItem placeable)
@@ -493,15 +453,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		FocusedInteractable?.OnFocusLost();
 		FocusedInteractable = newFocus;
 		FocusedInteractable?.OnFocusGained();
-	}
-
-	private static IToolHittable FindToolHittable(Node node)
-	{
-		for (var n = node; n != null; n = n.GetParent())
-			if (n is IToolHittable h)
-				return h;
-
-		return null;
 	}
 
 	public Node3D GetHitRoot()

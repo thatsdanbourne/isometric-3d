@@ -18,7 +18,7 @@ public partial class World : Node3D
 
 	public double WorldTimeSeconds;
 
-	public int ChunkSize = TileManager.ChunkSize;
+	public int ChunkSize = TileUtils.ChunkSize;
 	public int ChunkRadius = 4;
 
 	public FastNoiseLite TempNoise;
@@ -202,8 +202,8 @@ public partial class World : Node3D
 
 	public bool PlaceItem(Vector2I tile, PlaceableItem item)
 	{
-		var worldPos = TileManager.TileToWorld(tile);
-		var chunkCoord = TileManager.WorldToChunk(worldPos);
+		var worldPos = TileUtils.TileToWorld(tile);
+		var chunkCoord = TileUtils.WorldToChunk(worldPos);
 
 		if (!ActiveChunks.ContainsKey(chunkCoord))
 		{
@@ -241,8 +241,8 @@ public partial class World : Node3D
 
 	public BiomeId GetBiomeAtPos(Vector3 worldPos)
 	{
-		var tile = TileManager.WorldToTile(worldPos);
-		var chunkCoord = TileManager.WorldToChunk(worldPos);
+		var tile = TileUtils.WorldToTile(worldPos);
+		var chunkCoord = TileUtils.WorldToChunk(worldPos);
 
 		if (!ActiveChunks.TryGetValue(chunkCoord, out var chunk))
 			return BiomeId.Unknown;

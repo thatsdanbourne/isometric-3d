@@ -31,7 +31,7 @@ public partial class Debug : CanvasLayer
 
 		fpsLabel.Text = $"{Engine.GetFramesPerSecond()}fps";
 
-		var p = TileManager.WorldToTile(player.Position);
+		var p = TileUtils.WorldToTile(player.Position);
 		positionLabel.Text = $"x: {p.X}, y: {p.Y}";
 
 		var biomeId = player.CurrentBiome;

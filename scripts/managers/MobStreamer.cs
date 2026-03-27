@@ -61,7 +61,7 @@ public partial class MobStreamer : Node
 		var set = new HashSet<Vector2I>();
 		var rChunks = Mathf.CeilToInt((float)ActiveRadiusTiles / _world.ChunkSize);
 
-		var center = TileManager.WorldToChunk(player.GlobalPosition);
+		var center = TileUtils.WorldToChunk(player.GlobalPosition);
 
 		for (var dx = -rChunks; dx <= rChunks; dx++)
 		for (var dy = -rChunks; dy <= rChunks; dy++)
@@ -137,8 +137,8 @@ public partial class MobStreamer : Node
 				var instance = scene.Instantiate<Mob>();
 				instance.Initialise(uid, rule.MobId, chunk.Coord);
 				instance.World = _world;
+				instance.Position = TileUtils.TileToWorld(picked[i]);
 				_world.WorldMobs.AddChild(instance);
-				instance.GlobalPosition = TileManager.TileToWorld(picked[i]);
 
 				_activeMobs[uid] = instance;
 			}
@@ -155,8 +155,8 @@ public partial class MobStreamer : Node
 			var instance = scene.Instantiate<Mob>();
 			instance.LoadFromSaveData(mob, chunkCoord);
 			instance.World = _world;
+			instance.Position = mob.Position;
 			_world.WorldMobs.AddChild(instance);
-			instance.GlobalPosition = mob.Position;
 			_activeMobs[mob.Uid] = instance;
 		}
 	}
@@ -173,8 +173,8 @@ public partial class MobStreamer : Node
 				continue;
 			}
 
-			var mobTile = TileManager.WorldToTile(mob.GlobalPosition);
-			var playerTile = TileManager.WorldToTile(_world.Player.GlobalPosition);
+			var mobTile = TileUtils.WorldToTile(mob.GlobalPosition);
+			var playerTile = TileUtils.WorldToTile(_world.Player.GlobalPosition);
 
 			var dx = Math.Abs(playerTile.X - mobTile.X);
 			var dy = Math.Abs(playerTile.Y - mobTile.Y);
@@ -211,7 +211,7 @@ public partial class MobStreamer : Node
 
 	private void SaveMobToDelta(Mob mob)
 	{
-		var chunkCoord = TileManager.WorldToChunk(mob.GlobalPosition);
+		var chunkCoord = TileUtils.WorldToChunk(mob.GlobalPosition);
 
 		if (mob.SavedChunk.HasValue && _world.TryGetChunkDelta(mob.SavedChunk.Value, out var oldDelta) &&
 		    oldDelta != null)
