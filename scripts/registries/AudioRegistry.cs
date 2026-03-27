@@ -63,6 +63,17 @@ public class AudioRegistry
 			GD.Load<AudioStream>("res://assets/audio/tools/sword/sword_3.wav"),
 			GD.Load<AudioStream>("res://assets/audio/tools/sword/sword_4.wav")
 		];
+
+		// Footsteps
+		SfxVariants["footstep_grass"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_1.wav"),
+			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_2.wav"),
+			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_3.wav"),
+			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_4.wav"),
+			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_5.wav")
+			// GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_6.wav")
+		];
 	}
 
 	private void LoadAmbiance()

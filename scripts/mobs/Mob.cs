@@ -37,6 +37,10 @@ public partial class Mob : CharacterBody3D, IToolHittable
 		MoveAndSlide();
 	}
 
+	public virtual void TickAI(double delta)
+	{
+	}
+
 	public Node3D GetHitRoot()
 	{
 		return this;
@@ -44,7 +48,7 @@ public partial class Mob : CharacterBody3D, IToolHittable
 
 	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint)
 	{
-		ApplyKnockback(fromDirection, 10f);
+		ApplyKnockback(fromDirection, 6f);
 		_health -= damage;
 		if (_health <= 0)
 		{
@@ -85,7 +89,40 @@ public partial class Mob : CharacterBody3D, IToolHittable
 		SavedChunk = savedChunk;
 	}
 
-	public virtual void TickAI(double delta)
+	protected bool TryMoveDirection(Vector3 desiredDir, float speed, out Vector3 moveVelocity, out Vector3 chosenDir)
 	{
+		moveVelocity = Vector3.Zero;
+		chosenDir = Vector3.Zero;
+
+		desiredDir.Y = 0f;
+		if (desiredDir.LengthSquared() < 0.001f)
+			return false;
+
+		desiredDir = desiredDir.Normalized();
+
+		// Try straight first, then fan left/right
+		float[] angles = { 0f, -45f, 45f, -60f, 60f, 180f };
+
+		foreach (var angle in angles)
+		{
+			var dir = desiredDir.Rotated(Vector3.Up, Mathf.DegToRad(angle)).Normalized();
+			if (!IsDirectionBlocked(dir))
+			{
+				chosenDir = dir;
+				moveVelocity = dir * speed;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	protected bool IsDirectionBlocked(Vector3 dir)
+	{
+		var probeDistance = 1.5f;
+		var probePos = GlobalPosition + dir.Normalized() * probeDistance;
+		var tile = TileUtils.WorldToTile(probePos);
+
+		return World.IsTileBlocked(tile);
 	}
 }

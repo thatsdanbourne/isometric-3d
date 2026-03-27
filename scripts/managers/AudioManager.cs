@@ -5,7 +5,7 @@ public partial class AudioManager : Node
 	public static AudioManager Instance;
 	private AudioRegistry _audioRegistry;
 
-	private const string BusWorld = "World";
+	public const string BusWorld = "World";
 	public const string BusTools = "Tools";
 	public const string BusUI = "UI";
 	public const string BusFootsteps = "Footsteps";
@@ -15,12 +15,14 @@ public partial class AudioManager : Node
 
 	private AudioStreamPlayer _musicPlayer;
 	private float _nextMusicTime;
-	private readonly float _musicMinDelay = 60f;
-	private readonly float _musicMaxDelay = 180f;
+	private readonly float _musicMinDelay = 1f;
+	private readonly float _musicMaxDelay = 3f;
 
 	private AudioStreamPlayer _ambientA;
 	private AudioStreamPlayer _ambientB;
 	private AudioStreamPlayer _weatherPlayer;
+	private AudioStreamPlayer _footstepsPlayer;
+
 	private float _fadeSpeed = 5f;
 	private string _currentAmbient = "";
 	private string _currentWeather = "";
@@ -64,6 +66,7 @@ public partial class AudioManager : Node
 		_ambientA = CreateAmbientPlayer(BusAmbience);
 		_ambientB = CreateAmbientPlayer(BusAmbience);
 		_weatherPlayer = CreateAmbientPlayer(BusWeather);
+		_footstepsPlayer = CreateAmbientPlayer(BusFootsteps);
 
 		AddChild(_ambientA);
 		AddChild(_ambientB);
@@ -90,10 +93,10 @@ public partial class AudioManager : Node
 			var p = new AudioStreamPlayer3D
 			{
 				Bus = BusWorld,
-				AttenuationFilterDb = 6,
-				AttenuationModel = AudioStreamPlayer3D.AttenuationModelEnum.Logarithmic,
+				AttenuationFilterDb = 2,
+				AttenuationModel = AudioStreamPlayer3D.AttenuationModelEnum.InverseDistance,
 				MaxDistance = 40,
-				UnitSize = 1,
+				UnitSize = 4,
 				Autoplay = false
 			};
 
@@ -295,7 +298,7 @@ public partial class AudioManager : Node
 		p.Play();
 	}
 
-	public void PlayVariantAt(string key, Vector3 position, float pitchRange = 0.0f)
+	public void PlayVariantAt(string key, Vector3 position, string bus, float pitchRange = 0.0f)
 	{
 		if (!_audioRegistry.SfxVariants.TryGetValue(key, out var list) || list.Length == 0)
 			return;
@@ -308,6 +311,7 @@ public partial class AudioManager : Node
 		_poolIndex = (_poolIndex + 1) % _pool.Length;
 
 		p.Stream = stream;
+		p.Bus = bus;
 		p.PitchScale = 1.0f + _rng.RandfRange(-pitchRange, pitchRange);
 		p.GlobalPosition = position;
 		p.Play();

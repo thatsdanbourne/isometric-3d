@@ -59,7 +59,7 @@ public partial class WorldObject : Node3D, IToolHittable
 		if (destroyed)
 			BreakObject();
 
-		AudioManager.Instance.PlayVariantAt(HitSoundsKey, GlobalPosition, 0.1f);
+		AudioManager.Instance.PlayVariantAt(HitSoundsKey, GlobalPosition, AudioManager.BusWorld, 0.1f);
 
 		return destroyed ? ToolHitOutcome.Destroyed : ToolHitOutcome.Hit;
 	}

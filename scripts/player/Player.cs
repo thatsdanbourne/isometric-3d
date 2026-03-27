@@ -18,6 +18,8 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public float Speed = 5.0f;
 	public float AimLockTime = 0.5f;
 	private float _aimLockTimer;
+	private float _footstepTimer;
+	private float _footstepInterval = 0.4f;
 	private float _knockbackResistance = 1f;
 	private float _knockbackDecay = 14f;
 	private Vector3 _knockbackVelocity;
@@ -194,7 +196,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		}
 
 
-		AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, 0.1f);
+		AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, AudioManager.BusTools, 0.1f);
 
 		var space = GetWorld3D().DirectSpaceState;
 		var swingDir = _aimLockTimer > AimLockTime
@@ -294,6 +296,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		if (inputDir != Vector2.Zero)
 		{
+			_footstepTimer -= dt;
 			_aimLockTimer += dt;
 
 			var moveVec = new Vector3(inputDir.X, 0, inputDir.Y)
@@ -308,6 +311,12 @@ public partial class Player : CharacterBody3D, IToolHittable
 				Mathf.LerpAngle(Rotation.Y, targetAngle, 10f * dt),
 				Rotation.Z
 			);
+
+			if (_footstepTimer <= 0f)
+			{
+				AudioManager.Instance.PlayVariantAt("footstep_grass", GlobalPosition, AudioManager.BusFootsteps, 0.2f);
+				_footstepTimer = _footstepInterval;
+			}
 
 			SetAnimState("run");
 		}
@@ -462,7 +471,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint)
 	{
-		ApplyKnockback(fromDirection, 5f);
+		ApplyKnockback(fromDirection, 3f);
 		Health -= damage;
 		if (Health <= 0)
 		{

@@ -29,7 +29,7 @@ public static class ToolItems
 			HitArcDegrees = 85f,
 			HitRayCount = 5,
 			HitRange = 1.35f,
-			CooldownSeconds = 0.45f,
+			CooldownSeconds = 0.55f,
 			DamageMultipliers = new Dictionary<string, float>
 			{
 				{ "stone", 1.5f },

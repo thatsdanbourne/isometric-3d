@@ -252,4 +252,9 @@ public partial class World : Node3D
 
 		return chunk.Tiles[localX, localY].Biome;
 	}
+
+	public bool IsTileBlocked(Vector2I tile)
+	{
+		return _blockedTiles.ContainsKey(tile);
+	}
 }

@@ -15,7 +15,7 @@ public partial class Bandit : Mob
 	public float AttackStartRange;
 	public float AggroRange = 15f;
 	public float MoveSpeed = 4f;
-	public float AttackWindup = 0.25f;
+	public float AttackWindup = 0.15f;
 	public float AttackRecovery = 0.35f;
 
 	private float _cooldownMultiplier = 1.5f;
@@ -129,15 +129,21 @@ public partial class Bandit : Mob
 		dir.Y = 0;
 
 		if (dir.LengthSquared() < 0.001f) return;
-		var targetAngle = Mathf.Atan2(dir.X, dir.Z);
 
-		Rotation = new Vector3(
-			Rotation.X,
-			Mathf.LerpAngle(Rotation.Y, targetAngle, 10f * (float)GetPhysicsProcessDeltaTime()),
-			Rotation.Z
-		);
+		if (TryMoveDirection(dir, MoveSpeed, out MoveVelocity, out var chosenDir))
+		{
+			var targetAngle = Mathf.Atan2(chosenDir.X, chosenDir.Z);
 
-		MoveVelocity = dir.Normalized() * MoveSpeed;
+			Rotation = new Vector3(
+				Rotation.X,
+				Mathf.LerpAngle(Rotation.Y, targetAngle, 10f * (float)GetPhysicsProcessDeltaTime()),
+				Rotation.Z
+			);
+		}
+		else
+		{
+			MoveVelocity = Vector3.Zero;
+		}
 	}
 
 	private void UpdateAnimation()
@@ -177,6 +183,8 @@ public partial class Bandit : Mob
 		swingDir = swingDir.Rotated(Vector3.Up, angleOffset).Normalized();
 
 		var space = GetWorld3D().DirectSpaceState;
+
+		AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, AudioManager.BusTools, 0.1f);
 		CombatUtils.PerformMeleeHit(this, _equippedTool, swingDir, space, _toolQuery, _player);
 	}
 
