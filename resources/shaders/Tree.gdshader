@@ -1,6 +1,5 @@
 shader_type spatial;
-render_mode specular_disabled, cull_back;
-
+render_mode specular_disabled;
 
 global uniform float wind_scale;
 global uniform float wind_speed;
@@ -17,7 +16,7 @@ uniform float light_steps = 5.0;
 varying vec4 view_pos;
 varying vec4 world_pos;
 
-void vertex() {
+void vertex() {	
 	world_pos = MODEL_MATRIX * vec4(VERTEX, 1.0);
 	view_pos = MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
 	float speed = TIME * wind_speed;

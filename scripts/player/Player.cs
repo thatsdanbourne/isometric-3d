@@ -314,7 +314,22 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 			if (_footstepTimer <= 0f)
 			{
-				AudioManager.Instance.PlayVariantAt("footstep_grass", GlobalPosition, AudioManager.BusFootsteps, 0.2f);
+				var tile = _world.GetTileAtPos(GlobalPosition);
+
+				if (tile != null)
+				{
+					var key = tile.Value.Definition.Id switch
+					{
+						TileId.Grass => "footstep_grass",
+						TileId.Sand => "footstep_sand",
+						TileId.Snow => "footstep_snow",
+						_ => "footstep_grass"
+					};
+
+					AudioManager.Instance.PlayVariantAt(key, GlobalPosition, AudioManager.BusFootsteps,
+						0.2f);
+				}
+
 				_footstepTimer = _footstepInterval;
 			}
 
@@ -471,6 +486,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint)
 	{
+		AudioManager.Instance.PlayVariantAt("hit_mob", GlobalPosition, AudioManager.BusTools, 0.2f);
 		ApplyKnockback(fromDirection, 3f);
 		Health -= damage;
 		if (Health <= 0)

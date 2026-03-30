@@ -52,10 +52,12 @@ public partial class World : Node3D
 		_rng = new RandomNumberGenerator();
 		_rng.Randomize();
 
-		WorldOffset = new Vector2I(
-			(int)_rng.Randi() % 100000,
-			(int)_rng.Randi() % 100000
-		);
+		// WorldOffset = new Vector2I(
+		// 	(int)_rng.Randi() % 100000,
+		// 	(int)_rng.Randi() % 100000
+		// );
+		
+		WorldOffset = new Vector2I(0, 0);
 
 		SetupNoise();
 
@@ -251,6 +253,19 @@ public partial class World : Node3D
 		var localY = tile.Y - chunkCoord.Y * ChunkSize;
 
 		return chunk.Tiles[localX, localY].Biome;
+	}
+
+	public TileInstance? GetTileAtPos(Vector3 worldPos)
+	{
+		var tile = TileUtils.WorldToTile(worldPos);
+		var chunkCoord = TileUtils.WorldToChunk(worldPos);
+
+		if (!ActiveChunks.TryGetValue(chunkCoord, out var chunk)) return null;
+
+		var localX = tile.X - chunkCoord.X * ChunkSize;
+		var localY = tile.Y - chunkCoord.Y * ChunkSize;
+
+		return chunk.Tiles[localX, localY];
 	}
 
 	public bool IsTileBlocked(Vector2I tile)

@@ -48,6 +48,7 @@ public partial class Mob : CharacterBody3D, IToolHittable
 
 	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint)
 	{
+		AudioManager.Instance.PlayVariantAt("hit_mob", GlobalPosition, AudioManager.BusTools, 0.2f);
 		ApplyKnockback(fromDirection, 6f);
 		_health -= damage;
 		if (_health <= 0)

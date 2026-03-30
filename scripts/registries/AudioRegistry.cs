@@ -42,6 +42,13 @@ public class AudioRegistry
 			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_7.wav")
 		];
 
+		SfxVariants["hit_mob"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/hit/mob/mob_hit_1.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/mob/mob_hit_2.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/mob/mob_hit_3.wav")
+		];
+
 		Sfx["hit_fail"] = GD.Load<AudioStream>("res://assets/audio/hit/hit_fail.wav");
 
 		// Swing sounds
@@ -71,8 +78,28 @@ public class AudioRegistry
 			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_2.wav"),
 			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_3.wav"),
 			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_4.wav"),
-			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_5.wav")
-			// GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_6.wav")
+			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_5.wav"),
+			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_6.wav")
+		];
+
+		SfxVariants["footstep_snow"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/footsteps/snow/snow_walk_1.wav"),
+			GD.Load<AudioStream>("res://assets/audio/footsteps/snow/snow_walk_2.wav"),
+			GD.Load<AudioStream>("res://assets/audio/footsteps/snow/snow_walk_3.wav"),
+			GD.Load<AudioStream>("res://assets/audio/footsteps/snow/snow_walk_4.wav"),
+			GD.Load<AudioStream>("res://assets/audio/footsteps/snow/snow_walk_5.wav"),
+			GD.Load<AudioStream>("res://assets/audio/footsteps/snow/snow_walk_6.wav")
+		];
+
+		SfxVariants["footstep_sand"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/footsteps/sand/sand_walk_1.wav"),
+			GD.Load<AudioStream>("res://assets/audio/footsteps/sand/sand_walk_2.wav"),
+			GD.Load<AudioStream>("res://assets/audio/footsteps/sand/sand_walk_3.wav"),
+			GD.Load<AudioStream>("res://assets/audio/footsteps/sand/sand_walk_4.wav"),
+			GD.Load<AudioStream>("res://assets/audio/footsteps/sand/sand_walk_5.wav"),
+			GD.Load<AudioStream>("res://assets/audio/footsteps/sand/sand_walk_6.wav")
 		];
 	}
 

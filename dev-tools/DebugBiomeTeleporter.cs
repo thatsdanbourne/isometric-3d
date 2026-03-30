@@ -20,7 +20,7 @@ public partial class DebugBiomeTeleporter : Node
 		// 	TeleportToBiome(BiomeId.Taiga);
 
 		if (@event.IsActionPressed("debug_tp_desert"))
-			TeleportToBiome(BiomeId.Riverbank);
+			TeleportToBiome(BiomeId.Taiga);
 
 		// if (@event.IsActionPressed("debug_tp_tundra"))
 		// 	TeleportToBiome(BiomeId.Tundra);
