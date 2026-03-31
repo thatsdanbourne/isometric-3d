@@ -39,27 +39,13 @@ public partial class HUD : CanvasLayer
 	public bool WindowOpen => _inventoryRoot.Visible || _craftingUI.Visible || _storageWindow.Visible;
 	public bool IsCraftingOpen => _craftingUI.Visible;
 	public bool IsInventoryOpen => _inventoryRoot.Visible;
+	private bool _uiReady;
 
 	public override void _Ready()
 	{
 		_cursorItem = GetNode<Control>("CursorItem");
 		_cursorIcon = _cursorItem.GetNode<TextureRect>("Container/Icon");
 		_cursorCount = _cursorItem.GetNode<Label>("Container/Label");
-
-		GameManager.Instance.LocalPlayerChanged += (p) =>
-		{
-			_player = p;
-			_player.PlayerReady += OnPlayerReady;
-		};
-
-		GetWindow().ContentScaleFactor = 1.25f;
-	}
-
-	private void OnPlayerReady()
-	{
-		_inventory = _player.GetNode<Inventory>("Inventory");
-		_hotbar = _player.GetNode<Hotbar>("Hotbar");
-
 		_inventoryRoot = GetNode<Control>("Inventory");
 		_inventoryWindow = _inventoryRoot.GetNode<PanelContainer>("HBoxContainer/InventoryWindow");
 		_inventorySlotGrid = _inventoryWindow.GetNode<GridContainer>("MarginContainer/SlotGrid");
@@ -75,9 +61,30 @@ public partial class HUD : CanvasLayer
 		_tooltipManager = GetNode<Tooltip>("TooltipManager");
 		_tooltip = _tooltipManager.GetNode<PanelContainer>("Tooltip");
 
-		BuildInventorySlots();
-		BuildHotbarSlots();
-		UpdateHotbarHighlight();
+		GameManager.Instance.LocalPlayerChanged += OnLocalPlayerChanged;
+		if (GameManager.Instance.LocalPlayer != null)
+			OnLocalPlayerChanged(GameManager.Instance.LocalPlayer);
+
+		GetWindow().ContentScaleFactor = 1.25f;
+	}
+
+	private void OnLocalPlayerChanged(Player p)
+	{
+		if (_player != null)
+			_player.PlayerReady -= OnPlayerReady;
+
+		_player = p;
+		_uiReady = false;
+
+		if (_player == null) return;
+
+		_player.PlayerReady += OnPlayerReady;
+	}
+
+	private void OnPlayerReady()
+	{
+		_inventory = _player.GetNode<Inventory>("Inventory");
+		_hotbar = _player.GetNode<Hotbar>("Hotbar");
 
 		_inventory.ContainerChanged += RefreshUI;
 		_hotbar.ContainerChanged += RefreshUI;
@@ -87,12 +94,18 @@ public partial class HUD : CanvasLayer
 		_craftingUI.Visible = false;
 		_storageWindow.Visible = false;
 
+		BuildInventorySlots();
+		BuildHotbarSlots();
+		UpdateHotbarHighlight();
 		RefreshUI();
+
+		_uiReady = true;
 	}
 
 	public override void _Process(double delta)
 	{
-		if (_player == null) return;
+		if (!_uiReady) return;
+
 		if (_draggedStack != null)
 		{
 			var mousePos = GetViewport().GetMousePosition();
@@ -373,7 +386,6 @@ public partial class HUD : CanvasLayer
 	{
 		if (!_inventoryRoot.Visible)
 			return false;
-
 
 		var mousePos = GetViewport().GetMousePosition();
 		return !_inventoryWindow.GetGlobalRect().HasPoint(mousePos);

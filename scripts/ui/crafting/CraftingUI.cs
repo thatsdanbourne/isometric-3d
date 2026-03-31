@@ -4,6 +4,8 @@ using System.Collections.Generic;
 public partial class CraftingUI : Control
 {
 	private Player _player;
+	private bool _playerReady;
+
 	private ICraftingStation _currentStation;
 
 	private Label _titleLabel;
@@ -21,17 +23,7 @@ public partial class CraftingUI : Control
 
 	public override void _Ready()
 	{
-		GameManager.Instance.LocalPlayerChanged += p =>
-		{
-			_player = p;
-
-			_player.PlayerReady += () =>
-			{
-				_player.Inventory.ContainerChanged += RefreshCraftingUI;
-				_player.Hotbar.ContainerChanged += RefreshCraftingUI;
-				RefreshCraftingUI();
-			};
-		};
+		GameManager.Instance.LocalPlayerChanged += OnLocalPlayerChanged;
 
 		_titleLabel = GetNode<Label>("CraftingWindow/VBoxContainer/TitleLabel");
 		_recipeList =
@@ -48,7 +40,41 @@ public partial class CraftingUI : Control
 		_collectOutputButton.Pressed += OnCollectPressed;
 		_stationStatusRoot.Visible = false;
 
-		CallDeferred("BuildRecipeList");
+		CallDeferred(nameof(BuildRecipeList));
+	}
+
+	private void OnLocalPlayerChanged(Player player)
+	{
+		if (_player != null)
+		{
+			_player.PlayerReady -= OnPlayerReady;
+
+			if (_player.Inventory != null)
+				_player.Inventory.ContainerChanged -= RefreshCraftingUI;
+
+			if (_player.Hotbar != null)
+				_player.Hotbar.ContainerChanged -= RefreshCraftingUI;
+		}
+
+		_player = player;
+		_playerReady = false;
+
+		if (_player == null) return;
+
+		_player.PlayerReady += OnPlayerReady;
+	}
+
+	private void OnPlayerReady()
+	{
+		if (_player == null) return;
+
+		_player.PlayerReady -= OnPlayerReady;
+
+		_player.Inventory.ContainerChanged += RefreshCraftingUI;
+		_player.Hotbar.ContainerChanged += RefreshCraftingUI;
+
+		_playerReady = true;
+		RefreshCraftingUI();
 	}
 
 	public override void _Process(double delta)
@@ -130,7 +156,7 @@ public partial class CraftingUI : Control
 
 	private void RefreshCraftingUI()
 	{
-		if (_player == null) return;
+		if (!_playerReady) return;
 
 		foreach (var entry in _recipeEntries)
 		{
