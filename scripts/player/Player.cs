@@ -72,7 +72,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public override void _Ready()
 	{
-		GameManager.Instance.SetLocalPlayer(this);
+		GameManager.Instance.AttachLocalPlayer(this);
 
 		_world = GetNode<World>("/root/Game/World");
 		_animTree = GetNode<AnimationTree>("AnimationTree");
@@ -345,8 +345,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_knockbackVelocity.Y = 0f;
 
 		Velocity = new Vector3(moveVelocity.X + _knockbackVelocity.X, 0, moveVelocity.Z + _knockbackVelocity.Z);
-
-		if (_knockbackVelocity > Vector3.Zero) GD.Print("moving");
 
 		MoveAndSlide();
 

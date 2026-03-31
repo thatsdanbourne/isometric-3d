@@ -92,6 +92,7 @@ public partial class HUD : CanvasLayer
 
 	public override void _Process(double delta)
 	{
+		if (_player == null) return;
 		if (_draggedStack != null)
 		{
 			var mousePos = GetViewport().GetMousePosition();

@@ -12,9 +12,12 @@ public partial class World : Node3D
 	[Export] public GridMap GroundMap;
 	[Export] public GridMap WaterMap;
 	[Export] public Node3D PlayerContainer;
+	[Export] public DayNightCycle DayNightCycle;
+	[Export] public WeatherManager WeatherManager;
 	[Export] public Node3D ItemPickupContainer;
 
-	public Player Player;
+	private readonly List<Player> _players = new();
+	public IReadOnlyList<Player> Players => _players;
 
 	public double WorldTimeSeconds;
 
@@ -31,8 +34,6 @@ public partial class World : Node3D
 	public readonly Dictionary<Vector2I, Chunk> ActiveChunks = new();
 	public Dictionary<Vector2I, ChunkDeltaData> ChunkDeltas = new();
 	private readonly Dictionary<Vector2I, int> _blockedTiles = new();
-
-	public Vector2I LastPlayerChunk = new(-999, -999);
 
 	public int TerrainSeed;
 	public Vector2I WorldOffset; // prevents sampling noise at (0,0)
@@ -56,7 +57,7 @@ public partial class World : Node3D
 		// 	(int)_rng.Randi() % 100000,
 		// 	(int)_rng.Randi() % 100000
 		// );
-		
+
 		WorldOffset = new Vector2I(0, 0);
 
 		SetupNoise();
@@ -68,30 +69,17 @@ public partial class World : Node3D
 		WorldObjectPool = GetNode<Node3D>("WorldObjectPool");
 		MobStreamer = GetNode<MobStreamer>("MobStreamer");
 
-		ChunkGenerator = new ChunkGenerator(this, ChunkManager, TerrainSeed);
-		ChunkGenerator.Start();
-
-		GameManager.Instance.RegisterWorld(this);
-		EmitSignal(SignalName.WorldReady);
-
 		BiomeSampler = new BiomeSampler(TempNoise, HumidityNoise, RiverNoise, LakeNoise, DrainageNoise, BankNoise,
 			WorldOffset);
 
-		GameManager.Instance.LocalPlayerChanged += (p) =>
-		{
-			Player = p;
-			p.PlayerReady += () =>
-			{
-				ChunkManager.ForceInitialChunks(p.GlobalPosition);
-				ChunkGenerator.InitialChunksReady += p.CheckBiome;
-			};
-		};
+		ChunkGenerator = new ChunkGenerator(this, ChunkManager, TerrainSeed);
+		ChunkGenerator.Start();
 
-		GameManager.Instance.SpawnLocalPlayer();
+		GameManager.Instance.StartLocalSession(this, Vector3.Zero);
+		EmitSignal(SignalName.WorldReady);
 
 		var debugTeleporter = GetNode<DebugBiomeTeleporter>("DebugBiomeTeleporter");
 		debugTeleporter.World = this;
-		debugTeleporter.Player = Player;
 	}
 
 	public override void _ExitTree()
@@ -99,14 +87,30 @@ public partial class World : Node3D
 		ChunkGenerator?.Stop();
 	}
 
+	public void AddPlayer(Player player, Vector3 spawnPosition)
+	{
+		if (player == null) return;
+
+		if (_players.Contains(player)) return;
+
+		PlayerContainer.AddChild(player);
+		player.GlobalPosition = spawnPosition;
+		_players.Add(player);
+	}
+
 	public override void _PhysicsProcess(double delta)
 	{
-		if (Player == null || !IsInstanceValid(Player) || !Player.IsInsideTree())
-			return;
+		var positions = new List<Vector3>();
+		foreach (var player in _players)
+		{
+			if (player == null || !IsInstanceValid(player) || !player.IsInsideTree())
+				continue;
 
-		ChunkManager.UpdateChunks(Player.GlobalPosition);
+			positions.Add(player.GlobalPosition);
+		}
+
+		ChunkManager.UpdateChunks(positions);
 		ChunkGenerator.Update();
-
 		WorldTimeSeconds += delta;
 	}
 
@@ -271,5 +275,26 @@ public partial class World : Node3D
 	public bool IsTileBlocked(Vector2I tile)
 	{
 		return _blockedTiles.ContainsKey(tile);
+	}
+
+	public Player GetNearestPlayer(Vector3 worldPos, float maxDistance)
+	{
+		Player best = null;
+		var bestDistSq = maxDistance * maxDistance;
+
+		foreach (var player in _players)
+		{
+			if (player == null || !IsInstanceValid(player) || !player.IsInsideTree())
+				continue;
+
+			var distSq = worldPos.DistanceSquaredTo(player.GlobalPosition);
+			if (distSq > bestDistSq)
+				continue;
+
+			best = player;
+			bestDistSq = distSq;
+		}
+
+		return best;
 	}
 }

@@ -5,8 +5,8 @@ public partial class DebugBiomeTeleporter : Node
 	[Export] public int SearchRadius = 250;
 	[Export] public bool UseFinalBiome = true;
 
-	public Player Player;
-	public World World;
+	public World World { get; set; }
+	private Player LocalPlayer => GameManager.Instance.LocalPlayer;
 
 	public override void _UnhandledInput(InputEvent @event)
 	{
@@ -31,7 +31,7 @@ public partial class DebugBiomeTeleporter : Node
 
 	private void TeleportToBiome(BiomeId biomeId)
 	{
-		var playerChunk = TileUtils.WorldToChunk(Player.GlobalPosition);
+		var playerChunk = TileUtils.WorldToChunk(LocalPlayer.GlobalPosition);
 
 		var result = UseFinalBiome
 			? World.BiomeSampler.FindNearestChunkWithFinalBiome(biomeId, playerChunk, SearchRadius)
@@ -47,7 +47,7 @@ public partial class DebugBiomeTeleporter : Node
 		var targetTile = TileUtils.GetChunkCenterTile(targetChunk);
 		var targetWorld = TileUtils.TileToWorld(targetTile);
 
-		Player.GlobalPosition = targetWorld;
+		LocalPlayer.GlobalPosition = targetWorld;
 
 		GD.Print($"[DebugBiomeTeleporter] Teleported to '{biomeId}' at chunk {targetChunk}, tile {targetTile}.");
 	}

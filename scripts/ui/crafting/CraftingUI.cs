@@ -130,6 +130,8 @@ public partial class CraftingUI : Control
 
 	private void RefreshCraftingUI()
 	{
+		if (_player == null) return;
+
 		foreach (var entry in _recipeEntries)
 		{
 			var recipe = entry.Recipe;

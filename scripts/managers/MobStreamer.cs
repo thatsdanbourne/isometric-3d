@@ -19,11 +19,13 @@ public partial class MobStreamer : Node
 
 	public override void _Ready()
 	{
-		_world = GetNode<World>("/root/Game/World");
+		_world ??= GetParent<World>();
 	}
 
 	public override void _Process(double delta)
 	{
+		if (_world == null) return;
+
 		_accum += delta;
 		if (_accum < UpdateInterval) return;
 		_accum = 0;
@@ -36,7 +38,12 @@ public partial class MobStreamer : Node
 	private void UpdateInterestChunks()
 	{
 		_currentInterestChunks.Clear();
-		_currentInterestChunks.UnionWith(ComputeTargetChunks(_world.Player));
+
+		foreach (var player in _world.Players)
+		{
+			if (!IsValidPlayer(player)) continue;
+			_currentInterestChunks.UnionWith(ComputeTargetChunks(player.GlobalPosition));
+		}
 	}
 
 	private void ActivateInterestChunks()
@@ -56,12 +63,12 @@ public partial class MobStreamer : Node
 		_activeMobChunks.RemoveWhere(chunkCoord => !_currentInterestChunks.Contains(chunkCoord));
 	}
 
-	private HashSet<Vector2I> ComputeTargetChunks(Player player)
+	private HashSet<Vector2I> ComputeTargetChunks(Vector3 worldPosition)
 	{
 		var set = new HashSet<Vector2I>();
 		var rChunks = Mathf.CeilToInt((float)ActiveRadiusTiles / _world.ChunkSize);
 
-		var center = TileUtils.WorldToChunk(player.GlobalPosition);
+		var center = TileUtils.WorldToChunk(worldPosition);
 
 		for (var dx = -rChunks; dx <= rChunks; dx++)
 		for (var dy = -rChunks; dy <= rChunks; dy++)
@@ -163,6 +170,7 @@ public partial class MobStreamer : Node
 
 	private void CullFarMobs()
 	{
+		var playerTiles = GetValidPlayerTiles();
 		_uidsToCull.Clear();
 
 		foreach (var (uid, mob) in _activeMobs)
@@ -173,14 +181,15 @@ public partial class MobStreamer : Node
 				continue;
 			}
 
+			if (playerTiles.Count == 0)
+			{
+				_uidsToCull.Add(uid);
+				continue;
+			}
+
 			var mobTile = TileUtils.WorldToTile(mob.GlobalPosition);
-			var playerTile = TileUtils.WorldToTile(_world.Player.GlobalPosition);
 
-			var dx = Math.Abs(playerTile.X - mobTile.X);
-			var dy = Math.Abs(playerTile.Y - mobTile.Y);
-			var inRange = Math.Max(dx, dy) <= SaveRadiusTiles;
-
-			if (!inRange)
+			if (!IsInRangeOfAnyPlayer(mobTile, playerTiles))
 				_uidsToCull.Add(uid);
 		}
 
@@ -226,6 +235,40 @@ public partial class MobStreamer : Node
 		};
 
 		mob.SavedChunk = chunkCoord;
+	}
+
+	private List<Vector2I> GetValidPlayerTiles()
+	{
+		var result = new List<Vector2I>();
+
+		foreach (var player in _world.Players)
+		{
+			if (!IsValidPlayer(player))
+				continue;
+
+			result.Add(TileUtils.WorldToTile(player.GlobalPosition));
+		}
+
+		return result;
+	}
+
+	private bool IsInRangeOfAnyPlayer(Vector2I mobTile, List<Vector2I> playerTiles)
+	{
+		foreach (var playerTile in playerTiles)
+		{
+			var dx = Math.Abs(playerTile.X - mobTile.X);
+			var dy = Math.Abs(playerTile.Y - mobTile.Y);
+
+			if (Math.Max(dx, dy) <= SaveRadiusTiles)
+				return true;
+		}
+
+		return false;
+	}
+
+	private static bool IsValidPlayer(Player player)
+	{
+		return player != null && IsInstanceValid(player) && player.IsInsideTree();
 	}
 
 	private void PickUniqueTilesDeterministic(List<Vector2I> candidates, int count, Random rng, List<Vector2I> picked)

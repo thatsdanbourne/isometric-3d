@@ -11,72 +11,100 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 	public readonly HashSet<Vector2I> PendingInitialChunks = [];
 	public bool InitialChunksReady;
 
+	private readonly HashSet<Vector2I> _lastPlayerChunks = [];
 
-	public void ForceInitialChunks(Vector3 playerPos)
+
+	public void PreloadChunks(IReadOnlyList<Vector3> positions)
 	{
-		var playerChunk = TileUtils.WorldToChunk(playerPos);
-		world.LastPlayerChunk = playerChunk;
+		if (positions == null || positions.Count == 0)
+		{
+			PendingInitialChunks.Clear();
+			InitialChunksReady = true;
+			return;
+		}
+
+		var centers = GetUniquePlayerChunks(positions);
+		var desiredChunks = BuildDesiredChunkSet(centers);
 
 		PendingInitialChunks.Clear();
-		InitialChunksReady = false;
+		foreach (var coord in desiredChunks)
+			if (!world.ActiveChunks.ContainsKey(coord))
+				PendingInitialChunks.Add(coord);
 
-		for (var x = -ChunkRadius; x <= ChunkRadius; x++)
-		for (var y = -ChunkRadius; y <= ChunkRadius; y++)
-		{
-			Vector2I coord = new(playerChunk.X + x, playerChunk.Y + y);
-			PendingInitialChunks.Add(coord);
-		}
+		InitialChunksReady = PendingInitialChunks.Count == 0;
 
-		RequestChunksAround(playerChunk);
+		RequestMissingChunks(desiredChunks);
 	}
 
-	public void UpdateChunks(Vector3 playerPos)
+	public void PreloadChunks(Vector3 position)
 	{
-		var playerChunk = TileUtils.WorldToChunk(playerPos);
-
-		if (playerChunk == world.LastPlayerChunk)
-			return;
-
-		world.LastPlayerChunk = playerChunk;
-
-		RequestChunksAround(playerChunk);
-		UnloadChunksOutside(playerChunk);
+		PreloadChunks([position]);
 	}
 
-	// chunk loading
-
-	private void RequestChunksAround(Vector2I center)
+	public void UpdateChunks(IReadOnlyList<Vector3> playerPositions)
 	{
-		var r = ChunkRadius;
+		if (playerPositions == null || playerPositions.Count == 0) return;
 
-		for (var x = -r; x <= r; x++)
-		for (var y = -r; y <= r; y++)
-		{
-			Vector2I coord = new(center.X + x, center.Y + y);
+		var playerChunks = GetUniquePlayerChunks(playerPositions);
 
-			if (!world.ActiveChunks.ContainsKey(coord)) world.ChunkGenerator.RequestBuild(coord);
-		}
+		if (_lastPlayerChunks.SetEquals(playerChunks)) return;
+
+		_lastPlayerChunks.Clear();
+		_lastPlayerChunks.UnionWith(playerChunks);
+
+		var desiredChunks = BuildDesiredChunkSet(playerChunks);
+
+		RequestMissingChunks(desiredChunks);
+		UnloadChunksOutsideDesiredSet(desiredChunks);
 	}
 
-	// chunk unloading
-
-	private void UnloadChunksOutside(Vector2I center)
+	private HashSet<Vector2I> GetUniquePlayerChunks(IReadOnlyList<Vector3> playerPositions)
 	{
-		var r = ChunkRadius;
+		var result = new HashSet<Vector2I>();
+
+		foreach (var pos in playerPositions)
+			result.Add(TileUtils.WorldToChunk(pos));
+
+		return result;
+	}
+
+	private HashSet<Vector2I> BuildDesiredChunkSet(HashSet<Vector2I> playerChunks)
+	{
+		var desired = new HashSet<Vector2I>();
+
+		foreach (var chunk in playerChunks)
+			for (var x = -ChunkRadius; x <= ChunkRadius; x++)
+			for (var y = -ChunkRadius; y <= ChunkRadius; y++)
+				desired.Add(new Vector2I(chunk.X + x, chunk.Y + y));
+
+		return desired;
+	}
+
+	private void RequestMissingChunks(HashSet<Vector2I> desiredChunks)
+	{
+		foreach (var coord in desiredChunks)
+			if (!ActiveChunks.ContainsKey(coord))
+				world.ChunkGenerator.RequestBuild(coord);
+	}
+
+	private void UnloadChunksOutsideDesiredSet(HashSet<Vector2I> desiredChunks)
+	{
 		List<Vector2I> chunksToUnload = [];
 
 		foreach (var kv in ActiveChunks)
 		{
-			var c = kv.Key;
+			var coord = kv.Key;
 
-			if (Mathf.Abs(c.X - center.X) > r ||
-			    Mathf.Abs(c.Y - center.Y) > r)
-				chunksToUnload.Add(c);
+			if (!desiredChunks.Contains(coord))
+				chunksToUnload.Add(coord);
 		}
 
 		foreach (var coord in chunksToUnload)
 			RemoveChunk(coord);
 	}
+
+
+	// chunk unloading
 
 	private void RemoveChunk(Vector2I coord)
 	{

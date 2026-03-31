@@ -46,8 +46,14 @@ public partial class AudioManager : Node
 		InitPlayers();
 		InitPool();
 
-		GameManager.Instance.DayNightCycle.DayStateChanged += OnDayStateChanged;
-		GameManager.Instance.LocalPlayerChanged += OnLocalPlayerReady;
+		GameManager.Instance.CurrentWorldChanged += OnWorldChanged;
+		GameManager.Instance.LocalPlayerChanged += OnLocalPlayerChanged;
+
+		if (GameManager.Instance.CurrentWorld != null)
+			OnWorldChanged(GameManager.Instance.CurrentWorld);
+
+		if (GameManager.Instance.LocalPlayer != null)
+			OnLocalPlayerChanged(GameManager.Instance.LocalPlayer);
 
 		ScheduleNextMusic();
 	}
@@ -319,7 +325,12 @@ public partial class AudioManager : Node
 
 	// Event Handlers
 
-	private void OnLocalPlayerReady(Player p)
+	private void OnWorldChanged(World world)
+	{
+		world.DayNightCycle.DayStateChanged += OnDayStateChanged;
+	}
+
+	private void OnLocalPlayerChanged(Player p)
 	{
 		p.BiomeChanged += OnBiomeChanged;
 	}

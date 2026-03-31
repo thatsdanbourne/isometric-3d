@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Runtime.InteropServices;
 
 public partial class Bandit : Mob
 {
@@ -23,7 +24,7 @@ public partial class Bandit : Mob
 	private float _windupTimer;
 	private float _recoveryTimer;
 	private bool _attackCommitted;
-	private Player _player;
+	private Player _targetPlayer;
 
 	private ToolItem _equippedTool;
 
@@ -37,8 +38,8 @@ public partial class Bandit : Mob
 	public override void _Ready()
 	{
 		base._Ready();
+
 		_animTree = GetNode<AnimationTree>("AnimationTree");
-		_player = World.Player;
 		_equippedTool = ItemRegistry.GetItem("stone_axe") as ToolItem;
 		AttackStartRange = _equippedTool!.HitRange - 0.3f;
 
@@ -52,43 +53,65 @@ public partial class Bandit : Mob
 
 	public override void TickAI(double delta)
 	{
-		if (_player == null) return;
-
 		var dt = (float)delta;
 
 		_attackTimer -= dt;
 		_recoveryTimer -= dt;
 
-		var dist = GlobalPosition.DistanceTo(_player.GlobalPosition);
+		UpdateTarget();
 
 		switch (_state)
 		{
 			case State.Idle:
 				MoveVelocity = Vector3.Zero;
-				if (dist < AggroRange) _state = State.Chase;
+
+				if (HasValidTargetInRange()) _state = State.Chase;
 				break;
 
 			case State.Chase:
-				MoveTowardsPlayer();
+				if (!HasValidTarget())
+				{
+					_state = State.Idle;
+					MoveVelocity = Vector3.Zero;
+					break;
+				}
 
-				if (dist < AttackStartRange && _recoveryTimer <= 0)
+				var chaseDist = DistanceToTarget();
+
+				if (chaseDist > AggroRange)
+				{
+					ClearTarget();
+					_state = State.Idle;
+					MoveVelocity = Vector3.Zero;
+					break;
+				}
+
+				MoveTowardsTarget();
+
+				if (chaseDist < AttackStartRange && _recoveryTimer <= 0f)
 				{
 					_state = State.Attack;
 					_windupTimer = AttackWindup;
 					_attackCommitted = false;
 					MoveVelocity = Vector3.Zero;
 				}
-				else if (dist > AggroRange)
-				{
-					_state = State.Idle;
-				}
 
 				break;
 
 			case State.Attack:
-				FacePlayer();
+				if (!HasValidTarget())
+				{
+					_state = State.Idle;
+					_attackCommitted = false;
+					MoveVelocity = Vector3.Zero;
+					break;
+				}
 
-				if (dist > _equippedTool.HitRange + 0.5f)
+				var attackDist = DistanceToTarget();
+
+				FaceTarget();
+
+				if (attackDist > _equippedTool.HitRange + 0.5f)
 				{
 					_state = State.Chase;
 					_attackCommitted = false;
@@ -123,9 +146,55 @@ public partial class Bandit : Mob
 		UpdateAnimation();
 	}
 
-	private void MoveTowardsPlayer()
+	private void UpdateTarget()
 	{
-		var dir = _player.GlobalPosition - GlobalPosition;
+		if (HasValidTarget())
+		{
+			if (DistanceToTarget() <= AggroRange) return;
+
+			ClearTarget();
+		}
+
+		_targetPlayer = AquireNearestTarget();
+	}
+
+	private Player AquireNearestTarget()
+	{
+		if (World == null) return null;
+
+		return World.GetNearestPlayer(GlobalPosition, AggroRange);
+	}
+
+	private bool HasValidTarget()
+	{
+		return _targetPlayer != null && IsInstanceValid(_targetPlayer) && _targetPlayer.IsInsideTree();
+	}
+
+	private bool HasValidTargetInRange()
+	{
+		return HasValidTarget() && DistanceToTarget() <= AggroRange;
+	}
+
+	private void ClearTarget()
+	{
+		_targetPlayer = null;
+	}
+
+	private float DistanceToTarget()
+	{
+		if (!HasValidTarget()) return float.MaxValue;
+		return GlobalPosition.DistanceTo(_targetPlayer.GlobalPosition);
+	}
+
+	private void MoveTowardsTarget()
+	{
+		if (!HasValidTarget())
+		{
+			MoveVelocity = Vector3.Zero;
+			return;
+		}
+
+		var dir = _targetPlayer.GlobalPosition - GlobalPosition;
 		dir.Y = 0;
 
 		if (dir.LengthSquared() < 0.001f) return;
@@ -151,9 +220,11 @@ public partial class Bandit : Mob
 		_animTree.Set(LocomotionBlendPath, MoveVelocity.Length());
 	}
 
-	private void FacePlayer()
+	private void FaceTarget()
 	{
-		var dir = _player.GlobalPosition - GlobalPosition;
+		if (!HasValidTarget()) return;
+
+		var dir = _targetPlayer.GlobalPosition - GlobalPosition;
 		dir.Y = 0;
 
 		if (dir.LengthSquared() < 0.001f) return;
@@ -175,7 +246,7 @@ public partial class Bandit : Mob
 		_animTree.Set(AxeRequestPath, (int)AnimationNodeOneShot.OneShotRequest.Fire);
 		await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
 
-		var swingDir = _player.GlobalPosition - GlobalPosition;
+		var swingDir = _targetPlayer.GlobalPosition - GlobalPosition;
 
 		if (swingDir.LengthSquared() < 0.001f) return;
 
@@ -185,7 +256,7 @@ public partial class Bandit : Mob
 		var space = GetWorld3D().DirectSpaceState;
 
 		AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, AudioManager.BusTools, 0.1f);
-		CombatUtils.PerformMeleeHit(this, _equippedTool, swingDir, space, _toolQuery, _player);
+		CombatUtils.PerformMeleeHit(this, _equippedTool, swingDir, space, _toolQuery, _targetPlayer);
 	}
 
 	public override void ApplyKnockback(Vector3 direction, float strength)
