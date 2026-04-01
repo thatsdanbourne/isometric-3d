@@ -68,23 +68,38 @@ public partial class GameManager : Node
 
 	public void AttachLocalPlayer(Player player)
 	{
-		if (LocalPlayer == player) return;
+		if (player == null)
+		{
+			if (LocalPlayer != null && WeatherManager != null)
+				LocalPlayer.BiomeChanged -= WeatherManager.SetBiome;
 
-		if (LocalPlayer != null)
+			LocalPlayer = null;
+			EmitSignal(SignalName.LocalPlayerChanged, (Player)null);
+			return;
+		}
+
+		if (player.PlayerId != Multiplayer.GetUniqueId())
+		{
+			GD.PrintErr($"Refusing to attach non-local player {player.PlayerId} on peer {Multiplayer.GetUniqueId()}");
+			return;
+		}
+
+		if (LocalPlayer == player)
+			return;
+
+		if (LocalPlayer != null && WeatherManager != null)
 			LocalPlayer.BiomeChanged -= WeatherManager.SetBiome;
 
 		LocalPlayer = player;
 
-		if (LocalPlayer != null)
+		if (WeatherManager != null)
 			LocalPlayer.BiomeChanged += WeatherManager.SetBiome;
 
 		EmitSignal(SignalName.LocalPlayerChanged, player);
 	}
 
-	public void DetatchLocalPlayer(Player player)
+	public void DetachLocalPlayer()
 	{
-		if (LocalPlayer != player) return;
-
 		LocalPlayer.BiomeChanged -= WeatherManager.SetBiome;
 		LocalPlayer = null;
 
@@ -110,6 +125,8 @@ public partial class GameManager : Node
 		try
 		{
 			var player = CreateLocalPlayer();
+			player.PlayerId = 1;
+			player.IsLocal = true;
 			world.AddPlayer(player, spawnPosition);
 			AttachLocalPlayer(player);
 			return player;
@@ -133,6 +150,66 @@ public partial class GameManager : Node
 		return PlayerScene.Instantiate<Player>();
 	}
 
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+	public void RequestSpawnPlayer(int peerId)
+	{
+		if (!Multiplayer.IsServer()) return;
+
+		var spawnPos = Vector3.Zero;
+
+		Rpc(nameof(SpawnPlayerReplica), peerId, spawnPos);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+	private void SpawnPlayerReplica(int peerId, Vector3 spawnPos)
+	{
+		if (CurrentWorld == null)
+		{
+			GD.PrintErr("No current world to spawn player into");
+			return;
+		}
+
+		if (CurrentWorld.HasPlayer(peerId))
+			return;
+
+		var player = CreateLocalPlayer();
+		player.Name = $"Player_{peerId}";
+		player.PlayerId = peerId;
+		player.IsLocal = peerId == Multiplayer.GetUniqueId();
+
+		CurrentWorld.AddPlayer(player, spawnPos);
+
+		GD.Print($"Spawned player replica {peerId}, local={player.IsLocal}");
+	}
+
+	public void SyncExistingPlayersToPeer(int peerId)
+	{
+		if (!Multiplayer.IsServer() || CurrentWorld == null)
+			return;
+
+		foreach (var player in CurrentWorld.Players)
+		{
+			if (player == null || !IsInstanceValid(player) || !player.IsInsideTree())
+				continue;
+
+			RpcId(peerId, nameof(SpawnPlayerReplica), player.PlayerId, player.GlobalPosition);
+		}
+	}
+
+	public void PeerDisconnected(int peerId)
+	{
+		if (CurrentWorld == null)
+			return;
+
+		var player = CurrentWorld.GetPlayerById(peerId);
+		if (player == null)
+			return;
+
+		if (player.IsLocal) DetachLocalPlayer();
+
+		CurrentWorld.RemovePlayer(player);
+	}
+
 	public override void _UnhandledInput(InputEvent @event)
 	{
 		if (@event.IsActionPressed("toggle_fullscreen"))
@@ -140,6 +217,12 @@ public partial class GameManager : Node
 			ToggleFullscreen();
 			GetViewport().SetInputAsHandled();
 		}
+
+		if (@event.IsActionPressed("debug_host"))
+			NetworkManager.Instance.Host();
+
+		if (@event.IsActionPressed("debug_join"))
+			NetworkManager.Instance.Join("127.0.0.1");
 	}
 
 	private void ToggleFullscreen()

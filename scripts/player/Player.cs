@@ -13,6 +13,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private static readonly PackedScene CameraControllerScene =
 		GD.Load<PackedScene>("res://scenes/player/CameraController.tscn");
 
+	public int PlayerId { get; set; }
+	public bool IsLocal { get; set; }
+
 	public float MaxHealth = 20f;
 	public float Health;
 	public float Speed = 5.0f;
@@ -74,30 +77,13 @@ public partial class Player : CharacterBody3D, IToolHittable
 	{
 		GameManager.Instance.AttachLocalPlayer(this);
 
+		Health = MaxHealth;
+		DefaultTool = ItemRegistry.GetItem("fist") as ToolItem;
+
 		_world = GetNode<World>("/root/Game/World");
 		_animTree = GetNode<AnimationTree>("AnimationTree");
 		_tintOverlay = _world.GetNode<BiomeTintOverlay>("BiomeTint/BiomeOverlay");
-		HUD = GetNode<HUD>("/root/Game/HUD");
-		Hotbar = GetNode<Hotbar>("Hotbar");
-		Inventory = GetNode<Inventory>("Inventory");
 		_equipment = GetNode<PlayerEquipment>("PlayerEquipment");
-
-		CameraController = CameraControllerScene.Instantiate<CameraController>();
-		CameraController.Player = this;
-
-		_world.GetNode<Node3D>("WorldObjects")
-			.CallDeferred(Node.MethodName.AddChild, CameraController);
-
-		HUD.RefreshUI();
-		Hotbar.SelectedSlotChanged += _ => UpdateEquippedItem();
-		Hotbar.ContainerChanged += UpdateEquippedItem;
-
-		DefaultTool = ItemRegistry.GetItem("fist") as ToolItem;
-		Health = MaxHealth;
-
-		_placement = new PlacementController();
-		AddChild(_placement);
-		_placement.Init(_world, this);
 
 		_focusQuery = new PhysicsRayQueryParameters3D
 		{
@@ -113,20 +99,35 @@ public partial class Player : CharacterBody3D, IToolHittable
 			CollisionMask = HittableMask
 		};
 
+		if (IsLocal)
+		{
+			CameraController = CameraControllerScene.Instantiate<CameraController>();
+			CameraController.Player = this;
 
-#if DEBUG
-		// testing items
-		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_sword"), 1);
-		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("chest"), 1);
-		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
-		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("kiln"), 1);
-		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("copper_ore"), 20);
-		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("coal"), 20);
-		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("wood"), 20);
-		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone"), 20);
-#endif
+			AddChild(CameraController);
 
-		EmitSignal(SignalName.PlayerReady);
+			HUD = GetNode<HUD>("/root/Game/HUD");
+			Hotbar = GetNode<Hotbar>("Hotbar");
+			Inventory = GetNode<Inventory>("Inventory");
+			HUD.RefreshUI();
+			Hotbar.SelectedSlotChanged += _ => UpdateEquippedItem();
+			Hotbar.ContainerChanged += UpdateEquippedItem;
+			_placement = new PlacementController();
+			AddChild(_placement);
+			_placement.Init(_world, this);
+
+			// testing items
+			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_sword"), 1);
+			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("chest"), 1);
+			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
+			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("kiln"), 1);
+			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("copper_ore"), 20);
+			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("coal"), 20);
+			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("wood"), 20);
+			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone"), 20);
+
+			EmitSignal(SignalName.PlayerReady);
+		}
 	}
 
 	public override void _Process(double delta)
@@ -228,12 +229,14 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	private void OnObjectBroken()
 	{
-		CameraController?.Shake(0.3f, 0.7f);
+		if (IsLocal)
+			CameraController?.Shake(0.3f, 0.7f);
 	}
 
 	private void OnHitFailed()
 	{
-		CameraController?.Shake(0.1f, 0.3f);
+		if (IsLocal)
+			CameraController?.Shake(0.1f, 0.3f);
 	}
 
 	// inventory interaction
@@ -245,6 +248,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 	// input 
 	public override void _UnhandledInput(InputEvent e)
 	{
+		if (!IsLocal)
+			return;
+
 		if (e.IsActionPressed("toggle_inventory"))
 		{
 			if (HUD.IsInventoryOpen)
@@ -272,9 +278,14 @@ public partial class Player : CharacterBody3D, IToolHittable
 	}
 
 	//Movement and tool usage
-
 	public override void _PhysicsProcess(double delta)
 	{
+		if (!IsLocal)
+		{
+			MoveAndSlide();
+			return;
+		}
+
 		var dt = (float)delta;
 
 		var hudOpen = HUD.WindowOpen;
@@ -392,6 +403,11 @@ public partial class Player : CharacterBody3D, IToolHittable
 			_focusAccum -= FocusInterval;
 			if (camera != null) UpdateFocusedObject(camera, viewport.GetMousePosition());
 		}
+
+		if (Multiplayer.IsServer())
+			Rpc(nameof(ReceiveTransform), PlayerId, GlobalPosition, Velocity, Rotation.Y);
+		else if (Multiplayer.MultiplayerPeer.GetConnectionStatus() == MultiplayerPeer.ConnectionStatus.Connected)
+			RpcId(1, nameof(SubmitTransform), GlobalPosition, Velocity, Rotation.Y);
 	}
 
 	private void SetAnimState(string name)
@@ -508,5 +524,34 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint)
 	{
 		return ToolHitOutcome.Failed;
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
+	public void SubmitTransform(Vector3 pos, Vector3 vel, float rotY)
+	{
+		if (!Multiplayer.IsServer()) return;
+
+		var senderId = Multiplayer.GetRemoteSenderId();
+
+		GlobalPosition = pos;
+		Velocity = vel;
+		Rotation = new Vector3(0, rotY, 0);
+
+		Rpc(nameof(ReceiveTransform), senderId, pos, vel, rotY);
+	}
+
+	[Rpc(
+		MultiplayerApi.RpcMode.Authority,
+		CallLocal = false,
+		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable
+	)]
+	private void ReceiveTransform(int playerId, Vector3 pos, Vector3 vel, float rotY)
+	{
+		if (PlayerId == playerId && IsLocal)
+			return;
+
+		GlobalPosition = pos;
+		Velocity = vel;
+		Rotation = new Vector3(Rotation.X, rotY, Rotation.Z);
 	}
 }

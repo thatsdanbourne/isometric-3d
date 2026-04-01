@@ -332,6 +332,9 @@ public partial class AudioManager : Node
 
 	private void OnLocalPlayerChanged(Player p)
 	{
+		if (p == null)
+			return;
+
 		p.BiomeChanged += OnBiomeChanged;
 	}
 

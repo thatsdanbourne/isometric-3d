@@ -98,6 +98,14 @@ public partial class World : Node3D
 		_players.Add(player);
 	}
 
+	public void RemovePlayer(Player player)
+	{
+		if (player == null) return;
+
+		player.QueueFree();
+		_players.Remove(player);
+	}
+
 	public override void _PhysicsProcess(double delta)
 	{
 		var positions = new List<Vector3>();
@@ -116,7 +124,8 @@ public partial class World : Node3D
 
 	private void SetupNoise()
 	{
-		TerrainSeed = (int)_rng.Randi();
+		// TerrainSeed = (int)_rng.Randi();
+		TerrainSeed = 123456789;
 
 		TempNoise = new FastNoiseLite
 		{
@@ -296,5 +305,23 @@ public partial class World : Node3D
 		}
 
 		return best;
+	}
+
+	public bool HasPlayer(int playerId)
+	{
+		foreach (var player in Players)
+			if (player != null && player.PlayerId == playerId)
+				return true;
+
+		return false;
+	}
+
+	public Player GetPlayerById(int playerId)
+	{
+		foreach (var player in Players)
+			if (player != null && player.PlayerId == playerId)
+				return player;
+
+		return null;
 	}
 }
