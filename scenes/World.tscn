@@ -94,7 +94,16 @@ fog_density = 1.0
 fog_sky_affect = 0.0
 volumetric_fog_density = 0.0356
 
-[node name="Game" type="Node3D" unique_id=138169538]
+[node name="Game" type="Node3D" unique_id=138169538 node_paths=PackedStringArray("WorldObjects", "WorldMobs", "GroundMap", "WaterMap", "PlayerContainer", "DayNightCycle", "WeatherManager", "ItemPickupContainer")]
+script = ExtResource("4_ygioq")
+WorldObjects = NodePath("World/WorldObjects")
+WorldMobs = NodePath("World/WorldMobs")
+GroundMap = NodePath("World/GroundMap")
+WaterMap = NodePath("World/WaterMap")
+PlayerContainer = NodePath("World/PlayerContainer")
+DayNightCycle = NodePath("World/DayNightCycle")
+WeatherManager = NodePath("World/WeatherManager")
+ItemPickupContainer = NodePath("World/ItemPickupContainer")
 
 [node name="Debug" type="CanvasLayer" parent="." unique_id=465937132]
 script = ExtResource("2_h1bdy")
@@ -145,16 +154,7 @@ grow_vertical = 2
 
 [node name="SettingsVideo" parent="Menus/MenuManager" unique_id=1569410984 instance=ExtResource("7_o1tcx")]
 
-[node name="World" type="Node3D" parent="." unique_id=309803315 node_paths=PackedStringArray("WorldObjects", "WorldMobs", "GroundMap", "WaterMap", "PlayerContainer", "DayNightCycle", "WeatherManager", "ItemPickupContainer")]
-script = ExtResource("4_ygioq")
-WorldObjects = NodePath("WorldObjects")
-WorldMobs = NodePath("WorldMobs")
-GroundMap = NodePath("GroundMap")
-WaterMap = NodePath("WaterMap")
-PlayerContainer = NodePath("PlayerContainer")
-DayNightCycle = NodePath("DayNightCycle")
-WeatherManager = NodePath("WeatherManager")
-ItemPickupContainer = NodePath("ItemPickupContainer")
+[node name="World" type="Node3D" parent="." unique_id=309803315]
 
 [node name="BiomeTint" type="CanvasLayer" parent="World" unique_id=1763461435]
 

@@ -88,3 +88,20 @@ public enum ToolHitOutcome
 	Hit,
 	Destroyed
 }
+
+// debug enums
+public enum DebugSessionMode
+{
+	None,
+	Menu,
+	Single,
+	Host,
+	Client
+}
+
+public enum WorldLoadMode
+{
+	Random,
+	Seed,
+	Save
+}

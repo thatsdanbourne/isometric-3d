@@ -19,7 +19,7 @@ public partial class MobStreamer : Node
 
 	public override void _Ready()
 	{
-		_world ??= GetParent<World>();
+		_world ??= GetParent().GetParent<World>();
 	}
 
 	public override void _Process(double delta)

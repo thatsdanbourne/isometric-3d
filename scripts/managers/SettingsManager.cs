@@ -45,7 +45,7 @@ public partial class SettingsManager : Node
 	public void ApplyAll()
 	{
 		ApplyDisplay();
-		ApplyRendering();
+		// ApplyRendering();
 		SaveSettings();
 	}
 
@@ -62,11 +62,11 @@ public partial class SettingsManager : Node
 			: DisplayServer.VSyncMode.Disabled);
 	}
 
-	private void ApplyRendering()
-	{
-		var environment = GetNode<WorldEnvironment>("/root/Game/World/WorldEnvironment").Environment;
-		if (environment == null) return;
-
-		environment.SsaoEnabled = SsaoEnabled;
-	}
+	// private void ApplyRendering()
+	// {
+	// 	var environment = GetNode<WorldEnvironment>("/root/Game/World/WorldEnvironment").Environment;
+	// 	if (environment == null) return;
+	//
+	// 	environment.SsaoEnabled = SsaoEnabled;
+	// }
 }

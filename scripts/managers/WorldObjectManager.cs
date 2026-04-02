@@ -9,7 +9,7 @@ public partial class WorldObjectManager : Node
 	private readonly Queue<Chunk> _spawnChunkQueue = new();
 	private readonly Queue<ChunkObject> _activeSpawnQueue = new();
 	private readonly Queue<ChunkObject> _removeQueue = new();
-	
+
 	// private readonly Dictionary<string, Stack<WorldObject>> _pools = new();
 
 	private World _world;
@@ -22,7 +22,7 @@ public partial class WorldObjectManager : Node
 
 	public override void _Ready()
 	{
-		_world = GetParent<World>();
+		_world = GetParent().GetParent<World>();
 		_rng = new RandomNumberGenerator();
 		_rng.Randomize();
 		_pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
@@ -43,7 +43,7 @@ public partial class WorldObjectManager : Node
 	{
 		if (data.RuntimeNode != null || data.MarkedForRemoval)
 			return;
-		
+
 
 		_activeSpawnQueue.Enqueue(data);
 	}
@@ -122,9 +122,9 @@ public partial class WorldObjectManager : Node
 		var chunkDelta = _world.GetOrCreateChunkDelta(data.ChunkCoord);
 		chunkDelta.PlacedObjectsByTile[data.TileCoord] = new PlacedObjectRecord
 		{
-			DefinitionTypeId =  data.Definition.TypeId,
+			DefinitionTypeId = data.Definition.TypeId,
 			TileCoord = data.TileCoord,
-			Position =  data.Position,
+			Position = data.Position
 		};
 
 		return true;
@@ -133,7 +133,7 @@ public partial class WorldObjectManager : Node
 	public void EnqueueRemoval(ChunkObject data)
 	{
 		data.MarkedForRemoval = true;
-		
+
 		if (data.RuntimeNode != null)
 			_removeQueue.Enqueue(data);
 	}
@@ -158,14 +158,14 @@ public partial class WorldObjectManager : Node
 				continue;
 
 			var node = WorldObjectRegistry.GetScene(data.Definition.TypeId).Instantiate<WorldObject>();
-			
+
 			node.Data = data;
 			node.World = _world;
 			data.RuntimeNode = node;
 			node.Initialise(data.Definition);
-			
+
 			EnsureParent(node, _world.WorldObjects);
-			
+
 			node.GlobalPosition = data.Position;
 			node.Visible = true;
 
@@ -205,7 +205,7 @@ public partial class WorldObjectManager : Node
 
 			if (data.RuntimeNode == null)
 				continue;
-			
+
 			if (data.Definition.BlocksTile)
 				_world.UnblockTile(data.TileCoord);
 
@@ -249,15 +249,15 @@ public partial class WorldObjectManager : Node
 		//     stack.Push(node);
 		// else
 		//     node.QueueFree();
-		
+
 		node.QueueFree();
 	}
-	
+
 	private static void EnsureParent(Node node, Node desiredParent)
 	{
 		if (node.GetParent() == desiredParent)
 			return;
-		
+
 		if (node.IsInsideTree() && node.GetParent() != null)
 			node.Reparent(desiredParent);
 		else

@@ -41,7 +41,7 @@ public partial class ItemContainerSlot : PanelContainer
 
 	public override void _Ready()
 	{
-		_tooltip = GetTree().Root.GetNode<HUD>("Game/HUD").GetNode<Tooltip>("TooltipManager");
+		_tooltip = GetTree().Root.GetNode<HUD>("Bootstrap/Game/HUD").GetNode<Tooltip>("TooltipManager");
 		Highlight = GetNode<Panel>("Highlight");
 		Highlight.Visible = false;
 

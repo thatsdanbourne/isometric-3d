@@ -75,14 +75,12 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public override void _Ready()
 	{
-		GameManager.Instance.AttachLocalPlayer(this);
-
 		Health = MaxHealth;
 		DefaultTool = ItemRegistry.GetItem("fist") as ToolItem;
 
-		_world = GetNode<World>("/root/Game/World");
+		_world = GameManager.Instance.CurrentWorld;
 		_animTree = GetNode<AnimationTree>("AnimationTree");
-		_tintOverlay = _world.GetNode<BiomeTintOverlay>("BiomeTint/BiomeOverlay");
+		_tintOverlay = _world.GetNode<BiomeTintOverlay>("World/BiomeTint/BiomeOverlay");
 		_equipment = GetNode<PlayerEquipment>("PlayerEquipment");
 
 		_focusQuery = new PhysicsRayQueryParameters3D
@@ -106,7 +104,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 			AddChild(CameraController);
 
-			HUD = GetNode<HUD>("/root/Game/HUD");
+			HUD = GetNode<HUD>("/root/Bootstrap/Game/HUD");
 			Hotbar = GetNode<Hotbar>("Hotbar");
 			Inventory = GetNode<Inventory>("Inventory");
 			HUD.RefreshUI();
@@ -526,16 +524,24 @@ public partial class Player : CharacterBody3D, IToolHittable
 		return ToolHitOutcome.Failed;
 	}
 
-	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
+	[Rpc(
+		MultiplayerApi.RpcMode.AnyPeer,
+		CallLocal = false,
+		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable
+	)]
 	public void SubmitTransform(Vector3 pos, Vector3 vel, float rotY)
 	{
-		if (!Multiplayer.IsServer()) return;
+		if (!Multiplayer.IsServer())
+			return;
 
 		var senderId = Multiplayer.GetRemoteSenderId();
 
+		if (PlayerId != senderId)
+			return;
+
 		GlobalPosition = pos;
 		Velocity = vel;
-		Rotation = new Vector3(0, rotY, 0);
+		Rotation = new Vector3(Rotation.X, rotY, Rotation.Z);
 
 		Rpc(nameof(ReceiveTransform), senderId, pos, vel, rotY);
 	}
@@ -547,7 +553,10 @@ public partial class Player : CharacterBody3D, IToolHittable
 	)]
 	private void ReceiveTransform(int playerId, Vector3 pos, Vector3 vel, float rotY)
 	{
-		if (PlayerId == playerId && IsLocal)
+		if (PlayerId != playerId)
+			return;
+
+		if (IsLocal)
 			return;
 
 		GlobalPosition = pos;

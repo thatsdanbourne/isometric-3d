@@ -53,12 +53,11 @@ public partial class GameManager : Node
 
 	public void DetatchWorld(World world)
 	{
-		if (CurrentWorld != world) return;
-
-		if (LocalPlayer == null || WeatherManager == null)
+		if (CurrentWorld != world)
 			return;
 
-		LocalPlayer.BiomeChanged -= WeatherManager.SetBiome;
+		if (LocalPlayer != null && WeatherManager != null)
+			LocalPlayer.BiomeChanged -= WeatherManager.SetBiome;
 
 		CurrentWorld = null;
 		DayNightCycle = null;
@@ -100,9 +99,10 @@ public partial class GameManager : Node
 
 	public void DetachLocalPlayer()
 	{
-		LocalPlayer.BiomeChanged -= WeatherManager.SetBiome;
-		LocalPlayer = null;
+		if (LocalPlayer != null && WeatherManager != null)
+			LocalPlayer.BiomeChanged -= WeatherManager.SetBiome;
 
+		LocalPlayer = null;
 		EmitSignal(SignalName.LocalPlayerChanged, (Player)null);
 	}
 
@@ -175,9 +175,17 @@ public partial class GameManager : Node
 		var player = CreateLocalPlayer();
 		player.Name = $"Player_{peerId}";
 		player.PlayerId = peerId;
-		player.IsLocal = peerId == Multiplayer.GetUniqueId();
+
+		var canResolveLocal =
+			Multiplayer.IsServer() ||
+			NetworkManager.Instance.IsClientFullyConnected;
+
+		player.IsLocal = canResolveLocal && peerId == Multiplayer.GetUniqueId();
 
 		CurrentWorld.AddPlayer(player, spawnPos);
+
+		if (player.IsLocal)
+			AttachLocalPlayer(player);
 
 		GD.Print($"Spawned player replica {peerId}, local={player.IsLocal}");
 	}
@@ -217,12 +225,6 @@ public partial class GameManager : Node
 			ToggleFullscreen();
 			GetViewport().SetInputAsHandled();
 		}
-
-		if (@event.IsActionPressed("debug_host"))
-			NetworkManager.Instance.Host();
-
-		if (@event.IsActionPressed("debug_join"))
-			NetworkManager.Instance.Join("127.0.0.1");
 	}
 
 	private void ToggleFullscreen()

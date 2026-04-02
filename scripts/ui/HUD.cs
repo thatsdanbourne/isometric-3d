@@ -62,8 +62,6 @@ public partial class HUD : CanvasLayer
 		_tooltip = _tooltipManager.GetNode<PanelContainer>("Tooltip");
 
 		GameManager.Instance.LocalPlayerChanged += OnLocalPlayerChanged;
-		if (GameManager.Instance.LocalPlayer != null)
-			OnLocalPlayerChanged(GameManager.Instance.LocalPlayer);
 
 		GetWindow().ContentScaleFactor = 1.25f;
 	}
@@ -78,7 +76,7 @@ public partial class HUD : CanvasLayer
 
 		if (_player == null) return;
 
-		_player.PlayerReady += OnPlayerReady;
+		OnPlayerReady();
 	}
 
 	private void OnPlayerReady()

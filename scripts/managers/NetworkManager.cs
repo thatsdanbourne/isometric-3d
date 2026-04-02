@@ -40,29 +40,26 @@ public partial class NetworkManager : Node
 		{
 			localPlayer.PlayerId = Multiplayer.GetUniqueId();
 			localPlayer.Name = $"Player_{localPlayer.PlayerId}";
-			localPlayer.IsLocal = true;
-
-			GameManager.Instance.AttachLocalPlayer(localPlayer);
 		}
 	}
 
 	public void Join(string address, int port = 7777)
 	{
-		var peer = new ENetMultiplayerPeer();
-		var err = peer.CreateClient(address, port);
-		if (err != Error.Ok)
-		{
-			GD.PrintErr("Failed to join: " + err);
-			return;
-		}
-
-		// Tear down standalone local player before joining shared session
 		var localPlayer = GameManager.Instance.LocalPlayer;
 		if (localPlayer != null && IsInstanceValid(localPlayer))
 		{
 			GameManager.Instance.DetachLocalPlayer();
 			GameManager.Instance.CurrentWorld?.RemovePlayer(localPlayer);
 			localPlayer.QueueFree();
+			GD.Print("test");
+		}
+
+		var peer = new ENetMultiplayerPeer();
+		var err = peer.CreateClient(address, port);
+		if (err != Error.Ok)
+		{
+			GD.PrintErr("Failed to join: " + err);
+			return;
 		}
 
 		Multiplayer.MultiplayerPeer = peer;
@@ -98,4 +95,8 @@ public partial class NetworkManager : Node
 	{
 		GD.PrintErr("Server disconnected");
 	}
+
+	public bool IsClientFullyConnected =>
+		Multiplayer.MultiplayerPeer != null &&
+		Multiplayer.MultiplayerPeer.GetConnectionStatus() == MultiplayerPeer.ConnectionStatus.Connected;
 }

@@ -42,8 +42,9 @@ public partial class World : Node3D
 
 	public ChunkManager ChunkManager { get; private set; }
 	public ChunkGenerator ChunkGenerator { get; private set; }
+
 	public WorldObjectManager WorldObjectManager { get; private set; }
-	public Node3D WorldObjectPool;
+
 	public MobStreamer MobStreamer;
 	public BiomeSampler BiomeSampler;
 
@@ -65,9 +66,8 @@ public partial class World : Node3D
 		RuleRegistry.LoadAll(TerrainSeed, WorldOffset);
 
 		ChunkManager = new ChunkManager(this, ChunkSize, ChunkRadius);
-		WorldObjectManager = GetNode<WorldObjectManager>("WorldObjectManager");
-		WorldObjectPool = GetNode<Node3D>("WorldObjectPool");
-		MobStreamer = GetNode<MobStreamer>("MobStreamer");
+		WorldObjectManager = GetNode<WorldObjectManager>("World/WorldObjectManager");
+		MobStreamer = GetNode<MobStreamer>("World/MobStreamer");
 
 		BiomeSampler = new BiomeSampler(TempNoise, HumidityNoise, RiverNoise, LakeNoise, DrainageNoise, BankNoise,
 			WorldOffset);
@@ -75,10 +75,9 @@ public partial class World : Node3D
 		ChunkGenerator = new ChunkGenerator(this, ChunkManager, TerrainSeed);
 		ChunkGenerator.Start();
 
-		GameManager.Instance.StartLocalSession(this, Vector3.Zero);
 		EmitSignal(SignalName.WorldReady);
 
-		var debugTeleporter = GetNode<DebugBiomeTeleporter>("DebugBiomeTeleporter");
+		var debugTeleporter = GetNode<DebugBiomeTeleporter>("World/DebugBiomeTeleporter");
 		debugTeleporter.World = this;
 	}
 
@@ -124,9 +123,6 @@ public partial class World : Node3D
 
 	private void SetupNoise()
 	{
-		// TerrainSeed = (int)_rng.Randi();
-		TerrainSeed = 123456789;
-
 		TempNoise = new FastNoiseLite
 		{
 			Seed = TerrainSeed + 1000,

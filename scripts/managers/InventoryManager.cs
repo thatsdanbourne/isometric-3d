@@ -5,12 +5,9 @@ public partial class InventoryManager : Node
 {
 	public static InventoryManager Instance { get; private set; }
 
-	private World _world;
-
 	public override void _Ready()
 	{
 		Instance = this;
-		_world = GetNode<World>("/root/Game/World");
 	}
 
 	// add logic
@@ -122,7 +119,7 @@ public partial class InventoryManager : Node
 			drop.Item = item;
 			drop.Count = amount;
 
-			_world.ItemPickupContainer.AddChild(drop);
+			GameManager.Instance.CurrentWorld.ItemPickupContainer.AddChild(drop);
 			drop.GlobalPosition = player.GlobalPosition + new Vector3(0, 1, 0);
 		}
 	}
