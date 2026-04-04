@@ -403,9 +403,12 @@ public partial class Player : CharacterBody3D, IToolHittable
 		}
 
 		if (Multiplayer.IsServer())
-			Rpc(nameof(ReceiveTransform), PlayerId, GlobalPosition, Velocity, Rotation.Y);
-		else if (Multiplayer.MultiplayerPeer.GetConnectionStatus() == MultiplayerPeer.ConnectionStatus.Connected)
-			RpcId(1, nameof(SubmitTransform), GlobalPosition, Velocity, Rotation.Y);
+			foreach (var peer in Multiplayer.GetPeers())
+			{
+				if (peer == PlayerId) continue;
+				RpcId(peer, nameof(ReceiveTransform), PlayerId, GlobalPosition, Velocity, Rotation.Y);
+			}
+		else if (IsLocal) RpcId(1, nameof(SubmitTransform), GlobalPosition, Velocity, Rotation.Y);
 	}
 
 	private void SetAnimState(string name)

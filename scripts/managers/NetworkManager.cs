@@ -35,25 +35,11 @@ public partial class NetworkManager : Node
 		Multiplayer.MultiplayerPeer = peer;
 		GD.Print("Server started on port " + port);
 
-		var localPlayer = GameManager.Instance.LocalPlayer;
-		if (localPlayer != null)
-		{
-			localPlayer.PlayerId = Multiplayer.GetUniqueId();
-			localPlayer.Name = $"Player_{localPlayer.PlayerId}";
-		}
+		GameManager.Instance.PromoteLocalPlayerToHost();
 	}
 
 	public void Join(string address, int port = 7777)
 	{
-		var localPlayer = GameManager.Instance.LocalPlayer;
-		if (localPlayer != null && IsInstanceValid(localPlayer))
-		{
-			GameManager.Instance.DetachLocalPlayer();
-			GameManager.Instance.CurrentWorld?.RemovePlayer(localPlayer);
-			localPlayer.QueueFree();
-			GD.Print("test");
-		}
-
 		var peer = new ENetMultiplayerPeer();
 		var err = peer.CreateClient(address, port);
 		if (err != Error.Ok)
@@ -69,9 +55,6 @@ public partial class NetworkManager : Node
 	private void OnPeerConnected(long id)
 	{
 		GD.Print($"Peer connected: {id}");
-
-		if (Multiplayer.IsServer())
-			GameManager.Instance.SyncExistingPlayersToPeer((int)id);
 	}
 
 	private void OnPeerDisconnected(long id)
@@ -83,7 +66,7 @@ public partial class NetworkManager : Node
 	private void OnConnectedToServer()
 	{
 		GD.Print("Connected to server");
-		GameManager.Instance.RpcId(1, nameof(GameManager.RequestSpawnPlayer), Multiplayer.GetUniqueId());
+		GameManager.Instance.RpcId(1, nameof(GameManager.RequestInitialJoinState));
 	}
 
 	private void OnConnectionFailed()

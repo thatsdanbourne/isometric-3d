@@ -27,20 +27,15 @@ public partial class SessionBootstrap : Node
 				await StartClient();
 				break;
 		}
+
+		GetWindow().Title = $"Emberwild [{Debug.SessionMode}] [{Multiplayer.GetUniqueId()}]";
 	}
 
-	private World CreateWorld(int seed = -1)
+	private World CreateWorld()
 	{
 		var worldScene = GD.Load<PackedScene>("res://scenes/World.tscn");
 		var world = worldScene.Instantiate<World>();
 
-		var rng = new RandomNumberGenerator();
-		rng.Randomize();
-
-		if (seed == -1)
-			seed = (int)rng.Randi();
-
-		world.TerrainSeed = seed;
 		AddChild(world);
 		GameManager.Instance.AttachWorld(world);
 
@@ -49,66 +44,55 @@ public partial class SessionBootstrap : Node
 
 	private void StartSinglePlayer()
 	{
-		var seed = -1;
+		var world = CreateWorld();
 
 		switch (Debug.WorldMode)
 		{
 			case WorldLoadMode.Random:
-				seed = -1;
-				break;
 			case WorldLoadMode.Seed:
-				seed = Debug.Seed;
+				world.InitialiseWorld(ResolveDebugSeed());
+				GameManager.Instance.StartLocalSession(world, Vector3.Zero);
 				break;
+
 			case WorldLoadMode.Save:
 				// load from save
 				break;
 		}
-
-		var world = CreateWorld(seed);
-		GameManager.Instance.StartLocalSession(world, Vector3.Zero);
 	}
 
 	private void StartHost()
 	{
-		var seed = -1;
+		var world = CreateWorld();
 
 		switch (Debug.WorldMode)
 		{
 			case WorldLoadMode.Random:
-				seed = -1;
-				break;
 			case WorldLoadMode.Seed:
-				seed = Debug.Seed;
+				world.InitialiseWorld(ResolveDebugSeed());
+				GameManager.Instance.StartLocalSession(world, Vector3.Zero);
+				NetworkManager.Instance.Host(Debug.Port);
 				break;
+
 			case WorldLoadMode.Save:
 				// load from save
 				break;
 		}
+	}
 
-		var world = CreateWorld(seed);
-
-		NetworkManager.Instance.Host(Debug.Port);
-		GameManager.Instance.SpawnLocalPlayer(world, Vector3.Zero);
+	private int ResolveDebugSeed()
+	{
+		return Debug.WorldMode switch
+		{
+			WorldLoadMode.Seed => Debug.Seed,
+			WorldLoadMode.Random => (int)GD.Randi(),
+			WorldLoadMode.Save => -1, // placeholder until save loading
+			_ => (int)GD.Randi()
+		};
 	}
 
 	private async Task StartClient()
 	{
-		var seed = -1;
-
-		switch (Debug.WorldMode)
-		{
-			case WorldLoadMode.Random:
-				seed = -1;
-				break;
-			case WorldLoadMode.Seed:
-				seed = Debug.Seed;
-				break;
-			case WorldLoadMode.Save:
-				// load from save
-				break;
-		}
-
-		var world = CreateWorld(seed);
+		var world = CreateWorld();
 
 		NetworkManager.Instance.Join(Debug.Address, Debug.Port);
 

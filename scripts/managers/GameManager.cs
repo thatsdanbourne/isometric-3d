@@ -27,9 +27,6 @@ public partial class GameManager : Node
 
 	public override void _Ready()
 	{
-		// DayNightCycle = GetNode<DayNightCycle>("/root/Game//World/DayNightCycle");
-		// WeatherManager = GetNode<WeatherManager>("/root/Game//World/WeatherManager");
-
 		GD.Print("GameManager initialized.");
 	}
 
@@ -77,9 +74,13 @@ public partial class GameManager : Node
 			return;
 		}
 
-		if (player.PlayerId != Multiplayer.GetUniqueId())
+		var uniqueId = Multiplayer.HasMultiplayerPeer() ? Multiplayer.GetUniqueId() : 0;
+		var isOfflineLocal = player.PlayerId == 0;
+		var isNetworkLocal = player.PlayerId == uniqueId;
+
+		if (!isOfflineLocal && !isNetworkLocal)
 		{
-			GD.PrintErr($"Refusing to attach non-local player {player.PlayerId} on peer {Multiplayer.GetUniqueId()}");
+			GD.PrintErr($"Refusing to attach non-local player {player.PlayerId} on peer {uniqueId}");
 			return;
 		}
 
@@ -125,8 +126,10 @@ public partial class GameManager : Node
 		try
 		{
 			var player = CreateLocalPlayer();
-			player.PlayerId = 1;
+			player.Name = "Player_Local";
+			player.PlayerId = 0;
 			player.IsLocal = true;
+
 			world.AddPlayer(player, spawnPosition);
 			AttachLocalPlayer(player);
 			return player;
@@ -137,10 +140,22 @@ public partial class GameManager : Node
 		}
 	}
 
+	public void PromoteLocalPlayerToHost()
+	{
+		if (LocalPlayer == null || !IsInstanceValid(LocalPlayer))
+		{
+			GD.PrintErr("No local player to promote to host");
+			return;
+		}
+
+		LocalPlayer.PlayerId = Multiplayer.GetUniqueId();
+		LocalPlayer.Name = $"Player_{LocalPlayer.PlayerId}";
+		LocalPlayer.IsLocal = true;
+	}
+
 	public void StartLocalSession(World world, Vector3 spawnPosition)
 	{
-		AttachWorld(world);
-		world.ChunkManager.PreloadChunks(spawnPosition);
+		// world.ChunkManager.PreloadChunks(spawnPosition);
 		var player = SpawnLocalPlayer(world, spawnPosition);
 		player.CheckBiome();
 	}
@@ -153,10 +168,16 @@ public partial class GameManager : Node
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer)]
 	public void RequestSpawnPlayer(int peerId)
 	{
-		if (!Multiplayer.IsServer()) return;
+		if (!Multiplayer.IsServer())
+			return;
+
+		if (CurrentWorld == null)
+		{
+			GD.PrintErr("No current world to spawn player into.");
+			return;
+		}
 
 		var spawnPos = Vector3.Zero;
-
 		Rpc(nameof(SpawnPlayerReplica), peerId, spawnPos);
 	}
 
@@ -175,19 +196,31 @@ public partial class GameManager : Node
 		var player = CreateLocalPlayer();
 		player.Name = $"Player_{peerId}";
 		player.PlayerId = peerId;
-
-		var canResolveLocal =
-			Multiplayer.IsServer() ||
-			NetworkManager.Instance.IsClientFullyConnected;
-
-		player.IsLocal = canResolveLocal && peerId == Multiplayer.GetUniqueId();
+		player.IsLocal = peerId == Multiplayer.GetUniqueId();
 
 		CurrentWorld.AddPlayer(player, spawnPos);
 
 		if (player.IsLocal)
+		{
+			ForceSingleLocalPlayer(player);
 			AttachLocalPlayer(player);
+		}
 
-		GD.Print($"Spawned player replica {peerId}, local={player.IsLocal}");
+		GD.Print($"Spawned player replica {peerId}, local={player.IsLocal}, peer={Multiplayer.GetUniqueId()}");
+	}
+
+	private void ForceSingleLocalPlayer(Player actualLocalPlayer)
+	{
+		if (CurrentWorld == null)
+			return;
+
+		foreach (var player in CurrentWorld.Players)
+		{
+			if (player == null || !IsInstanceValid(player))
+				continue;
+
+			player.IsLocal = player == actualLocalPlayer;
+		}
 	}
 
 	public void SyncExistingPlayersToPeer(int peerId)
@@ -202,6 +235,41 @@ public partial class GameManager : Node
 
 			RpcId(peerId, nameof(SpawnPlayerReplica), player.PlayerId, player.GlobalPosition);
 		}
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+	public void RequestInitialJoinState()
+	{
+		if (!Multiplayer.IsServer() || CurrentWorld == null)
+			return;
+
+		var peerId = Multiplayer.GetRemoteSenderId();
+
+		SendWorldInitToPeer(peerId);
+		SyncExistingPlayersToPeer(peerId);
+		RequestSpawnPlayer(peerId);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void ReceiveWorldInit(int terrainSeed)
+	{
+		if (CurrentWorld == null)
+		{
+			GD.PrintErr("No current world to initialise");
+			return;
+		}
+
+		CurrentWorld.InitialiseWorld(terrainSeed);
+
+		GD.Print($"Received world init: Seed={terrainSeed}");
+	}
+
+	public void SendWorldInitToPeer(int peerId)
+	{
+		if (!Multiplayer.IsServer() || CurrentWorld == null)
+			return;
+
+		RpcId(peerId, nameof(ReceiveWorldInit), CurrentWorld.TerrainSeed);
 	}
 
 	public void PeerDisconnected(int peerId)

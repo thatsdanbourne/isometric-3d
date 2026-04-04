@@ -4,9 +4,6 @@ using System.Collections.Generic;
 
 public partial class World : Node3D
 {
-	[Signal]
-	public delegate void WorldReadyEventHandler();
-
 	[Export] public Node3D WorldObjects;
 	[Export] public Node3D WorldMobs;
 	[Export] public GridMap GroundMap;
@@ -48,11 +45,17 @@ public partial class World : Node3D
 	public MobStreamer MobStreamer;
 	public BiomeSampler BiomeSampler;
 
+	private bool _worldReady;
 
-	public override void _Ready()
+
+	public void InitialiseWorld(int terrainSeed)
 	{
 		_rng = new RandomNumberGenerator();
 		_rng.Randomize();
+
+		TerrainSeed = terrainSeed;
+		SetupNoise();
+		RuleRegistry.LoadAll(TerrainSeed, WorldOffset);
 
 		// WorldOffset = new Vector2I(
 		// 	(int)_rng.Randi() % 100000,
@@ -61,10 +64,6 @@ public partial class World : Node3D
 
 		WorldOffset = new Vector2I(0, 0);
 
-		SetupNoise();
-
-		RuleRegistry.LoadAll(TerrainSeed, WorldOffset);
-
 		ChunkManager = new ChunkManager(this, ChunkSize, ChunkRadius);
 		WorldObjectManager = GetNode<WorldObjectManager>("World/WorldObjectManager");
 		MobStreamer = GetNode<MobStreamer>("World/MobStreamer");
@@ -72,13 +71,12 @@ public partial class World : Node3D
 		BiomeSampler = new BiomeSampler(TempNoise, HumidityNoise, RiverNoise, LakeNoise, DrainageNoise, BankNoise,
 			WorldOffset);
 
-		ChunkGenerator = new ChunkGenerator(this, ChunkManager, TerrainSeed);
-		ChunkGenerator.Start();
-
-		EmitSignal(SignalName.WorldReady);
-
 		var debugTeleporter = GetNode<DebugBiomeTeleporter>("World/DebugBiomeTeleporter");
 		debugTeleporter.World = this;
+
+		ChunkGenerator = new ChunkGenerator(this, ChunkManager, TerrainSeed);
+		ChunkGenerator.Start();
+		_worldReady = true;
 	}
 
 	public override void _ExitTree()
@@ -91,9 +89,8 @@ public partial class World : Node3D
 		if (player == null) return;
 
 		if (_players.Contains(player)) return;
-
+		player.Position = spawnPosition;
 		PlayerContainer.AddChild(player);
-		player.GlobalPosition = spawnPosition;
 		_players.Add(player);
 	}
 
@@ -107,6 +104,8 @@ public partial class World : Node3D
 
 	public override void _PhysicsProcess(double delta)
 	{
+		if (!_worldReady) return;
+
 		var positions = new List<Vector3>();
 		foreach (var player in _players)
 		{
