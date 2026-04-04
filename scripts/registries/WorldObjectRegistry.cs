@@ -5,11 +5,16 @@ public static class WorldObjectRegistry
 {
 	private static readonly Dictionary<int, WorldObjectDefinition> Defs = new();
 
-	private static void Register(string id, PackedScene scene, float maxHealth = 10, ToolTier toolTier = ToolTier.Fist,
+	private static void Register(
+		string id,
+		PackedScene scene,
+		float maxHealth = 10,
+		ToolTier toolTier = ToolTier.Fist,
 		bool blocksTile = true
 	)
 	{
-		var typeId = StableHash(id);
+		var typeId = DeterministicHash.String32(id);
+
 		Defs[typeId] = new WorldObjectDefinition
 		{
 			Id = id,
@@ -54,23 +59,6 @@ public static class WorldObjectRegistry
 		Register("chest", GD.Load<PackedScene>("res://scenes/placeables/ChestOne.tscn"));
 		Register("flower_poppy", GD.Load<PackedScene>("res://scenes/terrain/decor/FlowerPoppy.tscn"));
 		Register("reeds", GD.Load<PackedScene>("res://scenes/terrain/objects/Reeds.tscn"));
-	}
-
-	public static int StableHash(string s)
-	{
-		unchecked
-		{
-			const int fnvPrime = 16777619;
-			var hash = (int)2166136261;
-
-			foreach (var t in s)
-			{
-				hash ^= t;
-				hash *= fnvPrime;
-			}
-
-			return hash;
-		}
 	}
 }
 

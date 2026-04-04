@@ -15,53 +15,48 @@ public static class BiomeDefinitions
 			MaxHumidity = 0.6f,
 			ObjectRules =
 			{
-				new ObjectSpawnRule
+				new ObjectSpawnRule("plains_trees")
 				{
-					Id = "plains_trees",
 					Density = 0.35f,
 					Algorithm = NoisePresets.PlainsTrees(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "tree_oak", Weight = 1f },
-						new SpawnVariant { Id = "tree_birch", Weight = 1f }
+						new SpawnVariant("tree_oak") { Weight = 1f },
+						new SpawnVariant("tree_birch") { Weight = 1f }
 					}
 				},
-				new ObjectSpawnRule
+				new ObjectSpawnRule("plains_rocks")
 				{
-					Id = "plains_rocks",
 					Density = 0.3f,
 					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "rock", Weight = 0.75f },
-						new SpawnVariant { Id = "rock_coal", Weight = 0.2f },
-						new SpawnVariant { Id = "rock_copper", Weight = 0.05f }
+						new SpawnVariant("rock") { Weight = 0.75f },
+						new SpawnVariant("rock_coal") { Weight = 0.2f },
+						new SpawnVariant("rock_copper") { Weight = 0.05f }
 					}
 				},
-				new ObjectSpawnRule
+				new ObjectSpawnRule("plains_flowers")
 				{
-					Id = "plains_flowers",
 					Density = 0.3f,
 					Algorithm = NoisePresets.Flowers(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "flower_poppy", Weight = 0.5f }
+						new SpawnVariant("flower_poppy") { Weight = 0.5f }
 					}
 				}
 			},
 			MobRules =
 			{
-				new MobSpawnRule
+				new MobSpawnRule("plains_deer")
 				{
-					Id = "plains_deer",
 					MobId = "deer",
 					ChunkChance = 0.2f,
 					MinPerChunk = 0,
 					MaxPerChunk = 2
 				},
-				new MobSpawnRule
+				new MobSpawnRule("plains_bandit")
 				{
-					Id = "plains_bandit",
 					MobId = "bandit",
 					ChunkChance = 0.05f,
 					MinPerChunk = 0,
@@ -81,37 +76,34 @@ public static class BiomeDefinitions
 			MaxHumidity = 1.0f,
 			ObjectRules =
 			{
-				new ObjectSpawnRule
+				new ObjectSpawnRule("forest_trees")
 				{
-					Id = "forest_trees",
 					Density = 0.65f,
 					Algorithm = NoisePresets.ForestTrees(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "tree_oak", Weight = 1f },
-						new SpawnVariant { Id = "tree_birch", Weight = 1f }
+						new SpawnVariant("tree_oak") { Weight = 1f },
+						new SpawnVariant("tree_birch") { Weight = 1f }
 					}
 				},
-				new ObjectSpawnRule
+				new ObjectSpawnRule("forest_rocks")
 				{
-					Id = "forest_rocks",
 					Density = 0.25f,
 					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "rock", Weight = 0.8f },
-						new SpawnVariant { Id = "rock_coal", Weight = 0.15f },
-						new SpawnVariant { Id = "rock_copper", Weight = 0.05f }
+						new SpawnVariant("rock") { Weight = 0.8f },
+						new SpawnVariant("rock_coal") { Weight = 0.15f },
+						new SpawnVariant("rock_copper") { Weight = 0.05f }
 					}
 				},
-				new ObjectSpawnRule
+				new ObjectSpawnRule("plains_flowers")
 				{
-					Id = "plains_flowers",
 					Density = 0.3f,
 					Algorithm = NoisePresets.Flowers(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "flower_poppy", Weight = 0.5f }
+						new SpawnVariant("flower_poppy") { Weight = 0.5f }
 					}
 				}
 			}
@@ -128,15 +120,14 @@ public static class BiomeDefinitions
 			MaxHumidity = 0.35f,
 			ObjectRules =
 			{
-				new ObjectSpawnRule
+				new ObjectSpawnRule("desert_rocks")
 				{
-					Id = "desert_rocks",
 					Density = 0.25f,
 					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "rock", Weight = 0.8f },
-						new SpawnVariant { Id = "rock_coal", Weight = 0.2f }
+						new SpawnVariant("rock") { Weight = 0.8f },
+						new SpawnVariant("rock_coal") { Weight = 0.2f }
 					}
 				}
 			}
@@ -154,26 +145,24 @@ public static class BiomeDefinitions
 
 			ObjectRules =
 			{
-				new ObjectSpawnRule
+				new ObjectSpawnRule("tundra_trees")
 				{
-					Id = "tundra_trees",
 					Density = 0.3f,
 					Algorithm = NoisePresets.TundraTrees(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "tree_pine", Weight = 1f }
+						new SpawnVariant("tree_pine") { Weight = 1f }
 					}
 				},
-				new ObjectSpawnRule
+				new ObjectSpawnRule("tundra_rocks")
 				{
-					Id = "tundra_rocks",
 					Density = 0.25f,
 					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "rock", Weight = 1f },
-						new SpawnVariant { Id = "rock_coal", Weight = 0.15f },
-						new SpawnVariant { Id = "rock_copper", Weight = 0.02f }
+						new SpawnVariant("rock") { Weight = 1f },
+						new SpawnVariant("rock_coal") { Weight = 0.15f },
+						new SpawnVariant("rock_copper") { Weight = 0.02f }
 					}
 				}
 			}
@@ -191,27 +180,25 @@ public static class BiomeDefinitions
 
 			ObjectRules =
 			{
-				new ObjectSpawnRule
+				new ObjectSpawnRule("taiga_trees")
 				{
-					Id = "taiga_trees",
 					Density = 0.55f,
 					Algorithm = NoisePresets.TaigaTrees(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "tree_pine", Weight = 2f },
-						new SpawnVariant { Id = "tree_birch", Weight = 0.5f }
+						new SpawnVariant("tree_pine") { Weight = 2f },
+						new SpawnVariant("tree_birch") { Weight = 0.5f }
 					}
 				},
-				new ObjectSpawnRule
+				new ObjectSpawnRule("taiga_rocks")
 				{
-					Id = "taiga_rocks",
 					Density = 0.25f,
 					Algorithm = NoisePresets.OreClusters(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "rock", Weight = 1f },
-						new SpawnVariant { Id = "rock_coal", Weight = 0.15f },
-						new SpawnVariant { Id = "rock_copper", Weight = 0.025f }
+						new SpawnVariant("rock") { Weight = 1f },
+						new SpawnVariant("rock_coal") { Weight = 0.15f },
+						new SpawnVariant("rock_copper") { Weight = 0.025f }
 					}
 				}
 			}
@@ -233,14 +220,13 @@ public static class BiomeDefinitions
 			GroundTileId = TileId.Sand,
 			ObjectRules =
 			{
-				new ObjectSpawnRule
+				new ObjectSpawnRule("riverbank_reeds")
 				{
-					Id = "riverbank_reeds",
 					Density = 0.3f,
 					Algorithm = NoisePresets.Reeds(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant { Id = "reeds", Weight = 1f }
+						new SpawnVariant("reeds") { Weight = 1f }
 					},
 					Conditions = new SpawnConditions
 					{

@@ -3,17 +3,20 @@ using Godot;
 public class SpawnVariant
 {
 	public string Id { get; set; }
+	public int StableId { get; set; }
 	public float Weight { get; set; } = 1f;
 
-	private int? _typeId;
-
-	public int TypeId => _typeId ??= WorldObjectRegistry.StableHash(Id);
+	public SpawnVariant(string id)
+	{
+		Id = id;
+		StableId = DeterministicHash.String32(id);
+	}
 
 	public WorldObjectDefinition Definition
 	{
 		get
 		{
-			var def = WorldObjectRegistry.GetDefinition(TypeId);
+			var def = WorldObjectRegistry.GetDefinition(StableId);
 			if (def == null)
 				GD.PushError($"SpawnVariant Id '{Id}' not found.");
 			return def;

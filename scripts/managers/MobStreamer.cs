@@ -122,7 +122,10 @@ public partial class MobStreamer : Node
 		{
 			if (candidates.Count == 0) continue;
 
-			var rng = new Random(HashSeed(_world.TerrainSeed, chunk.Coord, rule.Id));
+			var seed = DeterministicHash.Combine32(_world.TerrainSeed, chunk.Coord.X, chunk.Coord.Y,
+				DeterministicHash.String32(rule.Id));
+
+			var rng = new Random(seed);
 
 			if (rng.NextDouble() > rule.ChunkChance) continue;
 
@@ -136,7 +139,8 @@ public partial class MobStreamer : Node
 			var scene = MobRegistry.Instance.GetScene(rule.MobId);
 			for (var i = 0; i < picked.Count; i++)
 			{
-				var uid = HashUid(_world.TerrainSeed, chunk.Coord, rule.Id, i);
+				var uid = DeterministicHash.Combine64(_world.TerrainSeed, chunk.Coord.X, chunk.Coord.Y,
+					DeterministicHash.String32(rule.Id), i);
 				if (_activeMobs.ContainsKey(uid)) continue;
 
 				if (delta != null && delta.Mobs.ContainsKey(uid)) continue;
@@ -281,54 +285,6 @@ public partial class MobStreamer : Node
 			var j = rng.Next(i, candidates.Count);
 			(candidates[i], candidates[j]) = (candidates[j], candidates[i]);
 			picked.Add(candidates[i]);
-		}
-	}
-
-	// utility functions
-
-	private static int StableHash(string s)
-	{
-		unchecked
-		{
-			var hash = 23;
-			foreach (var t in s)
-				hash = hash * 31 + t;
-
-			return hash;
-		}
-	}
-
-	private static int HashSeed(int worldSeed, Vector2I chunkCoord, string ruleId)
-	{
-		unchecked
-		{
-			var hash = worldSeed;
-			hash = hash * 31 + chunkCoord.X;
-			hash = hash * 31 + chunkCoord.Y;
-			hash = hash * 31 + StableHash(ruleId);
-			return hash;
-		}
-	}
-
-	private static ulong HashUid(int worldSeed, Vector2I chunk, string ruleId, int index)
-	{
-		unchecked
-		{
-			var h = 1469598103934665603UL; // FNV-1a 64 offset basis
-
-			Mix((uint)worldSeed);
-			Mix((uint)chunk.X);
-			Mix((uint)chunk.Y);
-			Mix((uint)StableHash(ruleId));
-			Mix((uint)index);
-
-			return h;
-
-			void Mix(ulong v)
-			{
-				h ^= v;
-				h *= 1099511628211UL;
-			}
 		}
 	}
 }

@@ -4,10 +4,18 @@ using System.Collections.Generic;
 public class ObjectSpawnRule
 {
 	public string Id { get; set; }
+	public int StableId { get; set; }
+
 	public SpawnAlgorithm Algorithm { get; set; }
 	public float Density { get; set; } = 0.5f;
 	public List<SpawnVariant> Variants { get; set; } = new();
 	public SpawnConditions Conditions { get; set; } = new();
+
+	public ObjectSpawnRule(string id)
+	{
+		Id = id;
+		StableId = DeterministicHash.String32(id);
+	}
 
 	public bool ShouldPlace(int x, int y)
 	{
@@ -20,10 +28,8 @@ public class ObjectSpawnRule
 		foreach (var v in Variants)
 			totalWeight += v.Weight;
 
-		var hash = HashCode.Combine(seed, Id, x, y);
-		var u = (uint)hash;
-		var t = u / (float)uint.MaxValue;
-
+		var hash = DeterministicHash.CombineU32(seed, StableId, x, y);
+		var t = hash / (float)uint.MaxValue;
 		var roll = t * totalWeight;
 
 		foreach (var v in Variants)
