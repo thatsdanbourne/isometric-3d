@@ -24,6 +24,9 @@ public class ObjectSpawnRule
 
 	public SpawnVariant PickVariant(int seed, int x, int y)
 	{
+		if (Variants.Count == 1)
+			return Variants[0];
+
 		float totalWeight = 0;
 		foreach (var v in Variants)
 			totalWeight += v.Weight;
@@ -34,7 +37,7 @@ public class ObjectSpawnRule
 
 		foreach (var v in Variants)
 		{
-			if (roll <= v.Weight)
+			if (roll < v.Weight)
 				return v;
 
 			roll -= v.Weight;

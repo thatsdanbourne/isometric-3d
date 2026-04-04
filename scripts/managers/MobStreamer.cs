@@ -122,8 +122,12 @@ public partial class MobStreamer : Node
 		{
 			if (candidates.Count == 0) continue;
 
-			var seed = DeterministicHash.Combine32(_world.TerrainSeed, chunk.Coord.X, chunk.Coord.Y,
-				DeterministicHash.String32(rule.Id));
+			var seed = DeterministicHash.Combine32(
+				_world.TerrainSeed,
+				chunk.Coord.X,
+				chunk.Coord.Y,
+				rule.StableId
+			);
 
 			var rng = new Random(seed);
 
@@ -139,8 +143,16 @@ public partial class MobStreamer : Node
 			var scene = MobRegistry.Instance.GetScene(rule.MobId);
 			for (var i = 0; i < picked.Count; i++)
 			{
-				var uid = DeterministicHash.Combine64(_world.TerrainSeed, chunk.Coord.X, chunk.Coord.Y,
-					DeterministicHash.String32(rule.Id), i);
+				var tile = picked[i];
+				var uid = DeterministicHash.Combine64(
+					_world.TerrainSeed,
+					chunk.Coord.X,
+					chunk.Coord.Y,
+					rule.StableId,
+					tile.X,
+					tile.Y
+				);
+
 				if (_activeMobs.ContainsKey(uid)) continue;
 
 				if (delta != null && delta.Mobs.ContainsKey(uid)) continue;
@@ -279,12 +291,13 @@ public partial class MobStreamer : Node
 	{
 		picked.Clear();
 
-		// Fisher-Yates partial shuffle (in-place)
+		var temp = new List<Vector2I>(candidates);
+
 		for (var i = 0; i < count; i++)
 		{
-			var j = rng.Next(i, candidates.Count);
-			(candidates[i], candidates[j]) = (candidates[j], candidates[i]);
-			picked.Add(candidates[i]);
+			var j = rng.Next(i, temp.Count);
+			(temp[i], temp[j]) = (temp[j], temp[i]);
+			picked.Add(temp[i]);
 		}
 	}
 }
