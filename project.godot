@@ -24,7 +24,7 @@ AudioManager="*res://scripts/managers/AudioManager.cs"
 SettingsManager="*res://scripts/managers/SettingsManager.cs"
 Init="*res://scripts/systems/Init.cs"
 NetworkManager="*uid://du4r4p0pj181k"
-DebugLaunchConfig="*uid://2vkequ5sdwmf"
+LaunchConfig="*uid://2vkequ5sdwmf"
 
 [debug_draw_3d]
 

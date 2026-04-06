@@ -11,13 +11,7 @@ public partial class ChunkObject : RefCounted
 
 	// runtime
 	public WorldObject RuntimeNode;
-	public bool MarkedForRemoval;
-}
-
-public partial class ChunkDecor : RefCounted
-{
-	public Vector3 Position;
-	public DecorSpawnRule DecorRule;
+	public bool MarkedForRemoval = false;
 }
 
 public enum ChunkObjectSource

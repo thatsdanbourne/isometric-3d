@@ -13,12 +13,12 @@ public static class WorldObjectRegistry
 		bool blocksTile = true
 	)
 	{
-		var typeId = DeterministicHash.String32(id);
+		var uid = DeterministicHash.String32(id);
 
-		Defs[typeId] = new WorldObjectDefinition
+		Defs[uid] = new WorldObjectDefinition
 		{
 			Id = id,
-			TypeId = typeId,
+			StableId = uid,
 			Scene = scene,
 			MaxHealth = maxHealth,
 			ToolTier = toolTier,
@@ -26,21 +26,21 @@ public static class WorldObjectRegistry
 		};
 	}
 
-	public static PackedScene GetScene(int typeId)
+	public static PackedScene GetScene(int uid)
 	{
-		if (Defs.TryGetValue(typeId, out var def))
+		if (Defs.TryGetValue(uid, out var def))
 			return def.Scene;
 
-		GD.PrintErr($"WorldObjectRegistry: No definition found for typeId '{typeId}'");
+		GD.PrintErr($"WorldObjectRegistry: No definition found for uid '{uid}'");
 		return null;
 	}
 
-	public static WorldObjectDefinition GetDefinition(int typeId)
+	public static WorldObjectDefinition GetDefinition(int uid)
 	{
-		if (Defs.TryGetValue(typeId, out var def))
+		if (Defs.TryGetValue(uid, out var def))
 			return def;
 
-		GD.PrintErr($"WorldObjectRegistry: No definition found for typeId '{typeId}'");
+		GD.PrintErr($"WorldObjectRegistry: No definition found for uid '{uid}'");
 		return null;
 	}
 
@@ -65,7 +65,7 @@ public static class WorldObjectRegistry
 public class WorldObjectDefinition
 {
 	public string Id;
-	public int TypeId;
+	public int StableId;
 	public PackedScene Scene;
 	public ToolTier ToolTier;
 	public float MaxHealth;

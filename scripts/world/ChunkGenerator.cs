@@ -1,10 +1,9 @@
 using Godot;
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 
-public partial class ChunkGenerator(World world, ChunkManager chunkManager, int terrainSeed) : Node
+public partial class ChunkGenerator(World world, int terrainSeed) : Node
 {
 	[Signal]
 	public delegate void InitialChunksReadyEventHandler();
@@ -13,24 +12,24 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 	private bool _running;
 
 	private readonly ConcurrentQueue<Vector2I> _buildQueue = new();
-	private readonly ConcurrentQueue<Chunk> _finaliseQueue = new();
+	private readonly ConcurrentQueue<ChunkDto> _builtChunkQueue = new();
+	private readonly Queue<ChunkDto> _clientChunkQueue = new();
 	private RandomNumberGenerator _rng = new();
 
-	private readonly Dictionary<string, int[]> _tileVariants = new()
-	{
-		{ "grass", [0, 1] },
-		{ "sand", [3] },
-		{ "snow", [4] }
-	};
+	// private readonly Dictionary<string, int[]> _tileVariants = new()
+	// {
+	// 	{ "grass", [0, 1] },
+	// 	{ "sand", [3] },
+	// 	{ "snow", [4] }
+	// };
+	//
+	// private readonly Dictionary<string, float[]> _tileVariantWeights = new()
+	// {
+	// 	{ "grass", [0.795f, 0.005f] },
+	// 	{ "sand", [1f] },
+	// 	{ "snow", [1f] }
+	// };
 
-	private readonly Dictionary<string, float[]> _tileVariantWeights = new()
-	{
-		{ "grass", [0.795f, 0.005f] },
-		{ "sand", [1f] },
-		{ "snow", [1f] }
-	};
-
-	// start/stop/update
 	public void Start()
 	{
 		_running = true;
@@ -44,9 +43,21 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 		_workerThread?.Join();
 	}
 
-	public void Update()
+	public void ProcessBuiltChunks()
 	{
-		while (_finaliseQueue.TryDequeue(out var data)) FinaliseChunk(data);
+		while (_builtChunkQueue.TryDequeue(out var data))
+			StoreServerChunk(data);
+	}
+
+	private void StoreServerChunk(ChunkDto chunkDto)
+	{
+		var chunkCoord = chunkDto.Coord;
+		if (world.ServerChunks.ContainsKey(chunkCoord))
+			return;
+
+		var chunk = CreateChunkFromDto(chunkDto);
+		world.ServerChunks[chunkCoord] = chunk;
+		world.ChunkManager.OnServerChunkBuilt(chunkCoord);
 	}
 
 	public void RequestBuild(Vector2I coord)
@@ -60,7 +71,7 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 			if (_buildQueue.TryDequeue(out var coord))
 			{
 				var result = BuildChunk(coord);
-				_finaliseQueue.Enqueue(result);
+				_builtChunkQueue.Enqueue(result);
 			}
 			else
 			{
@@ -68,21 +79,19 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 			}
 	}
 
-	private Chunk BuildChunk(Vector2I chunkCoord)
+	private ChunkDto BuildChunk(Vector2I chunkCoord)
 	{
 		var sw = System.Diagnostics.Stopwatch.StartNew();
 
 		var c = world.ChunkSize;
-		var tiles = new TileInstance[c, c];
-		var objects = new List<ChunkObject>();
-		var decors = new List<ChunkDecor>();
+		var tileDtos = new List<TileInstanceDto>(c * c);
+		var objects = new List<ChunkObjectDto>();
 		var blocked = new bool[c, c];
 
 		var baseBiomes = new BiomeDefinition[c, c];
 		var finalBiomes = new BiomeDefinition[c, c];
 		var waterFeatures = new WaterFeatureType[c, c];
 
-		var chunk = new Chunk(chunkCoord, tiles, objects, decors, new Dictionary<string, ChunkTileMeshData>());
 		world.TryGetChunkDelta(chunkCoord, out var chunkDelta);
 
 		// pass 1, tile data
@@ -94,19 +103,32 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 
 			// determine biome
 			var sample = world.BiomeSampler.SampleTile(globalX, globalY);
-			var baseBiome = sample.BaseBiome;
-			var featureResult = sample.WaterFeature;
-			var finalBiome = sample.FinalBiome;
 
-			baseBiomes[x, y] = baseBiome;
-			finalBiomes[x, y] = finalBiome;
-			waterFeatures[x, y] = featureResult.Type;
+			baseBiomes[x, y] = sample.BaseBiome;
+			finalBiomes[x, y] = sample.FinalBiome;
+			waterFeatures[x, y] = sample.WaterFeature.Type;
 
-			var tileDef = TileRegistry.Get(finalBiome.GroundTileId);
-			tiles[x, y] = new TileInstance(tileDef, finalBiome.Id, sample.Temperature, sample.Humidity);
+			var tileDef = TileRegistry.Get(sample.FinalBiome.GroundTileId);
+			var tile = new TileInstance(
+				tileDef,
+				sample.FinalBiome.Id,
+				sample.Temperature,
+				sample.Humidity
+			);
+
+			tileDtos.Add(new TileInstanceDto
+			{
+				X = x,
+				Y = y,
+				DefinitionId = (int)tile.Definition.Id,
+				BiomeId = (int)tile.Biome,
+				Temperature = tile.Temp,
+				Humidity = tile.Humidity
+			});
 		}
 
-		chunk.SpawnContext = new ChunkSpawnContext
+
+		var spawnContext = new ChunkSpawnContext
 		{
 			BaseBiomes = baseBiomes,
 			FinalBiomes = finalBiomes,
@@ -126,15 +148,15 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 				y,
 				globalX,
 				globalY,
-				chunk.SpawnContext.BaseBiomes[x, y],
-				chunk.SpawnContext.FinalBiomes[x, y],
-				chunk.SpawnContext.WaterFeatures[x, y]
+				baseBiomes[x, y],
+				finalBiomes[x, y],
+				waterFeatures[x, y]
 			);
 
 			// build procedural objects
 			foreach (var spawn in finalBiomes[x, y].ObjectRules)
 			{
-				if (!TryGetEffectiveDensity(spawn, chunk.SpawnContext, tileContext, out var effectiveDensity))
+				if (!TryGetEffectiveDensity(spawn, spawnContext, tileContext, out var effectiveDensity))
 					continue;
 
 				if (!spawn.Algorithm.ShouldPlace(globalX, globalY, effectiveDensity))
@@ -150,27 +172,26 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 				var variant = spawn.PickVariant(terrainSeed, globalX, globalY);
 				var def = variant.Definition;
 
-				var obj = new ChunkObject
+				objects.Add(new ChunkObjectDto
 				{
-					Definition = def,
+					DefinitionId = def.StableId,
 					TileCoord = tilePos,
 					Position = new Vector3(globalX, 0, globalY),
 					ChunkCoord = chunkCoord,
 					Source = ChunkObjectSource.Procedural
-				};
+				});
 
-				objects.Add(obj);
-
-				blocked[x, y] = obj.Definition.BlocksTile;
+				if (def.BlocksTile)
+					blocked[x, y] = true;
 			}
 		}
 
-		// build player placed objects
+		// build player-placed objects
 		if (chunkDelta != null)
 			foreach (var placed in chunkDelta.PlacedObjectsByTile.Values)
-				objects.Add(new ChunkObject
+				objects.Add(new ChunkObjectDto
 				{
-					Definition = WorldObjectRegistry.GetDefinition(placed.DefinitionTypeId),
+					DefinitionId = placed.DefinitionTypeId,
 					TileCoord = placed.TileCoord,
 					Position = placed.Position,
 					ChunkCoord = chunkCoord,
@@ -179,30 +200,67 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 
 
 		sw.Stop();
-		chunk.BuildTimeMs = sw.Elapsed.TotalMilliseconds;
-		return chunk;
+		// GD.Print(sw.Elapsed.TotalMilliseconds);
+
+		return new ChunkDto(
+			chunkCoord,
+			tileDtos,
+			objects
+		);
 	}
 
-	private void FinaliseChunk(Chunk chunk)
+	public void EnqueueClientChunk(ChunkDto chunkDto)
+	{
+		if (world.ActiveChunks.ContainsKey(chunkDto.Coord))
+			return;
+
+		_clientChunkQueue.Enqueue(chunkDto);
+	}
+
+	public void ProcessClientChunkQueue()
+	{
+		var sw = System.Diagnostics.Stopwatch.StartNew();
+		const double maxMs = 2.0;
+
+		while (_clientChunkQueue.Count > 0)
+		{
+			var chunk = _clientChunkQueue.Dequeue();
+			FinaliseChunk(chunk);
+
+			if (world.ActiveChunks.ContainsKey(chunk.Coord))
+				continue;
+
+			if (sw.Elapsed.TotalMilliseconds > maxMs)
+				break;
+		}
+	}
+
+	public void FinaliseChunk(ChunkDto chunkDto)
+	{
+		var chunkCoord = chunkDto.Coord;
+		if (world.ActiveChunks.ContainsKey(chunkCoord))
+		{
+			GD.Print("Skipping {chunkCoord}, already active");
+			return;
+		}
+
+		var chunk = CreateChunkFromDto(chunkDto);
+		FinaliseChunk(chunk);
+	}
+
+
+	public void FinaliseChunk(Chunk chunk)
 	{
 		var sw = System.Diagnostics.Stopwatch.StartNew();
 
 		var chunkCoord = chunk.Coord;
 		if (world.ActiveChunks.ContainsKey(chunkCoord))
-			return;
-
-		var c = world.ChunkSize;
-
-		world.ActiveChunks[chunkCoord] = chunk;
-
-		if (!chunkManager.InitialChunksReady &&
-		    chunkManager.PendingInitialChunks.Remove(chunkCoord) &&
-		    chunkManager.PendingInitialChunks.Count == 0)
 		{
-			chunkManager.InitialChunksReady = true;
-			EmitSignal(SignalName.InitialChunksReady);
+			GD.Print($"Skipping {chunkCoord}, already active");
+			return;
 		}
 
+		var c = world.ChunkSize;
 		var pos = new Vector3I();
 		var baseX = chunkCoord.X * c;
 		var baseY = chunkCoord.Y * c;
@@ -210,32 +268,26 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 		for (var x = 0; x < c; x++)
 		for (var y = 0; y < c; y++)
 		{
-			var id = chunk.Tiles[x, y].Definition.GridTileId;
+			var tile = chunk.Tiles[x, y];
+			var id = tile.Definition.GridTileId;
+
 			pos.X = baseX + x;
 			pos.Y = 0;
 			pos.Z = baseY + y;
 
-			if (chunk.Tiles[x, y].Definition.Name == "water")
+			if (tile.Definition.Name == "water")
 				world.WaterMap.SetCellItem(pos, id);
 			else
 				world.GroundMap.SetCellItem(pos, id);
 		}
 
 		world.WorldObjectManager.EnqueueChunk(chunk);
+		world.ActiveChunks[chunkCoord] = chunk;
 
 		sw.Stop();
 		chunk.FinaliseTimeMs = sw.Elapsed.TotalMilliseconds;
 
-		GD.Print($"Chunk {chunkCoord} > Build {chunk.BuildTimeMs:F3}ms | Finalise {chunk.FinaliseTimeMs:F3}ms");
-	}
-
-	private int PickWeightedVariant(string tileType, int x, int y)
-	{
-		var seed = (ulong)HashCode.Combine(terrainSeed, x, y);
-		_rng.Seed = seed;
-
-		var index = _rng.RandWeighted(_tileVariantWeights[tileType]);
-		return _tileVariants[tileType][(int)index];
+		// GD.Print($"Chunk {chunkCoord} > Build {chunk.BuildTimeMs:F3}ms | Finalise {chunk.FinaliseTimeMs:F3}ms");
 	}
 
 	private bool TryGetEffectiveDensity(
@@ -361,6 +413,40 @@ public partial class ChunkGenerator(World world, ChunkManager chunkManager, int 
 		count = CountMatchingNeighbours(chunkCtx, localX, localY, targetType, targetId, radius);
 		cache[key] = count;
 		return count;
+	}
+
+	private Chunk CreateChunkFromDto(ChunkDto chunkDto)
+	{
+		var chunkCoord = chunkDto.Coord;
+		var c = world.ChunkSize;
+		var tiles = new TileInstance[c, c];
+
+		foreach (var tileDto in chunkDto.Tiles)
+		{
+			var tileDef = TileRegistry.Get((TileId)tileDto.DefinitionId);
+			tiles[tileDto.X, tileDto.Y] = new TileInstance(
+				tileDef,
+				(BiomeId)tileDto.BiomeId,
+				tileDto.Temperature,
+				tileDto.Humidity
+			);
+		}
+
+		var objects = new List<ChunkObject>(chunkDto.Objects.Count);
+		foreach (var obj in chunkDto.Objects)
+		{
+			var def = WorldObjectRegistry.GetDefinition(obj.DefinitionId);
+			objects.Add(new ChunkObject
+			{
+				Definition = def,
+				Position = obj.Position,
+				TileCoord = obj.TileCoord,
+				ChunkCoord = obj.ChunkCoord,
+				Source = obj.Source
+			});
+		}
+
+		return new Chunk(chunkCoord, tiles, objects);
 	}
 }
 

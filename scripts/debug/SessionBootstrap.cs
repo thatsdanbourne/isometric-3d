@@ -4,31 +4,31 @@ using System.Threading.Tasks;
 
 public partial class SessionBootstrap : Node
 {
-	private DebugLaunchConfig Debug => GetNode<DebugLaunchConfig>("/root/DebugLaunchConfig");
+	private LaunchConfig Config => GetNode<LaunchConfig>("/root/LaunchConfig");
 
 	public override async void _Ready()
 	{
-		switch (Debug.SessionMode)
+		switch (Config.SessionMode)
 		{
-			case DebugSessionMode.None:
-			case DebugSessionMode.Menu:
+			case SessionMode.None:
+			case SessionMode.Menu:
 				ShowMainMenu();
 				break;
 
-			case DebugSessionMode.Single:
+			case SessionMode.Single:
 				StartSinglePlayer();
 				break;
 
-			case DebugSessionMode.Host:
+			case SessionMode.Host:
 				StartHost();
 				break;
 
-			case DebugSessionMode.Client:
+			case SessionMode.Client:
 				await StartClient();
 				break;
 		}
 
-		GetWindow().Title = $"Emberwild [{Debug.SessionMode}] [{Multiplayer.GetUniqueId()}]";
+		GetWindow().Title = $"Emberwild [{Config.SessionMode}] [{Multiplayer.GetUniqueId()}]";
 	}
 
 	private World CreateWorld()
@@ -45,8 +45,8 @@ public partial class SessionBootstrap : Node
 	private void StartSinglePlayer()
 	{
 		var world = CreateWorld();
-
-		switch (Debug.WorldMode)
+		GameManager.Instance.SessionMode = SessionMode.Single;
+		switch (Config.WorldMode)
 		{
 			case WorldLoadMode.Random:
 			case WorldLoadMode.Seed:
@@ -64,13 +64,13 @@ public partial class SessionBootstrap : Node
 	{
 		var world = CreateWorld();
 
-		switch (Debug.WorldMode)
+		switch (Config.WorldMode)
 		{
 			case WorldLoadMode.Random:
 			case WorldLoadMode.Seed:
 				world.InitialiseWorld(ResolveDebugSeed());
 				GameManager.Instance.StartLocalSession(world, Vector3.Zero);
-				NetworkManager.Instance.Host(Debug.Port);
+				NetworkManager.Instance.Host(Config.Port);
 				break;
 
 			case WorldLoadMode.Save:
@@ -81,9 +81,9 @@ public partial class SessionBootstrap : Node
 
 	private int ResolveDebugSeed()
 	{
-		return Debug.WorldMode switch
+		return Config.WorldMode switch
 		{
-			WorldLoadMode.Seed => Debug.Seed,
+			WorldLoadMode.Seed => Config.Seed,
 			WorldLoadMode.Random => (int)GD.Randi(),
 			WorldLoadMode.Save => -1, // placeholder until save loading
 			_ => (int)GD.Randi()
@@ -94,7 +94,7 @@ public partial class SessionBootstrap : Node
 	{
 		var world = CreateWorld();
 
-		NetworkManager.Instance.Join(Debug.Address, Debug.Port);
+		NetworkManager.Instance.Join(Config.Address, Config.Port);
 
 		await ToSignal(GetTree().CreateTimer(0.2f), SceneTreeTimer.SignalName.Timeout);
 	}

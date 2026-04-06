@@ -10,6 +10,8 @@ public partial class GameManager : Node
 	[Signal]
 	public delegate void CurrentWorldChangedEventHandler(World world);
 
+	public SessionMode SessionMode { get; set; }
+
 	public World CurrentWorld { get; private set; }
 	public Player LocalPlayer { get; private set; }
 
@@ -151,6 +153,7 @@ public partial class GameManager : Node
 		LocalPlayer.PlayerId = Multiplayer.GetUniqueId();
 		LocalPlayer.Name = $"Player_{LocalPlayer.PlayerId}";
 		LocalPlayer.IsLocal = true;
+		SessionMode = SessionMode.Host;
 	}
 
 	public void StartLocalSession(World world, Vector3 spawnPosition)
@@ -248,6 +251,7 @@ public partial class GameManager : Node
 		SendWorldInitToPeer(peerId);
 		SyncExistingPlayersToPeer(peerId);
 		RequestSpawnPlayer(peerId);
+		SessionMode = SessionMode.Client;
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]

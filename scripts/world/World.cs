@@ -28,6 +28,7 @@ public partial class World : Node3D
 	public FastNoiseLite LakeNoise;
 	public FastNoiseLite BankNoise;
 
+	public readonly Dictionary<Vector2I, Chunk> ServerChunks = new();
 	public readonly Dictionary<Vector2I, Chunk> ActiveChunks = new();
 	public Dictionary<Vector2I, ChunkDeltaData> ChunkDeltas = new();
 	private readonly Dictionary<Vector2I, int> _blockedTiles = new();
@@ -44,6 +45,8 @@ public partial class World : Node3D
 
 	public MobStreamer MobStreamer;
 	public BiomeSampler BiomeSampler;
+
+	private Vector2I? _lastSubmittedChunkCenter;
 
 	private bool _worldReady;
 
@@ -74,7 +77,7 @@ public partial class World : Node3D
 		var debugTeleporter = GetNode<DebugBiomeTeleporter>("World/DebugBiomeTeleporter");
 		debugTeleporter.World = this;
 
-		ChunkGenerator = new ChunkGenerator(this, ChunkManager, TerrainSeed);
+		ChunkGenerator = new ChunkGenerator(this, TerrainSeed);
 		ChunkGenerator.Start();
 		_worldReady = true;
 	}
@@ -100,23 +103,40 @@ public partial class World : Node3D
 
 		player.QueueFree();
 		_players.Remove(player);
+		ChunkManager.ForgetPeerChunks(player.PlayerId);
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (!_worldReady) return;
+		if (!_worldReady)
+			return;
 
-		var positions = new List<Vector3>();
-		foreach (var player in _players)
+		var isServerAuthority = !Multiplayer.HasMultiplayerPeer() || Multiplayer.IsServer();
+
+		if (isServerAuthority)
 		{
-			if (player == null || !IsInstanceValid(player) || !player.IsInsideTree())
-				continue;
+			var playerPositions = new List<Vector3>();
+			foreach (var player in _players)
+			{
+				if (player == null || !IsInstanceValid(player) || !player.IsInsideTree())
+					continue;
 
-			positions.Add(player.GlobalPosition);
+				playerPositions.Add(player.GlobalPosition);
+			}
+
+			ChunkManager.UpdateServerChunkCache(playerPositions);
+			ChunkGenerator.ProcessBuiltChunks();
 		}
 
-		ChunkManager.UpdateChunks(positions);
-		ChunkGenerator.Update();
+		var localPlayer = GameManager.Instance.LocalPlayer;
+		if (localPlayer != null && IsInstanceValid(localPlayer) && localPlayer.IsInsideTree())
+		{
+			ChunkManager.UpdateLocalChunks([localPlayer.GlobalPosition]);
+			UpdateLocalChunkInterest();
+		}
+
+		// for clients to finalise received chunks
+		ChunkGenerator.ProcessClientChunkQueue();
 		WorldTimeSeconds += delta;
 	}
 
@@ -318,5 +338,79 @@ public partial class World : Node3D
 				return player;
 
 		return null;
+	}
+
+	private void UpdateLocalChunkInterest()
+	{
+		var localPlayer = GameManager.Instance.LocalPlayer;
+		if (localPlayer == null || !IsInstanceValid(localPlayer) || !localPlayer.IsInsideTree())
+			return;
+
+		var center = TileUtils.WorldToChunk(localPlayer.GlobalPosition);
+
+		if (_lastSubmittedChunkCenter.HasValue && _lastSubmittedChunkCenter.Value == center)
+			return;
+
+		_lastSubmittedChunkCenter = center;
+
+		var coords = BuildDesiredChunkArray(center);
+
+		if (Multiplayer.HasMultiplayerPeer() && !Multiplayer.IsServer()) RpcId(1, nameof(SubmitDesiredChunks), coords);
+	}
+
+	private Godot.Collections.Array<Vector2I> BuildDesiredChunkArray(Vector2I center)
+	{
+		var coords = new Godot.Collections.Array<Vector2I>();
+
+		for (var x = -ChunkRadius; x <= ChunkRadius; x++)
+		for (var y = -ChunkRadius; y <= ChunkRadius; y++)
+			coords.Add(new Vector2I(center.X + x, center.Y + y));
+
+		return coords;
+	}
+
+	public void SendChunkUnloadToPeer(int peerId, Vector2I chunkCoord)
+	{
+		var localPeerId = Multiplayer.GetUniqueId();
+
+		if (peerId == localPeerId)
+		{
+			ChunkManager.RemoveChunk(chunkCoord);
+			return;
+		}
+
+		RpcId(peerId, nameof(ReceiveChunkUnload), chunkCoord);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	private void ReceiveChunkUnload(Vector2I chunkCoord)
+	{
+		if (!ActiveChunks.ContainsKey(chunkCoord))
+			return;
+
+		ChunkManager.RemoveChunk(chunkCoord);
+	}
+
+	public void SendChunkToPeer(int peerId, ChunkDto chunk)
+	{
+		var serialized = ChunkManager.SerializeChunk(chunk);
+		RpcId(peerId, nameof(ReceiveChunk), serialized);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void ReceiveChunk(Godot.Collections.Dictionary chunkData)
+	{
+		var chunk = ChunkManager.DeserializeChunk(chunkData);
+		ChunkGenerator.EnqueueClientChunk(chunk);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+	private void SubmitDesiredChunks(Godot.Collections.Array<Vector2I> coords)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		var peerId = Multiplayer.GetRemoteSenderId();
+		ChunkManager.UpdatePeerInterest(peerId, coords);
 	}
 }

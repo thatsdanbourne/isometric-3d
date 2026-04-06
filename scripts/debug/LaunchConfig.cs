@@ -1,9 +1,9 @@
 using Godot;
 using System;
 
-public partial class DebugLaunchConfig : Node
+public partial class LaunchConfig : Node
 {
-	public DebugSessionMode SessionMode { get; private set; } = DebugSessionMode.None;
+	public SessionMode SessionMode { get; private set; } = SessionMode.None;
 	public WorldLoadMode WorldMode { get; private set; } = WorldLoadMode.Random;
 
 	public int Seed { get; private set; }
@@ -20,11 +20,11 @@ public partial class DebugLaunchConfig : Node
 				var value = arg.Split("=")[1].ToLower();
 				SessionMode = value switch
 				{
-					"menu" => DebugSessionMode.Menu,
-					"single" => DebugSessionMode.Single,
-					"host" => DebugSessionMode.Host,
-					"client" => DebugSessionMode.Client,
-					_ => DebugSessionMode.None
+					"menu" => SessionMode.Menu,
+					"single" => SessionMode.Single,
+					"host" => SessionMode.Host,
+					"client" => SessionMode.Client,
+					_ => SessionMode.None
 				};
 			}
 			else if (arg.StartsWith("--world="))

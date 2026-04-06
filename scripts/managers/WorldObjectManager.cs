@@ -122,7 +122,7 @@ public partial class WorldObjectManager : Node
 		var chunkDelta = _world.GetOrCreateChunkDelta(data.ChunkCoord);
 		chunkDelta.PlacedObjectsByTile[data.TileCoord] = new PlacedObjectRecord
 		{
-			DefinitionTypeId = data.Definition.TypeId,
+			DefinitionTypeId = data.Definition.StableId,
 			TileCoord = data.TileCoord,
 			Position = data.Position
 		};
@@ -157,7 +157,7 @@ public partial class WorldObjectManager : Node
 			if (data.MarkedForRemoval || data.RuntimeNode != null)
 				continue;
 
-			var node = WorldObjectRegistry.GetScene(data.Definition.TypeId).Instantiate<WorldObject>();
+			var node = WorldObjectRegistry.GetScene(data.Definition.StableId).Instantiate<WorldObject>();
 
 			node.Data = data;
 			node.World = _world;
@@ -211,6 +211,7 @@ public partial class WorldObjectManager : Node
 
 			Recycle(data.RuntimeNode);
 			data.RuntimeNode = null;
+			data.MarkedForRemoval = false;
 
 			count++;
 		}

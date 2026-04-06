@@ -90,7 +90,7 @@ public enum ToolHitOutcome
 }
 
 // debug enums
-public enum DebugSessionMode
+public enum SessionMode
 {
 	None,
 	Menu,
