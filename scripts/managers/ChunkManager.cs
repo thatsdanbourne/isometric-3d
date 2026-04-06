@@ -11,7 +11,7 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 	private int ChunkSize { get; } = chunkSize;
 	private int ChunkRadius { get; } = chunkRadius;
 
-	private readonly HashSet<Vector2I> _lastLocalPlayerChunks = [];
+	private Vector2I? _lastLocalPlayerChunk;
 	private readonly HashSet<Vector2I> _pendingBuilds = [];
 
 
@@ -26,21 +26,20 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 		EnsureServerChunksExist(desiredChunks);
 	}
 
-	public void UpdateLocalChunks(IReadOnlyList<Vector3> localPlayerPositions)
+	public void UpdateLocalChunks(Vector3 localPlayerPosition)
 	{
-		if (localPlayerPositions == null || localPlayerPositions.Count == 0) return;
+		var playerChunk = TileUtils.WorldToChunk(localPlayerPosition);
 
-		var playerChunks = GetUniquePlayerChunks(localPlayerPositions);
-		var desiredChunks = BuildDesiredChunkSet(playerChunks);
+		var currentPlayerChunks = new HashSet<Vector2I> { playerChunk };
+		var desiredChunks = BuildDesiredChunkSet(currentPlayerChunks);
 
 		EnsureLocalChunksActive(desiredChunks);
 
-		if (!_lastLocalPlayerChunks.SetEquals(playerChunks))
-		{
-			_lastLocalPlayerChunks.Clear();
-			_lastLocalPlayerChunks.UnionWith(playerChunks);
-			UnloadChunksOutsideDesiredSet(desiredChunks);
-		}
+		if (_lastLocalPlayerChunk.HasValue && _lastLocalPlayerChunk.Value == playerChunk)
+			return;
+
+		_lastLocalPlayerChunk = playerChunk;
+		UnloadChunksOutsideDesiredSet(desiredChunks);
 	}
 
 	private void EnsureServerChunksExist(HashSet<Vector2I> desiredChunks)
@@ -50,10 +49,9 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 			if (ServerChunks.ContainsKey(coord))
 				continue;
 
-			if (_pendingBuilds.Contains(coord))
+			if (!_pendingBuilds.Add(coord))
 				continue;
 
-			_pendingBuilds.Add(coord);
 			world.ChunkGenerator.RequestBuild(coord);
 		}
 	}

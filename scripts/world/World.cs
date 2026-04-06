@@ -111,9 +111,10 @@ public partial class World : Node3D
 		if (!_worldReady)
 			return;
 
-		var isServerAuthority = !Multiplayer.HasMultiplayerPeer() || Multiplayer.IsServer();
+		var isMultiplayer = Multiplayer.HasMultiplayerPeer();
+		var isServer = !isMultiplayer || Multiplayer.IsServer();
 
-		if (isServerAuthority)
+		if (isServer)
 		{
 			var playerPositions = new List<Vector3>();
 			foreach (var player in _players)
@@ -130,13 +131,20 @@ public partial class World : Node3D
 
 		var localPlayer = GameManager.Instance.LocalPlayer;
 		if (localPlayer != null && IsInstanceValid(localPlayer) && localPlayer.IsInsideTree())
-		{
-			ChunkManager.UpdateLocalChunks([localPlayer.GlobalPosition]);
-			UpdateLocalChunkInterest();
-		}
+			if (isServer)
+			{
+				// single player or host
+				// activate local chunks directly from server-size cache
+				ChunkManager.UpdateLocalChunks(localPlayer.GlobalPosition);
+			}
+			else
+			{
+				// client
+				// request desired chunks from server and finalise received chunks
+				UpdateLocalChunkInterest();
+				ChunkGenerator.ProcessClientChunkQueue();
+			}
 
-		// for clients to finalise received chunks
-		ChunkGenerator.ProcessClientChunkQueue();
 		WorldTimeSeconds += delta;
 	}
 

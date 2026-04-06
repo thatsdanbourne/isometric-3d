@@ -12,7 +12,7 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 	private bool _running;
 
 	private readonly ConcurrentQueue<Vector2I> _buildQueue = new();
-	private readonly ConcurrentQueue<ChunkDto> _builtChunkQueue = new();
+	private readonly ConcurrentQueue<Chunk> _builtChunkQueue = new();
 	private readonly Queue<ChunkDto> _clientChunkQueue = new();
 	private RandomNumberGenerator _rng = new();
 
@@ -45,19 +45,11 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 
 	public void ProcessBuiltChunks()
 	{
-		while (_builtChunkQueue.TryDequeue(out var data))
-			StoreServerChunk(data);
-	}
-
-	private void StoreServerChunk(ChunkDto chunkDto)
-	{
-		var chunkCoord = chunkDto.Coord;
-		if (world.ServerChunks.ContainsKey(chunkCoord))
-			return;
-
-		var chunk = CreateChunkFromDto(chunkDto);
-		world.ServerChunks[chunkCoord] = chunk;
-		world.ChunkManager.OnServerChunkBuilt(chunkCoord);
+		while (_builtChunkQueue.TryDequeue(out var chunk))
+		{
+			world.ServerChunks[chunk.Coord] = chunk;
+			world.ChunkManager.OnServerChunkBuilt(chunk.Coord);
+		}
 	}
 
 	public void RequestBuild(Vector2I coord)
@@ -79,13 +71,23 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 			}
 	}
 
-	private ChunkDto BuildChunk(Vector2I chunkCoord)
+	public Chunk GetOrBuildServerChunk(Vector2I coord)
+	{
+		if (world.ServerChunks.TryGetValue(coord, out var cached))
+			return cached;
+
+		var chunk = BuildChunk(coord);
+		world.ServerChunks[coord] = chunk;
+		return chunk;
+	}
+
+	private Chunk BuildChunk(Vector2I chunkCoord)
 	{
 		var sw = System.Diagnostics.Stopwatch.StartNew();
 
 		var c = world.ChunkSize;
-		var tileDtos = new List<TileInstanceDto>(c * c);
-		var objects = new List<ChunkObjectDto>();
+		var tiles = new TileInstance[c, c];
+		var objects = new List<ChunkObject>();
 		var blocked = new bool[c, c];
 
 		var baseBiomes = new BiomeDefinition[c, c];
@@ -109,24 +111,13 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 			waterFeatures[x, y] = sample.WaterFeature.Type;
 
 			var tileDef = TileRegistry.Get(sample.FinalBiome.GroundTileId);
-			var tile = new TileInstance(
+			tiles[x, y] = new TileInstance(
 				tileDef,
 				sample.FinalBiome.Id,
 				sample.Temperature,
 				sample.Humidity
 			);
-
-			tileDtos.Add(new TileInstanceDto
-			{
-				X = x,
-				Y = y,
-				DefinitionId = (int)tile.Definition.Id,
-				BiomeId = (int)tile.Biome,
-				Temperature = tile.Temp,
-				Humidity = tile.Humidity
-			});
 		}
-
 
 		var spawnContext = new ChunkSpawnContext
 		{
@@ -172,9 +163,9 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 				var variant = spawn.PickVariant(terrainSeed, globalX, globalY);
 				var def = variant.Definition;
 
-				objects.Add(new ChunkObjectDto
+				objects.Add(new ChunkObject
 				{
-					DefinitionId = def.StableId,
+					Definition = def,
 					TileCoord = tilePos,
 					Position = new Vector3(globalX, 0, globalY),
 					ChunkCoord = chunkCoord,
@@ -189,24 +180,23 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 		// build player-placed objects
 		if (chunkDelta != null)
 			foreach (var placed in chunkDelta.PlacedObjectsByTile.Values)
-				objects.Add(new ChunkObjectDto
+			{
+				var def = WorldObjectRegistry.GetDefinition(placed.DefinitionTypeId);
+				objects.Add(new ChunkObject
 				{
-					DefinitionId = placed.DefinitionTypeId,
+					Definition = def,
 					TileCoord = placed.TileCoord,
 					Position = placed.Position,
 					ChunkCoord = chunkCoord,
 					Source = ChunkObjectSource.Placed
 				});
+			}
 
 
 		sw.Stop();
 		// GD.Print(sw.Elapsed.TotalMilliseconds);
 
-		return new ChunkDto(
-			chunkCoord,
-			tileDtos,
-			objects
-		);
+		return new Chunk(chunkCoord, tiles, objects);
 	}
 
 	public void EnqueueClientChunk(ChunkDto chunkDto)
@@ -225,10 +215,11 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 		while (_clientChunkQueue.Count > 0)
 		{
 			var chunk = _clientChunkQueue.Dequeue();
-			FinaliseChunk(chunk);
 
 			if (world.ActiveChunks.ContainsKey(chunk.Coord))
 				continue;
+
+			FinaliseChunk(chunk);
 
 			if (sw.Elapsed.TotalMilliseconds > maxMs)
 				break;
