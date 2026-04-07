@@ -2,6 +2,9 @@ using Godot;
 
 public interface IItemContainer
 {
+	[Signal]
+	public delegate void ContainerChangedEventHandler();
+
 	string Label { get; }
 	int SlotCount { get; }
 

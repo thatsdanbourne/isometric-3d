@@ -179,6 +179,25 @@ public partial class WorldObjectManager : Node
 		EnqueueSpawn(data);
 	}
 
+	public void ApplyRemoteStorageState(StorageStateData state)
+	{
+		var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(state.TileCoord));
+
+		if (!_world.ActiveChunks.TryGetValue(chunkCoord, out var chunk))
+			return;
+
+		foreach (var obj in chunk.Objects)
+		{
+			if (obj.TileCoord != state.TileCoord)
+				continue;
+
+			if (obj.RuntimeNode is IChunkStateful<StorageStateData> storage)
+				storage.RestoreState(state);
+
+			break;
+		}
+	}
+
 	public void EnqueueRemoval(ChunkObject data)
 	{
 		data.MarkedForRemoval = true;
@@ -222,23 +241,22 @@ public partial class WorldObjectManager : Node
 				_world.BlockTile(data.TileCoord);
 
 			// Restore state if applicable
-			_world.TryGetChunkDelta(data.ChunkCoord, out var delta);
-
-			switch (node)
-			{
-				case IChunkStateful<StationStateData> station:
+			if (_world.ActiveChunks.TryGetValue(data.ChunkCoord, out var chunk))
+				switch (node)
 				{
-					if (delta.StationStates.TryGetValue(data.TileCoord, out var stationState))
-						station.RestoreState(stationState);
-					break;
+					case IChunkStateful<StationStateData> station:
+					{
+						if (chunk.StationStates.TryGetValue(data.TileCoord, out var stationState))
+							station.RestoreState(stationState);
+						break;
+					}
+					case IChunkStateful<StorageStateData> storage:
+					{
+						if (chunk.StorageStates.TryGetValue(data.TileCoord, out var storageState))
+							storage.RestoreState(storageState);
+						break;
+					}
 				}
-				case IChunkStateful<StorageStateData> storage:
-				{
-					if (delta.StorageStates.TryGetValue(data.TileCoord, out var storageState))
-						storage.RestoreState(storageState);
-					break;
-				}
-			}
 
 			count++;
 		}
@@ -266,40 +284,8 @@ public partial class WorldObjectManager : Node
 		}
 	}
 
-	// private WorldObject GetPooled(string sceneId)
-	// {
-	// 	if (_pools.TryGetValue(sceneId, out var stack) && stack.Count > 0)
-	// 		return stack.Pop();
-	//
-	// 	return WorldObjectRegistry.GetScene(sceneId).Instantiate<WorldObject>();
-	// }
-
 	private void Recycle(WorldObject node)
 	{
-		// if (!IsInstanceValid(node))
-		// 	return;
-		//
-		// node.Visible = false;
-		// node.SetProcess(false);
-		// node.SetPhysicsProcess(false);
-		//
-		// EnsureParent(node, _world.WorldObjectPool);
-		//
-		// var id = node.Data?.Definition?.Id;
-		// if (string.IsNullOrEmpty(id))
-		// {
-		// 	node.QueueFree();
-		// 	return;
-		// }
-		//
-		// if (!_pools.TryGetValue(id, out var stack))
-		//     _pools[id] = stack = new Stack<WorldObject>();
-		//
-		// if (stack.Count < _maxPoolSizePerType)
-		//     stack.Push(node);
-		// else
-		//     node.QueueFree();
-
 		node.QueueFree();
 	}
 

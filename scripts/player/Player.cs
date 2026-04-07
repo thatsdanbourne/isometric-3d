@@ -67,8 +67,11 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public HUD HUD;
 	public Hotbar Hotbar;
 	public Inventory Inventory;
+	public ItemStack DraggedStack;
 
 	public CameraController CameraController;
+
+	private bool _testItemsGiven;
 
 	private static readonly StringName UseToolAction = "use_tool";
 	private static readonly StringName InteractAction = "interact";
@@ -82,6 +85,8 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_animTree = GetNode<AnimationTree>("AnimationTree");
 		_tintOverlay = _world.GetNode<BiomeTintOverlay>("World/BiomeTint/BiomeOverlay");
 		_equipment = GetNode<PlayerEquipment>("PlayerEquipment");
+		Hotbar = GetNode<Hotbar>("Hotbar");
+		Inventory = GetNode<Inventory>("Inventory");
 
 		_focusQuery = new PhysicsRayQueryParameters3D
 		{
@@ -97,22 +102,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 			CollisionMask = HittableMask
 		};
 
-		if (IsLocal)
+		if (!Multiplayer.HasMultiplayerPeer() || (Multiplayer.IsServer() && !_testItemsGiven))
 		{
-			CameraController = CameraControllerScene.Instantiate<CameraController>();
-			CameraController.Player = this;
-
-			AddChild(CameraController);
-
-			HUD = GetNode<HUD>("/root/Bootstrap/Game/HUD");
-			Hotbar = GetNode<Hotbar>("Hotbar");
-			Inventory = GetNode<Inventory>("Inventory");
-			HUD.RefreshUI();
-			Hotbar.SelectedSlotChanged += _ => UpdateEquippedItem();
-			Hotbar.ContainerChanged += UpdateEquippedItem;
-			_placement = new PlacementController();
-			AddChild(_placement);
-			_placement.Init(_world, this);
+			_testItemsGiven = true;
 
 			// testing items
 			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_sword"), 1);
@@ -123,6 +115,25 @@ public partial class Player : CharacterBody3D, IToolHittable
 			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("coal"), 20);
 			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("wood"), 20);
 			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone"), 20);
+
+			if (Multiplayer.HasMultiplayerPeer() && Multiplayer.IsServer())
+				_world.SyncPlayerInventoryState(this);
+		}
+
+		if (IsLocal)
+		{
+			CameraController = CameraControllerScene.Instantiate<CameraController>();
+			CameraController.Player = this;
+
+			AddChild(CameraController);
+
+			HUD = GetNode<HUD>("/root/Bootstrap/Game/HUD");
+			HUD.RefreshUI();
+			Hotbar.SelectedSlotChanged += _ => UpdateEquippedItem();
+			Hotbar.ContainerChanged += UpdateEquippedItem;
+			_placement = new PlacementController();
+			AddChild(_placement);
+			_placement.Init(_world, this);
 
 			EmitSignal(SignalName.PlayerReady);
 		}
@@ -241,6 +252,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public void CollectItem(Item item, int count)
 	{
 		InventoryManager.Instance.AddItem(this, item, count);
+		HUD.RefreshUI();
 	}
 
 	// input 

@@ -10,7 +10,6 @@ public partial class HUD : CanvasLayer
 	private Hotbar _hotbar;
 	private IItemContainer _storage;
 
-	private ItemStack _draggedStack;
 	private Control _cursorItem;
 	private TextureRect _cursorIcon;
 	private Label _cursorCount;
@@ -104,7 +103,7 @@ public partial class HUD : CanvasLayer
 	{
 		if (!_uiReady) return;
 
-		if (_draggedStack != null)
+		if (_player.DraggedStack != null)
 		{
 			var mousePos = GetViewport().GetMousePosition();
 			_cursorItem.GlobalPosition = mousePos + new Vector2(6, 6);
@@ -121,7 +120,7 @@ public partial class HUD : CanvasLayer
 
 	public void CloseInventoryUI()
 	{
-		if (_draggedStack != null) DropStack();
+		if (_player.DraggedStack != null) DropStack();
 
 		_inventoryRoot.Visible = false;
 		_craftingUI.Visible = false;
@@ -137,10 +136,16 @@ public partial class HUD : CanvasLayer
 
 		BuildStorageSlots(storage);
 		_storageWindow.Visible = true;
+
+		if (storage is Node node && node.HasSignal("ContainerChanged"))
+			node.Connect("ContainerChanged", new Callable(this, nameof(RefreshUI)));
 	}
 
 	private void CloseStorageUI()
 	{
+		if (_storage is Node node && node.HasSignal("ContainerChanged"))
+			node.Disconnect("ContainerChanged", new Callable(this, nameof(RefreshUI)));
+
 		_storage = null;
 		_storageWindow.Visible = false;
 		ClearChildren(_storageSlotGrid);
@@ -170,7 +175,7 @@ public partial class HUD : CanvasLayer
 			else if (mb.ButtonIndex == MouseButton.WheelDown)
 				_hotbar.SelectNext();
 
-			if (_draggedStack != null && IsCursorOutsideInventory()) DropStack();
+			if (_player.DraggedStack != null && IsCursorOutsideInventory()) DropStack();
 		}
 
 		if (e.IsActionPressed("ui_cancel"))
@@ -317,67 +322,92 @@ public partial class HUD : CanvasLayer
 
 	private void OnSlotLeftClick(IItemContainer container, int index)
 	{
-		_draggedStack = InventoryManager.Instance.LeftClick(container, index, _draggedStack);
-		UpdateCursor();
-		RefreshUI();
+		var world = GameManager.Instance.CurrentWorld;
+		if (world == null)
+			return;
+
+		var kind = GetContainerKind(container);
+		var storageTileCoord = GetStorageTileCoord(container);
+
+		world.HandleContainerClick(
+			kind,
+			storageTileCoord,
+			index,
+			0,
+			false);
+
+		if (!world.Multiplayer.HasMultiplayerPeer() || world.Multiplayer.IsServer())
+		{
+			UpdateCursor();
+			RefreshUI();
+		}
 	}
 
 	private void OnSlotShiftLeftClick(IItemContainer source, int index)
 	{
-		// From storage → hotbar, then inventory
-		if (source == _storage)
-		{
-			InventoryManager.Instance.ShiftClick(source, index, _hotbar, _inventory);
-		}
+		var world = GameManager.Instance.CurrentWorld;
+		if (world == null)
+			return;
 
-		// From player → storage (if open)
-		else if (_storage != null)
-		{
-			InventoryManager.Instance.ShiftClick(source, index, _storage);
-		}
+		var kind = GetContainerKind(source);
+		var storageTileCoord = GetStorageTileCoord(source);
 
-		// No storage open → fallback (hotbar ↔ inventory)
-		else
-		{
-			IItemContainer target;
-			if (ReferenceEquals(source, _hotbar))
-				target = _inventory;
-			else
-				target = _hotbar;
+		world.HandleContainerClick(
+			kind,
+			storageTileCoord,
+			index,
+			0,
+			true
+		);
 
-			InventoryManager.Instance.ShiftClick(source, index, target);
-		}
-
-		RefreshUI();
+		if (!world.Multiplayer.HasMultiplayerPeer() || world.Multiplayer.IsServer())
+			RefreshUI();
 	}
 
 	private void OnSlotRightClick(IItemContainer container, int index)
 	{
-		_draggedStack = InventoryManager.Instance.RightClick(container, index, _draggedStack);
-		UpdateCursor();
-		RefreshUI();
+		var world = GameManager.Instance.CurrentWorld;
+		if (world == null)
+			return;
+
+		var kind = GetContainerKind(container);
+		var storageTileCoord = GetStorageTileCoord(container);
+
+		world.HandleContainerClick(
+			kind,
+			storageTileCoord,
+			index,
+			1,
+			false
+		);
+
+		if (!world.Multiplayer.HasMultiplayerPeer() || world.Multiplayer.IsServer())
+		{
+			UpdateCursor();
+			RefreshUI();
+		}
 	}
 
 
 	private void DropStack()
 	{
-		InventoryManager.Instance.DropItem(_player, _draggedStack.Item, _draggedStack.Count);
-		_draggedStack = null;
+		InventoryManager.Instance.DropItem(_player, _player.DraggedStack.Item, _player.DraggedStack.Count);
+		_player.DraggedStack = null;
 		UpdateCursor();
 		RefreshUI();
 	}
 
 	private void UpdateCursor()
 	{
-		if (_draggedStack == null)
+		if (_player.DraggedStack == null)
 		{
 			_cursorItem.Visible = false;
 			return;
 		}
 
 		_cursorItem.Visible = true;
-		_cursorIcon.Texture = _draggedStack.Item.Icon;
-		_cursorCount.Text = _draggedStack.Count > 1 ? _draggedStack.Count.ToString() : "";
+		_cursorIcon.Texture = _player.DraggedStack.Item.Icon;
+		_cursorCount.Text = _player.DraggedStack.Count > 1 ? _player.DraggedStack.Count.ToString() : "";
 	}
 
 	private bool IsCursorOutsideInventory()
@@ -387,5 +417,36 @@ public partial class HUD : CanvasLayer
 
 		var mousePos = GetViewport().GetMousePosition();
 		return !_inventoryWindow.GetGlobalRect().HasPoint(mousePos);
+	}
+
+	public void UpdateDraggedCursorFromPlayerState()
+	{
+		UpdateCursor();
+	}
+
+	private ContainerKind GetContainerKind(IItemContainer container)
+	{
+		if (ReferenceEquals(container, _inventory))
+			return ContainerKind.Inventory;
+
+		if (ReferenceEquals(container, _hotbar))
+			return ContainerKind.Hotbar;
+
+		if (ReferenceEquals(container, _storage))
+			return ContainerKind.Storage;
+
+		GD.PrintErr("Unknown container kind in HUD.");
+		return ContainerKind.Inventory;
+	}
+
+	private Vector2I GetStorageTileCoord(IItemContainer container)
+	{
+		if (!ReferenceEquals(container, _storage))
+			return Vector2I.Zero;
+
+		if (container is not WorldObject worldObject)
+			return Vector2I.Zero;
+
+		return worldObject.Data.TileCoord;
 	}
 }

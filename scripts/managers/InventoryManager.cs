@@ -32,8 +32,6 @@ public partial class InventoryManager : Node
 
 		if (remaining > 0)
 			DropItem(player, item, remaining);
-
-		player.HUD.RefreshUI();
 	}
 
 
@@ -124,16 +122,6 @@ public partial class InventoryManager : Node
 		}
 	}
 
-	// swap logic
-	public void SwapStacks(IItemContainer src, int si, IItemContainer dest, int di)
-	{
-		var srcStack = src.GetSlot(si);
-		var destStack = dest.GetSlot(di);
-
-		src.SetSlot(si, destStack);
-		dest.SetSlot(di, srcStack);
-	}
-
 
 	// inventory shortcut logic
 
@@ -167,6 +155,7 @@ public partial class InventoryManager : Node
 				stack.Count += move;
 				dragged.Count -= move;
 
+				container.SetSlot(index, stack);
 				return dragged.Count <= 0 ? null : dragged;
 			}
 		}
@@ -180,7 +169,6 @@ public partial class InventoryManager : Node
 
 		return dragged;
 	}
-
 
 	public ItemStack RightClick(IItemContainer container, int index, ItemStack dragged)
 	{
@@ -199,6 +187,8 @@ public partial class InventoryManager : Node
 			if (stack.Item == dragged.Item && stack.Count < stack.Item.StackSize)
 			{
 				stack.Count += 1;
+				container.SetSlot(index, stack);
+
 				dragged.Count -= 1;
 				return dragged.Count > 0 ? dragged : null;
 			}
@@ -207,13 +197,16 @@ public partial class InventoryManager : Node
 		}
 
 		// pick up half of the stack
-		if (stack == null) return null;
+		if (stack == null)
+			return null;
 
 		var half = stack.Count / 2;
 		if (half <= 0)
 			return null;
 
 		stack.Count -= half;
+		container.SetSlot(index, stack.Count > 0 ? stack : null);
+
 		return new ItemStack(stack.Item, half);
 	}
 
@@ -248,14 +241,6 @@ public partial class InventoryManager : Node
 		// partial move
 		source.SetSlot(index, new ItemStack(stack.Item, remaining));
 		return new ItemStack(stack.Item, remaining);
-	}
-
-	private void Set(bool isHotbar, int index, ItemStack stack, Inventory inventory, Hotbar hotbar)
-	{
-		if (isHotbar)
-			hotbar.SetSlot(index, stack);
-		else
-			inventory.SetSlot(index, stack);
 	}
 
 	// helpers

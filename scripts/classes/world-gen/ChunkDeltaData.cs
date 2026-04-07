@@ -19,6 +19,8 @@ public struct PlacedObjectRecord
 
 public class StationStateData
 {
+	public int ObjectId;
+	public Vector2I TileCoord;
 	public string ActiveRecipeId;
 	public float TimeRemaining;
 	public int CompletedCount;
@@ -30,6 +32,8 @@ public class StationStateData
 
 public class StorageStateData
 {
+	public int ObjectId;
+	public Vector2I TileCoord;
 	public ItemStack[] Slots;
 }
 

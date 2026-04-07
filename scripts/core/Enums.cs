@@ -74,6 +74,13 @@ public enum StationType
 	Anvil
 }
 
+public enum ContainerKind
+{
+	Inventory = 0,
+	Hotbar = 1,
+	Storage = 2
+}
+
 public enum WeatherType
 {
 	Clear,

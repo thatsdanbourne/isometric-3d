@@ -245,30 +245,92 @@ public partial class World : Node3D
 		var chunkCoord = TileUtils.WorldToChunk(worldPos);
 
 		var def = item.PlaceableObjectDefinition;
-
 		var isServerAuthority = !Multiplayer.HasMultiplayerPeer() || Multiplayer.IsServer();
 
 		if (isServerAuthority)
 		{
-			if (!ActiveChunks.ContainsKey(chunkCoord))
-			{
-				GD.PrintErr($"Tried to place item in unloaded chunk {chunkCoord}");
+			var player = GameManager.Instance.LocalPlayer;
+			if (player == null || !IsInstanceValid(player))
 				return false;
-			}
 
-			var chunkObj = new ChunkObject
-			{
-				Definition = def,
-				TileCoord = tile,
-				Position = worldPos,
-				ChunkCoord = chunkCoord,
-				Source = ChunkObjectSource.Placed
-			};
-
-			return WorldObjectManager.RequestPlace(chunkObj);
+			return TryPlaceItemAuthoritative(player, item, def.StableId, tile, chunkCoord, worldPos);
 		}
 
-		RpcId(1, nameof(RequestPlaceObject), def.StableId, chunkCoord, tile, worldPos);
+		RpcId(1, nameof(RequestPlaceObject), item.Id, def.StableId, chunkCoord, tile, worldPos);
+		return true;
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+	private void RequestPlaceObject(string itemId, int defId, Vector2I chunkCoord, Vector2I tileCoord, Vector3 worldPos)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		if (!ActiveChunks.ContainsKey(chunkCoord))
+			return;
+
+		var peerId = Multiplayer.GetRemoteSenderId();
+		var player = GetPlayerById(peerId);
+		if (player == null)
+			return;
+
+		var item = ItemRegistry.GetItem(itemId) as PlaceableItem;
+		if (item == null)
+			return;
+
+		var def = item.PlaceableObjectDefinition;
+		if (def == null)
+			return;
+
+		TryPlaceItemAuthoritative(player, item, defId, tileCoord, chunkCoord, worldPos);
+	}
+
+	private bool TryPlaceItemAuthoritative(
+		Player player,
+		PlaceableItem item,
+		int defId,
+		Vector2I tileCoord,
+		Vector2I chunkCoord,
+		Vector3 worldPos)
+	{
+		if (!ActiveChunks.ContainsKey(chunkCoord))
+		{
+			GD.PrintErr($"Tried to place item in unloaded chunk {chunkCoord}");
+			return false;
+		}
+
+		// Remove one item from the authoritative player inventory first
+		var remaining = InventoryManager.Instance.RemoveItem(player, item, 1);
+		if (remaining > 0)
+		{
+			GD.PrintErr($"Player {player.PlayerId} tried to place {item.DisplayName} without having it.");
+			return false;
+		}
+
+		var def = WorldObjectRegistry.GetDefinition(defId);
+		if (def == null)
+		{
+			InventoryManager.Instance.AddItem(player, item, 1);
+			return false;
+		}
+
+		var chunkObj = new ChunkObject
+		{
+			Definition = def,
+			TileCoord = tileCoord,
+			Position = worldPos,
+			ChunkCoord = chunkCoord,
+			Source = ChunkObjectSource.Placed
+		};
+
+		if (!WorldObjectManager.RequestPlace(chunkObj))
+		{
+			// refund if placement failed
+			InventoryManager.Instance.AddItem(player, item, 1);
+			return false;
+		}
+
+		SyncPlayerInventoryState(player);
 		return true;
 	}
 
@@ -307,31 +369,6 @@ public partial class World : Node3D
 			return;
 
 		WorldObjectManager.RequestBreak(target);
-	}
-
-	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-	private void RequestPlaceObject(int defId, Vector2I chunkCoord, Vector2I tileCoord, Vector3 worldPos)
-	{
-		if (!Multiplayer.IsServer())
-			return;
-
-		if (!ActiveChunks.ContainsKey(chunkCoord))
-			return;
-
-		var def = WorldObjectRegistry.GetDefinition(defId);
-		if (def == null)
-			return;
-
-		var chunkObj = new ChunkObject
-		{
-			Definition = def,
-			TileCoord = tileCoord,
-			Position = worldPos,
-			ChunkCoord = chunkCoord,
-			Source = ChunkObjectSource.Placed
-		};
-
-		WorldObjectManager.RequestPlace(chunkObj);
 	}
 
 	public bool TryGetChunkDelta(Vector2I chunkCoord, out ChunkDeltaData delta)
@@ -446,6 +483,264 @@ public partial class World : Node3D
 		return null;
 	}
 
+	// station sync
+	public void BroadcastStorageState(StorageStateData state)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(state.TileCoord));
+		var serialised = ChunkManager.SerialiseStorageState(state);
+
+		foreach (var peerId in ChunkManager.GetPeersInterestedInChunk(chunkCoord))
+			RpcId(peerId, nameof(ReceiveStorageState), serialised);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	private void ReceiveStorageState(Godot.Collections.Dictionary stateData)
+	{
+		var state = ChunkManager.DeserialiseStorageState(stateData);
+		WorldObjectManager.ApplyRemoteStorageState(state);
+	}
+
+	public void SyncPlayerInventoryState(Player player)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		var data = SerialisePlayerInventoryState(player);
+		var localPeerId = Multiplayer.GetUniqueId();
+
+		if (player.PlayerId == localPeerId)
+		{
+			ApplyPlayerInventoryStateLocally(data);
+			return;
+		}
+
+		RpcId(player.PlayerId, nameof(ReceivePlayerInventoryState), data);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	private void ReceivePlayerInventoryState(Godot.Collections.Dictionary data)
+	{
+		ApplyPlayerInventoryStateLocally(data);
+	}
+
+	private IItemContainer ResolveStorageContainer(Vector2I storageTileCoord)
+	{
+		var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(storageTileCoord));
+
+		if (!ActiveChunks.TryGetValue(chunkCoord, out var chunk))
+			return null;
+
+		foreach (var obj in chunk.Objects)
+		{
+			if (obj.TileCoord != storageTileCoord)
+				continue;
+
+			if (obj.RuntimeNode is IItemContainer storage)
+				return storage;
+		}
+
+		return null;
+	}
+
+	private IItemContainer ResolveContainer(Player player, ContainerKind kind, Vector2I storageTileCoord)
+	{
+		return kind switch
+		{
+			ContainerKind.Inventory => player.Inventory,
+			ContainerKind.Hotbar => player.Hotbar,
+			ContainerKind.Storage => ResolveStorageContainer(storageTileCoord),
+			_ => null
+		};
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+	private void RequestContainerClick(
+		int containerKind,
+		int storageTileX,
+		int storageTileY,
+		int slotIndex,
+		int mouseButton,
+		bool shiftHeld)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		var peerId = Multiplayer.GetRemoteSenderId();
+		var player = GetPlayerById(peerId);
+		if (player == null)
+			return;
+
+		var kind = (ContainerKind)containerKind;
+		var storageTileCoord = new Vector2I(storageTileX, storageTileY);
+
+		HandleContainerClickRequest(player, kind, storageTileCoord, slotIndex, mouseButton, shiftHeld);
+	}
+
+	private void HandleContainerClickRequest(
+		Player player,
+		ContainerKind kind,
+		Vector2I storageTileCoord,
+		int slotIndex,
+		int mouseButton,
+		bool shiftHeld
+	)
+	{
+		var container = ResolveContainer(player, kind, storageTileCoord);
+		if (container == null)
+			return;
+
+		var storageContainer = kind == ContainerKind.Storage ? container : null;
+
+		if (slotIndex < 0 || slotIndex >= container.SlotCount)
+			return;
+
+		if (shiftHeld)
+		{
+			switch (kind)
+			{
+				case ContainerKind.Inventory:
+					player.DraggedStack = InventoryManager.Instance.ShiftClick(
+						container,
+						slotIndex,
+						player.Hotbar
+					);
+					break;
+
+				case ContainerKind.Hotbar:
+					player.DraggedStack = InventoryManager.Instance.ShiftClick(
+						container,
+						slotIndex,
+						player.Inventory
+					);
+					break;
+
+				case ContainerKind.Storage:
+					player.DraggedStack = InventoryManager.Instance.ShiftClick(
+						container,
+						slotIndex,
+						player.Hotbar,
+						player.Inventory
+					);
+					break;
+			}
+		}
+		else
+		{
+			if (mouseButton == 0)
+				player.DraggedStack = InventoryManager.Instance.LeftClick(
+					container,
+					slotIndex,
+					player.DraggedStack
+				);
+			else
+				player.DraggedStack = InventoryManager.Instance.RightClick(
+					container,
+					slotIndex,
+					player.DraggedStack
+				);
+		}
+
+		SyncPlayerInventoryState(player);
+
+		if (storageContainer is IChunkStateful<StorageStateData> storage)
+		{
+			var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(storageTileCoord));
+			var delta = GetOrCreateChunkDelta(chunkCoord);
+			var newState = storage.CaptureState();
+			delta.StorageStates[storageTileCoord] = newState;
+
+			if (ActiveChunks.TryGetValue(chunkCoord, out var chunk))
+				chunk.StorageStates[storageTileCoord] = newState;
+
+			ChunkManager.InvalidateServerChunk(chunkCoord);
+
+			BroadcastStorageState(delta.StorageStates[storageTileCoord]);
+		}
+	}
+
+	public void HandleContainerClick(
+		ContainerKind kind,
+		Vector2I storageTileCoord,
+		int slotIndex,
+		int mouseButton,
+		bool shiftHeld)
+	{
+		var isServerAuthority = !Multiplayer.HasMultiplayerPeer() || Multiplayer.IsServer();
+		var localPlayer = GameManager.Instance.LocalPlayer;
+
+		if (localPlayer == null || !IsInstanceValid(localPlayer))
+			return;
+
+		if (isServerAuthority)
+		{
+			HandleContainerClickRequest(localPlayer, kind, storageTileCoord, slotIndex, mouseButton, shiftHeld);
+			localPlayer.HUD.RefreshUI();
+			return;
+		}
+
+		RpcId(
+			1,
+			nameof(RequestContainerClick),
+			(int)kind,
+			storageTileCoord.X,
+			storageTileCoord.Y,
+			slotIndex,
+			mouseButton,
+			shiftHeld
+		);
+	}
+
+	private void ApplyPlayerInventoryStateLocally(Godot.Collections.Dictionary data)
+	{
+		void ApplySlots(IItemContainer container, Godot.Collections.Array arr)
+		{
+			for (var i = 0; i < container.SlotCount; i++)
+			{
+				if (i >= arr.Count)
+				{
+					container.SetSlot(i, null);
+					continue;
+				}
+
+				var slotDict = (Godot.Collections.Dictionary)arr[i];
+				var itemId = (string)slotDict["item_id"];
+				var count = (int)slotDict["count"];
+
+				if (itemId == "" || count <= 0)
+				{
+					container.SetSlot(i, null);
+					continue;
+				}
+
+				var item = ItemRegistry.GetItem(itemId);
+				container.SetSlot(i, new ItemStack(item, count));
+			}
+		}
+
+		var player = GameManager.Instance.LocalPlayer;
+		if (player == null || !IsInstanceValid(player))
+			return;
+
+		ApplySlots(player.Inventory, (Godot.Collections.Array)data["inventory"]);
+		ApplySlots(player.Hotbar, (Godot.Collections.Array)data["hotbar"]);
+
+		var draggedDict = (Godot.Collections.Dictionary)data["dragged"];
+		var draggedItemId = (string)draggedDict["item_id"];
+		var draggedCount = (int)draggedDict["count"];
+
+		player.DraggedStack = draggedItemId == "" || draggedCount <= 0
+			? null
+			: new ItemStack(ItemRegistry.GetItem(draggedItemId), draggedCount);
+
+		player.HUD.RefreshUI();
+		player.HUD.UpdateDraggedCursorFromPlayerState();
+	}
+
+	// object break/place
+
 	public void BroadcastObjectRemoved(Vector2I chunkCoord, Vector2I tileCoord)
 	{
 		if (!Multiplayer.IsServer())
@@ -481,6 +776,8 @@ public partial class World : Node3D
 	{
 		WorldObjectManager.ApplyRemotePlace(defId, chunkCoord, tileCoord, worldPos);
 	}
+
+	// chunk streaming
 
 	private void UpdateLocalChunkInterest()
 	{
@@ -554,5 +851,48 @@ public partial class World : Node3D
 
 		var peerId = Multiplayer.GetRemoteSenderId();
 		ChunkManager.UpdatePeerInterest(peerId, coords);
+	}
+
+	public Godot.Collections.Dictionary SerialisePlayerInventoryState(Player player)
+	{
+		Godot.Collections.Array SerialiseSlots(ItemStack[] source)
+		{
+			var arr = new Godot.Collections.Array();
+
+			if (source == null)
+				return arr;
+
+			foreach (var stack in source)
+				if (stack == null)
+					arr.Add(new Godot.Collections.Dictionary
+					{
+						["item_id"] = "",
+						["count"] = 0
+					});
+				else
+					arr.Add(new Godot.Collections.Dictionary
+					{
+						["item_id"] = stack.Item.Id,
+						["count"] = stack.Count
+					});
+
+			return arr;
+		}
+
+		Godot.Collections.Dictionary SerialiseStack(ItemStack stack)
+		{
+			return new Godot.Collections.Dictionary
+			{
+				["item_id"] = stack?.Item.Id ?? "",
+				["count"] = stack?.Count ?? 0
+			};
+		}
+
+		return new Godot.Collections.Dictionary
+		{
+			["inventory"] = SerialiseSlots(player.Inventory.GetSlots()),
+			["hotbar"] = SerialiseSlots(player.Hotbar.GetSlots()),
+			["dragged"] = SerialiseStack(player.DraggedStack)
+		};
 	}
 }

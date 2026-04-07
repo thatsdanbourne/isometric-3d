@@ -1,58 +1,71 @@
+using Godot;
+
 public partial class Chest : WorldObject, IItemContainer, IInteractable, IChunkStateful<StorageStateData>
 {
-    public string Label => "Chest";
-    public int SlotCount => 9;
+	[Signal]
+	public delegate void ContainerChangedEventHandler();
 
-    private InteractionPrompt interactPrompt;
-    private ItemStack[] slots;
+	public string Label => "Chest";
+	public int SlotCount => 9;
 
-    public StorageStateData CaptureState()
-    {
-        return new StorageStateData
-        {
-            Slots = slots
-        };
-    }
+	private InteractionPrompt interactPrompt;
+	private ItemStack[] slots;
 
-    public void RestoreState(StorageStateData stateData)
-    {
-        for (var i = 0; i < stateData.Slots.Length; i++) SetSlot(i, stateData.Slots[i]);
-    }
+	public StorageStateData CaptureState()
+	{
+		return new StorageStateData
+		{
+			ObjectId = Data.Definition.StableId,
+			TileCoord = Data.TileCoord,
+			Slots = slots
+		};
+	}
 
-    public void OnFocusGained()
-    {
-        interactPrompt.ShowIcon();
-    }
+	public void RestoreState(StorageStateData stateData)
+	{
+		var restoredSlots = StationUtils.CloneSlots(stateData.Slots);
 
-    public void OnFocusLost()
-    {
-        interactPrompt.HideIcon();
-    }
+		for (var i = 0; i < SlotCount; i++)
+			slots[i] = i < restoredSlots.Length ? restoredSlots[i] : null;
 
-    public T GetCapability<T>() where T : class
-    {
-        return this as T;
-    }
+		EmitSignal(SignalName.ContainerChanged);
+	}
 
-    public ItemStack[] GetSlots()
-    {
-        return slots;
-    }
+	public void OnFocusGained()
+	{
+		interactPrompt.ShowIcon();
+	}
 
-    public ItemStack GetSlot(int index)
-    {
-        return slots[index];
-    }
+	public void OnFocusLost()
+	{
+		interactPrompt.HideIcon();
+	}
 
-    public void SetSlot(int index, ItemStack stack)
-    {
-        slots[index] = stack;
-    }
+	public T GetCapability<T>() where T : class
+	{
+		return this as T;
+	}
 
-    public override void _Ready()
-    {
-        base._Ready();
-        slots = new ItemStack[SlotCount];
-        interactPrompt = GetNode<InteractionPrompt>("InteractionPrompt");
-    }
+	public ItemStack[] GetSlots()
+	{
+		return StationUtils.CloneSlots(slots);
+	}
+
+	public ItemStack GetSlot(int index)
+	{
+		return slots[index]?.Clone();
+	}
+
+	public void SetSlot(int index, ItemStack stack)
+	{
+		slots[index] = stack?.Clone();
+		EmitSignal(SignalName.ContainerChanged);
+	}
+
+	public override void _Ready()
+	{
+		base._Ready();
+		slots = new ItemStack[SlotCount];
+		interactPrompt = GetNode<InteractionPrompt>("InteractionPrompt");
+	}
 }

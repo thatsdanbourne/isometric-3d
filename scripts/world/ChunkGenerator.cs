@@ -196,7 +196,18 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 		sw.Stop();
 		// GD.Print(sw.Elapsed.TotalMilliseconds);
 
-		return new Chunk(chunkCoord, tiles, objects);
+		var chunk = new Chunk(chunkCoord, tiles, objects);
+
+		if (chunkDelta != null)
+		{
+			foreach (var kv in chunkDelta.StorageStates)
+				chunk.StorageStates[kv.Key] = kv.Value;
+
+			foreach (var kv in chunkDelta.StationStates)
+				chunk.StationStates[kv.Key] = kv.Value;
+		}
+
+		return chunk;
 	}
 
 	public void EnqueueClientChunk(ChunkDto chunkDto)
@@ -437,7 +448,15 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 			});
 		}
 
-		return new Chunk(chunkCoord, tiles, objects);
+		var chunk = new Chunk(chunkCoord, tiles, objects);
+
+		foreach (var kv in chunkDto.StorageStates)
+			chunk.StorageStates[kv.Key] = kv.Value;
+
+		foreach (var kv in chunkDto.StationStates)
+			chunk.StationStates[kv.Key] = kv.Value;
+
+		return chunk;
 	}
 }
 

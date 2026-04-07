@@ -10,6 +10,8 @@ public class Chunk(
 	public Vector2I Coord = coord;
 	public readonly TileInstance[,] Tiles = tiles;
 	public readonly List<ChunkObject> Objects = objects;
+	public Dictionary<Vector2I, StorageStateData> StorageStates = new();
+	public Dictionary<Vector2I, StationStateData> StationStates = new();
 
 	public ChunkSpawnContext SpawnContext;
 

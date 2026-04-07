@@ -51,16 +51,14 @@ public partial class PlacementController : Node
 
 	public bool TryPlace()
 	{
-		if (!_active || _placeable == null || _preview == null) return false;
+		if (!_active || _placeable == null || _preview == null)
+			return false;
 
-		if (!_preview.HasTile || !_preview.CanPlaceCurrent) return false;
+		if (!_preview.HasTile || !_preview.CanPlaceCurrent)
+			return false;
 
 		var tile = _preview.CurrentTile;
-
-		if (!_world.PlaceItem(tile, _placeable)) return false;
-
-		InventoryManager.Instance.RemoveItem(_player, _placeable, 1);
-		return true;
+		return _world.PlaceItem(tile, _placeable);
 	}
 
 	private void EnsurePreview()

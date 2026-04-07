@@ -218,9 +218,6 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 
 		var pos = new Vector3I();
 
-
-		world.TryGetChunkDelta(coord, out var delta);
-
 		for (var x = 0; x < c; x++)
 		for (var y = 0; y < c; y++)
 		{
@@ -237,20 +234,7 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 		}
 
 		foreach (var obj in chunk.Objects)
-		{
-			switch (obj.RuntimeNode)
-			{
-				case IChunkStateful<StationStateData> station:
-					delta.StationStates[obj.TileCoord] = station.CaptureState();
-					break;
-				case IChunkStateful<StorageStateData> storage:
-					delta.StorageStates[obj.TileCoord] = storage.CaptureState();
-					break;
-			}
-
-
 			world.WorldObjectManager.EnqueueRemoval(obj);
-		}
 
 		ActiveChunks.Remove(coord);
 	}
@@ -296,11 +280,22 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 				Source = obj.Source
 			});
 
-		return new ChunkDto(
+		var dto = new ChunkDto(
 			chunk.Coord,
 			tiles,
 			objects
 		);
+
+		if (world.TryGetChunkDelta(chunk.Coord, out var delta))
+		{
+			foreach (var kv in delta.StorageStates)
+				dto.StorageStates[kv.Key] = kv.Value;
+
+			foreach (var kv in delta.StationStates)
+				dto.StationStates[kv.Key] = kv.Value;
+		}
+
+		return dto;
 	}
 
 	public Godot.Collections.Dictionary SerializeChunk(ChunkDto chunk)
@@ -338,8 +333,18 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 				["source"] = (int)obj.Source
 			});
 
+		var storageStates = new Godot.Collections.Array();
+		foreach (var kv in chunk.StorageStates)
+			storageStates.Add(SerialiseStorageState(kv.Value));
+
+		var stationStates = new Godot.Collections.Array();
+		foreach (var kv in chunk.StationStates)
+			stationStates.Add(SerialiseStationState(kv.Value));
+
 		dict["tiles"] = tiles;
 		dict["objects"] = objects;
+		dict["storage_states"] = storageStates;
+		dict["station_states"] = stationStates;
 
 		return dict;
 	}
@@ -386,6 +391,125 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 				Source = (ChunkObjectSource)(int)objDict["source"]
 			});
 
-		return new ChunkDto(coord, tiles, objects);
+		var chunk = new ChunkDto(coord, tiles, objects);
+
+		if (dict.ContainsKey("storage_states"))
+		{
+			var storageArray = (Godot.Collections.Array)dict["storage_states"];
+			foreach (Godot.Collections.Dictionary storageDict in storageArray)
+			{
+				var state = DeserialiseStorageState(storageDict);
+				chunk.StorageStates[state.TileCoord] = state;
+			}
+		}
+
+		if (dict.ContainsKey("station_states"))
+		{
+			var stationArray = (Godot.Collections.Array)dict["station_states"];
+			foreach (Godot.Collections.Dictionary stationDict in stationArray)
+			{
+				var state = DeserialiseStationState(stationDict);
+				chunk.StationStates[state.TileCoord] = state;
+			}
+		}
+
+		return chunk;
+	}
+
+	public Godot.Collections.Dictionary SerialiseStorageState(StorageStateData state)
+	{
+		var dict = new Godot.Collections.Dictionary
+		{
+			["object_id"] = state.ObjectId,
+			["tile_x"] = state.TileCoord.X,
+			["tile_y"] = state.TileCoord.Y
+		};
+
+		var slots = new Godot.Collections.Array();
+
+		if (state.Slots != null)
+			foreach (var stack in state.Slots)
+				if (stack == null)
+					slots.Add(new Godot.Collections.Dictionary
+					{
+						["item_id"] = "",
+						["count"] = 0
+					});
+				else
+					slots.Add(new Godot.Collections.Dictionary
+					{
+						["item_id"] = stack.Item.Id,
+						["count"] = stack.Count
+					});
+
+		dict["slots"] = slots;
+		return dict;
+	}
+
+	public StorageStateData DeserialiseStorageState(Godot.Collections.Dictionary dict)
+	{
+		var state = new StorageStateData
+		{
+			ObjectId = (int)dict["object_id"],
+			TileCoord = new Vector2I(
+				(int)dict["tile_x"],
+				(int)dict["tile_y"]
+			)
+		};
+
+		var slotArray = (Godot.Collections.Array)dict["slots"];
+		state.Slots = new ItemStack[slotArray.Count];
+
+		for (var i = 0; i < slotArray.Count; i++)
+		{
+			var slotDict = (Godot.Collections.Dictionary)slotArray[i];
+			var itemId = (string)slotDict["item_id"];
+			var count = (int)slotDict["count"];
+
+			if (itemId == "" || count <= 0)
+			{
+				state.Slots[i] = null;
+				continue;
+			}
+
+			var item = ItemRegistry.GetItem(itemId);
+			state.Slots[i] = new ItemStack(item, count);
+		}
+
+		return state;
+	}
+
+	private Godot.Collections.Dictionary SerialiseStationState(StationStateData state)
+	{
+		return new Godot.Collections.Dictionary
+		{
+			["object_id"] = state.ObjectId,
+			["tile_x"] = state.TileCoord.X,
+			["tile_y"] = state.TileCoord.Y,
+			["active_recipe_id"] = state.ActiveRecipeId ?? "",
+			["time_remaining"] = state.TimeRemaining,
+			["completed_count"] = state.CompletedCount,
+			["total_count"] = state.TotalCount,
+			["is_crafting"] = state.IsCrafting,
+			["last_update_time"] = state.LastUpdateTime
+		};
+	}
+
+	private StationStateData DeserialiseStationState(Godot.Collections.Dictionary dict)
+	{
+		return new StationStateData
+		{
+			ObjectId = (int)dict["object_id"],
+			TileCoord = new Vector2I(
+				(int)dict["tile_x"],
+				(int)dict["tile_y"]
+			),
+			ActiveRecipeId = (string)dict["active_recipe_id"],
+			TimeRemaining = (float)dict["time_remaining"],
+			CompletedCount = (int)dict["completed_count"],
+			TotalCount = (int)dict["total_count"],
+			IsCrafting = (bool)dict["is_crafting"],
+			LastUpdateTime = (double)dict["last_update_time"]
+		};
 	}
 }

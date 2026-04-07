@@ -23,4 +23,9 @@ public class ItemStack(Item item, int count)
 		Count -= removed;
 		return removed;
 	}
+
+	public ItemStack Clone()
+	{
+		return new ItemStack(Item, Count);
+	}
 }

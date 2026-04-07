@@ -9,4 +9,6 @@ public class ChunkDto(
 	public Vector2I Coord = coord;
 	public List<TileInstanceDto> Tiles = tiles;
 	public List<ChunkObjectDto> Objects = objects;
+	public Dictionary<Vector2I, StorageStateData> StorageStates = new();
+	public Dictionary<Vector2I, StationStateData> StationStates = new();
 }
