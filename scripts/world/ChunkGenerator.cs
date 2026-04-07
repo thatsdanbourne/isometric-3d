@@ -214,12 +214,12 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 
 		while (_clientChunkQueue.Count > 0)
 		{
-			var chunk = _clientChunkQueue.Dequeue();
+			var chunkDto = _clientChunkQueue.Dequeue();
 
-			if (world.ActiveChunks.ContainsKey(chunk.Coord))
+			if (world.ActiveChunks.ContainsKey(chunkDto.Coord))
 				continue;
 
-			FinaliseChunk(chunk);
+			FinaliseChunk(chunkDto);
 
 			if (sw.Elapsed.TotalMilliseconds > maxMs)
 				break;

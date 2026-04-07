@@ -72,7 +72,7 @@ public partial class WorldObject : Node3D, IToolHittable
 
 	private void BreakObject()
 	{
-		World.WorldObjectManager.RequestBreak(Data);
+		World.TryBreakObject(Data);
 	}
 
 	public float ModifyIncomingToolDamage(ToolItem tool, float damage, float baseDamage)

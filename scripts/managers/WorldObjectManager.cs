@@ -48,6 +48,7 @@ public partial class WorldObjectManager : Node
 		_activeSpawnQueue.Enqueue(data);
 	}
 
+
 	public void RequestBreak(ChunkObject data)
 	{
 		if (data.RuntimeNode is IItemContainer storage)
@@ -66,21 +67,41 @@ public partial class WorldObjectManager : Node
 		SpawnDrops(data);
 
 		// clear chunk delta states
-		var delta = _world.GetOrCreateChunkDelta(data.ChunkCoord);
-
 		switch (data.Source)
 		{
 			case ChunkObjectSource.Procedural:
-				delta.RemovedProceduralObjects.Add(data.TileCoord);
+				_world.MarkProceduralObjectRemoved(data.ChunkCoord, data.TileCoord);
 				break;
 			case ChunkObjectSource.Placed:
-				delta.PlacedObjectsByTile.Remove(data.TileCoord);
+				_world.RemovedPlacedObject(data.ChunkCoord, data.TileCoord);
 				break;
 		}
 
-		delta.StorageStates.Remove(data.TileCoord);
-
 		EnqueueRemoval(data);
+
+		if (_world.Multiplayer.IsServer())
+			_world.BroadcastObjectRemoved(data.ChunkCoord, data.TileCoord);
+	}
+
+	public void ApplyRemoteBreak(Vector2I chunkCoord, Vector2I tileCoord)
+	{
+		if (!_world.ActiveChunks.TryGetValue(chunkCoord, out var chunk))
+			return;
+
+		ChunkObject target = null;
+
+		foreach (var obj in chunk.Objects)
+			if (obj.TileCoord == tileCoord)
+			{
+				target = obj;
+				break;
+			}
+
+		if (target == null)
+			return;
+
+		chunk.Objects.Remove(target);
+		EnqueueRemoval(target);
 	}
 
 	private void SpawnDrops(ChunkObject data)
@@ -119,15 +140,43 @@ public partial class WorldObjectManager : Node
 		chunk.Objects.Add(data);
 		EnqueueSpawn(data);
 
-		var chunkDelta = _world.GetOrCreateChunkDelta(data.ChunkCoord);
-		chunkDelta.PlacedObjectsByTile[data.TileCoord] = new PlacedObjectRecord
+		_world.AddPlacedObject(data.ChunkCoord, new PlacedObjectRecord
 		{
 			DefinitionTypeId = data.Definition.StableId,
 			TileCoord = data.TileCoord,
 			Position = data.Position
-		};
+		});
+
+		if (_world.Multiplayer.IsServer())
+			_world.BroadcastObjectPlaced(data);
 
 		return true;
+	}
+
+	public void ApplyRemotePlace(int definitionId, Vector2I chunkCoord, Vector2I tileCoord, Vector3 worldPos)
+	{
+		if (!_world.ActiveChunks.TryGetValue(chunkCoord, out var chunk))
+			return;
+
+		foreach (var obj in chunk.Objects)
+			if (obj.TileCoord == tileCoord)
+				return;
+
+		var def = WorldObjectRegistry.GetDefinition(definitionId);
+		if (def == null)
+			return;
+
+		var data = new ChunkObject
+		{
+			Definition = def,
+			TileCoord = tileCoord,
+			Position = worldPos,
+			ChunkCoord = chunkCoord,
+			Source = ChunkObjectSource.Placed
+		};
+
+		chunk.Objects.Add(data);
+		EnqueueSpawn(data);
 	}
 
 	public void EnqueueRemoval(ChunkObject data)

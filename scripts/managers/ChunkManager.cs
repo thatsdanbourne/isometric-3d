@@ -24,6 +24,24 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 		var desiredChunks = BuildDesiredChunkSet(playerChunks);
 
 		EnsureServerChunksExist(desiredChunks);
+		EvictUnusedServerChunks(desiredChunks);
+	}
+
+	public void InvalidateServerChunk(Vector2I coord)
+	{
+		ServerChunks.Remove(coord);
+	}
+
+	public void EvictUnusedServerChunks(HashSet<Vector2I> neededCoords)
+	{
+		var toRemove = new List<Vector2I>();
+
+		foreach (var coord in ServerChunks.Keys)
+			if (!neededCoords.Contains(coord))
+				toRemove.Add(coord);
+
+		foreach (var coord in toRemove)
+			ServerChunks.Remove(coord);
 	}
 
 	public void UpdateLocalChunks(Vector3 localPlayerPosition)
@@ -117,6 +135,13 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 				desired.Add(new Vector2I(chunk.X + x, chunk.Y + y));
 
 		return desired;
+	}
+
+	public IEnumerable<int> GetPeersInterestedInChunk(Vector2I coord)
+	{
+		foreach (var kv in _desiredChunksByPeer)
+			if (kv.Value.Contains(coord))
+				yield return kv.Key;
 	}
 
 	public void UpdatePeerInterest(int peerId, Godot.Collections.Array<Vector2I> coords)

@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Data;
 
 public partial class World : Node3D
 {
@@ -30,7 +31,7 @@ public partial class World : Node3D
 
 	public readonly Dictionary<Vector2I, Chunk> ServerChunks = new();
 	public readonly Dictionary<Vector2I, Chunk> ActiveChunks = new();
-	public Dictionary<Vector2I, ChunkDeltaData> ChunkDeltas = new();
+	public readonly Dictionary<Vector2I, ChunkDeltaData> ChunkDeltas = new();
 	private readonly Dictionary<Vector2I, int> _blockedTiles = new();
 
 	public int TerrainSeed;
@@ -243,24 +244,94 @@ public partial class World : Node3D
 		var worldPos = TileUtils.TileToWorld(tile);
 		var chunkCoord = TileUtils.WorldToChunk(worldPos);
 
-		if (!ActiveChunks.ContainsKey(chunkCoord))
+		var def = item.PlaceableObjectDefinition;
+
+		var isServerAuthority = !Multiplayer.HasMultiplayerPeer() || Multiplayer.IsServer();
+
+		if (isServerAuthority)
 		{
-			GD.PrintErr($"Tried to place item in unloaded chunk {chunkCoord}");
-			return false;
+			if (!ActiveChunks.ContainsKey(chunkCoord))
+			{
+				GD.PrintErr($"Tried to place item in unloaded chunk {chunkCoord}");
+				return false;
+			}
+
+			var chunkObj = new ChunkObject
+			{
+				Definition = def,
+				TileCoord = tile,
+				Position = worldPos,
+				ChunkCoord = chunkCoord,
+				Source = ChunkObjectSource.Placed
+			};
+
+			return WorldObjectManager.RequestPlace(chunkObj);
 		}
 
-		var def = item.PlaceableObjectDefinition;
+		RpcId(1, nameof(RequestPlaceObject), def.StableId, chunkCoord, tile, worldPos);
+		return true;
+	}
+
+	public void TryBreakObject(ChunkObject data)
+	{
+		var isServerAuthority = !Multiplayer.HasMultiplayerPeer() || Multiplayer.IsServer();
+
+		if (isServerAuthority)
+		{
+			WorldObjectManager.RequestBreak(data);
+			return;
+		}
+
+		RpcId(1, nameof(RequestBreakObject), data.ChunkCoord, data.TileCoord);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+	private void RequestBreakObject(Vector2I chunkCoord, Vector2I tileCoord)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		if (!ActiveChunks.TryGetValue(chunkCoord, out var chunk))
+			return;
+
+		ChunkObject target = null;
+
+		foreach (var obj in chunk.Objects)
+			if (obj.TileCoord == tileCoord)
+			{
+				target = obj;
+				break;
+			}
+
+		if (target == null)
+			return;
+
+		WorldObjectManager.RequestBreak(target);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+	private void RequestPlaceObject(int defId, Vector2I chunkCoord, Vector2I tileCoord, Vector3 worldPos)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		if (!ActiveChunks.ContainsKey(chunkCoord))
+			return;
+
+		var def = WorldObjectRegistry.GetDefinition(defId);
+		if (def == null)
+			return;
 
 		var chunkObj = new ChunkObject
 		{
 			Definition = def,
-			TileCoord = tile,
+			TileCoord = tileCoord,
 			Position = worldPos,
 			ChunkCoord = chunkCoord,
 			Source = ChunkObjectSource.Placed
 		};
 
-		return WorldObjectManager.RequestPlace(chunkObj);
+		WorldObjectManager.RequestPlace(chunkObj);
 	}
 
 	public bool TryGetChunkDelta(Vector2I chunkCoord, out ChunkDeltaData delta)
@@ -275,6 +346,33 @@ public partial class World : Node3D
 		ChunkDeltas[chunkCoord] = delta;
 
 		return delta;
+	}
+
+	public ChunkDeltaData MutateChunkDelta(Vector2I coord)
+	{
+		var delta = GetOrCreateChunkDelta(coord);
+		ChunkManager.InvalidateServerChunk(coord);
+		return delta;
+	}
+
+	public void MarkProceduralObjectRemoved(Vector2I chunkCoord, Vector2I tileCoord)
+	{
+		var delta = MutateChunkDelta(chunkCoord);
+		delta.RemovedProceduralObjects.Add(tileCoord);
+	}
+
+	public void RemovedPlacedObject(Vector2I chunkCoord, Vector2I tileCoord)
+	{
+		var delta = MutateChunkDelta(chunkCoord);
+		delta.PlacedObjectsByTile.Remove(tileCoord);
+		delta.StorageStates.Remove(tileCoord);
+		delta.StationStates.Remove(tileCoord);
+	}
+
+	public void AddPlacedObject(Vector2I chunkCoord, PlacedObjectRecord record)
+	{
+		var delta = MutateChunkDelta(chunkCoord);
+		delta.PlacedObjectsByTile[record.TileCoord] = record;
 	}
 
 	public BiomeId GetBiomeAtPos(Vector3 worldPos)
@@ -346,6 +444,42 @@ public partial class World : Node3D
 				return player;
 
 		return null;
+	}
+
+	public void BroadcastObjectRemoved(Vector2I chunkCoord, Vector2I tileCoord)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		foreach (var peerId in ChunkManager.GetPeersInterestedInChunk(chunkCoord))
+			RpcId(peerId, nameof(ReceiveObjectRemoved), chunkCoord, tileCoord);
+	}
+
+	public void BroadcastObjectPlaced(ChunkObject data)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		foreach (var peerId in ChunkManager.GetPeersInterestedInChunk(data.ChunkCoord))
+			RpcId(
+				peerId,
+				nameof(ReceiveObjectPlaced),
+				data.Definition.StableId,
+				data.ChunkCoord,
+				data.TileCoord,
+				data.Position);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	private void ReceiveObjectRemoved(Vector2I chunkCoord, Vector2I tileCoord)
+	{
+		WorldObjectManager.ApplyRemoteBreak(chunkCoord, tileCoord);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	private void ReceiveObjectPlaced(int defId, Vector2I chunkCoord, Vector2I tileCoord, Vector3 worldPos)
+	{
+		WorldObjectManager.ApplyRemotePlace(defId, chunkCoord, tileCoord, worldPos);
 	}
 
 	private void UpdateLocalChunkInterest()
