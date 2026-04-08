@@ -490,7 +490,7 @@ public partial class World : Node3D
 			return;
 
 		var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(state.TileCoord));
-		var serialised = ChunkManager.SerialiseStorageState(state);
+		var serialised = SerializationUtils.SerializeStorageState(state);
 
 		foreach (var peerId in ChunkManager.GetPeersInterestedInChunk(chunkCoord))
 			RpcId(peerId, nameof(ReceiveStorageState), serialised);
@@ -499,7 +499,7 @@ public partial class World : Node3D
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
 	private void ReceiveStorageState(Godot.Collections.Dictionary stateData)
 	{
-		var state = ChunkManager.DeserialiseStorageState(stateData);
+		var state = SerializationUtils.DeserializeStorageState(stateData);
 		WorldObjectManager.ApplyRemoteStorageState(state);
 	}
 
@@ -508,7 +508,7 @@ public partial class World : Node3D
 		if (!Multiplayer.IsServer())
 			return;
 
-		var data = SerialisePlayerInventoryState(player);
+		var data = SerializationUtils.SerializePlayerInventoryState(player);
 		var localPeerId = Multiplayer.GetUniqueId();
 
 		if (player.PlayerId == localPeerId)
@@ -695,45 +695,19 @@ public partial class World : Node3D
 
 	private void ApplyPlayerInventoryStateLocally(Godot.Collections.Dictionary data)
 	{
-		void ApplySlots(IItemContainer container, Godot.Collections.Array arr)
-		{
-			for (var i = 0; i < container.SlotCount; i++)
-			{
-				if (i >= arr.Count)
-				{
-					container.SetSlot(i, null);
-					continue;
-				}
-
-				var slotDict = (Godot.Collections.Dictionary)arr[i];
-				var itemId = (string)slotDict["item_id"];
-				var count = (int)slotDict["count"];
-
-				if (itemId == "" || count <= 0)
-				{
-					container.SetSlot(i, null);
-					continue;
-				}
-
-				var item = ItemRegistry.GetItem(itemId);
-				container.SetSlot(i, new ItemStack(item, count));
-			}
-		}
-
 		var player = GameManager.Instance.LocalPlayer;
 		if (player == null || !IsInstanceValid(player))
 			return;
 
-		ApplySlots(player.Inventory, (Godot.Collections.Array)data["inventory"]);
-		ApplySlots(player.Hotbar, (Godot.Collections.Array)data["hotbar"]);
+		var state = SerializationUtils.DeserializePlayerInventoryState(data);
 
-		var draggedDict = (Godot.Collections.Dictionary)data["dragged"];
-		var draggedItemId = (string)draggedDict["item_id"];
-		var draggedCount = (int)draggedDict["count"];
+		for (var i = 0; i < player.Inventory.SlotCount; i++)
+			player.Inventory.SetSlot(i, i < state.Inventory.Length ? state.Inventory[i] : null);
 
-		player.DraggedStack = draggedItemId == "" || draggedCount <= 0
-			? null
-			: new ItemStack(ItemRegistry.GetItem(draggedItemId), draggedCount);
+		for (var i = 0; i < player.Hotbar.SlotCount; i++)
+			player.Hotbar.SetSlot(i, i < state.Hotbar.Length ? state.Hotbar[i] : null);
+
+		player.DraggedStack = state.DraggedStack;
 
 		player.HUD.RefreshUI();
 		player.HUD.UpdateDraggedCursorFromPlayerState();
@@ -832,14 +806,14 @@ public partial class World : Node3D
 
 	public void SendChunkToPeer(int peerId, ChunkDto chunk)
 	{
-		var serialized = ChunkManager.SerializeChunk(chunk);
+		var serialized = SerializationUtils.SerializeChunk(chunk);
 		RpcId(peerId, nameof(ReceiveChunk), serialized);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
 	public void ReceiveChunk(Godot.Collections.Dictionary chunkData)
 	{
-		var chunk = ChunkManager.DeserializeChunk(chunkData);
+		var chunk = SerializationUtils.DeserializeChunk(chunkData);
 		ChunkGenerator.EnqueueClientChunk(chunk);
 	}
 
@@ -851,48 +825,5 @@ public partial class World : Node3D
 
 		var peerId = Multiplayer.GetRemoteSenderId();
 		ChunkManager.UpdatePeerInterest(peerId, coords);
-	}
-
-	public Godot.Collections.Dictionary SerialisePlayerInventoryState(Player player)
-	{
-		Godot.Collections.Array SerialiseSlots(ItemStack[] source)
-		{
-			var arr = new Godot.Collections.Array();
-
-			if (source == null)
-				return arr;
-
-			foreach (var stack in source)
-				if (stack == null)
-					arr.Add(new Godot.Collections.Dictionary
-					{
-						["item_id"] = "",
-						["count"] = 0
-					});
-				else
-					arr.Add(new Godot.Collections.Dictionary
-					{
-						["item_id"] = stack.Item.Id,
-						["count"] = stack.Count
-					});
-
-			return arr;
-		}
-
-		Godot.Collections.Dictionary SerialiseStack(ItemStack stack)
-		{
-			return new Godot.Collections.Dictionary
-			{
-				["item_id"] = stack?.Item.Id ?? "",
-				["count"] = stack?.Count ?? 0
-			};
-		}
-
-		return new Godot.Collections.Dictionary
-		{
-			["inventory"] = SerialiseSlots(player.Inventory.GetSlots()),
-			["hotbar"] = SerialiseSlots(player.Hotbar.GetSlots()),
-			["dragged"] = SerialiseStack(player.DraggedStack)
-		};
 	}
 }
