@@ -80,7 +80,7 @@ public partial class WorldObjectManager : Node
 		EnqueueRemoval(data);
 
 		if (_world.Multiplayer.IsServer())
-			_world.BroadcastObjectRemoved(data.ChunkCoord, data.TileCoord);
+			_world.Sync.BroadcastObjectRemoved(data.ChunkCoord, data.TileCoord);
 	}
 
 	public void ApplyRemoteBreak(Vector2I chunkCoord, Vector2I tileCoord)
@@ -148,7 +148,7 @@ public partial class WorldObjectManager : Node
 		});
 
 		if (_world.Multiplayer.IsServer())
-			_world.BroadcastObjectPlaced(data);
+			_world.Sync.BroadcastObjectPlaced(data);
 
 		return true;
 	}

@@ -329,7 +329,7 @@ public partial class HUD : CanvasLayer
 		var kind = GetContainerKind(container);
 		var storageTileCoord = GetStorageTileCoord(container);
 
-		world.HandleContainerClick(
+		world.Sync.HandleContainerClick(
 			kind,
 			storageTileCoord,
 			index,
@@ -352,7 +352,7 @@ public partial class HUD : CanvasLayer
 		var kind = GetContainerKind(source);
 		var storageTileCoord = GetStorageTileCoord(source);
 
-		world.HandleContainerClick(
+		world.Sync.HandleContainerClick(
 			kind,
 			storageTileCoord,
 			index,
@@ -373,7 +373,7 @@ public partial class HUD : CanvasLayer
 		var kind = GetContainerKind(container);
 		var storageTileCoord = GetStorageTileCoord(container);
 
-		world.HandleContainerClick(
+		world.Sync.HandleContainerClick(
 			kind,
 			storageTileCoord,
 			index,

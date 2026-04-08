@@ -110,7 +110,7 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 			if (sentChunks.Contains(coord))
 				continue;
 
-			world.SendChunkToPeer(peerId, ToDto(chunk));
+			world.Sync.SendChunkToPeer(peerId, ToDto(chunk));
 			sentChunks.Add(coord);
 		}
 	}
@@ -172,7 +172,7 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 
 		foreach (var coord in toUnload)
 		{
-			world.SendChunkUnloadToPeer(peerId, coord);
+			world.Sync.SendChunkUnloadToPeer(peerId, coord);
 			sentChunks.Remove(coord);
 		}
 
@@ -186,7 +186,7 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 			if (!ServerChunks.TryGetValue(coord, out var chunk))
 				continue;
 
-			world.SendChunkToPeer(peerId, ToDto(chunk));
+			world.Sync.SendChunkToPeer(peerId, ToDto(chunk));
 			sentChunks.Add(coord);
 		}
 	}

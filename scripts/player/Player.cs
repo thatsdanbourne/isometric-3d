@@ -117,7 +117,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone"), 20);
 
 			if (Multiplayer.HasMultiplayerPeer() && Multiplayer.IsServer())
-				_world.SyncPlayerInventoryState(this);
+				_world.Sync.SyncPlayerInventoryState(this);
 		}
 
 		if (IsLocal)
