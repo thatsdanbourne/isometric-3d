@@ -255,7 +255,7 @@ public partial class GameManager : Node
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	public void ReceiveWorldInit(int terrainSeed)
+	public void ReceiveWorldInit(int terrainSeed, double worldTimeSeconds)
 	{
 		if (CurrentWorld == null)
 		{
@@ -263,7 +263,7 @@ public partial class GameManager : Node
 			return;
 		}
 
-		CurrentWorld.InitialiseWorld(terrainSeed);
+		CurrentWorld.InitialiseWorld(terrainSeed, worldTimeSeconds);
 
 		GD.Print($"Received world init: Seed={terrainSeed}");
 	}
@@ -273,7 +273,7 @@ public partial class GameManager : Node
 		if (!Multiplayer.IsServer() || CurrentWorld == null)
 			return;
 
-		RpcId(peerId, nameof(ReceiveWorldInit), CurrentWorld.TerrainSeed);
+		RpcId(peerId, nameof(ReceiveWorldInit), CurrentWorld.TerrainSeed, CurrentWorld.WorldTimeSeconds);
 	}
 
 	public void PeerDisconnected(int peerId)

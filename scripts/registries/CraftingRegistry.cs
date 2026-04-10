@@ -15,9 +15,9 @@ public static class CraftingRegistry
 		return Recipes;
 	}
 
-	public static CraftingRecipe GetRecipe(string resultItemId)
+	public static CraftingRecipe GetRecipe(string id)
 	{
-		return Recipes.FirstOrDefault(r => r.ResultItemId == resultItemId);
+		return Recipes.FirstOrDefault(r => r.Id == id);
 	}
 
 	public static IEnumerable<CraftingRecipe> GetRecipesByStation(StationType stationType)

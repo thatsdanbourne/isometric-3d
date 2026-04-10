@@ -49,12 +49,13 @@ public partial class World : Node3D
 	private bool _worldReady;
 
 
-	public void InitialiseWorld(int terrainSeed)
+	public void InitialiseWorld(int terrainSeed, double worldTimeSeconds = 0f)
 	{
 		_rng = new RandomNumberGenerator();
 		_rng.Randomize();
 
 		TerrainSeed = terrainSeed;
+		WorldTimeSeconds = worldTimeSeconds;
 		SetupNoise();
 		RuleRegistry.LoadAll(TerrainSeed, WorldOffset);
 
@@ -272,11 +273,11 @@ public partial class World : Node3D
 		Vector2I chunkCoord,
 		Vector3 worldPos)
 	{
-		if (!ActiveChunks.ContainsKey(chunkCoord))
-		{
-			GD.PrintErr($"Tried to place item in unloaded chunk {chunkCoord}");
-			return false;
-		}
+		// if (!ActiveChunks.ContainsKey(chunkCoord))
+		// {
+		// 	GD.PrintErr($"Tried to place item in unloaded chunk {chunkCoord}");
+		// 	return false;
+		// }
 
 		// Remove one item from the authoritative player inventory first
 		var remaining = InventoryManager.Instance.RemoveItem(player, item, 1);
@@ -397,6 +398,62 @@ public partial class World : Node3D
 	public bool IsTileBlocked(Vector2I tile)
 	{
 		return _blockedTiles.ContainsKey(tile);
+	}
+
+	private bool TryResolveWorldObjectFromChunkMap(Dictionary<Vector2I, Chunk> chunks, Vector2I tileCoord,
+		Vector2I chunkCoord, out WorldObject worldObject)
+	{
+		worldObject = null;
+
+		if (!chunks.TryGetValue(chunkCoord, out var chunk))
+			return false;
+
+		foreach (var obj in chunk.Objects)
+		{
+			if (obj.TileCoord != tileCoord)
+				continue;
+
+			worldObject = obj.RuntimeNode;
+			return worldObject != null;
+		}
+
+		return false;
+	}
+
+	public ChunkObject ResolveChunkObject(Vector2I tileCoord)
+	{
+		var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(tileCoord));
+
+		if (ActiveChunks.TryGetValue(chunkCoord, out var activeChunk))
+			foreach (var obj in activeChunk.Objects)
+				if (obj.TileCoord == tileCoord)
+					return obj;
+
+		if (ServerChunks.TryGetValue(chunkCoord, out var serverChunk))
+			foreach (var obj in serverChunk.Objects)
+				if (obj.TileCoord == tileCoord)
+					return obj;
+
+		return null;
+	}
+
+	public WorldObject ResolveWorldObject(Vector2I tileCoord)
+	{
+		var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(tileCoord));
+
+		if (TryResolveWorldObjectFromChunkMap(ActiveChunks, tileCoord, chunkCoord, out var worldObject))
+			return worldObject;
+
+		if (TryResolveWorldObjectFromChunkMap(ServerChunks, tileCoord, chunkCoord, out worldObject))
+			return worldObject;
+
+		return null;
+	}
+
+	public IProcessingStation ResolveProcessingStation(Vector2I tileCoord)
+	{
+		var worldObject = ResolveWorldObject(tileCoord);
+		return worldObject as IProcessingStation;
 	}
 
 	public Player GetNearestPlayer(Vector3 worldPos, float maxDistance)

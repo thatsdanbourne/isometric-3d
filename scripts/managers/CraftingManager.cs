@@ -2,12 +2,13 @@ using Godot;
 
 public partial class CraftingManager : Node
 {
-	public static CraftingManager Instance { get; protected set; }
+	public static CraftingManager Instance { get; private set; }
 
-	public override void _Ready()
+	public override void _EnterTree()
 	{
 		Instance = this;
 	}
+
 
 	public bool CanCraft(Player player, CraftingRecipe recipe)
 	{
@@ -27,15 +28,57 @@ public partial class CraftingManager : Node
 		return true;
 	}
 
-	// called for instant craft stations like crafting tables
-	public bool CraftItem(Player player, string resultItemId)
+	public void RequestCollect(Player player, ICraftingStation station)
 	{
-		var recipe = CraftingRegistry.GetRecipe(resultItemId);
+		if (player == null || station == null)
+			return;
 
-		if (recipe == null || !CanCraft(player, recipe))
+		var world = GameManager.Instance.CurrentWorld;
+		if (world == null)
+			return;
+
+		world.Sync.RequestCollectStationOutput(station.TileCoord);
+	}
+
+	public void RequestCraft(Player player, CraftingRecipe recipe, ICraftingStation station = null)
+	{
+		if (player == null || recipe == null)
+			return;
+
+		var world = GameManager.Instance.CurrentWorld;
+		if (world == null)
+			return;
+
+		if (station != null)
+		{
+			world.Sync.RequestStartStationCraft(station.TileCoord, recipe.Id);
+			return;
+		}
+
+		world.Sync.RequestCraftItem(recipe.Id);
+	}
+
+	public bool ExecuteCraftRequest(Player player, CraftingRecipe recipe, ICraftingStation station = null)
+	{
+		if (player == null || recipe == null)
+			return false;
+
+		if (station != null) return false;
+
+		if (!CanCraft(player, recipe))
 			return false;
 
 		ConsumeIngredients(player, recipe);
+		CraftItem(player, recipe.ResultItemId);
+		return true;
+	}
+
+	public bool CraftItem(Player player, string resultItemId)
+	{
+		var recipe = CraftingRegistry.GetRecipeByResultId(resultItemId);
+
+		if (recipe == null || !CanCraft(player, recipe))
+			return false;
 
 		InventoryManager.Instance.AddItem(player, ItemRegistry.GetItem(recipe.ResultItemId), recipe.ResultCount);
 		return true;

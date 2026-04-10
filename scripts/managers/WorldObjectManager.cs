@@ -244,10 +244,11 @@ public partial class WorldObjectManager : Node
 			if (_world.ActiveChunks.TryGetValue(data.ChunkCoord, out var chunk))
 				switch (node)
 				{
-					case IChunkStateful<StationStateData> station:
+					case Kiln kiln:
 					{
-						if (chunk.StationStates.TryGetValue(data.TileCoord, out var stationState))
-							station.RestoreState(stationState);
+						var state = _world.Sync.GetOrCreateStationState(data.TileCoord, data.Definition.StableId);
+						kiln.BindState(state);
+
 						break;
 					}
 					case IChunkStateful<StorageStateData> storage:

@@ -21,9 +21,12 @@ public partial class Chest : WorldObject, IItemContainer, IInteractable, IChunkS
 		};
 	}
 
-	public void RestoreState(StorageStateData stateData)
+	public void RestoreState(StorageStateData state)
 	{
-		var restoredSlots = StationUtils.CloneSlots(stateData.Slots);
+		if (state == null)
+			return;
+
+		var restoredSlots = StationUtils.CloneSlots(state.Slots);
 
 		for (var i = 0; i < SlotCount; i++)
 			slots[i] = i < restoredSlots.Length ? restoredSlots[i] : null;

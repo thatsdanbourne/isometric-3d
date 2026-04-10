@@ -13,7 +13,6 @@ public partial class WorldObject : Node3D, IToolHittable
 	[Export] public string ObjectType { get; set; }
 
 	public Vector3 WorldPosition;
-	public Vector2I TileCoord;
 	public bool MarkedForRemoval;
 
 	public float CurrentHealth;

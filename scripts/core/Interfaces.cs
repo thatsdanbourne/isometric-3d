@@ -25,17 +25,18 @@ public interface ICraftingStation
 {
 	string Label { get; }
 	StationType StationType { get; }
+	Vector2I TileCoord { get; }
+}
 
+public interface IProcessingStation : ICraftingStation
+{
 	bool IsCrafting { get; }
-	bool IsTimed { get; }
-
 	int CompletedCount { get; }
 	int TotalCount { get; }
 
-	void StartCraft(CraftingRecipe recipe, Player player);
 	float GetProgress();
 	CraftingRecipe GetActiveRecipe();
-	void CollectOutput(Player player);
+	StationStateData GetDisplayState();
 }
 
 public interface IChunkStateful<TState>

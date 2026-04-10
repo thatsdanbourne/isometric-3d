@@ -77,7 +77,7 @@ public partial class CraftingUI : Control
 		RefreshCraftingUI();
 	}
 
-	public override void _Process(double delta)
+	public override void _PhysicsProcess(double delta)
 	{
 		UpdateStationUI();
 	}
@@ -85,6 +85,8 @@ public partial class CraftingUI : Control
 	public void OpenForStation(ICraftingStation station)
 	{
 		_currentStation = station;
+		_stationStatusRoot.Visible = station is IProcessingStation;
+
 		BuildRecipeList();
 	}
 
@@ -114,44 +116,44 @@ public partial class CraftingUI : Control
 
 	private void CraftItem(CraftingRecipe recipe)
 	{
-		if (CraftingManager.Instance.CanCraft(_player, recipe))
-		{
-			if (_currentStation != null)
-				_currentStation.StartCraft(recipe, _player);
-			else
-				CraftingManager.Instance.CraftItem(_player, recipe.ResultItemId);
-		}
+		if (recipe == null)
+			return;
+
+		CraftingManager.Instance.RequestCraft(_player, recipe, _currentStation);
 	}
 
 	private void OnCollectPressed()
 	{
-		_currentStation?.CollectOutput(_player);
+		if (_currentStation == null)
+			return;
+
+		CraftingManager.Instance.RequestCollect(_player, _currentStation);
 	}
 
 	private void UpdateStationUI()
 	{
-		if (_stationStatusRoot == null)
+		if (!Visible || _stationStatusRoot == null)
 			return;
 
-		if (_currentStation == null || !_currentStation.IsTimed)
-		{
-			_stationStatusRoot.Visible = false;
+		if (_currentStation is not IProcessingStation processingStation)
 			return;
-		}
 
-		_stationStatusRoot.Visible = true;
+		var recipe = processingStation.GetActiveRecipe();
 
-		var recipe = _currentStation.GetActiveRecipe();
-
-		_craftProgressBar.Value = _currentStation.GetProgress() * 100f;
+		_craftProgressBar.Value = processingStation.GetProgress();
 
 		if (recipe != null)
+		{
+			var state = processingStation.GetDisplayState();
 			_resultSlot.SetCraftingStack(
 				ItemRegistry.GetItem(recipe.ResultItemId),
-				_currentStation.CompletedCount,
-				_currentStation.TotalCount);
+				state.CompletedCount,
+				state.TotalCount);
+		}
 		else
+		{
 			_resultSlot.SetStack(null);
+		}
 	}
 
 	private void RefreshCraftingUI()
