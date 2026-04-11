@@ -228,92 +228,101 @@ public partial class WorldSync : Node
 
 		foreach (var peerId in _world.ChunkManager.GetPeersInterestedInChunk(chunkCoord))
 			RpcId(peerId, nameof(ReceiveStorageState), serialised);
+
+		ReceiveStorageState(serialised);
 	}
 
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true)]
 	private void ReceiveStorageState(Godot.Collections.Dictionary stateData)
 	{
 		var state = SerializationUtils.DeserializeStorageState(stateData);
-		_world.WorldObjectManager.ApplyRemoteStorageState(state);
+
+		var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(state.TileCoord));
+		var delta = _world.MutateChunkDelta(chunkCoord);
+		delta.StorageStates[state.TileCoord] = state;
+
+		var worldObject = _world.ResolveWorldObject(state.TileCoord);
+		if (worldObject is IItemContainer container)
+			container.BindState(state);
 	}
 
-	private IItemContainer ResolveStorageContainer(Vector2I storageTileCoord, out Vector2I chunkCoord,
-		out bool isRuntime)
+	private IItemContainer ResolvePlayerContainer(Player player, ContainerKind kind)
 	{
-		chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(storageTileCoord));
-		isRuntime = false;
-
-		if (_world.ActiveChunks.TryGetValue(chunkCoord, out var chunk))
-			foreach (var obj in chunk.Objects)
-			{
-				if (obj.TileCoord != storageTileCoord)
-					continue;
-
-				if (obj.RuntimeNode is IItemContainer storage)
-				{
-					isRuntime = true;
-					return storage;
-				}
-			}
-
-		if (!TryGetStorageState(chunkCoord, storageTileCoord, out var state))
-			return null;
-
-		return new StorageStateContainer(state);
-	}
-
-	private IItemContainer ResolveContainer(Player player, ContainerKind kind, Vector2I storageTileCoord,
-		out Vector2I storageChunkCoord, out bool isRuntime)
-	{
-		storageChunkCoord = Vector2I.Zero;
-		isRuntime = false;
-
 		return kind switch
 		{
 			ContainerKind.Inventory => player.Inventory,
 			ContainerKind.Hotbar => player.Hotbar,
-			ContainerKind.Storage => ResolveStorageContainer(storageTileCoord, out storageChunkCoord, out isRuntime),
 			_ => null
 		};
 	}
 
-	public bool TryGetStorageState(Vector2I chunkCoord, Vector2I storageTileCoord, out StorageStateData state)
+	public StorageStateData GetOrCreateStorageState(Vector2I tileCoord)
 	{
-		state = null;
+		var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(tileCoord));
+		var delta = _world.GetOrCreateChunkDelta(chunkCoord);
 
-		var serverChunk = _world.ChunkGenerator.GetOrBuildServerChunk(chunkCoord);
-		if (serverChunk == null)
-			return false;
+		if (delta.StorageStates.TryGetValue(tileCoord, out var state))
+			return state;
 
-		var found = false;
-		foreach (var obj in serverChunk.Objects)
-		{
-			if (obj.TileCoord != storageTileCoord)
-				continue;
-
-			found = true;
-			break;
-		}
-
-		if (!found)
-			return false;
-
-		if (_world.TryGetChunkDelta(chunkCoord, out var delta) &&
-		    delta.StorageStates.TryGetValue(storageTileCoord, out var existingState))
-		{
-			state = existingState;
-			return true;
-		}
+		var chunkObject = _world.ResolveChunkObject(tileCoord);
+		if (chunkObject == null)
+			return null;
 
 		state = new StorageStateData
 		{
-			ObjectId = 0,
-			TileCoord = storageTileCoord,
-			Slots = new ItemStack[9] // TODO: derive from definition later
+			ObjectId = chunkObject.Definition.StableId,
+			TileCoord = tileCoord,
+			Slots = new ItemStack[9]
 		};
 
-		return true;
+		delta.StorageStates[tileCoord] = state;
+		_world.ChunkManager.InvalidateServerChunk(chunkCoord);
+		return state;
 	}
+
+	public bool TryGetStorageState(Vector2I tileCoord, out StorageStateData state)
+	{
+		var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(tileCoord));
+		state = null;
+
+		if (!_world.TryGetChunkDelta(chunkCoord, out var delta))
+			return false;
+
+		return delta.StorageStates.TryGetValue(tileCoord, out state);
+	}
+
+	// private void SyncStorageState(Vector2I storageTileCoord)
+	// {
+	// 	if (!TryGetStorageState(storageTileCoord, out var state))
+	// 		return;
+	//
+	// 	Rpc(nameof(BindStorageState),
+	// 		state.ObjectId,
+	// 		state.TileCoord,
+	// 		state.Slots);
+	// }
+	//
+	// [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true)]
+	// private void BindStorageState(
+	// 	int objectId,
+	// 	Vector2I tileCoord,
+	// 	ItemStack[] slots)
+	// {
+	// 	var state = new StorageStateData
+	// 	{
+	// 		ObjectId = objectId,
+	// 		TileCoord = tileCoord,
+	// 		Slots = slots
+	// 	};
+	//
+	// 	var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(tileCoord));
+	// 	var delta = _world.MutateChunkDelta(chunkCoord);
+	// 	delta.StorageStates[tileCoord] = state;
+	//
+	// 	var worldObject = _world.ResolveWorldObject(tileCoord);
+	// 	if (worldObject is IItemContainer container)
+	// 		container.BindState(state);
+	// }
 
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
 	public void RequestContainerClick(
@@ -594,8 +603,8 @@ public partial class WorldSync : Node
 		delta.StationStates[tileCoord] = state;
 
 		var worldObject = _world.ResolveWorldObject(tileCoord);
-		if (worldObject is Kiln kiln)
-			kiln.BindState(state);
+		if (worldObject is IProcessingStation station)
+			station.BindState(state);
 	}
 
 	public void RequestCollectStationOutput(Vector2I tileCoord)
@@ -677,12 +686,18 @@ public partial class WorldSync : Node
 		bool shiftHeld
 	)
 	{
-		var container =
-			ResolveContainer(player, kind, storageTileCoord, out var storageChunkCoord, out var isRuntime);
+		if (kind == ContainerKind.Storage)
+			HandleStorageClickRequest(player, storageTileCoord, slotIndex, mouseButton, shiftHeld);
+		else
+			HandlePlayerContainerClickRequest(player, kind, slotIndex, mouseButton, shiftHeld);
+	}
+
+	private void HandlePlayerContainerClickRequest(Player player, ContainerKind kind, int slotIndex, int mouseButton,
+		bool shiftHeld)
+	{
+		var container = ResolvePlayerContainer(player, kind);
 		if (container == null)
 			return;
-
-		var isStorage = kind == ContainerKind.Storage;
 
 		if (slotIndex < 0 || slotIndex >= container.SlotCount)
 			return;
@@ -698,20 +713,10 @@ public partial class WorldSync : Node
 						player.Hotbar
 					);
 					break;
-
 				case ContainerKind.Hotbar:
 					InventoryManager.Instance.ShiftClick(
 						container,
 						slotIndex,
-						player.Inventory
-					);
-					break;
-
-				case ContainerKind.Storage:
-					InventoryManager.Instance.ShiftClick(
-						container,
-						slotIndex,
-						player.Hotbar,
 						player.Inventory
 					);
 					break;
@@ -734,27 +739,36 @@ public partial class WorldSync : Node
 		}
 
 		SyncPlayerInventoryState(player);
+	}
 
-		if (isStorage)
+	private void HandleStorageClickRequest(Player player, Vector2I storageTileCoord, int slotIndex, int mouseButton,
+		bool shiftHeld)
+	{
+		var storageState = GetOrCreateStorageState(storageTileCoord);
+		if (storageState == null)
+			return;
+
+		if (slotIndex < 0 || slotIndex >= storageState.Slots.Length)
+			return;
+
+		if (shiftHeld)
 		{
-			StorageStateData newState;
-
-			if (isRuntime && container is IChunkStateful<StorageStateData> runtimeStorage)
-				newState = runtimeStorage.CaptureState();
-			else if (container is StorageStateContainer snapshotStorage)
-				newState = snapshotStorage.CaptureState();
-			else
-				return;
-
-			var delta = _world.GetOrCreateChunkDelta(storageChunkCoord);
-			delta.StorageStates[storageTileCoord] = newState;
-
-			if (_world.ActiveChunks.TryGetValue(storageChunkCoord, out var chunk))
-				chunk.StorageStates[storageTileCoord] = newState;
-
-			_world.ChunkManager.InvalidateServerChunk(storageChunkCoord);
-			BroadcastStorageState(delta.StorageStates[storageTileCoord]);
+			HandleStorageShiftClick(player, storageState, slotIndex);
 		}
+		else
+		{
+			if (mouseButton == 0)
+				player.DraggedStack = LeftClickStorage(storageState, slotIndex, player.DraggedStack);
+			else
+				player.DraggedStack = RightClickStorage(storageState, slotIndex, player.DraggedStack);
+		}
+
+		var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(storageTileCoord));
+		var delta = _world.GetOrCreateChunkDelta(chunkCoord);
+		delta.StorageStates[storageTileCoord] = storageState;
+
+		_world.ChunkManager.InvalidateServerChunk(chunkCoord);
+		BroadcastStorageState(storageState);
 	}
 
 	public void HandleContainerClick(
@@ -787,5 +801,99 @@ public partial class WorldSync : Node
 			mouseButton,
 			shiftHeld
 		);
+	}
+
+	private ItemStack LeftClickStorage(StorageStateData storageState, int slotIndex, ItemStack draggedStack)
+	{
+		var slots = storageState.Slots;
+		var slotStack = slots[slotIndex];
+
+		if (draggedStack == null)
+		{
+			slots[slotIndex] = null;
+			return slotStack;
+		}
+
+		if (slotStack == null)
+		{
+			slots[slotIndex] = draggedStack;
+			return null;
+		}
+
+		if (slotStack.Item.Id == draggedStack.Item.Id && slotStack.Count < slotStack.Item.StackSize)
+		{
+			var transfer = Mathf.Min(draggedStack.Count, slotStack.Item.StackSize - slotStack.Count);
+			slotStack.Count += transfer;
+			draggedStack.Count -= transfer;
+
+			if (draggedStack.Count <= 0)
+				return null;
+
+			return draggedStack;
+		}
+
+		slots[slotIndex] = draggedStack;
+		return slotStack;
+	}
+
+	private ItemStack RightClickStorage(StorageStateData storageState, int slotIndex, ItemStack draggedStack)
+	{
+		var slots = storageState.Slots;
+		var slotStack = slots[slotIndex];
+
+		if (draggedStack == null)
+		{
+			if (slotStack == null)
+				return null;
+
+			var takeAmount = Mathf.CeilToInt(slotStack.Count / 2.0f);
+			var taken = new ItemStack(slotStack.Item, takeAmount);
+
+			slotStack.Count -= takeAmount;
+			if (slotStack.Count <= 0)
+				slots[slotIndex] = null;
+
+			return taken;
+		}
+
+		if (slotStack == null)
+		{
+			slots[slotIndex] = new ItemStack(draggedStack.Item, 1);
+			draggedStack.Count -= 1;
+
+			if (draggedStack.Count <= 0)
+				return null;
+
+			return draggedStack;
+		}
+
+		if (slotStack.Item.Id == draggedStack.Item.Id && slotStack.Count < slotStack.Item.StackSize)
+		{
+			slotStack.Count += 1;
+			draggedStack.Count -= 1;
+
+			if (draggedStack.Count <= 0)
+				return null;
+		}
+
+		return draggedStack;
+	}
+
+	private void HandleStorageShiftClick(Player player, StorageStateData storageState, int slotIndex)
+	{
+		var slots = storageState.Slots;
+		var stack = slots[slotIndex];
+		if (stack == null)
+			return;
+
+		InventoryManager.Instance.AddItem(player, stack.Item, stack.Count);
+
+		// var moved = stack.Count - moving.Count;
+		// if (moved <= 0)
+		// 	return;
+		//
+		// stack.Count -= moved;
+		// if (stack.Count <= 0)
+		// 	slots[slotIndex] = null;
 	}
 }

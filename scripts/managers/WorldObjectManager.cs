@@ -179,25 +179,6 @@ public partial class WorldObjectManager : Node
 		EnqueueSpawn(data);
 	}
 
-	public void ApplyRemoteStorageState(StorageStateData state)
-	{
-		var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(state.TileCoord));
-
-		if (!_world.ActiveChunks.TryGetValue(chunkCoord, out var chunk))
-			return;
-
-		foreach (var obj in chunk.Objects)
-		{
-			if (obj.TileCoord != state.TileCoord)
-				continue;
-
-			if (obj.RuntimeNode is IChunkStateful<StorageStateData> storage)
-				storage.RestoreState(state);
-
-			break;
-		}
-	}
-
 	public void EnqueueRemoval(ChunkObject data)
 	{
 		data.MarkedForRemoval = true;
@@ -244,17 +225,17 @@ public partial class WorldObjectManager : Node
 			if (_world.ActiveChunks.TryGetValue(data.ChunkCoord, out var chunk))
 				switch (node)
 				{
-					case Kiln kiln:
+					case IProcessingStation station:
 					{
 						var state = _world.Sync.GetOrCreateStationState(data.TileCoord, data.Definition.StableId);
-						kiln.BindState(state);
+						station.BindState(state);
 
 						break;
 					}
-					case IChunkStateful<StorageStateData> storage:
+					case IItemContainer storage:
 					{
-						if (chunk.StorageStates.TryGetValue(data.TileCoord, out var storageState))
-							storage.RestoreState(storageState);
+						var state = _world.Sync.GetOrCreateStorageState(data.TileCoord);
+						storage.BindState(state);
 						break;
 					}
 				}

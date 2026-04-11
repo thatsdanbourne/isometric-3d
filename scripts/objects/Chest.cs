@@ -1,47 +1,33 @@
 using Godot;
 
-public partial class Chest : WorldObject, IItemContainer, IInteractable, IChunkStateful<StorageStateData>
+public partial class Chest : WorldObject, IItemContainer, IInteractable
 {
 	[Signal]
 	public delegate void ContainerChangedEventHandler();
 
+	private StorageStateData _state;
+
 	public string Label => "Chest";
 	public int SlotCount => 9;
 
-	private InteractionPrompt interactPrompt;
-	private ItemStack[] slots;
+	private InteractionPrompt _interactPrompt;
+	private ItemStack[] _slots;
 
-	public StorageStateData CaptureState()
+
+	public void BindState(StorageStateData state)
 	{
-		return new StorageStateData
-		{
-			ObjectId = Data.Definition.StableId,
-			TileCoord = Data.TileCoord,
-			Slots = slots
-		};
-	}
-
-	public void RestoreState(StorageStateData state)
-	{
-		if (state == null)
-			return;
-
-		var restoredSlots = StationUtils.CloneSlots(state.Slots);
-
-		for (var i = 0; i < SlotCount; i++)
-			slots[i] = i < restoredSlots.Length ? restoredSlots[i] : null;
-
+		_state = state;
 		EmitSignal(SignalName.ContainerChanged);
 	}
 
 	public void OnFocusGained()
 	{
-		interactPrompt.ShowIcon();
+		_interactPrompt.ShowIcon();
 	}
 
 	public void OnFocusLost()
 	{
-		interactPrompt.HideIcon();
+		_interactPrompt.HideIcon();
 	}
 
 	public T GetCapability<T>() where T : class
@@ -51,24 +37,24 @@ public partial class Chest : WorldObject, IItemContainer, IInteractable, IChunkS
 
 	public ItemStack[] GetSlots()
 	{
-		return StationUtils.CloneSlots(slots);
+		return StationUtils.CloneSlots(_state.Slots);
 	}
 
 	public ItemStack GetSlot(int index)
 	{
-		return slots[index]?.Clone();
+		return _state.Slots[index]?.Clone();
 	}
 
 	public void SetSlot(int index, ItemStack stack)
 	{
-		slots[index] = stack?.Clone();
+		_state.Slots[index] = stack?.Clone();
 		EmitSignal(SignalName.ContainerChanged);
 	}
 
 	public override void _Ready()
 	{
 		base._Ready();
-		slots = new ItemStack[SlotCount];
-		interactPrompt = GetNode<InteractionPrompt>("InteractionPrompt");
+		_slots = new ItemStack[SlotCount];
+		_interactPrompt = GetNode<InteractionPrompt>("InteractionPrompt");
 	}
 }

@@ -11,6 +11,7 @@ public interface IItemContainer
 	ItemStack GetSlot(int index);
 	ItemStack[] GetSlots();
 	void SetSlot(int index, ItemStack stack);
+	void BindState(StorageStateData state);
 }
 
 public interface IInteractable
@@ -30,13 +31,10 @@ public interface ICraftingStation
 
 public interface IProcessingStation : ICraftingStation
 {
-	bool IsCrafting { get; }
-	int CompletedCount { get; }
-	int TotalCount { get; }
-
 	float GetProgress();
 	CraftingRecipe GetActiveRecipe();
 	StationStateData GetDisplayState();
+	void BindState(StationStateData state);
 }
 
 public interface IChunkStateful<TState>

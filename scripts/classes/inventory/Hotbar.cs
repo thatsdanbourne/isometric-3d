@@ -22,6 +22,10 @@ public partial class Hotbar : Node, IItemContainer
 		_slots = new ItemStack[SlotCount];
 	}
 
+	public void BindState(StorageStateData state)
+	{
+	}
+
 	public ItemStack GetSlot(int index)
 	{
 		return _slots[index];

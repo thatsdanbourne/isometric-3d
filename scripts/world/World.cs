@@ -450,12 +450,6 @@ public partial class World : Node3D
 		return null;
 	}
 
-	public IProcessingStation ResolveProcessingStation(Vector2I tileCoord)
-	{
-		var worldObject = ResolveWorldObject(tileCoord);
-		return worldObject as IProcessingStation;
-	}
-
 	public Player GetNearestPlayer(Vector3 worldPos, float maxDistance)
 	{
 		Player best = null;
