@@ -11,7 +11,7 @@ public partial class InventoryManager : Node
 	}
 
 	// add logic
-	public void AddItem(Player player, Item item, int amount)
+	public int AddItem(Player player, Item item, int amount)
 	{
 		var inv = player.Inventory;
 		var hotbar = player.Hotbar;
@@ -30,8 +30,7 @@ public partial class InventoryManager : Node
 		// Finally try to add into empty slots in inventory
 		remaining = FillEmptySlots(inv, item, remaining);
 
-		if (remaining > 0)
-			DropItem(player, item, remaining);
+		return remaining;
 	}
 
 

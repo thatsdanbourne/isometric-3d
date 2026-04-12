@@ -11,7 +11,6 @@ public partial class Chest : WorldObject, IItemContainer, IInteractable
 	public int SlotCount => 9;
 
 	private InteractionPrompt _interactPrompt;
-	private ItemStack[] _slots;
 
 
 	public void BindState(StorageStateData state)
@@ -42,7 +41,7 @@ public partial class Chest : WorldObject, IItemContainer, IInteractable
 
 	public ItemStack GetSlot(int index)
 	{
-		return _state.Slots[index]?.Clone();
+		return _state?.Slots[index]?.Clone();
 	}
 
 	public void SetSlot(int index, ItemStack stack)
@@ -54,7 +53,6 @@ public partial class Chest : WorldObject, IItemContainer, IInteractable
 	public override void _Ready()
 	{
 		base._Ready();
-		_slots = new ItemStack[SlotCount];
 		_interactPrompt = GetNode<InteractionPrompt>("InteractionPrompt");
 	}
 }

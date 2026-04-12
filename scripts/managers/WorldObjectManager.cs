@@ -227,15 +227,14 @@ public partial class WorldObjectManager : Node
 				{
 					case IProcessingStation station:
 					{
-						var state = _world.Sync.GetOrCreateStationState(data.TileCoord, data.Definition.StableId);
-						station.BindState(state);
-
+						if (chunk.StationStates.TryGetValue(data.TileCoord, out var state))
+							station.BindState(state);
 						break;
 					}
 					case IItemContainer storage:
 					{
-						var state = _world.Sync.GetOrCreateStorageState(data.TileCoord);
-						storage.BindState(state);
+						if (chunk.StorageStates.TryGetValue(data.TileCoord, out var state))
+							storage.BindState(state);
 						break;
 					}
 				}

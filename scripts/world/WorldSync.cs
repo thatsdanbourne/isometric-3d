@@ -690,6 +690,8 @@ public partial class WorldSync : Node
 			HandleStorageClickRequest(player, storageTileCoord, slotIndex, mouseButton, shiftHeld);
 		else
 			HandlePlayerContainerClickRequest(player, kind, slotIndex, mouseButton, shiftHeld);
+
+		SyncPlayerInventoryState(player);
 	}
 
 	private void HandlePlayerContainerClickRequest(Player player, ContainerKind kind, int slotIndex, int mouseButton,
@@ -737,8 +739,6 @@ public partial class WorldSync : Node
 					player.DraggedStack
 				);
 		}
-
-		SyncPlayerInventoryState(player);
 	}
 
 	private void HandleStorageClickRequest(Player player, Vector2I storageTileCoord, int slotIndex, int mouseButton,
@@ -886,14 +886,11 @@ public partial class WorldSync : Node
 		if (stack == null)
 			return;
 
-		InventoryManager.Instance.AddItem(player, stack.Item, stack.Count);
+		var remaining = InventoryManager.Instance.AddItem(player, stack.Item, stack.Count);
 
-		// var moved = stack.Count - moving.Count;
-		// if (moved <= 0)
-		// 	return;
-		//
-		// stack.Count -= moved;
-		// if (stack.Count <= 0)
-		// 	slots[slotIndex] = null;
+		if (remaining > 0)
+			slots[slotIndex].Count = remaining;
+		else
+			slots[slotIndex] = null;
 	}
 }
