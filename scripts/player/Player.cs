@@ -249,10 +249,37 @@ public partial class Player : CharacterBody3D, IToolHittable
 	}
 
 	// inventory interaction
-	public void CollectItem(Item item, int count)
+	public void RequestItemPickup(ulong pickupId)
+	{
+		if (_world == null)
+			return;
+
+		if (_world.Multiplayer.IsServer())
+		{
+			_world.WorldObjectManager.HandlePickupRequest(this, pickupId);
+			return;
+		}
+
+		_world.Sync.RpcId(1, nameof(WorldSync.RequestPickup), pickupId);
+	}
+
+	public void GiveItem(Item item, int count)
 	{
 		InventoryManager.Instance.AddItem(this, item, count);
-		HUD.RefreshUI();
+	}
+
+	public void RequestDropItem(Item item, int count)
+	{
+		if (_world == null || item == null || count <= 0)
+			return;
+
+		if (_world.Multiplayer.IsServer())
+		{
+			_world.WorldObjectManager.HandleDropItemRequest(this, item.Id, count);
+			return;
+		}
+
+		_world.Sync.RpcId(1, nameof(WorldSync.RequestDropItem), item.Id, count);
 	}
 
 	// input 

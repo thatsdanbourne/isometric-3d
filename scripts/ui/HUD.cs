@@ -388,11 +388,13 @@ public partial class HUD : CanvasLayer
 		}
 	}
 
-
 	private void DropStack()
 	{
-		InventoryManager.Instance.DropItem(_player, _player.DraggedStack.Item, _player.DraggedStack.Count);
-		_player.DraggedStack = null;
+		if (_player.DraggedStack == null)
+			return;
+
+		_player.RequestDropItem(_player.DraggedStack.Item, _player.DraggedStack.Count);
+
 		UpdateCursor();
 		RefreshUI();
 	}

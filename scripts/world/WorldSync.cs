@@ -227,13 +227,13 @@ public partial class WorldSync : Node
 		var serialised = SerializationUtils.SerializeStorageState(state);
 
 		foreach (var peerId in _world.ChunkManager.GetPeersInterestedInChunk(chunkCoord))
-			RpcId(peerId, nameof(ReceiveStorageState), serialised);
+			RpcId(peerId, nameof(BindStorageState), serialised);
 
-		ReceiveStorageState(serialised);
+		BindStorageState(serialised);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true)]
-	private void ReceiveStorageState(Godot.Collections.Dictionary stateData)
+	private void BindStorageState(Godot.Collections.Dictionary stateData)
 	{
 		var state = SerializationUtils.DeserializeStorageState(stateData);
 
@@ -279,50 +279,6 @@ public partial class WorldSync : Node
 		_world.ChunkManager.InvalidateServerChunk(chunkCoord);
 		return state;
 	}
-
-	public bool TryGetStorageState(Vector2I tileCoord, out StorageStateData state)
-	{
-		var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(tileCoord));
-		state = null;
-
-		if (!_world.TryGetChunkDelta(chunkCoord, out var delta))
-			return false;
-
-		return delta.StorageStates.TryGetValue(tileCoord, out state);
-	}
-
-	// private void SyncStorageState(Vector2I storageTileCoord)
-	// {
-	// 	if (!TryGetStorageState(storageTileCoord, out var state))
-	// 		return;
-	//
-	// 	Rpc(nameof(BindStorageState),
-	// 		state.ObjectId,
-	// 		state.TileCoord,
-	// 		state.Slots);
-	// }
-	//
-	// [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true)]
-	// private void BindStorageState(
-	// 	int objectId,
-	// 	Vector2I tileCoord,
-	// 	ItemStack[] slots)
-	// {
-	// 	var state = new StorageStateData
-	// 	{
-	// 		ObjectId = objectId,
-	// 		TileCoord = tileCoord,
-	// 		Slots = slots
-	// 	};
-	//
-	// 	var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(tileCoord));
-	// 	var delta = _world.MutateChunkDelta(chunkCoord);
-	// 	delta.StorageStates[tileCoord] = state;
-	//
-	// 	var worldObject = _world.ResolveWorldObject(tileCoord);
-	// 	if (worldObject is IItemContainer container)
-	// 		container.BindState(state);
-	// }
 
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
 	public void RequestContainerClick(
@@ -892,5 +848,61 @@ public partial class WorldSync : Node
 			slots[slotIndex].Count = remaining;
 		else
 			slots[slotIndex] = null;
+	}
+
+	//
+	// item drops
+	//
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+	public void RequestDropItem(string itemId, int count)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		if (count <= 0)
+			return;
+
+		var senderId = Multiplayer.GetRemoteSenderId();
+		var player = _world.GetPlayerById(senderId);
+		if (player == null)
+			return;
+
+		_world.WorldObjectManager.HandleDropItemRequest(player, itemId, count);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void SpawnRemotePickups(Godot.Collections.Array<Godot.Collections.Dictionary> pickups)
+	{
+		foreach (var p in pickups) _world.WorldObjectManager.SpawnPickupFromData(p);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+	public void RequestPickup(ulong pickupId)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		var senderId = Multiplayer.GetRemoteSenderId();
+		var player = _world.GetPlayerById(senderId);
+
+		if (player == null)
+			return;
+
+		_world.WorldObjectManager.HandlePickupRequest(player, pickupId);
+	}
+
+	public void BroadcastPickupRemoved(ItemPickup pickup)
+	{
+		var chunk = TileUtils.WorldToChunk(pickup.GlobalPosition);
+		var peers = _world.ChunkManager.GetPeersInterestedInChunk(chunk);
+
+		foreach (var peerId in peers)
+			RpcId(peerId, nameof(RemoveRemotePickup), pickup.PickupId);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	private void RemoveRemotePickup(ulong pickupId)
+	{
+		_world.WorldObjectManager.RemovePickupById(pickupId);
 	}
 }

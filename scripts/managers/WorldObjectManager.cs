@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 public partial class WorldObjectManager : Node
 {
@@ -9,6 +10,9 @@ public partial class WorldObjectManager : Node
 	private readonly Queue<Chunk> _spawnChunkQueue = new();
 	private readonly Queue<ChunkObject> _activeSpawnQueue = new();
 	private readonly Queue<ChunkObject> _removeQueue = new();
+
+	private ulong _nextPickupId = 1;
+	private readonly Dictionary<ulong, ItemPickup> _activePickups = new();
 
 	// private readonly Dictionary<string, Stack<WorldObject>> _pools = new();
 
@@ -51,20 +55,63 @@ public partial class WorldObjectManager : Node
 
 	public void RequestBreak(ChunkObject data)
 	{
+		var result = new List<ItemPickupSpawnData>();
+
+		if (data.RuntimeNode is not { } wo)
+			return;
+
 		if (data.RuntimeNode is IItemContainer storage)
 			foreach (var stack in storage.GetSlots())
 			{
-				if (stack is not { Count: > 0 }) continue;
+				if (stack is not { Count: > 0 })
+					continue;
 
-				var pickup = _pickupScene.Instantiate<ItemPickup>();
-				pickup.Item = stack.Item;
-				pickup.Count = stack.Count;
-
-				_world.ItemPickupContainer.AddChild(pickup);
-				pickup.GlobalPosition = data.Position;
+				var dir = RandomDir();
+				result.Add(new ItemPickupSpawnData
+				{
+					PickupId = _nextPickupId++,
+					ItemId = stack.Item.Id,
+					Count = stack.Count,
+					Position = data.Position,
+					InitialVelocity = dir * ItemPickup.LaunchStrength,
+					InitialVerticalVelocity = ItemPickup.BounceHeight * 8f
+				});
 			}
 
-		SpawnDrops(data);
+		var drops = wo.DropItems;
+		if (drops is { Count: > 0 })
+			foreach (var entry in drops)
+			{
+				if (_rng.Randf() > entry.Chance)
+					continue;
+
+				var item = ItemRegistry.GetItem(entry.ItemId);
+				if (item == null)
+					continue;
+
+				var quantity = _rng.RandiRange(entry.MinQuantity, entry.MaxQuantity);
+
+				for (var i = 0; i < quantity; i++)
+				{
+					var dir = RandomDir();
+					result.Add(new ItemPickupSpawnData
+					{
+						PickupId = _nextPickupId++,
+						ItemId = item.Id,
+						Count = 1,
+						Position = data.Position,
+						InitialVelocity = dir * ItemPickup.LaunchStrength,
+						InitialVerticalVelocity = ItemPickup.BounceHeight * 8f
+					});
+				}
+			}
+
+		var payload = BuildDropPayload(result);
+
+		foreach (var p in payload)
+			SpawnPickupFromData(p);
+
+		_world.Sync.Rpc(nameof(_world.Sync.SpawnRemotePickups), payload);
 
 		// clear chunk delta states
 		switch (data.Source)
@@ -104,33 +151,104 @@ public partial class WorldObjectManager : Node
 		EnqueueRemoval(target);
 	}
 
-	private void SpawnDrops(ChunkObject data)
+	private Godot.Collections.Array<Godot.Collections.Dictionary> BuildDropPayload(List<ItemPickupSpawnData> data)
 	{
-		if (data.RuntimeNode is not { } wo)
+		var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+
+		foreach (var d in data)
+			result.Add(SerializationUtils.SerializePickup(d.PickupId, d.ItemId, d.Count, d.Position, d.InitialVelocity,
+				d.InitialVerticalVelocity));
+
+		return result;
+	}
+
+	public void HandleDropItemRequest(Player player, string itemId, int count)
+	{
+		if (count <= 0)
 			return;
 
-		var drops = wo.DropItems;
-		if (drops == null || drops.Count == 0) return;
+		var item = ItemRegistry.GetItem(itemId);
+		if (item == null)
+			return;
 
-		foreach (var entry in drops)
+		if (player.DraggedStack != null)
 		{
-			if (_rng.Randf() > entry.Chance)
-				continue;
-
-			var item = ItemRegistry.GetItem(entry.ItemId);
-			if (item == null) continue;
-
-			var quantity = _rng.RandiRange(entry.MinQuantity, entry.MaxQuantity);
-
-			for (var n = 0; n < quantity; n++)
+			var result = new ItemPickupSpawnData
 			{
-				var pickup = _pickupScene.Instantiate<ItemPickup>();
-				pickup.Item = item;
+				PickupId = _nextPickupId++,
+				ItemId = player.DraggedStack.Item.Id,
+				Count = player.DraggedStack.Count,
+				Position = player.GlobalPosition,
+				InitialVelocity = RandomDir() * ItemPickup.LaunchStrength,
+				InitialVerticalVelocity = ItemPickup.BounceHeight * 8f
+			};
 
-				_world.ItemPickupContainer.AddChild(pickup);
-				pickup.GlobalPosition = data.Position;
-			}
+			var payload = BuildDropPayload([result]);
+
+			foreach (var p in payload)
+				SpawnPickupFromData(p);
+
+			player.DraggedStack = null;
+			_world.Sync.SyncPlayerInventoryState(player);
+
+			_world.Sync.Rpc(nameof(_world.Sync.SpawnRemotePickups), payload);
 		}
+	}
+
+	public void SpawnPickupFromData(Godot.Collections.Dictionary d)
+	{
+		var pickup = SerializationUtils.DeserializePickup(d);
+		var item = ItemRegistry.GetItem(pickup.ItemId);
+		if (item == null)
+			return;
+
+		var pickupItem = _pickupScene.Instantiate<ItemPickup>();
+		pickupItem.PickupId = pickup.PickupId;
+		pickupItem.Item = item;
+		pickupItem.Count = pickup.Count;
+		pickupItem.Position = pickup.Position;
+		pickupItem.InitialVelocity = pickup.InitialVelocity;
+		pickupItem.InitialVerticalVelocity = pickup.InitialVerticalVelocity;
+		_world.ItemPickupContainer.AddChild(pickupItem);
+
+		_activePickups[pickupItem.PickupId] = pickupItem;
+	}
+
+	public void HandlePickupRequest(Player player, ulong pickupId)
+	{
+		if (!_activePickups.TryGetValue(pickupId, out var pickup))
+			return;
+
+		if (!IsInstanceValid(pickup))
+			return;
+
+		player.GiveItem(pickup.Item, pickup.Count);
+		_world.Sync.SyncPlayerInventoryState(player);
+		_activePickups.Remove(pickupId);
+		pickup.AnimateOut();
+		_world.Sync.BroadcastPickupRemoved(pickup);
+	}
+
+	public void RemovePickupById(ulong pickupId)
+	{
+		if (!_activePickups.Remove(pickupId, out var pickup))
+			return;
+
+		pickup.AnimateOut();
+	}
+
+	private Vector3 RandomDir()
+	{
+		var dir = new Vector3(
+			_rng.RandfRange(-1f, 1f),
+			0f,
+			_rng.RandfRange(-1f, 1f)
+		);
+
+		if (dir.LengthSquared() < 0.001f)
+			dir = Vector3.Forward;
+
+		return dir.Normalized();
 	}
 
 	public bool RequestPlace(ChunkObject data)

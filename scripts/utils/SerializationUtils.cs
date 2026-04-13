@@ -248,4 +248,32 @@ public static class SerializationUtils
 
 		return chunk;
 	}
+
+	public static Godot.Collections.Dictionary SerializePickup(ulong id, string itemId, int count, Vector3 pos,
+		Vector3 vel,
+		float vVel)
+	{
+		return new Godot.Collections.Dictionary
+		{
+			{ "id", id },
+			{ "item_id", itemId },
+			{ "count", count },
+			{ "pos", pos },
+			{ "vel", vel },
+			{ "v_vel", vVel }
+		};
+	}
+
+	public static ItemPickupSpawnData DeserializePickup(Godot.Collections.Dictionary dict)
+	{
+		return new ItemPickupSpawnData
+		{
+			PickupId = (ulong)dict["id"],
+			ItemId = (string)dict["item_id"],
+			Count = (int)dict["count"],
+			Position = (Vector3)dict["pos"],
+			InitialVelocity = (Vector3)dict["vel"],
+			InitialVerticalVelocity = (float)dict["v_vel"]
+		};
+	}
 }

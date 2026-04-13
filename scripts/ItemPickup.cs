@@ -3,9 +3,15 @@ using System.Collections.Generic;
 
 public partial class ItemPickup : Node3D
 {
-	private static readonly Dictionary<Texture2D, StandardMaterial3D> MaterialCache = new();
+	public ulong PickupId;
+
+	public Vector3 InitialVelocity;
+	public float InitialVerticalVelocity;
+
 	public Item Item;
 	public int Count = 1;
+
+	private static readonly Dictionary<Texture2D, StandardMaterial3D> MaterialCache = new();
 
 	private Area3D _area;
 	private MeshInstance3D _meshInstance;
@@ -23,8 +29,8 @@ public partial class ItemPickup : Node3D
 	private float _verticalHeight;
 	private float _verticalVelocity;
 
-	private const float LaunchStrength = 6f;
-	private const float BounceHeight = 1.2f;
+	public const float LaunchStrength = 6f;
+	public const float BounceHeight = 1.2f;
 
 	private float _hoverPhase;
 	private const float HoverAmplitude = 0.15f;
@@ -69,17 +75,8 @@ public partial class ItemPickup : Node3D
 		_shadow.Position = new Vector3(0f, 0.01f, 0f);
 		_shadow.RotationDegrees = new Vector3(-90f, 0f, 0f);
 
-		var rng = new RandomNumberGenerator();
-		rng.Randomize();
-
-		var dir = new Vector3(
-			rng.RandfRange(-1f, 1f),
-			0f,
-			rng.RandfRange(-1f, 1f)
-		).Normalized();
-
-		_velocity = dir * LaunchStrength;
-		_verticalVelocity = BounceHeight * 8f;
+		_velocity = InitialVelocity;
+		_verticalVelocity = InitialVerticalVelocity;
 
 		_area.BodyEntered += OnBodyEntered;
 	}
@@ -176,16 +173,23 @@ public partial class ItemPickup : Node3D
 	private void Collect()
 	{
 		if (_collected) return;
-		_collected = true;
 
+		if (_target is not Player p)
+			return;
+
+		if (!p.IsLocal)
+			return;
+
+		p.RequestItemPickup(PickupId);
+	}
+
+	public void AnimateOut()
+	{
+		_collected = true;
 		_area.Monitorable = false;
 		_area.Monitoring = false;
 
-		if (_target is Player p)
-		{
-			p.CollectItem(Item, Count);
-			AudioManager.Instance.PlayAt("pickup_pop", GlobalPosition, 0.1f);
-		}
+		AudioManager.Instance.PlayAt("pickup_pop", GlobalPosition, 0.1f);
 
 		// shrink tween
 		var t = CreateTween();
