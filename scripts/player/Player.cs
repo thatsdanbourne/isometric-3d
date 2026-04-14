@@ -72,6 +72,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public CameraController CameraController;
 
 	private bool _testItemsGiven;
+	private bool _suppressSelectedSlotRequest;
 
 	private static readonly StringName UseToolAction = "use_tool";
 	private static readonly StringName InteractAction = "interact";
@@ -86,6 +87,8 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_tintOverlay = _world.GetNode<BiomeTintOverlay>("World/BiomeTint/BiomeOverlay");
 		_equipment = GetNode<PlayerEquipment>("PlayerEquipment");
 		Hotbar = GetNode<Hotbar>("Hotbar");
+		Hotbar.SelectedSlotChanged += OnSelectedSlotChanged;
+		Hotbar.ContainerChanged += OnHotbarContainerChanged;
 		Inventory = GetNode<Inventory>("Inventory");
 
 		_focusQuery = new PhysicsRayQueryParameters3D
@@ -129,11 +132,11 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 			HUD = GetNode<HUD>("/root/Bootstrap/Game/HUD");
 			HUD.RefreshUI();
-			Hotbar.SelectedSlotChanged += _ => UpdateEquippedItem();
-			Hotbar.ContainerChanged += UpdateEquippedItem;
 			_placement = new PlacementController();
 			AddChild(_placement);
 			_placement.Init(_world, this);
+
+			GetNode<AudioListener3D>("AudioListener3D").MakeCurrent();
 
 			EmitSignal(SignalName.PlayerReady);
 		}
@@ -169,15 +172,13 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_lastEquippedItem = newItem;
 		_equippedItem = newItem;
 
-		if (newItem is ToolItem { HeldItemScene: not null } tool)
-			_equipment.EquipTool(tool.HeldItemScene);
-		else
-			_equipment.UnequipTool();
+		ApplyHeldItemVisual(newItem);
 
-		UpdatePlacementState(newItem);
+		if (IsLocal)
+			UpdatePlacementState(newItem);
 	}
 
-	private ToolItem GetActiveTool()
+	public ToolItem GetActiveTool()
 	{
 		if (_equippedItem is ToolItem tool)
 			return tool;
@@ -282,6 +283,84 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_world.Sync.RpcId(1, nameof(WorldSync.RequestDropItem), item.Id, count);
 	}
 
+	public void HandleSelectedSlotChanged(int slotIndex)
+	{
+		if (slotIndex < 0 || slotIndex >= Hotbar.SlotCount)
+			return;
+
+		if (Hotbar.SelectedSlot != slotIndex)
+		{
+			_suppressSelectedSlotRequest = true;
+			Hotbar.SelectSlot(slotIndex);
+			_suppressSelectedSlotRequest = false;
+		}
+		else
+		{
+			UpdateEquippedItem();
+		}
+
+		BroadcastHeldItem();
+	}
+
+	private void RequestSelectedSlotSync(int slotIndex)
+	{
+		if (_world == null)
+			return;
+
+		if (_world.Multiplayer.IsServer())
+		{
+			HandleSelectedSlotChanged(slotIndex);
+			return;
+		}
+
+		_world.Sync.RpcId(1, nameof(WorldSync.RequestSelectHotbarSlot), slotIndex);
+	}
+
+	private void OnSelectedSlotChanged(int slotIndex)
+	{
+		UpdateEquippedItem();
+
+		if (IsLocal && !_suppressSelectedSlotRequest)
+			RequestSelectedSlotSync(slotIndex);
+	}
+
+	private void OnHotbarContainerChanged()
+	{
+		UpdateEquippedItem();
+
+		if (_world != null && _world.Multiplayer.IsServer())
+			BroadcastHeldItem();
+	}
+
+	public void ApplyRemoteHeldItem(int slotIndex, string itemId)
+	{
+		if (slotIndex >= 0 && slotIndex < Hotbar.SlotCount)
+			Hotbar.SelectedSlot = slotIndex;
+
+		var item = ItemRegistry.GetItem(itemId) ?? DefaultTool;
+
+		_lastEquippedItem = item;
+		_equippedItem = item;
+
+		ApplyHeldItemVisual(item);
+	}
+
+	private void ApplyHeldItemVisual(Item item)
+	{
+		if (item is ToolItem { HeldItemScene: not null } tool)
+			_equipment.EquipTool(tool.HeldItemScene);
+		else
+			_equipment.UnequipTool();
+	}
+
+	private void BroadcastHeldItem()
+	{
+		if (_world == null)
+			return;
+
+		_world.Sync.Rpc(nameof(WorldSync.SyncHeldItem), PlayerId, Hotbar.SelectedSlot, GetActiveTool().Id);
+	}
+
 	// input 
 	public override void _UnhandledInput(InputEvent e)
 	{
@@ -310,13 +389,24 @@ public partial class Player : CharacterBody3D, IToolHittable
 	//Movement and tool usage
 	public override void _PhysicsProcess(double delta)
 	{
+		var dt = (float)delta;
+		const float k = 14f;
+		var a = 1f - Mathf.Exp(-k * dt);
+
 		if (!IsLocal)
 		{
+			if (Velocity.Abs() > Vector3.Zero)
+				SetAnimState("run");
+			else
+				SetAnimState("idle");
+
+
+			_locomotionBlend = Mathf.Lerp(_locomotionBlend, _locomotionBlendTarget, a);
+			_animTree.Set(LocomotionBlendPath, _locomotionBlend);
+
 			MoveAndSlide();
 			return;
 		}
-
-		var dt = (float)delta;
 
 		var hudOpen = HUD.WindowOpen;
 		var useToolHeld = Input.IsActionPressed(UseToolAction);
@@ -388,9 +478,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		Velocity = new Vector3(moveVelocity.X + _knockbackVelocity.X, 0, moveVelocity.Z + _knockbackVelocity.Z);
 
 		MoveAndSlide();
-
-		const float k = 14f;
-		var a = 1f - Mathf.Exp(-k * dt);
 
 		_locomotionBlend = Mathf.Lerp(_locomotionBlend, _locomotionBlendTarget, a);
 		_animTree.Set(LocomotionBlendPath, _locomotionBlend);

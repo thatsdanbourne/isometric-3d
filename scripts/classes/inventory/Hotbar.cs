@@ -11,7 +11,7 @@ public partial class Hotbar : Node, IItemContainer
 	public string Label => "Hotbar";
 
 	public int SlotCount { get; private set; } = 9;
-	public int SelectedSlot { get; private set; }
+	public int SelectedSlot { get; set; }
 
 	private readonly ItemStack[] _slots;
 
@@ -59,8 +59,11 @@ public partial class Hotbar : Node, IItemContainer
 		if (index < 0 || index >= SlotCount)
 			return;
 
+		if (SelectedSlot == index)
+			return;
+
 		SelectedSlot = index;
-		EmitSignal(SignalName.SelectedSlotChanged, SelectedSlot);
+		EmitSignal(SignalName.SelectedSlotChanged, index);
 	}
 
 	public void SelectNext()

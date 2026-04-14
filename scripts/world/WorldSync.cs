@@ -215,6 +215,39 @@ public partial class WorldSync : Node
 		player.HUD.UpdateDraggedCursorFromPlayerState();
 	}
 
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+	public void RequestSelectHotbarSlot(int slotIndex)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		var senderId = Multiplayer.GetRemoteSenderId();
+		var player = _world.GetPlayerById(senderId);
+		if (player == null)
+			return;
+
+		player.HandleSelectedSlotChanged(slotIndex);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void SyncHeldItem(int playerId, int slotIndex, string itemId)
+	{
+		var player = _world.GetPlayerById(playerId);
+		player?.ApplyRemoteHeldItem(slotIndex, itemId);
+	}
+
+	public void SyncHeldItemToPeer(int peerId, Player player)
+	{
+		if (player == null)
+			return;
+
+		RpcId(peerId,
+			nameof(SyncHeldItem),
+			player.PlayerId,
+			player.Hotbar.SelectedSlot,
+			player.GetActiveTool().Id);
+	}
+
 	//
 	// storage container state sync
 	//

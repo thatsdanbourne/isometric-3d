@@ -58,34 +58,34 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("SphereShape3D_c3xxp")
 
 [node name="Skeleton3D" parent="metarig" parent_id_path=PackedInt32Array(1277878573) index="0" unique_id=59797114]
-bones/0/position = Vector3(5.24243e-09, 0.8586166, -0.04670547)
+bones/0/position = Vector3(-1.1465506e-09, 0.90755445, -0.04670545)
 bones/0/rotation = Quaternion(0.20953879, 1.1656291e-07, 2.497898e-08, 0.9778003)
-bones/1/rotation = Quaternion(-0.06447329, 0.00063284434, 0.00979469, 0.9978712)
-bones/2/rotation = Quaternion(-0.07840278, -0.024501389, 0.005393012, 0.9966061)
+bones/1/rotation = Quaternion(-0.06441675, -0.0027729769, -0.042918134, 0.996996)
+bones/2/rotation = Quaternion(-0.08596756, 0.10747136, -0.023655672, 0.99020195)
 bones/3/rotation = Quaternion(0.0016271637, -1.1920915e-07, 1.9397359e-10, 0.9999987)
-bones/6/rotation = Quaternion(-0.06918337, -1.1920108e-07, -8.597964e-09, 0.99760395)
+bones/6/rotation = Quaternion(-0.053821404, -1.2009063e-07, -6.005573e-09, 0.9985506)
 bones/7/rotation = Quaternion(-0.65568066, -0.3405462, -0.4332763, 0.51612294)
-bones/8/rotation = Quaternion(-0.37632766, 0.8090265, -0.23002592, 0.38851225)
-bones/9/rotation = Quaternion(0.7271149, -0.13334616, -0.075555466, 0.6691891)
+bones/8/rotation = Quaternion(-0.39327675, 0.86634827, -0.083210975, 0.29639506)
+bones/9/rotation = Quaternion(0.6668949, -0.0792533, -0.032419812, 0.7402156)
 bones/10/rotation = Quaternion(0.056280278, -0.043827035, -0.09138773, 0.9932573)
 bones/11/rotation = Quaternion(-0.65568066, 0.3405462, 0.4332763, 0.51612294)
-bones/12/rotation = Quaternion(-0.32514796, -0.7072707, 0.39802742, 0.4854083)
-bones/13/rotation = Quaternion(0.7313701, 0.02221301, 0.049824737, 0.6797955)
-bones/17/rotation = Quaternion(0.9349885, 0.08976345, 0.078124665, 0.3341192)
-bones/18/rotation = Quaternion(0.7670882, 0.009092739, 0.17111681, 0.61823314)
-bones/19/rotation = Quaternion(-0.5841724, -0.06724564, -0.031924818, 0.8082089)
-bones/22/rotation = Quaternion(0.92232984, -0.06449461, -0.045592282, 0.37824544)
-bones/23/rotation = Quaternion(0.38699254, -0.013500593, -0.08632759, 0.9179335)
-bones/24/rotation = Quaternion(-0.6458228, 0.07305284, 0.02862138, 0.7594453)
+bones/12/rotation = Quaternion(-0.23242216, -0.6344605, 0.4766997, 0.56231415)
+bones/13/rotation = Quaternion(0.7019931, 0.020193806, 0.29067817, 0.64984936)
+bones/17/rotation = Quaternion(0.88131166, 0.08896252, 0.11615953, 0.44931337)
+bones/18/rotation = Quaternion(0.002413848, 0.01470596, 0.00053846784, 0.99988884)
+bones/19/rotation = Quaternion(-0.59601957, -0.06931217, -0.03611093, 0.7991575)
+bones/22/rotation = Quaternion(0.9976878, -0.045390315, -0.05058379, 0.0003573877)
+bones/23/rotation = Quaternion(0.36309177, -0.013650505, -0.08099597, 0.92812586)
+bones/24/rotation = Quaternion(-0.48279667, 0.0795457, 0.028936865, 0.8716321)
 bones/25/rotation = Quaternion(0.007925331, 0.97007877, -0.2401391, -0.03489448)
 bones/26/rotation = Quaternion(-0.67979324, 0.692096, -0.14528432, -0.19436255)
-bones/27/position = Vector3(0.13086297, 0.4148588, -0.23855959)
-bones/28/position = Vector3(-0.12726718, 0.08776426, 0.01879732)
-bones/29/position = Vector3(-0.055476055, 0.46712783, 0.95619696)
-bones/30/position = Vector3(-0.0055473447, 0.4623556, 0.93968344)
+bones/27/position = Vector3(0.13059264, 0.16827862, 0.47018674)
+bones/28/position = Vector3(-0.12582928, 0.3496179, -0.54103905)
+bones/29/position = Vector3(-0.039043218, 0.46584275, 0.95175004)
+bones/30/position = Vector3(0.010885462, 0.4636407, 0.94413036)
 
 [node name="RightHandAttach" type="BoneAttachment3D" parent="metarig/Skeleton3D" index="0" unique_id=1909800955]
-transform = Transform3D(-0.9965626, 0.08226949, -0.009740323, -0.01951272, -0.1188323, 0.99272263, 0.08051315, 0.9895002, 0.120029144, -0.28374514, 0.9320349, 0.18178949)
+transform = Transform3D(-0.72230786, 0.6608277, -0.20390704, -0.12231575, 0.16812493, 0.97814775, 0.6806689, 0.73146456, -0.040608224, -0.14823441, 1.0666981, 0.33841205)
 bone_name = "hand.R"
 bone_idx = 14
 
@@ -111,7 +111,6 @@ RightHandAttachPath = NodePath("../metarig/Skeleton3D/RightHandAttach/RightHandC
 
 [node name="AudioListener3D" type="AudioListener3D" parent="." index="5" unique_id=587072555]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-current = true
 
 [node name="Hotbar" type="Node" parent="." index="6" unique_id=974756822]
 script = ExtResource("3_524rm")

@@ -237,6 +237,7 @@ public partial class GameManager : Node
 				continue;
 
 			RpcId(peerId, nameof(SpawnPlayerReplica), player.PlayerId, player.GlobalPosition);
+			CurrentWorld.Sync.SyncHeldItemToPeer(peerId, player);
 		}
 	}
 

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 public partial class CraftingUI : Control
 {
 	private Player _player;
-	private bool _playerReady;
 
 	private ICraftingStation _currentStation;
 
@@ -45,36 +44,12 @@ public partial class CraftingUI : Control
 
 	private void OnLocalPlayerChanged(Player player)
 	{
-		if (_player != null)
-		{
-			_player.PlayerReady -= OnPlayerReady;
-
-			if (_player.Inventory != null)
-				_player.Inventory.ContainerChanged -= RefreshCraftingUI;
-
-			if (_player.Hotbar != null)
-				_player.Hotbar.ContainerChanged -= RefreshCraftingUI;
-		}
-
-		_player = player;
-		_playerReady = false;
-
-		if (_player == null) return;
-
-		_player.PlayerReady += OnPlayerReady;
-	}
-
-	private void OnPlayerReady()
-	{
-		if (_player == null) return;
-
-		_player.PlayerReady -= OnPlayerReady;
+		_player = GameManager.Instance.LocalPlayer;
+		_player.Inventory.ContainerChanged -= RefreshCraftingUI;
+		_player.Hotbar.ContainerChanged -= RefreshCraftingUI;
 
 		_player.Inventory.ContainerChanged += RefreshCraftingUI;
 		_player.Hotbar.ContainerChanged += RefreshCraftingUI;
-
-		_playerReady = true;
-		RefreshCraftingUI();
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -158,7 +133,7 @@ public partial class CraftingUI : Control
 
 	private void RefreshCraftingUI()
 	{
-		if (!_playerReady) return;
+		if (_player == null) return;
 
 		foreach (var entry in _recipeEntries)
 		{

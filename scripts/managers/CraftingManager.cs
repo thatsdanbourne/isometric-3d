@@ -49,7 +49,7 @@ public partial class CraftingManager : Node
 		if (world == null)
 			return;
 
-		if (station != null)
+		if (station is IProcessingStation)
 		{
 			world.Sync.RequestStartStationCraft(station.TileCoord, recipe.Id);
 			return;
