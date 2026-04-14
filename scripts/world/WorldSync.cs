@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Godot;
 
 public partial class WorldSync : Node
@@ -246,6 +247,55 @@ public partial class WorldSync : Node
 			player.PlayerId,
 			player.Hotbar.SelectedSlot,
 			player.GetActiveTool().Id);
+	}
+
+	//
+	// player use tool
+	//
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+	public void RequestUseActiveTool(Vector3 swingDir)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		var senderId = Multiplayer.GetRemoteSenderId();
+		var player = _world.GetPlayerById(senderId);
+		if (player == null)
+			return;
+
+		_world.HandleUseActiveToolRequest(player, swingDir);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void PlayRemoteUseActiveToolVisual(int playerId, string toolId, Vector3 swingDir)
+	{
+		var player = _world.GetPlayerById(playerId);
+		if (player == null)
+			return;
+
+		if (ItemRegistry.GetItem(toolId) is not ToolItem item)
+			return;
+
+		player.PlayRemoteUseActiveToolVisual(item, swingDir);
+	}
+
+	public void SendAttackFeedback(int playerId, int feedbackType)
+	{
+		var player = _world.GetPlayerById(playerId);
+		if (player == null)
+			return;
+
+		RpcId(player.PlayerId, nameof(ReceiveAttackFeedback), feedbackType);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void ReceiveAttackFeedback(int feedbackType)
+	{
+		var localPlayer = GameManager.Instance.LocalPlayer;
+		if (localPlayer == null)
+			return;
+
+		localPlayer.ApplyAttackFeedback((ToolHitOutcome)feedbackType);
 	}
 
 	//

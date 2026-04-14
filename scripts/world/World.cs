@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 public partial class World : Node3D
 {
@@ -487,5 +488,42 @@ public partial class World : Node3D
 				return player;
 
 		return null;
+	}
+
+	public async void HandleUseActiveToolRequest(Player player, Vector3 swingDir)
+	{
+		if (player == null || !IsInstanceValid(player))
+			return;
+
+		var tool = player.GetActiveTool();
+		if (tool == null)
+			return;
+
+		if (swingDir.LengthSquared() < 0.001f)
+			return;
+
+		swingDir = swingDir.Normalized();
+
+		player.StartSwingCooldown(tool);
+
+		if (!player.IsLocal)
+			player.PlayRemoteUseActiveToolVisual(tool, swingDir);
+		else
+			Sync.Rpc(nameof(WorldSync.PlayRemoteUseActiveToolVisual), player.PlayerId, tool.Id, swingDir);
+
+		await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
+
+		var space = player.GetWorld3D().DirectSpaceState;
+		var hitResult = CombatUtils.PerformMeleeHit(player, tool, swingDir, space, player.ToolQuery);
+
+		switch (hitResult.Outcome)
+		{
+			case ToolHitOutcome.Failed:
+				Sync.SendAttackFeedback(player.PlayerId, (int)ToolHitOutcome.Failed);
+				break;
+			case ToolHitOutcome.Destroyed:
+				Sync.SendAttackFeedback(player.PlayerId, (int)ToolHitOutcome.Destroyed);
+				break;
+		}
 	}
 }
