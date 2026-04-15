@@ -7,7 +7,7 @@ public partial class MobStreamer : Node
 	[Export] public int ActiveRadiusTiles = 48;
 	[Export] public int SaveRadiusTiles = 56;
 	[Export] public float UpdateInterval = 0.75f;
-	[Export] public float SyncInterval = 0.1f;
+	[Export] public float SyncInterval = 0.05f;
 
 	private World _world;
 
