@@ -37,10 +37,10 @@ public partial class InventoryManager : Node
 	// remove logic
 	public int RemoveItem(Player player, Item item, int amount)
 	{
-		var remaining = RemoveFromContainer(player.Inventory, item, amount);
+		var remaining = RemoveFromContainer(player.Hotbar, item, amount);
 
 		if (remaining > 0)
-			remaining = RemoveFromContainer(player.Hotbar, item, remaining);
+			remaining = RemoveFromContainer(player.Inventory, item, remaining);
 
 		return remaining;
 	}

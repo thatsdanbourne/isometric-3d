@@ -231,6 +231,13 @@ public partial class WorldSync : Node
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void SyncSelectedHotbarSlot(int playerId, int slotIndex)
+	{
+		var player = _world.GetPlayerById(playerId);
+		player?.ApplyRemoteSelectedSlot(slotIndex);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
 	public void SyncHeldItem(int playerId, int slotIndex, string itemId)
 	{
 		var player = _world.GetPlayerById(playerId);

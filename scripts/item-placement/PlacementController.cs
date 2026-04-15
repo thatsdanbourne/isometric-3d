@@ -58,7 +58,12 @@ public partial class PlacementController : Node
 			return false;
 
 		var tile = _preview.CurrentTile;
-		return _world.PlaceItem(tile, _placeable);
+		var result = _world.PlaceItem(tile, _placeable);
+
+		if (result)
+			Exit();
+
+		return result;
 	}
 
 	private void EnsurePreview()
@@ -68,7 +73,7 @@ public partial class PlacementController : Node
 		_preview?.QueueFree();
 		_preview = PlacementPreviewScene.Instantiate<PlacementPreview>();
 
-		GetTree().CurrentScene.CallDeferred(Node.MethodName.AddChild, _preview);
+		AddChild(_preview);
 	}
 
 	private void RemovePreview()

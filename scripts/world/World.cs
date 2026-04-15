@@ -274,12 +274,6 @@ public partial class World : Node3D
 		Vector2I chunkCoord,
 		Vector3 worldPos)
 	{
-		// if (!ActiveChunks.ContainsKey(chunkCoord))
-		// {
-		// 	GD.PrintErr($"Tried to place item in unloaded chunk {chunkCoord}");
-		// 	return false;
-		// }
-
 		// Remove one item from the authoritative player inventory first
 		var remaining = InventoryManager.Instance.RemoveItem(player, item, 1);
 		if (remaining > 0)

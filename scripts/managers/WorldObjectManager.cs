@@ -253,10 +253,11 @@ public partial class WorldObjectManager : Node
 
 	public bool RequestPlace(ChunkObject data)
 	{
-		var chunk = _world.ActiveChunks[data.ChunkCoord];
-
-		chunk.Objects.Add(data);
-		EnqueueSpawn(data);
+		if (_world.ActiveChunks.TryGetValue(data.ChunkCoord, out var chunk))
+		{
+			chunk.Objects.Add(data);
+			EnqueueSpawn(data);
+		}
 
 		_world.AddPlacedObject(data.ChunkCoord, new PlacedObjectRecord
 		{

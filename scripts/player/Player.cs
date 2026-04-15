@@ -414,6 +414,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	private void UpdatePlacementState(Item item)
 	{
+		if (_placement == null)
+			return;
+
 		if (item is PlaceableItem placeable)
 			_placement.Enter(placeable);
 		else
@@ -433,6 +436,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_equippedItem = newItem;
 
 		ApplyHeldItemVisual(newItem);
+
 		if (IsLocal)
 			UpdatePlacementState(newItem);
 	}
@@ -466,18 +470,22 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (slotIndex < 0 || slotIndex >= Hotbar.SlotCount)
 			return;
 
-		if (Hotbar.SelectedSlot != slotIndex)
-		{
-			_suppressSelectedSlotRequest = true;
-			Hotbar.SelectSlot(slotIndex);
-			_suppressSelectedSlotRequest = false;
-		}
-		else
-		{
-			UpdateEquippedItem();
-		}
+		_suppressSelectedSlotRequest = true;
+		Hotbar.SelectSlot(slotIndex);
+		_suppressSelectedSlotRequest = false;
 
+		_world.Sync.Rpc(nameof(WorldSync.SyncSelectedHotbarSlot), PlayerId, slotIndex);
 		BroadcastHeldItem();
+	}
+
+	public void ApplyRemoteSelectedSlot(int slotIndex)
+	{
+		if (slotIndex < 0 || slotIndex >= Hotbar.SlotCount)
+			return;
+
+		_suppressSelectedSlotRequest = true;
+		Hotbar.SelectSlot(slotIndex);
+		_suppressSelectedSlotRequest = false;
 	}
 
 	private void RequestSelectedSlotSync(int slotIndex)
@@ -500,9 +508,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 			Hotbar.SelectedSlot = slotIndex;
 
 		var item = ItemRegistry.GetItem(itemId) ?? DefaultTool;
-		_lastEquippedItem = item;
-		_equippedItem = item;
-
 		ApplyHeldItemVisual(item);
 	}
 
