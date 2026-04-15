@@ -995,4 +995,84 @@ public partial class WorldSync : Node
 	{
 		_world.WorldObjectManager.RemovePickupById(pickupId);
 	}
+
+	//
+	// mob sync
+	//
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void SpawnRemoteMob(string uidString, string mobId, Vector2I chunkCoord, Vector3 position)
+	{
+		var uid = ulong.Parse(uidString);
+		_world.MobStreamer.SpawnRemoteMob(uid, mobId, chunkCoord, position);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void ReceiveMobSnapshot(string uidString, Vector3 position, Vector3 velocity, int state, float health)
+	{
+		var uid = ulong.Parse(uidString);
+
+		if (!_world.MobStreamer.TryGetMob(uid, out var mob))
+			return;
+
+		mob.ApplyRemoteSnapshot(position, velocity, state, health);
+	}
+
+	public void BroadcastMobAttack(ulong uid)
+	{
+		Rpc(nameof(PlayRemoteMobAttack), uid.ToString());
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void PlayRemoteMobAttack(string uidString)
+	{
+		var uid = ulong.Parse(uidString);
+
+		if (!_world.MobStreamer.TryGetMob(uid, out var mob))
+			return;
+
+		mob.PlayRemoteAttackVisual();
+	}
+
+	public void BroadcastMobDeath(ulong uid)
+	{
+		Rpc(nameof(ApplyMobDeath), uid.ToString());
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void ApplyMobDeath(string uidString)
+	{
+		var uid = ulong.Parse(uidString);
+
+		if (!_world.MobStreamer.TryGetMob(uid, out var mob))
+			return;
+
+		mob.QueueFree();
+	}
+
+	//
+	// player sync
+	//
+	public void SendPlayerHitState(Player player)
+	{
+		if (player == null)
+			return;
+
+		RpcId(
+			player.PlayerId,
+			nameof(ReceivePlayerHitState),
+			player.Health,
+			player.GlobalPosition,
+			player.KnockbackVelocity
+		);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void ReceivePlayerHitState(float health, Vector3 position, Vector3 knockbackVelocity)
+	{
+		var player = GameManager.Instance.LocalPlayer;
+		if (player == null)
+			return;
+
+		player.ApplyRemoteHitState(health, position, knockbackVelocity);
+	}
 }

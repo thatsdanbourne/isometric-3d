@@ -7,32 +7,62 @@ public partial class MobStreamer : Node
 	[Export] public int ActiveRadiusTiles = 48;
 	[Export] public int SaveRadiusTiles = 56;
 	[Export] public float UpdateInterval = 0.75f;
+	[Export] public float SyncInterval = 0.1f;
 
 	private World _world;
 
 	private readonly Dictionary<ulong, Mob> _activeMobs = new();
+	private readonly Dictionary<Vector2I, HashSet<ulong>> _activeMobIdsByChunk = new();
 	private readonly List<ulong> _uidsToCull = new();
 	private readonly HashSet<Vector2I> _activeMobChunks = new();
 	private readonly HashSet<Vector2I> _currentInterestChunks = new();
 
 	private double _accum;
+	private double _syncAccum;
 
 	public override void _Ready()
 	{
 		_world ??= GetParent().GetParent<World>();
 	}
 
-	public override void _Process(double delta)
+	public void Tick(double delta)
 	{
-		if (_world == null) return;
+		if (_world == null)
+			return;
 
 		_accum += delta;
-		if (_accum < UpdateInterval) return;
-		_accum = 0;
+		if (_accum >= UpdateInterval)
+		{
+			_accum = 0;
+			UpdateInterestChunks();
+			ActivateInterestChunks();
+			CullFarMobs();
+		}
 
-		UpdateInterestChunks();
-		ActivateInterestChunks();
-		CullFarMobs();
+		_syncAccum += delta;
+		if (_syncAccum >= SyncInterval)
+		{
+			_syncAccum = 0;
+			BroadcastMobSnapshots();
+		}
+	}
+
+	private void BroadcastMobSnapshots()
+	{
+		foreach (var (uid, mob) in _activeMobs)
+		{
+			if (!IsInstanceValid(mob))
+				continue;
+
+			_world.Sync.Rpc(
+				nameof(WorldSync.ReceiveMobSnapshot),
+				uid.ToString(),
+				mob.GlobalPosition,
+				mob.Velocity,
+				(int)mob.State,
+				mob.CurrentHealth
+			);
+		}
 	}
 
 	private void UpdateInterestChunks()
@@ -80,12 +110,12 @@ public partial class MobStreamer : Node
 	private void ActivateChunkMobs(Chunk chunk)
 	{
 		if (_world.TryGetChunkDelta(chunk.Coord, out var delta) && delta != null)
-			SpawnDeltaMobs(chunk.Coord, delta);
+			ActivateDeltaMobs(chunk.Coord, delta);
 
-		SpawnProceduralForChunk(chunk);
+		ActivateProceduralMobs(chunk);
 	}
 
-	private void SpawnProceduralForChunk(Chunk chunk)
+	private void ActivateProceduralMobs(Chunk chunk)
 	{
 		var mobCandidates = new Dictionary<MobSpawnRule, List<Vector2I>>(16);
 
@@ -140,7 +170,6 @@ public partial class MobStreamer : Node
 
 			PickUniqueTilesDeterministic(candidates, count, rng, picked);
 
-			var scene = MobRegistry.Instance.GetScene(rule.MobId);
 			for (var i = 0; i < picked.Count; i++)
 			{
 				var tile = picked[i];
@@ -153,35 +182,107 @@ public partial class MobStreamer : Node
 					tile.Y
 				);
 
-				if (_activeMobs.ContainsKey(uid)) continue;
+				if (_activeMobs.ContainsKey(uid))
+					continue;
 
-				if (delta != null && delta.Mobs.ContainsKey(uid)) continue;
+				if (delta != null && delta.Mobs.ContainsKey(uid))
+					continue;
 
-				var instance = scene.Instantiate<Mob>();
-				instance.Initialise(uid, rule.MobId, chunk.Coord);
-				instance.World = _world;
-				instance.Position = TileUtils.TileToWorld(picked[i]);
-				_world.WorldMobs.AddChild(instance);
-
-				_activeMobs[uid] = instance;
+				var position = TileUtils.TileToWorld(tile);
+				SpawnMob(uid, rule.MobId, chunk.Coord, position);
 			}
 		}
 	}
 
-	private void SpawnDeltaMobs(Vector2I chunkCoord, ChunkDeltaData delta)
+	private void ActivateDeltaMobs(Vector2I chunkCoord, ChunkDeltaData delta)
 	{
-		foreach (var mob in delta.Mobs.Values)
-		{
-			if (_activeMobs.ContainsKey(mob.Uid)) continue;
+		if (delta.Mobs == null || delta.Mobs.Count == 0)
+			return;
 
-			var scene = MobRegistry.Instance.GetScene(mob.MobId);
-			var instance = scene.Instantiate<Mob>();
-			instance.LoadFromSaveData(mob, chunkCoord);
-			instance.World = _world;
-			instance.Position = mob.Position;
-			_world.WorldMobs.AddChild(instance);
-			_activeMobs[mob.Uid] = instance;
+		foreach (var (_, mobData) in delta.Mobs)
+		{
+			if (_activeMobs.ContainsKey(mobData.Uid))
+				continue;
+
+			SpawnMobFromData(chunkCoord, mobData);
 		}
+	}
+
+	private void SpawnMobFromData(Vector2I chunkCoord, MobRecord mob)
+	{
+		if (_activeMobs.ContainsKey(mob.Uid))
+			return;
+
+		var scene = MobRegistry.Instance.GetScene(mob.MobId);
+		if (scene == null)
+			return;
+
+		var instance = scene.Instantiate<Mob>();
+		instance.LoadFromSaveData(mob, chunkCoord);
+		instance.World = _world;
+		instance.Position = mob.Position;
+
+		_world.WorldMobs.AddChild(instance);
+		_activeMobs[mob.Uid] = instance;
+		RegisterMobInChunk(chunkCoord, mob.Uid);
+
+		if (_world.Multiplayer.IsServer())
+			BroadcastMobSpawn(instance, chunkCoord);
+	}
+
+	private void SpawnMob(ulong uid, string mobId, Vector2I chunkCoord, Vector3 position)
+	{
+		if (_activeMobs.ContainsKey(uid))
+			return;
+
+		var scene = MobRegistry.Instance.GetScene(mobId);
+		if (scene == null)
+			return;
+
+		var instance = scene.Instantiate<Mob>();
+		instance.Initialise(uid, mobId, chunkCoord);
+		instance.World = _world;
+		instance.Position = position;
+
+		_world.WorldMobs.AddChild(instance);
+		_activeMobs[uid] = instance;
+		RegisterMobInChunk(chunkCoord, uid);
+
+		if (_world.Multiplayer.IsServer())
+			BroadcastMobSpawn(instance, chunkCoord);
+	}
+
+	public void SpawnRemoteMob(ulong uid, string mobId, Vector2I chunkCoord, Vector3 position)
+	{
+		if (_world.Multiplayer.IsServer())
+			return;
+
+		if (_activeMobs.ContainsKey(uid))
+			return;
+
+		var scene = MobRegistry.Instance.GetScene(mobId);
+		if (scene == null)
+			return;
+
+		var instance = scene.Instantiate<Mob>();
+		instance.Initialise(uid, mobId, chunkCoord);
+		instance.World = _world;
+		instance.Position = position;
+
+		_world.WorldMobs.AddChild(instance);
+		_activeMobs[uid] = instance;
+		RegisterMobInChunk(chunkCoord, uid);
+	}
+
+	private void BroadcastMobSpawn(Mob mob, Vector2I chunkCoord)
+	{
+		_world.Sync.Rpc(
+			nameof(WorldSync.SpawnRemoteMob),
+			mob.Uid.ToString(),
+			mob.MobId,
+			chunkCoord,
+			mob.GlobalPosition
+		);
 	}
 
 	private void CullFarMobs()
@@ -216,6 +317,7 @@ public partial class MobStreamer : Node
 			if (IsInstanceValid(mob))
 			{
 				SaveMobToDelta(mob);
+				RemoveMobFromChunk(mob.SavedChunk ?? TileUtils.WorldToChunk(mob.GlobalPosition), uid);
 				mob.QueueFree();
 			}
 
@@ -225,13 +327,19 @@ public partial class MobStreamer : Node
 
 	public void HandleMobDeath(Mob mob)
 	{
-		if (mob.SavedChunk.HasValue && _world.TryGetChunkDelta(mob.SavedChunk.Value, out var delta) &&
-		    delta != null)
+		if (mob == null)
+			return;
+
+		if (mob.SavedChunk.HasValue && _world.TryGetChunkDelta(mob.SavedChunk.Value, out var delta) && delta != null)
 			delta.Mobs.Remove(mob.Uid);
 
+		_world.Sync.BroadcastMobDeath(mob.Uid);
+
+		RemoveMobFromChunk(mob.SavedChunk ?? TileUtils.WorldToChunk(mob.GlobalPosition), mob.Uid);
 		_activeMobs.Remove(mob.Uid);
 
-		if (IsInstanceValid(mob)) mob.QueueFree();
+		if (IsInstanceValid(mob))
+			mob.QueueFree();
 	}
 
 	private void SaveMobToDelta(Mob mob)
@@ -287,6 +395,28 @@ public partial class MobStreamer : Node
 		return player != null && IsInstanceValid(player) && player.IsInsideTree();
 	}
 
+	private void RegisterMobInChunk(Vector2I chunkCoord, ulong uid)
+	{
+		if (!_activeMobIdsByChunk.TryGetValue(chunkCoord, out var set))
+		{
+			set = new HashSet<ulong>();
+			_activeMobIdsByChunk[chunkCoord] = set;
+		}
+
+		set.Add(uid);
+	}
+
+	private void RemoveMobFromChunk(Vector2I chunkCoord, ulong uid)
+	{
+		if (!_activeMobIdsByChunk.TryGetValue(chunkCoord, out var set))
+			return;
+
+		set.Remove(uid);
+
+		if (set.Count == 0)
+			_activeMobIdsByChunk.Remove(chunkCoord);
+	}
+
 	private void PickUniqueTilesDeterministic(List<Vector2I> candidates, int count, Random rng, List<Vector2I> picked)
 	{
 		picked.Clear();
@@ -299,5 +429,15 @@ public partial class MobStreamer : Node
 			(temp[i], temp[j]) = (temp[j], temp[i]);
 			picked.Add(temp[i]);
 		}
+	}
+
+	public bool TryGetMob(ulong uid, out Mob mob)
+	{
+		return _activeMobs.TryGetValue(uid, out mob);
+	}
+
+	public IEnumerable<Mob> GetActiveMobs()
+	{
+		return _activeMobs.Values;
 	}
 }

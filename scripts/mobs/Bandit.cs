@@ -4,15 +4,6 @@ using System.Runtime.InteropServices;
 
 public partial class Bandit : Mob
 {
-	private enum State
-	{
-		Idle,
-		Chase,
-		Attack
-	}
-
-	private State _state = State.Idle;
-
 	public float AttackStartRange;
 	public float AggroRange = 15f;
 	public float MoveSpeed = 4f;
@@ -34,6 +25,8 @@ public partial class Bandit : Mob
 
 	private PhysicsRayQueryParameters3D _toolQuery;
 	private const uint HittableMask = 1u << 1;
+
+	private MobState _lastRemoteVisualState = MobState.Idle;
 
 	public override void _Ready()
 	{
@@ -60,18 +53,18 @@ public partial class Bandit : Mob
 
 		UpdateTarget();
 
-		switch (_state)
+		switch (State)
 		{
-			case State.Idle:
+			case MobState.Idle:
 				MoveVelocity = Vector3.Zero;
 
-				if (HasValidTargetInRange()) _state = State.Chase;
+				if (HasValidTargetInRange()) State = MobState.Chase;
 				break;
 
-			case State.Chase:
+			case MobState.Chase:
 				if (!HasValidTarget())
 				{
-					_state = State.Idle;
+					State = MobState.Idle;
 					MoveVelocity = Vector3.Zero;
 					break;
 				}
@@ -81,7 +74,7 @@ public partial class Bandit : Mob
 				if (chaseDist > AggroRange)
 				{
 					ClearTarget();
-					_state = State.Idle;
+					State = MobState.Idle;
 					MoveVelocity = Vector3.Zero;
 					break;
 				}
@@ -90,7 +83,7 @@ public partial class Bandit : Mob
 
 				if (chaseDist < AttackStartRange && _recoveryTimer <= 0f)
 				{
-					_state = State.Attack;
+					State = MobState.Attack;
 					_windupTimer = AttackWindup;
 					_attackCommitted = false;
 					MoveVelocity = Vector3.Zero;
@@ -98,10 +91,10 @@ public partial class Bandit : Mob
 
 				break;
 
-			case State.Attack:
+			case MobState.Attack:
 				if (!HasValidTarget())
 				{
-					_state = State.Idle;
+					State = MobState.Idle;
 					_attackCommitted = false;
 					MoveVelocity = Vector3.Zero;
 					break;
@@ -113,7 +106,7 @@ public partial class Bandit : Mob
 
 				if (attackDist > _equippedTool.HitRange + 0.5f)
 				{
-					_state = State.Chase;
+					State = MobState.Chase;
 					_attackCommitted = false;
 					break;
 				}
@@ -135,7 +128,7 @@ public partial class Bandit : Mob
 				{
 					if (_attackTimer <= 0f)
 					{
-						_state = State.Chase;
+						State = MobState.Chase;
 						_attackCommitted = false;
 					}
 				}
@@ -144,6 +137,39 @@ public partial class Bandit : Mob
 		}
 
 		UpdateAnimation();
+	}
+
+	private void UpdateAnimation()
+	{
+		ApplyAnimationForState(State, Velocity);
+	}
+
+	protected override void ApplyRemoteStateVisuals()
+	{
+		ApplyAnimationForState(_netState, _netVelocity);
+	}
+
+	private void ApplyAnimationForState(MobState state, Vector3 velocity, bool forceAttack = false)
+	{
+		switch (state)
+		{
+			case MobState.Idle:
+			case MobState.Chase:
+				_animTree.Set(LocomotionBlendPath, velocity.Length());
+				break;
+
+			case MobState.Attack:
+				if (forceAttack || _lastRemoteVisualState != MobState.Attack)
+					_animTree.Set(AxeRequestPath, (int)AnimationNodeOneShot.OneShotRequest.Fire);
+				break;
+		}
+
+		_lastRemoteVisualState = state;
+	}
+
+	public override void PlayRemoteAttackVisual()
+	{
+		ApplyAnimationForState(MobState.Attack, Vector3.Zero, true);
 	}
 
 	private void UpdateTarget()
@@ -215,11 +241,6 @@ public partial class Bandit : Mob
 		}
 	}
 
-	private void UpdateAnimation()
-	{
-		_animTree.Set(LocomotionBlendPath, MoveVelocity.Length());
-	}
-
 	private void FaceTarget()
 	{
 		if (!HasValidTarget()) return;
@@ -237,35 +258,31 @@ public partial class Bandit : Mob
 		);
 	}
 
-	private async void TryAttack()
+	private void TryAttack()
 	{
 		if (_attackTimer > 0f) return;
 
 		_attackTimer = _equippedTool.CooldownSeconds * _cooldownMultiplier;
 
-		_animTree.Set(AxeRequestPath, (int)AnimationNodeOneShot.OneShotRequest.Fire);
-		await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
+		World.Sync.BroadcastMobAttack(Uid);
 
 		var swingDir = _targetPlayer.GlobalPosition - GlobalPosition;
-
-		if (swingDir.LengthSquared() < 0.001f) return;
+		if (swingDir.LengthSquared() < 0.001f)
+			return;
 
 		var angleOffset = (float)Mathf.DegToRad(GD.RandRange(-5f, 5f));
 		swingDir = swingDir.Rotated(Vector3.Up, angleOffset).Normalized();
 
-		var space = GetWorld3D().DirectSpaceState;
-
-		AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, AudioManager.BusTools, 0.1f);
-		CombatUtils.PerformMeleeHit(this, _equippedTool, swingDir, space, _toolQuery, _targetPlayer);
+		World.ResolveEnemyMeleeAttack(this, _equippedTool, swingDir, _toolQuery);
 	}
 
 	public override void ApplyKnockback(Vector3 direction, float strength)
 	{
 		base.ApplyKnockback(direction, strength);
 
-		if (_state == State.Attack && !_attackCommitted)
+		if (State == MobState.Attack && !_attackCommitted)
 		{
-			_state = State.Chase;
+			State = MobState.Chase;
 			_windupTimer = 0f;
 			_attackCommitted = false;
 		}

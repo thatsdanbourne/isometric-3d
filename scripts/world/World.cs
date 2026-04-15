@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -134,6 +135,15 @@ public partial class World : Node3D
 
 			ChunkManager.UpdateServerChunkCache(playerPositions);
 			ChunkGenerator.ProcessBuiltChunks();
+			MobStreamer.Tick(delta);
+
+			foreach (var mob in MobStreamer.GetActiveMobs())
+			{
+				if (mob == null || !IsInstanceValid(mob))
+					continue;
+
+				mob.TickAI(delta);
+			}
 		}
 
 		var localPlayer = GameManager.Instance.LocalPlayer;
@@ -484,7 +494,7 @@ public partial class World : Node3D
 		return null;
 	}
 
-	public async void HandleUseActiveToolRequest(Player player, Vector3 swingDir)
+	public void HandleUseActiveToolRequest(Player player, Vector3 swingDir)
 	{
 		if (player == null || !IsInstanceValid(player))
 			return;
@@ -505,19 +515,58 @@ public partial class World : Node3D
 		else
 			Sync.Rpc(nameof(WorldSync.PlayRemoteUseActiveToolVisual), player.PlayerId, tool.Id, swingDir);
 
+		ResolveMeleeHit(
+			player,
+			tool,
+			swingDir,
+			player.ToolQuery,
+			hitResult =>
+			{
+				switch (hitResult.Outcome)
+				{
+					case ToolHitOutcome.Failed:
+						Sync.SendAttackFeedback(player.PlayerId, (int)ToolHitOutcome.Failed);
+						break;
+					case ToolHitOutcome.Destroyed:
+						Sync.SendAttackFeedback(player.PlayerId, (int)ToolHitOutcome.Destroyed);
+						break;
+				}
+			});
+	}
+
+	public void ResolveEnemyMeleeAttack(Mob attacker, ToolItem tool, Vector3 swingDir,
+		PhysicsRayQueryParameters3D toolQuery)
+	{
+		if (attacker == null || !IsInstanceValid(attacker))
+			return;
+
+		ResolveMeleeHit(
+			attacker,
+			tool,
+			swingDir,
+			toolQuery,
+			hitResult => { });
+	}
+
+	private async void ResolveMeleeHit(Node3D attacker, ToolItem tool, Vector3 swingDir,
+		PhysicsRayQueryParameters3D toolQuery, Action<ToolHitResult> onResult)
+	{
+		if (attacker == null || !IsInstanceValid(attacker))
+			return;
+
+		if (tool == null)
+			return;
+
+		if (swingDir.LengthSquared() < 0.001f)
+			return;
+
+		swingDir = swingDir.Normalized();
+
 		await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
 
-		var space = player.GetWorld3D().DirectSpaceState;
-		var hitResult = CombatUtils.PerformMeleeHit(player, tool, swingDir, space, player.ToolQuery);
+		var space = attacker.GetWorld3D().DirectSpaceState;
+		var hitResult = CombatUtils.PerformMeleeHit(attacker, tool, swingDir, space, toolQuery);
 
-		switch (hitResult.Outcome)
-		{
-			case ToolHitOutcome.Failed:
-				Sync.SendAttackFeedback(player.PlayerId, (int)ToolHitOutcome.Failed);
-				break;
-			case ToolHitOutcome.Destroyed:
-				Sync.SendAttackFeedback(player.PlayerId, (int)ToolHitOutcome.Destroyed);
-				break;
-		}
+		onResult?.Invoke(hitResult);
 	}
 }

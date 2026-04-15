@@ -26,42 +26,42 @@ public partial class Deer : Mob
 
 	public override void TickAI(double delta)
 	{
-		var dt = (float)delta;
-
-		_timer -= dt;
-		if (_timer <= 0f)
-			PickNewDirection();
-
-		if (_desiredDir.LengthSquared() > 0.0001f)
-		{
-			var forward = GlobalTransform.Basis.Z;
-			var targetForward = _desiredDir.Normalized();
-
-			forward.Y = 0;
-			targetForward.Y = 0;
-
-			if (forward.LengthSquared() > 0.0001f && targetForward.LengthSquared() > 0.0001f)
-			{
-				forward = forward.Normalized();
-				targetForward = targetForward.Normalized();
-
-				var angle = Mathf.Atan2(forward.Cross(targetForward).Y, forward.Dot(targetForward));
-				var step = Mathf.Clamp(angle, -TurnSpeed * dt, TurnSpeed * dt);
-				RotateY(step);
-			}
-
-			var moveDir = GlobalTransform.Basis.Z;
-			moveDir.Y = 0;
-			moveDir = moveDir.Normalized();
-
-			MoveVelocity = new Vector3(moveDir.X * MoveSpeed, MoveVelocity.Y, moveDir.Z * MoveSpeed);
-		}
-		else
-		{
-			MoveVelocity = new Vector3(0f, MoveVelocity.Y, 0f);
-		}
-
-		UpdateAnim();
+		// var dt = (float)delta;
+		//
+		// _timer -= dt;
+		// if (_timer <= 0f)
+		// 	PickNewDirection();
+		//
+		// if (_desiredDir.LengthSquared() > 0.0001f)
+		// {
+		// 	var forward = GlobalTransform.Basis.Z;
+		// 	var targetForward = _desiredDir.Normalized();
+		//
+		// 	forward.Y = 0;
+		// 	targetForward.Y = 0;
+		//
+		// 	if (forward.LengthSquared() > 0.0001f && targetForward.LengthSquared() > 0.0001f)
+		// 	{
+		// 		forward = forward.Normalized();
+		// 		targetForward = targetForward.Normalized();
+		//
+		// 		var angle = Mathf.Atan2(forward.Cross(targetForward).Y, forward.Dot(targetForward));
+		// 		var step = Mathf.Clamp(angle, -TurnSpeed * dt, TurnSpeed * dt);
+		// 		RotateY(step);
+		// 	}
+		//
+		// 	var moveDir = GlobalTransform.Basis.Z;
+		// 	moveDir.Y = 0;
+		// 	moveDir = moveDir.Normalized();
+		//
+		// 	MoveVelocity = new Vector3(moveDir.X * MoveSpeed, MoveVelocity.Y, moveDir.Z * MoveSpeed);
+		// }
+		// else
+		// {
+		// 	MoveVelocity = new Vector3(0f, MoveVelocity.Y, 0f);
+		// }
+		//
+		// UpdateAnim();
 	}
 
 	private void PickNewDirection()

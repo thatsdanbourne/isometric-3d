@@ -112,3 +112,12 @@ public enum WorldLoadMode
 	Seed,
 	Save
 }
+
+public enum MobState
+{
+	Idle,
+	Wander,
+	Chase,
+	Attack,
+	Dead
+}

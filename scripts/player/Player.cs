@@ -49,7 +49,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private float _footstepInterval = 0.4f;
 	private float _knockbackResistance = 1f;
 	private float _knockbackDecay = 14f;
-	private Vector3 _knockbackVelocity;
+	public Vector3 KnockbackVelocity;
 	private float _hitCooldownAccum;
 	private float _focusAccum;
 	private float _locomotionBlend;
@@ -156,7 +156,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		if (!IsLocal)
 		{
-			UpdateRemotePlayer(blendAlpha);
+			UpdateRemotePlayer(dt, blendAlpha);
 			return;
 		}
 
@@ -229,10 +229,11 @@ public partial class Player : CharacterBody3D, IToolHittable
 	}
 
 	// movement and animation
-	private void UpdateRemotePlayer(float blendAlpha)
+	private void UpdateRemotePlayer(float dt, float blendAlpha)
 	{
 		SetAnimState(Velocity.Abs() > Vector3.Zero ? "run" : "idle");
 		UpdateLocomotionBlend(blendAlpha);
+		UpdateVelocityWithKnockback(Velocity, dt);
 		MoveAndSlide();
 	}
 
@@ -306,9 +307,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	private void UpdateVelocityWithKnockback(Vector3 moveVelocity, float dt)
 	{
-		_knockbackVelocity = _knockbackVelocity.MoveToward(Vector3.Zero, _knockbackDecay * dt);
-		_knockbackVelocity.Y = 0f;
-		Velocity = new Vector3(moveVelocity.X + _knockbackVelocity.X, 0, moveVelocity.Z + _knockbackVelocity.Z);
+		KnockbackVelocity = KnockbackVelocity.MoveToward(Vector3.Zero, _knockbackDecay * dt);
+		KnockbackVelocity.Y = 0f;
+		Velocity = new Vector3(moveVelocity.X + KnockbackVelocity.X, 0, moveVelocity.Z + KnockbackVelocity.Z);
 	}
 
 	private void SetAnimState(string name)
@@ -754,6 +755,16 @@ public partial class Player : CharacterBody3D, IToolHittable
 		Rotation = new Vector3(Rotation.X, rotY, Rotation.Z);
 	}
 
+	public void ApplyRemoteHitState(float health, Vector3 position, Vector3 knockbackVelocity)
+	{
+		Health = health;
+		GlobalPosition = position;
+		KnockbackVelocity = knockbackVelocity;
+
+		HUD.RefreshUI();
+		AudioManager.Instance.PlayVariantAt("hit_mob", GlobalPosition, AudioManager.BusTools, 0.2f);
+	}
+
 	// IToolHittable
 	public Node3D GetHitRoot()
 	{
@@ -762,9 +773,14 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint)
 	{
-		AudioManager.Instance.PlayVariantAt("hit_mob", GlobalPosition, AudioManager.BusTools, 0.2f);
+		if (_world.Multiplayer.IsServer())
+			AudioManager.Instance.PlayVariantAt("hit_mob", GlobalPosition, AudioManager.BusTools, 0.2f);
+
 		ApplyKnockback(fromDirection, 3f);
 		Health -= damage;
+
+		_world.Sync.SendPlayerHitState(this);
+
 		if (Health <= 0) return ToolHitOutcome.Destroyed;
 
 		return ToolHitOutcome.Hit;
@@ -781,6 +797,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (direction.LengthSquared() < 0.001f)
 			return;
 
-		_knockbackVelocity += direction.Normalized() * (strength / _knockbackResistance);
+		KnockbackVelocity += direction.Normalized() * (strength / _knockbackResistance);
 	}
 }

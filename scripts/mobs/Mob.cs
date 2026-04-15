@@ -10,11 +10,18 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	public Vector2I SpawnChunk { get; private set; }
 	public Vector2I? SavedChunk { get; internal set; }
 
-	private float _health;
+	public float CurrentHealth;
 	protected Vector3 MoveVelocity;
 	protected float _knockbackResistance = 1f;
 	private float _knockbackDecay = 14f;
 	private Vector3 _knockbackVelocity;
+
+	protected Vector3 _netTargetPosition;
+	protected Vector3 _netVelocity;
+	protected MobState _netState;
+
+
+	public MobState State { get; protected set; } = MobState.Idle;
 
 	public void Initialise(ulong uid, string mobId, Vector2I spawnChunk)
 	{
@@ -26,12 +33,17 @@ public partial class Mob : CharacterBody3D, IToolHittable
 
 	public override void _Ready()
 	{
-		_health = MaxHealth;
+		CurrentHealth = MaxHealth;
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		TickAI(delta);
+		if (!World.Multiplayer.IsServer())
+		{
+			UpdateRemoteMotion(delta);
+			return;
+		}
+
 		_knockbackVelocity = _knockbackVelocity.MoveToward(Vector3.Zero, _knockbackDecay * (float)delta);
 		Velocity = MoveVelocity + _knockbackVelocity;
 		MoveAndSlide();
@@ -46,12 +58,43 @@ public partial class Mob : CharacterBody3D, IToolHittable
 		return this;
 	}
 
+	private void UpdateRemoteMotion(double delta)
+	{
+		GlobalPosition = GlobalPosition.Lerp(_netTargetPosition, 12f * (float)delta);
+
+		if (_netVelocity.LengthSquared() > 0.001f)
+		{
+			var targetAngle = Mathf.Atan2(_netVelocity.X, _netVelocity.Z);
+			Rotation = new Vector3(Rotation.X, targetAngle, Rotation.Z);
+		}
+
+		ApplyRemoteStateVisuals();
+	}
+
+	protected virtual void ApplyRemoteStateVisuals()
+	{
+	}
+
+	public void ApplyRemoteSnapshot(Vector3 position, Vector3 velocity, int state, float health)
+	{
+		_netTargetPosition = position;
+		_netVelocity = velocity;
+		_netState = (MobState)state;
+		CurrentHealth = health;
+	}
+
+	public virtual void PlayRemoteAttackVisual()
+	{
+	}
+
 	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint)
 	{
-		AudioManager.Instance.PlayVariantAt("hit_mob", GlobalPosition, AudioManager.BusTools, 0.2f);
+		if (World.Multiplayer.IsServer())
+			AudioManager.Instance.PlayVariantAt("hit_mob", GlobalPosition, AudioManager.BusTools, 0.2f);
+		
 		ApplyKnockback(fromDirection, 6f);
-		_health -= damage;
-		if (_health <= 0)
+		CurrentHealth -= damage;
+		if (CurrentHealth <= 0)
 		{
 			Die();
 			return ToolHitOutcome.Destroyed;
