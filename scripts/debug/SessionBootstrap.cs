@@ -1,5 +1,5 @@
+using System.Linq;
 using Godot;
-using System;
 using System.Threading.Tasks;
 
 public partial class SessionBootstrap : Node
@@ -16,15 +16,22 @@ public partial class SessionBootstrap : Node
 				break;
 
 			case SessionMode.Single:
-				StartSinglePlayer();
+				CreateClientUI();
+				await StartSinglePlayer();
 				break;
 
 			case SessionMode.Host:
+				CreateClientUI();
 				StartHost();
 				break;
 
 			case SessionMode.Client:
+				CreateClientUI();
 				await StartClient();
+				break;
+
+			case SessionMode.Server:
+				StartServer();
 				break;
 		}
 
@@ -42,22 +49,13 @@ public partial class SessionBootstrap : Node
 		return world;
 	}
 
-	private void StartSinglePlayer()
+	private async Task StartSinglePlayer()
 	{
-		var world = CreateWorld();
 		GameManager.Instance.SessionMode = SessionMode.Single;
-		switch (Config.WorldMode)
-		{
-			case WorldLoadMode.Random:
-			case WorldLoadMode.Seed:
-				world.InitialiseWorld(ResolveDebugSeed());
-				GameManager.Instance.StartLocalSession(world, Vector3.Zero);
-				break;
-
-			case WorldLoadMode.Save:
-				// load from save
-				break;
-		}
+		StartLocalServerProcess();
+		await ToSignal(GetTree().CreateTimer(1f), SceneTreeTimer.SignalName.Timeout);
+		Config.OverrideAddress("127.0.0.1");
+		await StartClient();
 	}
 
 	private void StartHost()
@@ -71,10 +69,30 @@ public partial class SessionBootstrap : Node
 				world.InitialiseWorld(ResolveDebugSeed());
 				GameManager.Instance.StartLocalSession(world, Vector3.Zero);
 				NetworkManager.Instance.Host(Config.Port);
+				GameManager.Instance.PromoteLocalPlayerToHost();
 				break;
 
 			case WorldLoadMode.Save:
 				// load from save
+				break;
+		}
+	}
+
+	private void StartServer()
+	{
+		var world = CreateWorld();
+		GameManager.Instance.SessionMode = SessionMode.Server;
+
+		switch (Config.WorldMode)
+		{
+			case WorldLoadMode.Random:
+			case WorldLoadMode.Seed:
+				world.InitialiseWorld(ResolveDebugSeed());
+				NetworkManager.Instance.Host(Config.Port);
+				break;
+
+			case WorldLoadMode.Save:
+				//load from save
 				break;
 		}
 	}
@@ -92,15 +110,42 @@ public partial class SessionBootstrap : Node
 
 	private async Task StartClient()
 	{
-		var world = CreateWorld();
-
+		CreateWorld();
+		GameManager.Instance.SessionMode = SessionMode.Client;
 		NetworkManager.Instance.Join(Config.Address, Config.Port);
 
 		await ToSignal(GetTree().CreateTimer(0.2f), SceneTreeTimer.SignalName.Timeout);
 	}
 
+	private void StartLocalServerProcess()
+	{
+		var exePath = OS.GetExecutablePath();
+
+		var args = new Godot.Collections.Array<string>
+		{
+			"--debug-session=server",
+			$"--world={Config.WorldMode.ToString().ToLower()}",
+			$"--port={Config.Port}"
+		};
+
+		if (Config.WorldMode == WorldLoadMode.Seed)
+			args.Add($"--seed={Config.Seed}");
+
+		if (Config.WorldMode == WorldLoadMode.Save && !string.IsNullOrEmpty(Config.SaveName))
+			args.Add($"--save={Config.SaveName}");
+
+		OS.CreateProcess(exePath, args.ToArray());
+	}
+
 	private void ShowMainMenu()
 	{
 		// show main menu
+	}
+
+	private void CreateClientUI()
+	{
+		var uiScene = GD.Load<PackedScene>("res://scenes/ui/ClientUI.tscn");
+		var ui = uiScene.Instantiate();
+		AddChild(ui);
 	}
 }

@@ -103,7 +103,8 @@ public enum SessionMode
 	Menu,
 	Single,
 	Host,
-	Client
+	Client,
+	Server
 }
 
 public enum WorldLoadMode

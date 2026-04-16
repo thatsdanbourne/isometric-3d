@@ -1,17 +1,9 @@
 [gd_scene format=3 uid="uid://dtgd4yjkf4awx"]
 
 [ext_resource type="MeshLibrary" uid="uid://crawy4x5h3g1u" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
-[ext_resource type="Script" uid="uid://ciarma0geh450" path="res://dev-tools/Debug.cs" id="2_h1bdy"]
-[ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD/HUD.tscn" id="3_b3faq"]
-[ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="3_h1bdy"]
-[ext_resource type="PackedScene" uid="uid://uva5v2hjcxj2" path="res://scenes/menus/PauseMenu.tscn" id="4_7c4bj"]
-[ext_resource type="Script" uid="uid://rr6jn3yd21q8" path="res://scripts/menus/MenuManager.cs" id="4_i4b1j"]
 [ext_resource type="Script" uid="uid://ddvbtaf4ymjhc" path="res://scripts/world/World.cs" id="4_ygioq"]
 [ext_resource type="Shader" uid="uid://cmpvdcty3aeoe" path="res://resources/shaders/BiomeTint.gdshader" id="5_b3faq"]
-[ext_resource type="Shader" uid="uid://cbwi8c1npa1k3" path="res://resources/shaders/Blur.gdshader" id="5_c0d7e"]
-[ext_resource type="PackedScene" uid="uid://c35jmhuadbjjf" path="res://scenes/menus/settings/SettingsMenu.tscn" id="6_c0d7e"]
 [ext_resource type="Script" uid="uid://c6er6so1dhf3" path="res://scripts/managers/BiomeTintOverlay.cs" id="7_h1bdy"]
-[ext_resource type="PackedScene" uid="uid://cxwbi3kugkjk2" path="res://scenes/menus/settings/SettingsVideo.tscn" id="7_o1tcx"]
 [ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/managers/DayNightCycle.cs" id="8_nrtoj"]
 [ext_resource type="MeshLibrary" uid="uid://hvr6yjpo0ajd" path="res://water_meshlibrary.tres" id="8_pdh0q"]
 [ext_resource type="Script" uid="uid://ttuek37sjb7f" path="res://scripts/managers/MobStreamer.cs" id="13_dwmkc"]
@@ -21,22 +13,6 @@
 [ext_resource type="Texture2D" uid="uid://b0rvrpykafb60" path="res://assets/particles/weather/snowflake.png" id="17_nthub"]
 [ext_resource type="Script" uid="uid://biupxf38shvsk" path="res://scripts/managers/WorldObjectManager.cs" id="18_nthub"]
 [ext_resource type="Script" uid="uid://7ptg4plty0r7" path="res://dev-tools/DebugBiomeTeleporter.cs" id="21_30fn3"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_d1c63"]
-font = ExtResource("3_h1bdy")
-font_size = 32
-
-[sub_resource type="LabelSettings" id="LabelSettings_1lgw5"]
-font = ExtResource("3_h1bdy")
-font_size = 32
-
-[sub_resource type="LabelSettings" id="LabelSettings_0uv0p"]
-font = ExtResource("3_h1bdy")
-font_size = 32
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_o1tcx"]
-shader = ExtResource("5_c0d7e")
-shader_parameter/blur_amount = 1.5
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ygioq"]
 shader = ExtResource("5_b3faq")
@@ -94,71 +70,20 @@ fog_density = 1.0
 fog_sky_affect = 0.0
 volumetric_fog_density = 0.0356
 
-[node name="Game" type="Node3D" unique_id=138169538 node_paths=PackedStringArray("WorldObjects", "WorldMobs", "GroundMap", "WaterMap", "PlayerContainer", "DayNightCycle", "WeatherManager", "ItemPickupContainer")]
+[node name="World" type="Node3D" unique_id=138169538 node_paths=PackedStringArray("WorldObjects", "WorldMobs", "GroundMap", "WaterMap", "PlayerContainer", "DayNightCycle", "WeatherManager", "ItemPickupContainer")]
 script = ExtResource("4_ygioq")
-WorldObjects = NodePath("World/WorldObjects")
-WorldMobs = NodePath("World/WorldMobs")
-GroundMap = NodePath("World/GroundMap")
-WaterMap = NodePath("World/WaterMap")
-PlayerContainer = NodePath("World/PlayerContainer")
-DayNightCycle = NodePath("World/DayNightCycle")
-WeatherManager = NodePath("World/WeatherManager")
-ItemPickupContainer = NodePath("World/ItemPickupContainer")
+WorldObjects = NodePath("WorldObjects")
+WorldMobs = NodePath("WorldMobs")
+GroundMap = NodePath("GroundMap")
+WaterMap = NodePath("WaterMap")
+PlayerContainer = NodePath("PlayerContainer")
+DayNightCycle = NodePath("DayNightCycle")
+WeatherManager = NodePath("WeatherManager")
+ItemPickupContainer = NodePath("ItemPickupContainer")
 
-[node name="Debug" type="CanvasLayer" parent="." unique_id=465937132]
-script = ExtResource("2_h1bdy")
+[node name="BiomeTint" type="CanvasLayer" parent="." unique_id=1763461435]
 
-[node name="MarginContainer" type="MarginContainer" parent="Debug" unique_id=690347357]
-offset_right = 40.0
-offset_bottom = 40.0
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 10
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Debug/MarginContainer" unique_id=1623235313]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="FPS" type="Label" parent="Debug/MarginContainer/VBoxContainer" unique_id=570024922]
-layout_mode = 2
-label_settings = SubResource("LabelSettings_d1c63")
-
-[node name="Position" type="Label" parent="Debug/MarginContainer/VBoxContainer" unique_id=340449506]
-layout_mode = 2
-label_settings = SubResource("LabelSettings_1lgw5")
-
-[node name="Biome" type="Label" parent="Debug/MarginContainer/VBoxContainer" unique_id=325196844]
-layout_mode = 2
-label_settings = SubResource("LabelSettings_0uv0p")
-
-[node name="HUD" parent="." unique_id=1753680264 instance=ExtResource("3_b3faq")]
-layer = 2
-
-[node name="Menus" type="CanvasLayer" parent="." unique_id=2105073326]
-process_mode = 3
-layer = 4
-
-[node name="MenuManager" type="Node" parent="Menus" unique_id=987240449]
-script = ExtResource("4_i4b1j")
-
-[node name="BlurOverlay" type="ColorRect" parent="Menus/MenuManager" unique_id=1258320481]
-material = SubResource("ShaderMaterial_o1tcx")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="PauseMenu" parent="Menus/MenuManager" unique_id=408241393 instance=ExtResource("4_7c4bj")]
-
-[node name="SettingsMenu" parent="Menus/MenuManager" unique_id=1355218164 instance=ExtResource("6_c0d7e")]
-
-[node name="SettingsVideo" parent="Menus/MenuManager" unique_id=1569410984 instance=ExtResource("7_o1tcx")]
-
-[node name="World" type="Node3D" parent="." unique_id=309803315]
-
-[node name="BiomeTint" type="CanvasLayer" parent="World" unique_id=1763461435]
-
-[node name="BiomeOverlay" type="ColorRect" parent="World/BiomeTint" unique_id=22886899]
+[node name="BiomeOverlay" type="ColorRect" parent="BiomeTint" unique_id=22886899]
 material = SubResource("ShaderMaterial_ygioq")
 anchors_preset = 15
 anchor_right = 1.0
@@ -168,28 +93,28 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0)
 script = ExtResource("7_h1bdy")
 
-[node name="DayNightCycle" type="Node" parent="World" unique_id=2037639005 node_paths=PackedStringArray("Sun", "WorldEnvironment")]
+[node name="DayNightCycle" type="Node" parent="." unique_id=2037639005 node_paths=PackedStringArray("Sun", "WorldEnvironment")]
 script = ExtResource("8_nrtoj")
 DayLength = 1200.0
 Sun = NodePath("../Sun")
 WorldEnvironment = NodePath("../WorldEnvironment")
 
-[node name="MobStreamer" type="Node" parent="World" unique_id=1837787183]
+[node name="MobStreamer" type="Node" parent="." unique_id=1837787183]
 script = ExtResource("13_dwmkc")
 
-[node name="WeatherManager" type="Node3D" parent="World" unique_id=1098148997 node_paths=PackedStringArray("ParticleAnchor", "RainParticles", "SnowParticles", "WorldEnvironment")]
+[node name="WeatherManager" type="Node3D" parent="." unique_id=1098148997 node_paths=PackedStringArray("ParticleAnchor", "RainParticles", "SnowParticles", "WorldEnvironment")]
 script = ExtResource("15_nthub")
 ParticleAnchor = NodePath("ParticleAnchor")
 RainParticles = NodePath("ParticleAnchor/ScreenWeather/RainParticles")
 SnowParticles = NodePath("ParticleAnchor/ScreenWeather/SnowParticles")
 WorldEnvironment = NodePath("../WorldEnvironment")
 
-[node name="ParticleAnchor" type="Node3D" parent="World/WeatherManager" unique_id=1127631899]
+[node name="ParticleAnchor" type="Node3D" parent="WeatherManager" unique_id=1127631899]
 
-[node name="ScreenWeather" type="CanvasLayer" parent="World/WeatherManager/ParticleAnchor" unique_id=716276539]
+[node name="ScreenWeather" type="CanvasLayer" parent="WeatherManager/ParticleAnchor" unique_id=716276539]
 layer = 0
 
-[node name="RainParticles" type="GPUParticles2D" parent="World/WeatherManager/ParticleAnchor/ScreenWeather" unique_id=1759220244]
+[node name="RainParticles" type="GPUParticles2D" parent="WeatherManager/ParticleAnchor/ScreenWeather" unique_id=1759220244]
 visible = false
 amount = 800
 sub_emitter = NodePath("SplashParticles")
@@ -199,7 +124,7 @@ fixed_fps = 0
 local_coords = true
 process_material = SubResource("ParticleProcessMaterial_rpuxp")
 
-[node name="SplashParticles" type="GPUParticles2D" parent="World/WeatherManager/ParticleAnchor/ScreenWeather/RainParticles" unique_id=395395006]
+[node name="SplashParticles" type="GPUParticles2D" parent="WeatherManager/ParticleAnchor/ScreenWeather/RainParticles" unique_id=395395006]
 visible = false
 emitting = false
 amount = 2000
@@ -210,19 +135,19 @@ fixed_fps = 0
 local_coords = true
 process_material = SubResource("ParticleProcessMaterial_dgldv")
 
-[node name="SnowParticles" type="GPUParticles2D" parent="World/WeatherManager/ParticleAnchor/ScreenWeather" unique_id=1458957998]
+[node name="SnowParticles" type="GPUParticles2D" parent="WeatherManager/ParticleAnchor/ScreenWeather" unique_id=1458957998]
 visible = false
 amount = 800
 texture = ExtResource("17_nthub")
 lifetime = 3.0
 process_material = SubResource("ParticleProcessMaterial_nthub")
 
-[node name="WorldObjectManager" type="Node" parent="World" unique_id=1667742210]
+[node name="WorldObjectManager" type="Node" parent="." unique_id=1667742210]
 script = ExtResource("18_nthub")
 
-[node name="WorldObjectPool" type="Node3D" parent="World" unique_id=280004134]
+[node name="WorldObjectPool" type="Node3D" parent="." unique_id=280004134]
 
-[node name="Sun" type="DirectionalLight3D" parent="World" unique_id=1543347850]
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1543347850]
 transform = Transform3D(-0.03664387, 0.54427326, -0.83810735, 0, 0.83867055, 0.5446391, 0.9993284, 0.019957682, -0.030732136, 0, 20, 0)
 light_color = Color(1, 0.9776916, 0.9063318, 1)
 shadow_enabled = true
@@ -231,10 +156,10 @@ shadow_normal_bias = 0.0
 shadow_blur = 0.5
 directional_shadow_mode = 0
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="World" unique_id=860606047]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=860606047]
 environment = SubResource("Environment_1lgw5")
 
-[node name="WaterMap" type="GridMap" parent="World" unique_id=910294709]
+[node name="WaterMap" type="GridMap" parent="." unique_id=910294709]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
 mesh_library = ExtResource("8_pdh0q")
 cell_size = Vector3(1, 1, 1)
@@ -245,7 +170,7 @@ cell_center_z = false
 collision_mask = 8
 metadata/_editor_floor_ = Vector3(0, -1, 0)
 
-[node name="GroundMap" type="GridMap" parent="World" unique_id=2028653057]
+[node name="GroundMap" type="GridMap" parent="." unique_id=2028653057]
 mesh_library = ExtResource("2_7g83o")
 cell_size = Vector3(1, 1, 1)
 cell_octant_size = 16
@@ -255,13 +180,13 @@ cell_center_z = false
 collision_mask = 10
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
-[node name="WorldObjects" type="Node3D" parent="World" unique_id=1677955676]
+[node name="WorldObjects" type="Node3D" parent="." unique_id=1677955676]
 
-[node name="WorldMobs" type="Node3D" parent="World" unique_id=726044059]
+[node name="WorldMobs" type="Node3D" parent="." unique_id=726044059]
 
-[node name="PlayerContainer" type="Node3D" parent="World" unique_id=2019630338]
+[node name="PlayerContainer" type="Node3D" parent="." unique_id=2019630338]
 
-[node name="ItemPickupContainer" type="Node3D" parent="World" unique_id=512490873]
+[node name="ItemPickupContainer" type="Node3D" parent="." unique_id=512490873]
 
-[node name="DebugBiomeTeleporter" type="Node" parent="World" unique_id=2128277119]
+[node name="DebugBiomeTeleporter" type="Node" parent="." unique_id=2128277119]
 script = ExtResource("21_30fn3")

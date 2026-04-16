@@ -83,7 +83,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		_world = GameManager.Instance.CurrentWorld;
 		_animTree = GetNode<AnimationTree>("AnimationTree");
-		_tintOverlay = _world.GetNode<BiomeTintOverlay>("World/BiomeTint/BiomeOverlay");
+		_tintOverlay = _world.GetNode<BiomeTintOverlay>("BiomeTint/BiomeOverlay");
 		_equipment = GetNode<PlayerEquipment>("PlayerEquipment");
 		Hotbar = GetNode<Hotbar>("Hotbar");
 		Hotbar.SelectedSlotChanged += OnSelectedSlotChanged;
@@ -129,7 +129,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		CameraController.Player = this;
 		AddChild(CameraController);
 
-		HUD = GetNode<HUD>("/root/Bootstrap/Game/HUD");
+		HUD = GetNode<HUD>("/root/Bootstrap/ClientUI/HUD");
 		HUD.RefreshUI();
 
 		_placement = new PlacementController();

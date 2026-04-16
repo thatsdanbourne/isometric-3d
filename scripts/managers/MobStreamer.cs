@@ -22,7 +22,7 @@ public partial class MobStreamer : Node
 
 	public override void _Ready()
 	{
-		_world ??= GetParent().GetParent<World>();
+		_world ??= GetParent<World>();
 	}
 
 	public void Tick(double delta)

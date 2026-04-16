@@ -26,7 +26,7 @@ public partial class WorldObjectManager : Node
 
 	public override void _Ready()
 	{
-		_world = GetParent().GetParent<World>();
+		_world = GetParent<World>();
 		_rng = new RandomNumberGenerator();
 		_rng.Randomize();
 		_pickupScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");

@@ -158,7 +158,6 @@ public partial class GameManager : Node
 
 	public void StartLocalSession(World world, Vector3 spawnPosition)
 	{
-		// world.ChunkManager.PreloadChunks(spawnPosition);
 		var player = SpawnLocalPlayer(world, spawnPosition);
 		player.CheckBiome();
 	}

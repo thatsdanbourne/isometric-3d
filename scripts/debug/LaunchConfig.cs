@@ -1,5 +1,4 @@
 using Godot;
-using System;
 
 public partial class LaunchConfig : Node
 {
@@ -24,6 +23,7 @@ public partial class LaunchConfig : Node
 					"single" => SessionMode.Single,
 					"host" => SessionMode.Host,
 					"client" => SessionMode.Client,
+					"server" => SessionMode.Server,
 					_ => SessionMode.None
 				};
 			}
@@ -56,5 +56,10 @@ public partial class LaunchConfig : Node
 				int.TryParse(arg.Split("=")[1], out var port);
 				Port = port;
 			}
+	}
+
+	public void OverrideAddress(string address)
+	{
+		Address = address;
 	}
 }

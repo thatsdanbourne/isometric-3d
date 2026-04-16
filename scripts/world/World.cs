@@ -69,13 +69,13 @@ public partial class World : Node3D
 		WorldOffset = new Vector2I(0, 0);
 
 		ChunkManager = new ChunkManager(this, ChunkSize, _chunkRadius);
-		WorldObjectManager = GetNode<WorldObjectManager>("World/WorldObjectManager");
-		MobStreamer = GetNode<MobStreamer>("World/MobStreamer");
+		WorldObjectManager = GetNode<WorldObjectManager>("WorldObjectManager");
+		MobStreamer = GetNode<MobStreamer>("MobStreamer");
 
 		BiomeSampler = new BiomeSampler(_tempNoise, _humidityNoise, _riverNoise, _lakeNoise, _drainageNoise, _bankNoise,
 			WorldOffset);
 
-		var debugTeleporter = GetNode<DebugBiomeTeleporter>("World/DebugBiomeTeleporter");
+		var debugTeleporter = GetNode<DebugBiomeTeleporter>("DebugBiomeTeleporter");
 		debugTeleporter.World = this;
 
 		ChunkGenerator = new ChunkGenerator(this, TerrainSeed);
@@ -86,6 +86,7 @@ public partial class World : Node3D
 	public override void _Ready()
 	{
 		Sync = new WorldSync();
+		Sync.Name = "WorldSync";
 		AddChild(Sync);
 		Sync.Init(this);
 	}

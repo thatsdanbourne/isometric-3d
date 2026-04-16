@@ -34,8 +34,6 @@ public partial class NetworkManager : Node
 
 		Multiplayer.MultiplayerPeer = peer;
 		GD.Print("Server started on port " + port);
-
-		GameManager.Instance.PromoteLocalPlayerToHost();
 	}
 
 	public void Join(string address, int port = 7777)
