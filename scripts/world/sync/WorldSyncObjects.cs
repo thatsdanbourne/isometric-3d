@@ -2,8 +2,7 @@ using Godot;
 
 public partial class WorldSync
 {
-	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-	public void RequestBreakObject(Vector2I chunkCoord, Vector2I tileCoord)
+	public void HandleBreakObject(Vector2I chunkCoord, Vector2I tileCoord)
 	{
 		if (!Multiplayer.IsServer())
 			return;

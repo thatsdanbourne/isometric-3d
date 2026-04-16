@@ -15,6 +15,12 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 	private readonly HashSet<Vector2I> _pendingBuilds = [];
 
 
+	public void UpdateAuthorityChunks(IReadOnlyList<Vector3> playerPositions)
+	{
+		foreach (var player in playerPositions)
+			UpdateLocalChunks(player);
+	}
+
 	public void UpdateServerChunkCache(IReadOnlyList<Vector3> playerPositions)
 	{
 		if (playerPositions == null || playerPositions.Count == 0)
@@ -146,9 +152,6 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 
 	public void UpdatePeerInterest(int peerId, Godot.Collections.Array<Vector2I> coords)
 	{
-		if (!world.Multiplayer.IsServer())
-			return;
-
 		if (!_desiredChunksByPeer.TryGetValue(peerId, out var desiredChunks))
 		{
 			desiredChunks = new HashSet<Vector2I>();

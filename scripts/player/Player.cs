@@ -461,9 +461,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private void OnHotbarContainerChanged()
 	{
 		UpdateEquippedItem();
-
-		if (_world != null && _world.Multiplayer.IsServer())
-			BroadcastHeldItem();
+		BroadcastHeldItem();
 	}
 
 	public void HandleSelectedSlotChanged(int slotIndex)
@@ -491,15 +489,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	private void RequestSelectedSlotSync(int slotIndex)
 	{
-		if (_world == null)
-			return;
-
-		if (_world.Multiplayer.IsServer())
-		{
-			HandleSelectedSlotChanged(slotIndex);
-			return;
-		}
-
 		_world.Sync.RpcId(1, nameof(WorldSync.RequestSelectHotbarSlot), slotIndex);
 	}
 
@@ -514,7 +503,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	private void BroadcastHeldItem()
 	{
-		if (_world == null)
+		if (_world == null || !_world.Multiplayer.IsServer())
 			return;
 
 		_world.Sync.Rpc(nameof(WorldSync.SyncHeldItem), PlayerId, Hotbar.SelectedSlot, GetActiveTool().Id);
@@ -522,28 +511,13 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public void RequestItemPickup(ulong pickupId)
 	{
-		if (_world == null)
-			return;
-
-		if (_world.Multiplayer.IsServer())
-		{
-			_world.WorldObjectManager.HandlePickupRequest(this, pickupId);
-			return;
-		}
-
 		_world.Sync.RpcId(1, nameof(WorldSync.RequestPickup), pickupId);
 	}
 
 	public void RequestDropItem(Item item, int count)
 	{
-		if (_world == null || item == null || count <= 0)
+		if (item == null || count <= 0)
 			return;
-
-		if (_world.Multiplayer.IsServer())
-		{
-			_world.WorldObjectManager.HandleDropItemRequest(this, item.Id, count);
-			return;
-		}
 
 		_world.Sync.RpcId(1, nameof(WorldSync.RequestDropItem), item.Id, count);
 	}
@@ -560,8 +534,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 			return;
 
 		var tool = GetActiveTool();
-		if (tool == null)
-			return;
 
 		var swingDir = GetSwingDirection();
 		if (swingDir.LengthSquared() < 0.001f)
@@ -574,15 +546,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public void RequestUseActiveTool(Vector3 aimDir)
 	{
-		if (_world == null)
-			return;
-
-		if (_world.Multiplayer.IsServer())
-		{
-			_world.HandleUseActiveToolRequest(this, aimDir);
-			return;
-		}
-
 		_world.Sync.RpcId(1, nameof(WorldSync.RequestUseActiveTool), aimDir);
 	}
 
@@ -699,21 +662,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	// networking
 	private void SyncTransform()
 	{
-		if (Multiplayer.IsServer())
-		{
-			foreach (var peer in Multiplayer.GetPeers())
-			{
-				if (peer == PlayerId)
-					continue;
-
-				RpcId(peer, nameof(ReceiveTransform), PlayerId, GlobalPosition, Velocity, Rotation.Y);
-			}
-
-			return;
-		}
-
-		if (IsLocal)
-			RpcId(1, nameof(SubmitTransform), GlobalPosition, Velocity, Rotation.Y);
+		RpcId(1, nameof(SubmitTransform), GlobalPosition, Velocity, Rotation.Y);
 	}
 
 	[Rpc(
@@ -723,9 +672,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 	)]
 	public void SubmitTransform(Vector3 pos, Vector3 vel, float rotY)
 	{
-		if (!Multiplayer.IsServer())
-			return;
-
 		var senderId = Multiplayer.GetRemoteSenderId();
 		if (PlayerId != senderId)
 			return;
@@ -773,8 +719,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint)
 	{
-		if (_world.Multiplayer.IsServer())
-			AudioManager.Instance.PlayVariantAt("hit_mob", GlobalPosition, AudioManager.BusTools, 0.2f);
+		AudioManager.Instance.PlayVariantAt("hit_mob", GlobalPosition, AudioManager.BusTools, 0.2f);
 
 		ApplyKnockback(fromDirection, 3f);
 		Health -= damage;

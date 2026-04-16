@@ -226,8 +226,7 @@ public partial class MobStreamer : Node
 		_activeMobs[mob.Uid] = instance;
 		RegisterMobInChunk(chunkCoord, mob.Uid);
 
-		if (_world.Multiplayer.IsServer())
-			BroadcastMobSpawn(instance, chunkCoord);
+		BroadcastMobSpawn(instance, chunkCoord);
 	}
 
 	private void SpawnMob(ulong uid, string mobId, Vector2I chunkCoord, Vector3 position)
@@ -248,15 +247,11 @@ public partial class MobStreamer : Node
 		_activeMobs[uid] = instance;
 		RegisterMobInChunk(chunkCoord, uid);
 
-		if (_world.Multiplayer.IsServer())
-			BroadcastMobSpawn(instance, chunkCoord);
+		BroadcastMobSpawn(instance, chunkCoord);
 	}
 
 	public void SpawnRemoteMob(ulong uid, string mobId, Vector2I chunkCoord, Vector3 position)
 	{
-		if (_world.Multiplayer.IsServer())
-			return;
-
 		if (_activeMobs.ContainsKey(uid))
 			return;
 

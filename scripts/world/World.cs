@@ -1,6 +1,7 @@
 using System;
 using Godot;
 using System.Collections.Generic;
+using System.Diagnostics.SymbolStore;
 using System.Threading.Tasks;
 
 public partial class World : Node3D
@@ -136,6 +137,8 @@ public partial class World : Node3D
 
 			ChunkManager.UpdateServerChunkCache(playerPositions);
 			ChunkGenerator.ProcessBuiltChunks();
+			ChunkManager.UpdateAuthorityChunks(playerPositions);
+
 			MobStreamer.Tick(delta);
 
 			foreach (var mob in MobStreamer.GetActiveMobs())
@@ -149,13 +152,7 @@ public partial class World : Node3D
 
 		var localPlayer = GameManager.Instance.LocalPlayer;
 		if (localPlayer != null && IsInstanceValid(localPlayer) && localPlayer.IsInsideTree())
-			if (isServer)
-			{
-				// single player or host
-				// activate local chunks directly from server-size cache
-				ChunkManager.UpdateLocalChunks(localPlayer.GlobalPosition);
-			}
-			else
+			if (!isServer)
 			{
 				// client
 				// request desired chunks from server and finalise received chunks
@@ -262,16 +259,6 @@ public partial class World : Node3D
 		var chunkCoord = TileUtils.WorldToChunk(worldPos);
 
 		var def = item.PlaceableObjectDefinition;
-		var isServerAuthority = !Multiplayer.HasMultiplayerPeer() || Multiplayer.IsServer();
-
-		if (isServerAuthority)
-		{
-			var player = GameManager.Instance.LocalPlayer;
-			if (player == null || !IsInstanceValid(player))
-				return false;
-
-			return TryPlaceItem(player, item, def.StableId, tile, chunkCoord, worldPos);
-		}
 
 		Sync.RpcId(1, nameof(WorldSync.RequestPlaceObject), item.Id, def.StableId, chunkCoord, tile, worldPos);
 		return true;
@@ -322,15 +309,7 @@ public partial class World : Node3D
 
 	public void TryBreakObject(ChunkObject data)
 	{
-		var isServerAuthority = !Multiplayer.HasMultiplayerPeer() || Multiplayer.IsServer();
-
-		if (isServerAuthority)
-		{
-			WorldObjectManager.RequestBreak(data);
-			return;
-		}
-
-		Sync.RpcId(1, nameof(WorldSync.RequestBreakObject), data.ChunkCoord, data.TileCoord);
+		Sync.HandleBreakObject(data.ChunkCoord, data.TileCoord);
 	}
 
 	public bool TryGetChunkDelta(Vector2I chunkCoord, out ChunkDeltaData delta)
@@ -511,10 +490,7 @@ public partial class World : Node3D
 
 		player.StartSwingCooldown(tool);
 
-		if (!player.IsLocal)
-			player.PlayRemoteUseActiveToolVisual(tool, swingDir);
-		else
-			Sync.Rpc(nameof(WorldSync.PlayRemoteUseActiveToolVisual), player.PlayerId, tool.Id, swingDir);
+		Sync.Rpc(nameof(WorldSync.PlayRemoteUseActiveToolVisual), player.PlayerId, tool.Id, swingDir);
 
 		ResolveMeleeHit(
 			player,

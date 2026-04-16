@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 public partial class SessionBootstrap : Node
 {
 	private LaunchConfig Config => GetNode<LaunchConfig>("/root/LaunchConfig");
+	private int _localServerPid = -1;
 
 	public override async void _Ready()
 	{
@@ -20,10 +21,10 @@ public partial class SessionBootstrap : Node
 				await StartSinglePlayer();
 				break;
 
-			case SessionMode.Host:
-				CreateClientUI();
-				StartHost();
-				break;
+			// case SessionMode.Host:
+			// 	CreateClientUI();
+			// 	StartHost();
+			// 	break;
 
 			case SessionMode.Client:
 				CreateClientUI();
@@ -58,25 +59,25 @@ public partial class SessionBootstrap : Node
 		await StartClient();
 	}
 
-	private void StartHost()
-	{
-		var world = CreateWorld();
-
-		switch (Config.WorldMode)
-		{
-			case WorldLoadMode.Random:
-			case WorldLoadMode.Seed:
-				world.InitialiseWorld(ResolveDebugSeed());
-				GameManager.Instance.StartLocalSession(world, Vector3.Zero);
-				NetworkManager.Instance.Host(Config.Port);
-				GameManager.Instance.PromoteLocalPlayerToHost();
-				break;
-
-			case WorldLoadMode.Save:
-				// load from save
-				break;
-		}
-	}
+	// private void StartHost()
+	// {
+	// 	var world = CreateWorld();
+	//
+	// 	switch (Config.WorldMode)
+	// 	{
+	// 		case WorldLoadMode.Random:
+	// 		case WorldLoadMode.Seed:
+	// 			world.InitialiseWorld(ResolveDebugSeed());
+	// 			GameManager.Instance.StartLocalSession(world, Vector3.Zero);
+	// 			NetworkManager.Instance.Host(Config.Port);
+	// 			GameManager.Instance.PromoteLocalPlayerToHost();
+	// 			break;
+	//
+	// 		case WorldLoadMode.Save:
+	// 			// load from save
+	// 			break;
+	// 	}
+	// }
 
 	private void StartServer()
 	{
@@ -121,20 +122,20 @@ public partial class SessionBootstrap : Node
 	{
 		var exePath = OS.GetExecutablePath();
 
-		var args = new Godot.Collections.Array<string>
-		{
-			"--debug-session=server",
-			$"--world={Config.WorldMode.ToString().ToLower()}",
-			$"--port={Config.Port}"
-		};
+		var serverCommand =
+			$"\"{exePath}\" --debug-session=server --port={Config.Port} --world={Config.WorldMode.ToString().ToLower()}";
 
 		if (Config.WorldMode == WorldLoadMode.Seed)
-			args.Add($"--seed={Config.Seed}");
+			serverCommand += $" --seed={Config.Seed}";
 
 		if (Config.WorldMode == WorldLoadMode.Save && !string.IsNullOrEmpty(Config.SaveName))
-			args.Add($"--save={Config.SaveName}");
+			serverCommand += $" --save={Config.SaveName}";
 
-		OS.CreateProcess(exePath, args.ToArray());
+		// Launch in new terminal window
+		OS.CreateProcess("cmd.exe", [
+			"/k", // keep window open
+			serverCommand
+		]);
 	}
 
 	private void ShowMainMenu()
@@ -147,5 +148,11 @@ public partial class SessionBootstrap : Node
 		var uiScene = GD.Load<PackedScene>("res://scenes/ui/ClientUI.tscn");
 		var ui = uiScene.Instantiate();
 		AddChild(ui);
+	}
+
+	public override void _ExitTree()
+	{
+		if (_localServerPid != -1)
+			OS.Kill(_localServerPid);
 	}
 }

@@ -50,7 +50,7 @@ public partial class WorldSync
 
 		var coords = BuildDesiredChunkArray(center, chunkRadius);
 
-		if (Multiplayer.HasMultiplayerPeer() && !Multiplayer.IsServer()) RpcId(1, nameof(SubmitDesiredChunks), coords);
+		RpcId(1, nameof(SubmitDesiredChunks), coords);
 	}
 
 	private Godot.Collections.Array<Vector2I> BuildDesiredChunkArray(Vector2I center, int chunkRadius)

@@ -130,19 +130,6 @@ public partial class WorldSync
 		int mouseButton,
 		bool shiftHeld)
 	{
-		var isServerAuthority = !Multiplayer.HasMultiplayerPeer() || Multiplayer.IsServer();
-		var localPlayer = GameManager.Instance.LocalPlayer;
-
-		if (localPlayer == null || !IsInstanceValid(localPlayer))
-			return;
-
-		if (isServerAuthority)
-		{
-			HandleContainerClickRequest(localPlayer, kind, storageTileCoord, slotIndex, mouseButton, shiftHeld);
-			localPlayer.HUD.RefreshUI();
-			return;
-		}
-
 		RpcId(
 			1,
 			nameof(RequestContainerClick),

@@ -14,8 +14,6 @@ public partial class WorldObjectManager : Node
 	private ulong _nextPickupId = 1;
 	private readonly Dictionary<ulong, ItemPickup> _activePickups = new();
 
-	// private readonly Dictionary<string, Stack<WorldObject>> _pools = new();
-
 	private World _world;
 	private RandomNumberGenerator _rng;
 
@@ -47,7 +45,6 @@ public partial class WorldObjectManager : Node
 	{
 		if (data.RuntimeNode != null || data.MarkedForRemoval)
 			return;
-
 
 		_activeSpawnQueue.Enqueue(data);
 	}
@@ -126,8 +123,7 @@ public partial class WorldObjectManager : Node
 
 		EnqueueRemoval(data);
 
-		if (_world.Multiplayer.IsServer())
-			_world.Sync.BroadcastObjectRemoved(data.ChunkCoord, data.TileCoord);
+		_world.Sync.BroadcastObjectRemoved(data.ChunkCoord, data.TileCoord);
 	}
 
 	public void ApplyRemoteBreak(Vector2I chunkCoord, Vector2I tileCoord)
@@ -266,8 +262,7 @@ public partial class WorldObjectManager : Node
 			Position = data.Position
 		});
 
-		if (_world.Multiplayer.IsServer())
-			_world.Sync.BroadcastObjectPlaced(data);
+		_world.Sync.BroadcastObjectPlaced(data);
 
 		return true;
 	}
