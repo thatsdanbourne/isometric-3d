@@ -65,7 +65,7 @@ public partial class MobStreamer : Node
 
 			_world.Sync.Rpc(
 				nameof(WorldSync.ReceiveMobSnapshot),
-				DeterministicHash.UidToString(uid),
+				uid,
 				mob.GlobalPosition,
 				mob.Velocity,
 				(int)mob.State,
@@ -284,7 +284,7 @@ public partial class MobStreamer : Node
 	{
 		_world.Sync.Rpc(
 			nameof(WorldSync.SpawnRemoteMob),
-			DeterministicHash.UidToString(mob.Uid),
+			mob.Uid,
 			mob.MobId,
 			chunkCoord,
 			mob.GlobalPosition
@@ -311,7 +311,7 @@ public partial class MobStreamer : Node
 				_world.Sync.RpcId(
 					peerId,
 					nameof(WorldSync.SpawnRemoteMob),
-					DeterministicHash.UidToString(uid),
+					uid,
 					mob.MobId,
 					mob.RuntimeChunk,
 					mob.GlobalPosition
@@ -320,7 +320,7 @@ public partial class MobStreamer : Node
 				_world.Sync.RpcId(
 					peerId,
 					nameof(WorldSync.ReceiveMobSnapshot),
-					DeterministicHash.UidToString(uid),
+					uid,
 					mob.GlobalPosition,
 					mob.Velocity,
 					(int)mob.State,
@@ -364,7 +364,7 @@ public partial class MobStreamer : Node
 				var runtimeChunk = TileUtils.WorldToChunk(mob.GlobalPosition);
 				SaveMobToDelta(mob);
 				RemoveMobFromChunk(runtimeChunk, uid);
-				_world.Sync.Rpc(nameof(WorldSync.RemoveRemoteMob), DeterministicHash.UidToString(uid));
+				_world.Sync.Rpc(nameof(WorldSync.RemoveRemoteMob), uid);
 				mob.QueueFree();
 			}
 
