@@ -51,4 +51,22 @@ public partial class WorldSync
 
 		mob.QueueFree();
 	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
+	public void ReceiveMobBatch(Godot.Collections.Array data)
+	{
+		const int step = 5;
+
+		for (var i = 0; i < data.Count; i += step)
+		{
+			var uid = (ulong)data[i];
+			var pos = (Vector3)data[i + 1];
+			var vel = (Vector3)data[i + 2];
+			var state = (int)data[i + 3];
+			var health = (float)data[i + 4];
+
+			if (_world.MobStreamer.TryGetMob(uid, out var mob))
+				mob.ApplyRemoteSnapshot(pos, vel, state, health);
+		}
+	}
 }

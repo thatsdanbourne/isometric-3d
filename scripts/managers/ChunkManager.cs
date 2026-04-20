@@ -195,8 +195,8 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 			sentChunks.Add(coord);
 		}
 
-		if (newlyAddedChunks.Count > 0)
-			world.MobStreamer.SyncActiveMobsInChunksToPeer(peerId, newlyAddedChunks);
+		// if (newlyAddedChunks.Count > 0)
+		// 	world.MobStreamer.SyncActiveMobsInChunksToPeer(peerId, newlyAddedChunks);
 	}
 
 	private void UnloadChunksOutsideDesiredSet(HashSet<Vector2I> desiredChunks)
