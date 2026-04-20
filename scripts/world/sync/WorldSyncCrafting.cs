@@ -7,12 +7,6 @@ public partial class WorldSync
 		if (string.IsNullOrEmpty(recipeId))
 			return;
 
-		if (Multiplayer.IsServer())
-		{
-			HandleCraftItemRequest(Multiplayer.GetUniqueId(), recipeId);
-			return;
-		}
-
 		RpcId(1, nameof(RequestCraftItemClient), recipeId);
 	}
 
@@ -20,12 +14,6 @@ public partial class WorldSync
 	{
 		if (string.IsNullOrEmpty(recipeId))
 			return;
-
-		if (Multiplayer.IsServer())
-		{
-			HandleStartStationCraftRequest(Multiplayer.GetUniqueId(), tileCoord, recipeId);
-			return;
-		}
 
 		RpcId(1, nameof(RequestStartStationCraftClient), tileCoord, recipeId);
 	}
@@ -261,12 +249,6 @@ public partial class WorldSync
 
 	public void RequestCollectStationOutput(Vector2I tileCoord)
 	{
-		if (Multiplayer.IsServer())
-		{
-			HandleCollectStationOutputRequest(Multiplayer.GetUniqueId(), tileCoord);
-			return;
-		}
-
 		RpcId(1, nameof(RequestCollectStationOutputClient), tileCoord);
 	}
 

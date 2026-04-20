@@ -27,9 +27,6 @@ public partial class MobStreamer : Node
 
 	public void Tick(double delta)
 	{
-		if (_world == null)
-			return;
-
 		_accum += delta;
 		if (_accum >= UpdateInterval)
 		{
@@ -47,6 +44,18 @@ public partial class MobStreamer : Node
 		}
 	}
 
+	public void UpdateMobChunkMembership(Mob mob)
+	{
+		var newChunk = TileUtils.WorldToChunk(mob.GlobalPosition);
+
+		if (mob.RuntimeChunk == newChunk)
+			return;
+
+		RemoveMobFromChunk(mob.RuntimeChunk, mob.Uid);
+		RegisterMobInChunk(newChunk, mob.Uid);
+		mob.RuntimeChunk = newChunk;
+	}
+
 	private void BroadcastMobSnapshots()
 	{
 		foreach (var (uid, mob) in _activeMobs)
@@ -56,7 +65,7 @@ public partial class MobStreamer : Node
 
 			_world.Sync.Rpc(
 				nameof(WorldSync.ReceiveMobSnapshot),
-				uid.ToString(),
+				DeterministicHash.UidToString(uid),
 				mob.GlobalPosition,
 				mob.Velocity,
 				(int)mob.State,
@@ -221,6 +230,7 @@ public partial class MobStreamer : Node
 		instance.LoadFromSaveData(mob, chunkCoord);
 		instance.World = _world;
 		instance.Position = mob.Position;
+		instance.RuntimeChunk = chunkCoord;
 
 		_world.WorldMobs.AddChild(instance);
 		_activeMobs[mob.Uid] = instance;
@@ -242,6 +252,7 @@ public partial class MobStreamer : Node
 		instance.Initialise(uid, mobId, chunkCoord);
 		instance.World = _world;
 		instance.Position = position;
+		instance.RuntimeChunk = chunkCoord;
 
 		_world.WorldMobs.AddChild(instance);
 		_activeMobs[uid] = instance;
@@ -273,11 +284,50 @@ public partial class MobStreamer : Node
 	{
 		_world.Sync.Rpc(
 			nameof(WorldSync.SpawnRemoteMob),
-			mob.Uid.ToString(),
+			DeterministicHash.UidToString(mob.Uid),
 			mob.MobId,
 			chunkCoord,
 			mob.GlobalPosition
 		);
+	}
+
+	public void SyncActiveMobsInChunksToPeer(int peerId, HashSet<Vector2I> chunkCoords)
+	{
+		var sent = new HashSet<ulong>();
+
+		foreach (var chunkCoord in chunkCoords)
+		{
+			if (!_activeMobIdsByChunk.TryGetValue(chunkCoord, out var mobIds))
+				continue;
+
+			foreach (var uid in mobIds)
+			{
+				if (!sent.Add(uid))
+					continue;
+
+				if (!TryGetMob(uid, out var mob) || !IsInstanceValid(mob))
+					continue;
+
+				_world.Sync.RpcId(
+					peerId,
+					nameof(WorldSync.SpawnRemoteMob),
+					DeterministicHash.UidToString(uid),
+					mob.MobId,
+					mob.RuntimeChunk,
+					mob.GlobalPosition
+				);
+
+				_world.Sync.RpcId(
+					peerId,
+					nameof(WorldSync.ReceiveMobSnapshot),
+					DeterministicHash.UidToString(uid),
+					mob.GlobalPosition,
+					mob.Velocity,
+					(int)mob.State,
+					mob.CurrentHealth
+				);
+			}
+		}
 	}
 
 	private void CullFarMobs()
@@ -311,13 +361,29 @@ public partial class MobStreamer : Node
 
 			if (IsInstanceValid(mob))
 			{
+				var runtimeChunk = TileUtils.WorldToChunk(mob.GlobalPosition);
 				SaveMobToDelta(mob);
-				RemoveMobFromChunk(mob.SavedChunk ?? TileUtils.WorldToChunk(mob.GlobalPosition), uid);
+				RemoveMobFromChunk(runtimeChunk, uid);
+				_world.Sync.Rpc(nameof(WorldSync.RemoveRemoteMob), DeterministicHash.UidToString(uid));
 				mob.QueueFree();
 			}
 
 			_activeMobs.Remove(uid);
 		}
+	}
+
+	public void RemoveRemoteMob(ulong uid)
+	{
+		if (!_activeMobs.TryGetValue(uid, out var mob))
+			return;
+
+		var runtimeChunk = TileUtils.WorldToChunk(mob.GlobalPosition);
+		RemoveMobFromChunk(runtimeChunk, uid);
+
+		_activeMobs.Remove(uid);
+
+		if (IsInstanceValid(mob))
+			mob.QueueFree();
 	}
 
 	public void HandleMobDeath(Mob mob)

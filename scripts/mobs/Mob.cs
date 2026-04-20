@@ -7,7 +7,7 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	public World World;
 	public ulong Uid { get; private set; }
 	public string MobId { get; private set; }
-	public Vector2I SpawnChunk { get; private set; }
+	public Vector2I RuntimeChunk { get; set; }
 	public Vector2I? SavedChunk { get; internal set; }
 
 	public float CurrentHealth;
@@ -27,13 +27,13 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	{
 		Uid = uid;
 		MobId = mobId;
-		SpawnChunk = spawnChunk;
-		SavedChunk = null;
+		SavedChunk = spawnChunk;
 	}
 
 	public override void _Ready()
 	{
 		CurrentHealth = MaxHealth;
+		_netTargetPosition = GlobalPosition;
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -41,12 +41,14 @@ public partial class Mob : CharacterBody3D, IToolHittable
 		if (!World.Multiplayer.IsServer())
 		{
 			UpdateRemoteMotion(delta);
+			MoveAndSlide();
 			return;
 		}
 
 		_knockbackVelocity = _knockbackVelocity.MoveToward(Vector3.Zero, _knockbackDecay * (float)delta);
 		Velocity = MoveVelocity + _knockbackVelocity;
 		MoveAndSlide();
+		World.MobStreamer.UpdateMobChunkMembership(this);
 	}
 
 	public virtual void TickAI(double delta)
@@ -91,7 +93,7 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	{
 		if (World.Multiplayer.IsServer())
 			AudioManager.Instance.PlayVariantAt("hit_mob", GlobalPosition, AudioManager.BusTools, 0.2f);
-		
+
 		ApplyKnockback(fromDirection, 6f);
 		CurrentHealth -= damage;
 		if (CurrentHealth <= 0)

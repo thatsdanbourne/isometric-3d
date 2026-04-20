@@ -181,6 +181,7 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 
 		EnsureServerChunksExist(desiredChunks);
 
+		var newlyAddedChunks = new HashSet<Vector2I>();
 		foreach (var coord in desiredChunks)
 		{
 			if (sentChunks.Contains(coord))
@@ -190,8 +191,12 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 				continue;
 
 			world.Sync.SendChunkToPeer(peerId, ToDto(chunk));
+			newlyAddedChunks.Add(coord);
 			sentChunks.Add(coord);
 		}
+
+		if (newlyAddedChunks.Count > 0)
+			world.MobStreamer.SyncActiveMobsInChunksToPeer(peerId, newlyAddedChunks);
 	}
 
 	private void UnloadChunksOutsideDesiredSet(HashSet<Vector2I> desiredChunks)

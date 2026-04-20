@@ -251,7 +251,6 @@ public partial class GameManager : Node
 		SendWorldInitToPeer(peerId);
 		SyncExistingPlayersToPeer(peerId);
 		RequestSpawnPlayer(peerId);
-		SessionMode = SessionMode.Client;
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]

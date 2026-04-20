@@ -5,14 +5,21 @@ public partial class WorldSync
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
 	public void SpawnRemoteMob(string uidString, string mobId, Vector2I chunkCoord, Vector3 position)
 	{
-		var uid = ulong.Parse(uidString);
+		var uid = DeterministicHash.StringToUid(uidString);
 		_world.MobStreamer.SpawnRemoteMob(uid, mobId, chunkCoord, position);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void RemoveRemoteMob(string uidString)
+	{
+		var uid = DeterministicHash.StringToUid(uidString);
+		_world.MobStreamer.RemoveRemoteMob(uid);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
 	public void ReceiveMobSnapshot(string uidString, Vector3 position, Vector3 velocity, int state, float health)
 	{
-		var uid = ulong.Parse(uidString);
+		var uid = DeterministicHash.StringToUid(uidString);
 
 		if (!_world.MobStreamer.TryGetMob(uid, out var mob))
 			return;
@@ -22,29 +29,30 @@ public partial class WorldSync
 
 	public void BroadcastMobAttack(ulong uid)
 	{
-		Rpc(nameof(PlayRemoteMobAttack), uid.ToString());
+		Rpc(nameof(PlayRemoteMobAttack), DeterministicHash.UidToString(uid));
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
 	public void PlayRemoteMobAttack(string uidString)
 	{
-		var uid = ulong.Parse(uidString);
+		var uid = DeterministicHash.StringToUid(uidString);
 
 		if (!_world.MobStreamer.TryGetMob(uid, out var mob))
 			return;
 
-		mob.PlayRemoteAttackVisual();
+		if (IsInstanceValid(mob))
+			mob.PlayRemoteAttackVisual();
 	}
 
 	public void BroadcastMobDeath(ulong uid)
 	{
-		Rpc(nameof(ApplyMobDeath), uid.ToString());
+		Rpc(nameof(ApplyMobDeath), DeterministicHash.UidToString(uid));
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
 	public void ApplyMobDeath(string uidString)
 	{
-		var uid = ulong.Parse(uidString);
+		var uid = DeterministicHash.StringToUid(uidString);
 
 		if (!_world.MobStreamer.TryGetMob(uid, out var mob))
 			return;

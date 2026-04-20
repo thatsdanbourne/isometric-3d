@@ -96,4 +96,14 @@ public static class DeterministicHash
 	{
 		return Combine64([a, b, c, d, e]);
 	}
+
+	public static string UidToString(ulong uid)
+	{
+		return uid.ToString("X16");
+	}
+
+	public static ulong StringToUid(string uid)
+	{
+		return Convert.ToUInt64(uid, 16);
+	}
 }
