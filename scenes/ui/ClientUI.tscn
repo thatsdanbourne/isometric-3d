@@ -54,6 +54,10 @@ label_settings = SubResource("LabelSettings_rva6f")
 layout_mode = 2
 label_settings = SubResource("LabelSettings_ov1de")
 
+[node name="Chunk" type="Label" parent="Debug/MarginContainer/VBoxContainer" unique_id=51857836]
+layout_mode = 2
+label_settings = SubResource("LabelSettings_ov1de")
+
 [node name="Biome" type="Label" parent="Debug/MarginContainer/VBoxContainer" unique_id=891616461]
 layout_mode = 2
 label_settings = SubResource("LabelSettings_yii1t")

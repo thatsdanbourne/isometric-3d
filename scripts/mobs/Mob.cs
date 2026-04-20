@@ -23,11 +23,11 @@ public partial class Mob : CharacterBody3D, IToolHittable
 
 	public MobState State { get; protected set; } = MobState.Idle;
 
-	public void Initialise(ulong uid, string mobId, Vector2I spawnChunk)
+	public void Initialise(ulong uid, string mobId, Vector2I? savedChunk = null)
 	{
 		Uid = uid;
 		MobId = mobId;
-		SavedChunk = spawnChunk;
+		SavedChunk = savedChunk;
 	}
 
 	public override void _Ready()

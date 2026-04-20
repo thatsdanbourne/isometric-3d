@@ -82,13 +82,18 @@ public partial class MobStreamer : Node
 		_world.TryGetChunkDelta(coord, out var delta);
 
 		if (delta?.Mobs != null)
+		{
+			var toActivate = delta.Mobs.Values.ToList();
+
 			foreach (var mobData in delta.Mobs.Values)
 			{
 				if (_activeMobs.ContainsKey(mobData.Uid))
 					continue;
 
 				SpawnMobFromRecord(mobData, coord);
+				delta.Mobs.Remove(mobData.Uid);
 			}
+		}
 
 		if (_world.ActiveChunks.TryGetValue(coord, out var chunk))
 			ActivateProceduralMobs(chunk, delta);
@@ -212,7 +217,7 @@ public partial class MobStreamer : Node
 						nameof(WorldSync.SpawnRemoteMob),
 						uid,
 						mob.MobId,
-						coord,
+						mob.RuntimeChunk,
 						mob.GlobalPosition
 					);
 
@@ -273,10 +278,7 @@ public partial class MobStreamer : Node
 		if (_world.TryGetChunkDelta(mob.RuntimeChunk, out var delta))
 			delta.Mobs.Remove(mob.Uid);
 
-		foreach (var (peerId, known) in _peerKnownMobs)
-			if (known.Remove(mob.Uid))
-				_world.Sync.RpcId(peerId, nameof(WorldSync.RemoveRemoteMob), mob.Uid);
-
+		RemoveMobFromKnownPeers(mob);
 		CleanupMob(mob);
 	}
 
@@ -297,6 +299,7 @@ public partial class MobStreamer : Node
 			if (_activeMobs.TryGetValue(uid, out var mob))
 			{
 				SaveMobToDelta(mob);
+				RemoveMobFromKnownPeers(mob);
 				CleanupMob(mob);
 			}
 	}
@@ -310,14 +313,19 @@ public partial class MobStreamer : Node
 
 	private void SaveMobToDelta(Mob mob)
 	{
+		if (mob.SavedChunk.HasValue && _world.TryGetChunkDelta(mob.SavedChunk.Value, out var oldDelta) &&
+		    oldDelta != null)
+			oldDelta.Mobs.Remove(mob.Uid);
+
 		var delta = _world.GetOrCreateChunkDelta(mob.RuntimeChunk);
-		GD.Print($"Saving mob {mob.Uid} to delta at {mob.Position}");
 		delta.Mobs[mob.Uid] = new MobRecord
 		{
 			Uid = mob.Uid,
 			MobId = mob.MobId,
 			Position = mob.GlobalPosition
 		};
+
+		mob.SavedChunk = mob.RuntimeChunk;
 	}
 
 	#endregion
@@ -329,7 +337,6 @@ public partial class MobStreamer : Node
 	{
 		if (_activeMobs.ContainsKey(mobData.Uid))
 			return;
-		GD.Print($"Spawning mob {mobData.Uid} at {mobData.Position} from record");
 
 		var scene = MobRegistry.Instance.GetScene(mobData.MobId);
 		if (scene == null)
@@ -380,6 +387,17 @@ public partial class MobStreamer : Node
 		RemoveMobFromChunkLookup(mob.RuntimeChunk, mob.Uid);
 		mob.RuntimeChunk = newChunk;
 		RegisterMobInChunkLookup(newChunk, mob.Uid);
+	}
+
+	private void RemoveMobFromKnownPeers(Mob mob)
+	{
+		foreach (var (peerId, known) in _peerKnownMobs)
+		{
+			if (!known.Remove(mob.Uid))
+				continue;
+
+			_world.Sync.RpcId(peerId, nameof(WorldSync.RemoveRemoteMob), mob.Uid);
+		}
 	}
 
 	private void RegisterMobInChunkLookup(Vector2I coord, ulong uid)
