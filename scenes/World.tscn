@@ -3,6 +3,7 @@
 [ext_resource type="MeshLibrary" uid="uid://crawy4x5h3g1u" path="res://tiles_meshlibrary.tres" id="2_7g83o"]
 [ext_resource type="Script" uid="uid://ddvbtaf4ymjhc" path="res://scripts/world/World.cs" id="4_ygioq"]
 [ext_resource type="Shader" uid="uid://cmpvdcty3aeoe" path="res://resources/shaders/BiomeTint.gdshader" id="5_b3faq"]
+[ext_resource type="Script" uid="uid://d2by5yorsexbf" path="res://scripts/managers/ItemDropManager.cs" id="6_i4b1j"]
 [ext_resource type="Script" uid="uid://c6er6so1dhf3" path="res://scripts/managers/BiomeTintOverlay.cs" id="7_h1bdy"]
 [ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/managers/DayNightCycle.cs" id="8_nrtoj"]
 [ext_resource type="MeshLibrary" uid="uid://hvr6yjpo0ajd" path="res://water_meshlibrary.tres" id="8_pdh0q"]
@@ -102,6 +103,9 @@ WorldEnvironment = NodePath("../WorldEnvironment")
 [node name="MobStreamer" type="Node" parent="." unique_id=1837787183]
 script = ExtResource("13_dwmkc")
 
+[node name="ItemDropManager" type="Node" parent="." unique_id=218366708]
+script = ExtResource("6_i4b1j")
+
 [node name="WeatherManager" type="Node3D" parent="." unique_id=1098148997 node_paths=PackedStringArray("ParticleAnchor", "RainParticles", "SnowParticles", "WorldEnvironment")]
 script = ExtResource("15_nthub")
 ParticleAnchor = NodePath("ParticleAnchor")
@@ -144,8 +148,6 @@ process_material = SubResource("ParticleProcessMaterial_nthub")
 
 [node name="WorldObjectManager" type="Node" parent="." unique_id=1667742210]
 script = ExtResource("18_nthub")
-
-[node name="WorldObjectPool" type="Node3D" parent="." unique_id=280004134]
 
 [node name="Sun" type="DirectionalLight3D" parent="." unique_id=1543347850]
 transform = Transform3D(-0.03664387, 0.54427326, -0.83810735, 0, 0.83867055, 0.5446391, 0.9993284, 0.019957682, -0.030732136, 0, 20, 0)

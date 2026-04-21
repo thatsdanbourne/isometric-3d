@@ -248,9 +248,9 @@ public partial class GameManager : Node
 
 		var peerId = Multiplayer.GetRemoteSenderId();
 
+		RequestSpawnPlayer(peerId);
 		SendWorldInitToPeer(peerId);
 		SyncExistingPlayersToPeer(peerId);
-		RequestSpawnPlayer(peerId);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
@@ -276,6 +276,12 @@ public partial class GameManager : Node
 
 		var weatherState = WeatherManager.GetCurrentState();
 		CurrentWorld.Sync.SendWeatherStateToPeer(peerId, weatherState);
+
+		CurrentWorld.ItemDropManager.SendNearbyPickupsToPeer(
+			peerId,
+			CurrentWorld.GetPlayerById(peerId).GlobalPosition,
+			64f
+		);
 	}
 
 	public void PeerDisconnected(int peerId)

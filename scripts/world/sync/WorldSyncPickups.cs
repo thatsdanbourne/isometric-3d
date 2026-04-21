@@ -1,54 +1,83 @@
+using System.Collections.Generic;
 using Godot;
 
 public partial class WorldSync
 {
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-	public void RequestDropItem(string itemId, int count)
+	public void RequestPickup(ulong pickupId)
 	{
-		if (!Multiplayer.IsServer())
+		if (!_world.Multiplayer.IsServer())
 			return;
 
-		if (count <= 0)
-			return;
-
-		var player = GetRequestingPlayer();
+		var player = _world.GetPlayerById(Multiplayer.GetRemoteSenderId());
 		if (player == null)
 			return;
 
-		_world.WorldObjectManager.HandleDropItemRequest(player, itemId, count);
-	}
-
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	public void SpawnRemotePickups(Godot.Collections.Array<Godot.Collections.Dictionary> pickups)
-	{
-		foreach (var p in pickups) _world.WorldObjectManager.SpawnPickupFromData(p);
+		_world.ItemDropManager.HandlePickupRequest(player, pickupId);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-	public void RequestPickup(ulong pickupId)
+	public void RequestDropItem(string itemId, int count)
 	{
-		if (!Multiplayer.IsServer())
+		if (!_world.Multiplayer.IsServer())
 			return;
 
-		var player = GetRequestingPlayer();
+		var player = _world.GetPlayerById(Multiplayer.GetRemoteSenderId());
 		if (player == null)
 			return;
 
-		_world.WorldObjectManager.HandlePickupRequest(player, pickupId);
+		_world.ItemDropManager.HandleDropItemRequest(player, itemId, count);
 	}
 
-	public void BroadcastPickupRemoved(ItemPickup pickup)
+	public void BroadcastPickup(ItemPickupSpawnData data)
 	{
-		var chunk = TileUtils.WorldToChunk(pickup.GlobalPosition);
-		var peers = _world.ChunkManager.GetPeersInterestedInChunk(chunk);
+		if (!_world.Multiplayer.IsServer())
+			return;
 
-		foreach (var peerId in peers)
-			RpcId(peerId, nameof(RemoveRemotePickup), pickup.PickupId);
+		var payload = SerializationUtils.SerializePickup(
+			data.PickupId,
+			data.ItemId,
+			data.Count,
+			data.Position,
+			data.InitialVelocity,
+			data.InitialVerticalVelocity
+		);
+
+		Rpc(nameof(SpawnRemotePickup), payload);
+	}
+
+	public void BroadcastPickups(IReadOnlyList<ItemPickupSpawnData> data)
+	{
+		if (!_world.Multiplayer.IsServer() || data == null || data.Count == 0)
+			return;
+
+		var payload = _world.ItemDropManager.BuildDropPayload(data);
+		Rpc(nameof(SpawnRemotePickups), payload);
+	}
+
+	public void BroadcastPickupRemoved(ulong pickupId)
+	{
+		if (!_world.Multiplayer.IsServer())
+			return;
+
+		Rpc(nameof(RemoveRemotePickup), pickupId);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	private void RemoveRemotePickup(ulong pickupId)
+	public void SpawnRemotePickup(Godot.Collections.Dictionary payload)
 	{
-		_world.WorldObjectManager.RemovePickupById(pickupId);
+		_world.ItemDropManager.SpawnPickupFromPayload(payload);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void SpawnRemotePickups(Godot.Collections.Array<Godot.Collections.Dictionary> payload)
+	{
+		_world.ItemDropManager.SpawnPickupsFromPayload(payload);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void RemoveRemotePickup(ulong pickupId)
+	{
+		_world.ItemDropManager.RemovePickupById(pickupId);
 	}
 }

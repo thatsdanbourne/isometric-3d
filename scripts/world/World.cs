@@ -45,11 +45,10 @@ public partial class World : Node3D
 	public WorldSync Sync { get; private set; }
 	public ChunkManager ChunkManager { get; private set; }
 	public ChunkGenerator ChunkGenerator { get; private set; }
-
 	public WorldObjectManager WorldObjectManager { get; private set; }
-
-	public MobStreamer MobStreamer;
-	public BiomeSampler BiomeSampler;
+	public ItemDropManager ItemDropManager { get; private set; }
+	public MobStreamer MobStreamer { get; private set; }
+	public BiomeSampler BiomeSampler { get; private set; }
 
 	private bool _worldReady;
 
@@ -72,6 +71,7 @@ public partial class World : Node3D
 
 		ChunkManager = new ChunkManager(this, ChunkSize, _chunkRadius);
 		WorldObjectManager = GetNode<WorldObjectManager>("WorldObjectManager");
+		ItemDropManager = GetNode<ItemDropManager>("ItemDropManager");
 		MobStreamer = GetNode<MobStreamer>("MobStreamer");
 
 		BiomeSampler = new BiomeSampler(_tempNoise, _humidityNoise, _riverNoise, _lakeNoise, _drainageNoise, _bankNoise,

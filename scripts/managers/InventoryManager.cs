@@ -102,26 +102,6 @@ public partial class InventoryManager : Node
 	}
 
 
-	// drop logic
-	public void DropItem(Player player, Item item, int remaining)
-	{
-		var itemScene = ResourceLoader.Load<PackedScene>("res://scenes/ItemPickup.tscn");
-
-		while (remaining > 0)
-		{
-			var amount = Mathf.Min(item.StackSize, remaining);
-			remaining -= amount;
-
-			var drop = itemScene.Instantiate<ItemPickup>();
-			drop.Item = item;
-			drop.Count = amount;
-
-			GameManager.Instance.CurrentWorld.ItemPickupContainer.AddChild(drop);
-			drop.GlobalPosition = player.GlobalPosition + new Vector3(0, 1, 0);
-		}
-	}
-
-
 	// inventory shortcut logic
 
 	public ItemStack LeftClick(IItemContainer container, int index, ItemStack dragged)
