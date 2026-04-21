@@ -273,14 +273,14 @@ public partial class GameManager : Node
 			return;
 
 		RpcId(peerId, nameof(ReceiveWorldInit), CurrentWorld.TerrainSeed, CurrentWorld.WorldTimeSeconds);
+
+		var weatherState = WeatherManager.GetCurrentState();
+		CurrentWorld.Sync.SendWeatherStateToPeer(peerId, weatherState);
 	}
 
 	public void PeerDisconnected(int peerId)
 	{
-		if (CurrentWorld == null)
-			return;
-
-		var player = CurrentWorld.GetPlayerById(peerId);
+		var player = CurrentWorld?.GetPlayerById(peerId);
 		if (player == null)
 			return;
 

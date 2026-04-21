@@ -8,6 +8,7 @@ public partial class DayNightCycle : Node
 	[Export] public WorldEnvironment WorldEnvironment;
 	[Export] public bool RunCycle = true;
 
+	private World _world;
 	public bool IsDaytime { get; private set; } = true;
 
 	[Signal]
@@ -36,6 +37,7 @@ public partial class DayNightCycle : Node
 
 	public override void _Ready()
 	{
+		_world = GetParent<World>();
 		_environment = WorldEnvironment.Environment;
 	}
 
@@ -43,7 +45,8 @@ public partial class DayNightCycle : Node
 	{
 		if (!RunCycle || DayLength <= 0f) return;
 
-		TimeOfDay = Mathf.PosMod(TimeOfDay + (float)delta / DayLength, 1.0f);
+		var t = _world.WorldTimeSeconds % DayLength;
+		TimeOfDay = (float)(t / DayLength);
 
 		IsDaytime = TimeOfDay is > 0.1f and < 0.8f;
 
@@ -58,7 +61,6 @@ public partial class DayNightCycle : Node
 		_sunUpdateAccumulator -= SunUpdateInterval;
 
 		UpdateSun();
-
 		UpdateEnvironment();
 	}
 

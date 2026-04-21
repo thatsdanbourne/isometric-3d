@@ -19,6 +19,8 @@ public partial class World : Node3D
 	public IReadOnlyList<Player> Players => _players;
 
 	public double WorldTimeSeconds;
+	private float _worldTimeSyncInterval = 10f;
+	private float _worldTimeSyncTimer;
 
 	public int ChunkSize = TileUtils.ChunkSize;
 	private int _chunkRadius = 4;
@@ -52,13 +54,12 @@ public partial class World : Node3D
 	private bool _worldReady;
 
 
-	public void InitialiseWorld(int terrainSeed, double worldTimeSeconds = 0f)
+	public void InitialiseWorld(int terrainSeed, double worldTimeSeconds = 0)
 	{
 		_rng = new RandomNumberGenerator();
 		_rng.Randomize();
-
-		TerrainSeed = terrainSeed;
 		WorldTimeSeconds = worldTimeSeconds;
+		TerrainSeed = terrainSeed;
 		SetupNoise();
 		RuleRegistry.LoadAll(TerrainSeed, WorldOffset);
 
@@ -86,6 +87,9 @@ public partial class World : Node3D
 
 	public override void _Ready()
 	{
+		if (Multiplayer.IsServer())
+			WorldTimeSeconds = DayNightCycle.DayLength * 0.2;
+
 		Sync = new WorldSync();
 		Sync.Name = "WorldSync";
 		AddChild(Sync);
@@ -121,11 +125,21 @@ public partial class World : Node3D
 		if (!_worldReady)
 			return;
 
+		WorldTimeSeconds += delta;
+
 		var isMultiplayer = Multiplayer.HasMultiplayerPeer();
 		var isServer = !isMultiplayer || Multiplayer.IsServer();
 
 		if (isServer)
 		{
+			_worldTimeSyncTimer += (float)delta;
+
+			if (_worldTimeSyncTimer >= _worldTimeSyncInterval)
+			{
+				_worldTimeSyncTimer = 0f;
+				Sync.BroadcastWorldTime(WorldTimeSeconds);
+			}
+
 			var playerPositions = new List<Vector3>();
 			foreach (var player in _players)
 			{
@@ -159,8 +173,6 @@ public partial class World : Node3D
 				Sync.UpdateLocalChunkInterest(localPlayer.GlobalPosition, _chunkRadius);
 				ChunkGenerator.ProcessClientChunkQueue();
 			}
-
-		WorldTimeSeconds += delta;
 	}
 
 	private void SetupNoise()
@@ -224,6 +236,11 @@ public partial class World : Node3D
 			FractalGain = 0.5f,
 			FractalLacunarity = 2.0f
 		};
+	}
+
+	public void CorrectWorldTime(double serverTime)
+	{
+		WorldTimeSeconds = serverTime;
 	}
 
 	public void BlockTile(Vector2I tile)

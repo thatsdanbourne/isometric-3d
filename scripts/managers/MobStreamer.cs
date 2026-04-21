@@ -85,7 +85,7 @@ public partial class MobStreamer : Node
 		{
 			var toActivate = delta.Mobs.Values.ToList();
 
-			foreach (var mobData in delta.Mobs.Values)
+			foreach (var mobData in toActivate)
 			{
 				if (_activeMobs.ContainsKey(mobData.Uid))
 					continue;
@@ -152,9 +152,8 @@ public partial class MobStreamer : Node
 
 			PickUniqueTilesDeterministic(candidates, count, rng, picked);
 
-			for (var i = 0; i < picked.Count; i++)
+			foreach (var tile in picked)
 			{
-				var tile = picked[i];
 				var uid = DeterministicHash.Combine64(
 					_world.TerrainSeed,
 					chunk.Coord.X,

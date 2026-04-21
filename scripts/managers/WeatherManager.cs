@@ -7,19 +7,28 @@ public partial class WeatherManager : Node
 	[Export] public GpuParticles2D SnowParticles;
 	[Export] public WorldEnvironment WorldEnvironment;
 
-	private WeatherType _currentWeather = WeatherType.Rain;
-	private float _currentIntensity = 0.5f;
+	[Export] public float MinWeatherDuration = 10f;
+	[Export] public float MaxWeatherDuration = 30f;
+	[Export] public double TransitionDuration = 8.0;
 
-	private WeatherType _targetWeather;
-	private float _targetIntensity;
-	private float _weatherTransitionSpeed = 0.3f;
-	private float _fadeLerpSpeed = 0.0005f;
+	private World _world;
+
+	public WeatherType CurrentWeather { get; private set; } = WeatherType.Clear;
+	public float CurrentIntensity { get; private set; }
+
+	private WeatherState _state;
 
 	private float _weatherTimer;
 	private float _nextWeatherChange = 20f;
 
 	private float _rainFade;
 	private float _snowFade;
+	private float _currentFog;
+
+	private float _prevRainFade;
+	private float _prevSnowFade;
+	private float _prevFog;
+	private double _lastTransitionStartTime;
 
 	private float _rainSunDim = 0.75f;
 	private float _snowSunDim = 0.85f;
@@ -28,19 +37,27 @@ public partial class WeatherManager : Node
 	private float _rainFog = 0.3f;
 	private float _snowFog = 0.5f;
 
-	private float SunlightMultiplier { get; set; } = 1f;
-
-	private float _currentFog;
-
 	private BiomeId _currentBiome = BiomeId.Unknown;
+	private WeatherType _lastAudioWeather = WeatherType.Clear;
 
-	private RandomNumberGenerator _rng = new();
+	private readonly RandomNumberGenerator _rng = new();
+
+	public float SunlightMultiplier { get; private set; } = 1f;
 
 
 	public override void _Ready()
 	{
-		_targetWeather = _currentWeather;
+		_world = GetParent<World>();
+
 		_rng.Randomize();
+
+		_state = new WeatherState
+		{
+			Weather = GlobalWeatherType.Clear,
+			Intensity = 0f,
+			TransitionStartWorldTime = 0,
+			TransitionDuration = 0
+		};
 
 		UpdateOverlay();
 		GetViewport().Connect("size_changed", new Callable(this, nameof(UpdateOverlay)));
@@ -51,144 +68,172 @@ public partial class WeatherManager : Node
 	{
 		var dt = (float)delta;
 
-		_weatherTimer += dt;
-		if (_weatherTimer >= _nextWeatherChange)
-		{
-			_weatherTimer = 0f;
-			_nextWeatherChange = _rng.RandfRange(60f, 180f);
+		if (_world.Multiplayer.IsServer())
+			ProcessAuthority(dt);
 
-			if (_currentBiome != BiomeId.Unknown)
-				ChooseWeatherForBiome(_currentBiome);
-		}
-
-		_currentIntensity = Mathf.Lerp(_currentIntensity, _targetIntensity, dt * _weatherTransitionSpeed);
-
-		UpdateWeather();
-		UpdateLightingAndFog(dt);
+		UpdateWeatherVisuals();
+		UpdateLightingAndFog();
+		UpdateAudio();
 	}
+
+	private void ProcessAuthority(float dt)
+	{
+		_weatherTimer += dt;
+
+		if (_weatherTimer < _nextWeatherChange)
+			return;
+
+		_weatherTimer = 0f;
+		_nextWeatherChange = _rng.RandfRange(MinWeatherDuration, MaxWeatherDuration);
+
+		ChooseNextGlobalWeather();
+	}
+
+	#region Server Weather
+
+	private void ChooseNextGlobalWeather()
+	{
+		var roll = _rng.Randf();
+		if (roll < 0.6f)
+		{
+			SetGlobalWeather(GlobalWeatherType.Clear, 0f, TransitionDuration);
+		}
+		else
+		{
+			var intensity = _rng.RandfRange(0.4f, 1f);
+			SetGlobalWeather(GlobalWeatherType.Precipitation, intensity, TransitionDuration);
+		}
+	}
+
+	private void SetGlobalWeather(GlobalWeatherType type, float intensity, double duration)
+	{
+		if (!_world.Multiplayer.IsServer())
+			return;
+
+		_state = new WeatherState
+		{
+			Weather = type,
+			Intensity = intensity,
+			TransitionStartWorldTime = _world.WorldTimeSeconds,
+			TransitionDuration = duration
+		};
+
+		ApplyWeatherState(_state);
+
+		_world.Sync.SendWeatherState(_state);
+
+		GD.Print($"Global weather changed to {type} with intensity {intensity:0.00}");
+	}
+
+	public void ApplyWeatherState(WeatherState state)
+	{
+		_prevRainFade = _rainFade;
+		_prevSnowFade = _snowFade;
+		_prevFog = _currentFog;
+		_lastTransitionStartTime = state.TransitionStartWorldTime;
+
+		_state = state;
+	}
+
+	public WeatherState GetCurrentState()
+	{
+		return _state;
+	}
+
+	#endregion
+
+	#region Client Weather
 
 	public void SetBiome(BiomeId biome)
 	{
-		if (biome == _currentBiome) return;
-
 		_currentBiome = biome;
-		_weatherTimer = 0f;
-		_nextWeatherChange = _rng.RandfRange(10f, 30f);
-
-		ChooseWeatherForBiome(biome);
 	}
 
-	private void UpdateWeather()
+	private WeatherType ResolveLocalWeather(GlobalWeatherType globalWeather, BiomeId biome)
 	{
-		var rainTarget =
-			_targetWeather == WeatherType.Rain ? _targetIntensity : 0f;
+		return globalWeather switch
+		{
+			GlobalWeatherType.Clear => WeatherType.Clear,
+			GlobalWeatherType.Precipitation => biome switch
+			{
+				BiomeId.Desert => WeatherType.Clear,
+				BiomeId.Tundra => WeatherType.Snow,
+				BiomeId.Taiga => WeatherType.Snow,
+				_ => WeatherType.Rain
+			},
+			_ => WeatherType.Clear
+		};
+	}
 
-		var snowTarget =
-			_targetWeather == WeatherType.Snow ? _targetIntensity : 0f;
+	#endregion
 
+	#region Update Visuals
 
-		_rainFade = Mathf.Lerp(_rainFade, rainTarget, _fadeLerpSpeed);
-		_snowFade = Mathf.Lerp(_snowFade, snowTarget, _fadeLerpSpeed);
+	private void UpdateWeatherVisuals()
+	{
+		var t = GetTransitionAlpha();
 
+		var localWeather = ResolveLocalWeather(_state.Weather, _currentBiome);
+		var localIntensity = _state.Intensity * t;
+
+		var rainTarget = localWeather == WeatherType.Rain ? localIntensity : 0f;
+		var snowTarget = localWeather == WeatherType.Snow ? localIntensity : 0f;
+
+		_rainFade = Mathf.Lerp(_prevRainFade, rainTarget, t);
+		_snowFade = Mathf.Lerp(_prevSnowFade, snowTarget, t);
+
+		CurrentWeather = localWeather;
+		CurrentIntensity = localIntensity;
 
 		var rainActive = _rainFade > 0.01f;
 		RainParticles.Visible = rainActive;
 		RainParticles.Emitting = rainActive;
-
 		RainParticles.Modulate = new Color(1, 1, 1, _rainFade);
 		RainParticles.AmountRatio = _rainFade;
-
 
 		var snowActive = _snowFade > 0.01f;
 		SnowParticles.Visible = snowActive;
 		SnowParticles.Emitting = snowActive;
-
 		SnowParticles.Modulate = new Color(1, 1, 1, _snowFade);
 		SnowParticles.AmountRatio = _snowFade;
-
-
-		if (_rainFade < 0.02f && _snowFade < 0.02f)
-			_currentWeather = WeatherType.Clear;
-		else if (_rainFade > _snowFade)
-			_currentWeather = WeatherType.Rain;
-		else
-			_currentWeather = WeatherType.Snow;
 	}
 
-	private void UpdateLightingAndFog(float dt)
+	private void UpdateLightingAndFog()
 	{
-		float targetMultiplier;
-
-		switch (_targetWeather)
+		var targetMultiplier = CurrentWeather switch
 		{
-			case WeatherType.Rain:
-				targetMultiplier = Mathf.Lerp(1f, _rainSunDim, _targetIntensity);
-				break;
+			WeatherType.Rain => Mathf.Lerp(1f, _rainSunDim, _rainFade),
+			WeatherType.Snow => Mathf.Lerp(1f, _snowSunDim, _snowFade),
+			_ => 1f
+		};
 
-			case WeatherType.Snow:
-				targetMultiplier = Mathf.Lerp(1f, _snowSunDim, _targetIntensity);
-				break;
+		SunlightMultiplier = targetMultiplier;
 
-			case WeatherType.Clear:
-			default:
-				targetMultiplier = 1f;
-				break;
-		}
-
-		SunlightMultiplier = Mathf.Lerp(SunlightMultiplier, targetMultiplier, dt * 0.5f);
-
-		if (WorldEnvironment == null) return;
-
-		float targetFog;
-
-		switch (_targetWeather)
-		{
-			case WeatherType.Rain:
-				targetFog = Mathf.Lerp(_baseFog, _rainFog, _targetIntensity);
-				break;
-
-			case WeatherType.Snow:
-				targetFog = Mathf.Lerp(_baseFog, _snowFog, _targetIntensity);
-				break;
-
-			case WeatherType.Clear:
-			default:
-				targetFog = _baseFog;
-				break;
-		}
-
-		_currentFog = Mathf.Lerp(_currentFog, targetFog, _fadeLerpSpeed * 0.75f); // fog lags behind a bit
-
-		var env = WorldEnvironment.Environment;
-		env.FogDensity = _currentFog;
-	}
-
-	private void ChooseWeatherForBiome(BiomeId biome)
-	{
-		if (!BiomeWeather.Rules.TryGetValue(biome, out var rules))
+		if (WorldEnvironment?.Environment == null)
 			return;
 
-		var roll = _rng.Randf();
-		var acc = 0f;
-
-		foreach (var (type, chance) in rules)
+		var targetFog = CurrentWeather switch
 		{
-			acc += chance;
-			if (roll <= acc)
-			{
-				var newIntensity = _rng.RandfRange(0.4f, 1f);
-				SetWeather(type, newIntensity);
-				GD.Print($"Weather changed to {type} with intensity {newIntensity} in biome {biome}");
-				return;
-			}
-		}
+			WeatherType.Rain => Mathf.Lerp(_baseFog, _rainFog, _rainFade),
+			WeatherType.Snow => Mathf.Lerp(_baseFog, _snowFog, _snowFade),
+			_ => _baseFog
+		};
+
+		var t = GetTransitionAlpha();
+		_currentFog = Mathf.Lerp(_prevFog, targetFog, t);
+
+		WorldEnvironment.Environment.FogDensity = _currentFog;
 	}
 
-	private void SetWeather(WeatherType type, float intensity = 1f)
+	private void UpdateAudio()
 	{
-		_targetWeather = type;
-		_targetIntensity = intensity;
-		AudioManager.Instance.PlayWeatherAmbience(type == WeatherType.Rain ? "rain" : null);
+		var audioWeather = CurrentWeather == WeatherType.Rain ? WeatherType.Rain : WeatherType.Clear;
+
+		if (audioWeather == _lastAudioWeather)
+			return;
+
+		_lastAudioWeather = audioWeather;
+		AudioManager.Instance.PlayWeatherAmbience(audioWeather == WeatherType.Rain ? "rain" : null);
 	}
 
 	private void UpdateOverlay()
@@ -196,19 +241,38 @@ public partial class WeatherManager : Node
 		var viewport = GetViewport();
 		var size = viewport.GetVisibleRect().Size;
 
-		var mat = (ParticleProcessMaterial)RainParticles.ProcessMaterial;
+		var rainMat = (ParticleProcessMaterial)RainParticles.ProcessMaterial;
+		if (rainMat != null)
+			rainMat.EmissionBoxExtents = new Vector3(size.X / 2f, 0, 0);
 
-		if (mat != null)
-			mat.EmissionBoxExtents = new Vector3(size.X / 2, 0, 0);
-
-		RainParticles.Position = new Vector2(size.X / 2, 0);
-
+		RainParticles.Position = new Vector2(size.X / 2f, 0);
 
 		var snowMat = (ParticleProcessMaterial)SnowParticles.ProcessMaterial;
-
 		if (snowMat != null)
-			snowMat.EmissionBoxExtents = new Vector3(size.X / 2, 0, 0);
+			snowMat.EmissionBoxExtents = new Vector3(size.X / 2f, 0, 0);
 
-		SnowParticles.Position = new Vector2(size.X / 2, 0);
+		SnowParticles.Position = new Vector2(size.X / 2f, 0);
 	}
+
+	private float GetTransitionAlpha()
+	{
+		if (_state.TransitionDuration <= 0)
+			return 1f;
+
+		return Mathf.Clamp(
+			(float)((_world.WorldTimeSeconds - _state.TransitionStartWorldTime) / _state.TransitionDuration),
+			0f,
+			1f
+		);
+	}
+
+	#endregion
+}
+
+public struct WeatherState
+{
+	public GlobalWeatherType Weather;
+	public float Intensity;
+	public double TransitionStartWorldTime;
+	public double TransitionDuration;
 }

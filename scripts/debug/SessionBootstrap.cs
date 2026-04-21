@@ -21,11 +21,6 @@ public partial class SessionBootstrap : Node
 				await StartSinglePlayer();
 				break;
 
-			// case SessionMode.Host:
-			// 	CreateClientUI();
-			// 	StartHost();
-			// 	break;
-
 			case SessionMode.Client:
 				CreateClientUI();
 				await StartClient();
@@ -58,26 +53,6 @@ public partial class SessionBootstrap : Node
 		Config.OverrideAddress("127.0.0.1");
 		await StartClient();
 	}
-
-	// private void StartHost()
-	// {
-	// 	var world = CreateWorld();
-	//
-	// 	switch (Config.WorldMode)
-	// 	{
-	// 		case WorldLoadMode.Random:
-	// 		case WorldLoadMode.Seed:
-	// 			world.InitialiseWorld(ResolveDebugSeed());
-	// 			GameManager.Instance.StartLocalSession(world, Vector3.Zero);
-	// 			NetworkManager.Instance.Host(Config.Port);
-	// 			GameManager.Instance.PromoteLocalPlayerToHost();
-	// 			break;
-	//
-	// 		case WorldLoadMode.Save:
-	// 			// load from save
-	// 			break;
-	// 	}
-	// }
 
 	private void StartServer()
 	{

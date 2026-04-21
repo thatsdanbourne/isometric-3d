@@ -81,6 +81,12 @@ public enum ContainerKind
 	Storage = 2
 }
 
+public enum GlobalWeatherType
+{
+	Clear,
+	Precipitation
+}
+
 public enum WeatherType
 {
 	Clear,
