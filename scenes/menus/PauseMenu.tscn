@@ -64,6 +64,15 @@ theme_override_font_sizes/font_size = 32
 text = "Settings"
 flat = true
 
+[node name="QuitTitle" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=295685937]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("2_i7533")
+theme_override_font_sizes/font_size = 32
+text = "Quit to Menu"
+flat = true
+
 [node name="QuitDesktop" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=1672292217]
 layout_mode = 2
 focus_mode = 0

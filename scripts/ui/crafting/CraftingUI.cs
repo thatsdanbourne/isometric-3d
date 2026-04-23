@@ -44,6 +44,9 @@ public partial class CraftingUI : Control
 
 	private void OnLocalPlayerChanged(Player player)
 	{
+		if (_player == null)
+			return;
+
 		_player = GameManager.Instance.LocalPlayer;
 		_player.Inventory.ContainerChanged -= RefreshCraftingUI;
 		_player.Hotbar.ContainerChanged -= RefreshCraftingUI;

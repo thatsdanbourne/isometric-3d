@@ -12,14 +12,12 @@ public partial class CraftingManager : Node
 
 	public bool CanCraft(Player player, CraftingRecipe recipe)
 	{
-		var totalAvailable = 0;
-
 		foreach (var ingredient in recipe.Ingredients)
 		{
 			var item = ItemRegistry.GetItem(ingredient.Key);
 			var required = ingredient.Value;
 
-			totalAvailable = InventoryManager.Instance.GetItemTotalCount(item, player.Inventory, player.Hotbar);
+			var totalAvailable = InventoryManager.Instance.GetItemTotalCount(item, player.Inventory, player.Hotbar);
 
 			if (totalAvailable < required)
 				return false;

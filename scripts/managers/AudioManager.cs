@@ -327,6 +327,9 @@ public partial class AudioManager : Node
 
 	private void OnWorldChanged(World world)
 	{
+		if (world == null)
+			return;
+
 		world.DayNightCycle.DayStateChanged += OnDayStateChanged;
 	}
 

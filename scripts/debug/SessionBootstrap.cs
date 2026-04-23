@@ -7,6 +7,11 @@ public partial class SessionBootstrap : Node
 	private LaunchConfig Config => GetNode<LaunchConfig>("/root/LaunchConfig");
 	private int _localServerPid = -1;
 
+	private MainMenuRoot _mainMenuRoot;
+	private MainMenu _mainMenu;
+	private Control _clientUI;
+	private PauseMenu _pauseMenu;
+
 	public override async void _Ready()
 	{
 		switch (Config.SessionMode)
@@ -17,13 +22,11 @@ public partial class SessionBootstrap : Node
 				break;
 
 			case SessionMode.Single:
-				CreateClientUI();
 				await StartSinglePlayer();
 				break;
 
 			case SessionMode.Client:
-				CreateClientUI();
-				await StartClient();
+				StartClient();
 				break;
 
 			case SessionMode.Server:
@@ -51,7 +54,7 @@ public partial class SessionBootstrap : Node
 		StartLocalServerProcess();
 		await ToSignal(GetTree().CreateTimer(1f), SceneTreeTimer.SignalName.Timeout);
 		Config.OverrideAddress("127.0.0.1");
-		await StartClient();
+		StartClient();
 	}
 
 	private void StartServer()
@@ -84,45 +87,70 @@ public partial class SessionBootstrap : Node
 		};
 	}
 
-	private async Task StartClient()
+	private void StartClient()
 	{
+		CreateClientUI();
 		CreateWorld();
 		GameManager.Instance.SessionMode = SessionMode.Client;
 		NetworkManager.Instance.Join(Config.Address, Config.Port);
 
-		await ToSignal(GetTree().CreateTimer(0.2f), SceneTreeTimer.SignalName.Timeout);
+		if (IsInstanceValid(_mainMenuRoot))
+			_mainMenuRoot.QueueFree();
 	}
 
 	private void StartLocalServerProcess()
 	{
 		var exePath = OS.GetExecutablePath();
 
-		var serverCommand =
-			$"\"{exePath}\" --debug-session=server --port={Config.Port} --world={Config.WorldMode.ToString().ToLower()}";
+		var args = new Godot.Collections.Array<string>
+		{
+			"--headless",
+			"--debug-session=server",
+			$"--port={Config.Port}",
+			$"--world={Config.WorldMode.ToString().ToLower()}"
+		};
 
 		if (Config.WorldMode == WorldLoadMode.Seed)
-			serverCommand += $" --seed={Config.Seed}";
+			args.Add($"--seed={Config.Seed}");
 
 		if (Config.WorldMode == WorldLoadMode.Save && !string.IsNullOrEmpty(Config.SaveName))
-			serverCommand += $" --save={Config.SaveName}";
+			args.Add($"--save={Config.SaveName}");
 
-		// Launch in new terminal window
-		OS.CreateProcess("cmd.exe", [
-			"/k", // keep window open
-			serverCommand
-		]);
+		// opens a console window on Windows if the executable is a console app
+		_localServerPid = OS.CreateProcess(exePath, args.ToArray(), true);
 	}
 
 	private void ShowMainMenu()
 	{
-		// show main menu
+		var menuScene = GD.Load<PackedScene>("res://scenes/menus/main/MainMenuRoot.tscn");
+		_mainMenuRoot = menuScene.Instantiate<MainMenuRoot>();
+		AddChild(_mainMenuRoot);
+
+		_mainMenu = _mainMenuRoot.GetNode<MainMenu>("MenuManager/MainMenu");
+		_mainMenu.SingleplayerPressed += async () => await StartSinglePlayer();
+		_mainMenu.MultiplayerPressed += StartClient;
 	}
 
 	private void CreateClientUI()
 	{
 		var uiScene = GD.Load<PackedScene>("res://scenes/ui/ClientUI.tscn");
-		var ui = uiScene.Instantiate();
-		AddChild(ui);
+		_clientUI = uiScene.Instantiate<Control>();
+		AddChild(_clientUI);
+
+		_pauseMenu = _clientUI.GetNode<PauseMenu>("Menus/MenuManager/PauseMenu");
+		_pauseMenu.OnQuitTitleRequested += OnQuitTitlePressed;
+	}
+
+	private void OnQuitTitlePressed()
+	{
+		GetTree().Paused = false;
+		GameManager.Instance.SessionMode = SessionMode.None;
+		GameManager.Instance.DetachCurrentWorld();
+		GameManager.Instance.DetachLocalPlayer();
+		_clientUI.QueueFree();
+		OS.Kill(_localServerPid);
+		_localServerPid = -1;
+		ShowMainMenu();
 	}
 
 	public override void _ExitTree()

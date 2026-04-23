@@ -3,105 +3,105 @@ using System.Collections.Generic;
 
 public partial class MenuManager : Node
 {
-    public static MenuManager Instance { get; private set; }
+	public static MenuManager Instance { get; private set; }
 
-    private readonly Stack<Control> _stack = new();
+	private readonly Stack<Control> _stack = new();
 
-    private ColorRect Blur;
-    private ShaderMaterial blurMat;
-    private float currentBlur = 0f;
-    private float maxBlur = 2f;
-    private float tweenTime = 0.25f;
+	private ColorRect _blur;
+	private ShaderMaterial _blurMat;
+	private float _currentBlur;
+	private float _maxBlur = 2f;
+	private float _tweenTime = 0.25f;
 
-    public bool HasMenus => _stack.Count > 0;
+	public bool HasMenus => _stack.Count > 0;
 
 
-    public override void _Ready()
-    {
-        Instance = this;
+	public override void _Ready()
+	{
+		Instance = this;
 
-        Blur = GetNode<ColorRect>("BlurOverlay");
-        blurMat = (ShaderMaterial)Blur.Material;
-        Blur.Visible = false;
-    }
+		_blur = GetNode<ColorRect>("BlurOverlay");
+		_blurMat = (ShaderMaterial)_blur.Material;
+		_blur.Visible = false;
+	}
 
-    private void ShowBlur()
-    {
-        Blur.Visible = true;
-        TweenBlurTo(maxBlur);
-    }
+	private void ShowBlur()
+	{
+		_blur.Visible = true;
+		TweenBlurTo(_maxBlur);
+	}
 
-    private void HideBlur()
-    {
-        Tween tween = TweenBlurTo(0f);
-        tween.Finished += () => { Blur.Visible = false; };
-    }
-    
-    private void UpdateBlur(float value)
-    {
-        currentBlur = value;
-        blurMat.SetShaderParameter("blur_amount", currentBlur);
-    }
+	private void HideBlur()
+	{
+		var tween = TweenBlurTo(0f);
+		tween.Finished += () => { _blur.Visible = false; };
+	}
 
-    private Tween TweenBlurTo(float target)
-    {
-        Tween tween = CreateTween()
-            .SetTrans(Tween.TransitionType.Sine)
-            .SetEase(Tween.EaseType.InOut);
-        
-        tween.TweenMethod(
-            new Callable(this, nameof(UpdateBlur)), 
-            currentBlur, 
-            target, 
-            tweenTime
-        );
+	private void UpdateBlur(float value)
+	{
+		_currentBlur = value;
+		_blurMat.SetShaderParameter("blur_amount", _currentBlur);
+	}
 
-        currentBlur = target;
-        return tween;
-    }
+	private Tween TweenBlurTo(float target)
+	{
+		var tween = CreateTween()
+			.SetTrans(Tween.TransitionType.Sine)
+			.SetEase(Tween.EaseType.InOut);
 
-    public void Push(Control menu)
-    {
-        if (_stack.Count > 0)
-            _stack.Peek().Visible = false;
+		tween.TweenMethod(
+			new Callable(this, nameof(UpdateBlur)),
+			_currentBlur,
+			target,
+			_tweenTime
+		);
 
-        _stack.Push(menu);
-        menu.Visible = true;
+		_currentBlur = target;
+		return tween;
+	}
 
-        if (_stack.Count == 1)
-            ShowBlur();
-    }
+	public void Push(Control menu)
+	{
+		if (_stack.Count > 0)
+			_stack.Peek().Visible = false;
 
-    public void Pop()
-    {
-        if (_stack.Count == 0)
-            return;
+		_stack.Push(menu);
+		menu.Visible = true;
 
-        var closing = _stack.Pop();
-        closing.Visible = false;
+		if (_stack.Count == 1)
+			ShowBlur();
+	}
 
-        if (_stack.Count > 0)
-            _stack.Peek().Visible = true;
-        else 
-            HideBlur();
-    }
+	public void Pop()
+	{
+		if (_stack.Count == 0)
+			return;
 
-    public Control Peek()
-    {
-        if (_stack.Count == 0)
-            return null;
+		var closing = _stack.Pop();
+		closing.Visible = false;
 
-        return _stack.Peek();
-    }
+		if (_stack.Count > 0)
+			_stack.Peek().Visible = true;
+		else
+			HideBlur();
+	}
 
-    public void ClearStack()
-    {
-        while (_stack.Count > 0)
-        {
-            var m = _stack.Pop();
-            m.Visible = false;
-        }
+	public Control Peek()
+	{
+		if (_stack.Count == 0)
+			return null;
 
-        HideBlur();
-    }
+		return _stack.Peek();
+	}
+
+	public void ClearStack()
+	{
+		while (_stack.Count > 0)
+		{
+			var m = _stack.Pop();
+			m.Visible = false;
+		}
+
+		HideBlur();
+	}
 }

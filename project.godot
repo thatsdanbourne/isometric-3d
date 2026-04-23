@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="isometric 3d"
+config/name="Emberwild"
 run/main_scene="uid://c1s1pu3h0w35q"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 config/icon="res://icon.svg"

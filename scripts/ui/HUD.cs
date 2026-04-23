@@ -451,4 +451,20 @@ public partial class HUD : CanvasLayer
 
 		return worldObject.Data.TileCoord;
 	}
+
+	public override void _ExitTree()
+	{
+		if (_inventory != null) _inventory.ContainerChanged -= RefreshUI;
+
+		if (_hotbar != null)
+		{
+			_hotbar.ContainerChanged -= RefreshUI;
+			_hotbar.SelectedSlotChanged -= OnHotbarSelectionChanged;
+		}
+
+		if (_player != null) _player.PlayerReady -= OnPlayerReady;
+
+		if (GameManager.Instance != null)
+			GameManager.Instance.LocalPlayerChanged -= OnLocalPlayerChanged;
+	}
 }

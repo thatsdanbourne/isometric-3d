@@ -68,11 +68,13 @@ layer = 2
 [node name="Menus" type="CanvasLayer" parent="." unique_id=587109330]
 process_mode = 3
 layer = 4
+visible = false
 
 [node name="MenuManager" type="Node" parent="Menus" unique_id=1783966042]
 script = ExtResource("4_ybb0a")
 
 [node name="BlurOverlay" type="ColorRect" parent="Menus/MenuManager" unique_id=1114814051]
+visible = false
 material = SubResource("ShaderMaterial_l5u4x")
 anchors_preset = 15
 anchor_right = 1.0
@@ -81,7 +83,10 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="PauseMenu" parent="Menus/MenuManager" unique_id=1344354813 instance=ExtResource("6_fb41q")]
+visible = false
 
 [node name="SettingsMenu" parent="Menus/MenuManager" unique_id=1059688152 instance=ExtResource("7_84u0d")]
+visible = false
 
 [node name="SettingsVideo" parent="Menus/MenuManager" unique_id=2041378796 instance=ExtResource("8_43jqp")]
+visible = false

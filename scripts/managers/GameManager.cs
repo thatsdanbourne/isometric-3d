@@ -36,7 +36,7 @@ public partial class GameManager : Node
 	{
 		if (CurrentWorld == world) return;
 
-		if (CurrentWorld != null) DetatchWorld(CurrentWorld);
+		if (CurrentWorld != null) DetachCurrentWorld();
 
 		CurrentWorld = world;
 		DayNightCycle = world.DayNightCycle;
@@ -50,14 +50,15 @@ public partial class GameManager : Node
 		LocalPlayer.BiomeChanged += WeatherManager.SetBiome;
 	}
 
-	public void DetatchWorld(World world)
+	public void DetachCurrentWorld()
 	{
-		if (CurrentWorld != world)
+		if (CurrentWorld == null)
 			return;
 
 		if (LocalPlayer != null && WeatherManager != null)
 			LocalPlayer.BiomeChanged -= WeatherManager.SetBiome;
 
+		CurrentWorld.QueueFree();
 		CurrentWorld = null;
 		DayNightCycle = null;
 		WeatherManager = null;

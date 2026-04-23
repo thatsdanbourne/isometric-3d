@@ -45,8 +45,12 @@ public partial class DayNightCycle : Node
 	{
 		if (!RunCycle || DayLength <= 0f) return;
 
-		var t = _world.WorldTimeSeconds % DayLength;
-		TimeOfDay = (float)(t / DayLength);
+		_sunUpdateAccumulator += (float)delta;
+		if (_sunUpdateAccumulator < SunUpdateInterval) return;
+		_sunUpdateAccumulator -= SunUpdateInterval;
+
+		var t = _world.WorldTimeSeconds / DayLength;
+		TimeOfDay = (float)((t + 0.2) % 1);
 
 		IsDaytime = TimeOfDay is > 0.1f and < 0.8f;
 
@@ -55,10 +59,6 @@ public partial class DayNightCycle : Node
 			EmitSignal(SignalName.DayStateChanged, IsDaytime);
 			_lastDaytimeState = IsDaytime;
 		}
-
-		_sunUpdateAccumulator += (float)delta;
-		if (_sunUpdateAccumulator < SunUpdateInterval) return;
-		_sunUpdateAccumulator -= SunUpdateInterval;
 
 		UpdateSun();
 		UpdateEnvironment();

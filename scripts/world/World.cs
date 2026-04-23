@@ -87,9 +87,6 @@ public partial class World : Node3D
 
 	public override void _Ready()
 	{
-		if (Multiplayer.IsServer())
-			WorldTimeSeconds = DayNightCycle.DayLength * 0.2;
-
 		Sync = new WorldSync();
 		Sync.Name = "WorldSync";
 		AddChild(Sync);
