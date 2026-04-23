@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://c1tlj3vrcqlpq"
-path="res://.godot/imported/stone_5.wav-36f9c050050716c2d41638804672c5d5.sample"
+uid="uid://uoew1s6j0c3c"
+path="res://.godot/imported/ui_click.wav-ba33935c68a0e0c560b344c4351006a9.sample"
 
 [deps]
 
-source_file="res://assets/audio/hit/stone/stone_5.wav"
-dest_files=["res://.godot/imported/stone_5.wav-36f9c050050716c2d41638804672c5d5.sample"]
+source_file="res://assets/audio/ui/ui_click.wav"
+dest_files=["res://.godot/imported/ui_click.wav-ba33935c68a0e0c560b344c4351006a9.sample"]
 
 [params]
 

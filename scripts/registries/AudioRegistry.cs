@@ -19,6 +19,11 @@ public class AudioRegistry
 	{
 		Sfx["pickup_pop"] = GD.Load<AudioStream>("res://assets/audio/sfx_pop.wav");
 
+		// ui
+		Sfx["ui_hover"] = GD.Load<AudioStream>("res://assets/audio/ui/ui_hover.wav");
+		Sfx["ui_click"] = GD.Load<AudioStream>("res://assets/audio/ui/ui_click.wav");
+		Sfx["ui_back"] = GD.Load<AudioStream>("res://assets/audio/ui/ui_back.wav");
+
 		// Wood hit sounds
 		SfxVariants["hit_wood"] =
 		[
@@ -36,13 +41,18 @@ public class AudioRegistry
 			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_1.wav"),
 			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_2.wav"),
 			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_3.wav"),
-			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_4.wav"),
-			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_5.wav"),
-			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_6.wav"),
-			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_7.wav")
+			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_4.wav")
 		];
 
-		SfxVariants["hit_mob"] =
+		SfxVariants["hit_soft_ore"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/hit/ore/soft_ore_1.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/ore/soft_ore_2.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/ore/soft_ore_3.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/ore/soft_ore_4.wav")
+		];
+
+		SfxVariants["hit_flesh"] =
 		[
 			GD.Load<AudioStream>("res://assets/audio/hit/mob/mob_hit_1.wav"),
 			GD.Load<AudioStream>("res://assets/audio/hit/mob/mob_hit_2.wav"),

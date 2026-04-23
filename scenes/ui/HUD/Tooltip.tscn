@@ -2,17 +2,19 @@
 
 [ext_resource type="Script" uid="uid://1yfvymes6xv6" path="res://scripts/ui/Tooltip.cs" id="1_aloxc"]
 [ext_resource type="StyleBox" uid="uid://bgu6rid7g7ix0" path="res://resources/ui/TooltipStyle.tres" id="2_6dc22"]
-[ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="3_vo124"]
+[ext_resource type="FontFile" uid="uid://dk6yf54j5fosf" path="res://assets/fonts/BitPotionExt.ttf" id="3_b2n5k"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_en2e2"]
-font = ExtResource("3_vo124")
-font_size = 24
+font = ExtResource("3_b2n5k")
+font_size = 48
 
 [sub_resource type="LabelSettings" id="LabelSettings_sci8d"]
-font = ExtResource("3_vo124")
+font = ExtResource("3_b2n5k")
+font_size = 32
 
 [sub_resource type="LabelSettings" id="LabelSettings_vo124"]
-font = ExtResource("3_vo124")
+font = ExtResource("3_b2n5k")
+font_size = 32
 font_color = Color(0.3515629, 0.3515629, 0.35156286, 1)
 
 [node name="TooltipManager" type="Control" unique_id=371947030]

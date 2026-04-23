@@ -16,26 +16,26 @@ public class ToolItem : Item
 
 	public ToolHitResult UseOn(IToolHittable target, Vector3 fromDirection, Vector3 hitPoint)
 	{
-		if (target == null) return ToolHitResult.None;
+		if (target == null)
+			return ToolHitResult.None;
 
-		if (target is WorldObject wo)
-			if (wo.RequiredTier > Tier)
-			{
-				var outcomeFail = target.ReceiveToolHitFailed(this, fromDirection, hitPoint);
-				return new ToolHitResult(outcomeFail, target.GetHitRoot(), hitPoint);
-			}
+		if (target is WorldObject wo && wo.RequiredTier > Tier)
+		{
+			var outcomeFail = target.ReceiveToolHitFailed(this, fromDirection, hitPoint);
+			return new ToolHitResult(outcomeFail, target.GetImpactType(), hitPoint);
+		}
 
 		var finalDamage = Damage;
 		finalDamage = target.ModifyIncomingToolDamage(this, finalDamage, Damage);
 		var outcome = target.ReceiveToolHit(this, finalDamage, fromDirection, hitPoint);
-		return new ToolHitResult(outcome, target.GetHitRoot(), hitPoint);
+		return new ToolHitResult(outcome, target.GetImpactType(), hitPoint);
 	}
 }
 
-public readonly struct ToolHitResult(ToolHitOutcome outcome, Node3D targetRoot, Vector3 hitPoint)
+public readonly struct ToolHitResult(ToolHitOutcome outcome, string targetType, Vector3 hitPoint)
 {
 	public ToolHitOutcome Outcome { get; } = outcome;
-	public Node3D TargetRoot { get; } = targetRoot;
+	public string TargetType { get; } = targetType;
 	public Vector3 HitPoint { get; } = hitPoint;
 
 	public static ToolHitResult None => new(ToolHitOutcome.None, null, Vector3.Zero);

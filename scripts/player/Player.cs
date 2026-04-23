@@ -619,26 +619,32 @@ public partial class Player : CharacterBody3D, IToolHittable
 		PlayUseActiveToolVisual(tool, swingDir);
 	}
 
-	public void ApplyAttackFeedback(ToolHitOutcome feedback)
+	public void HandleAttackResult(ToolHitResult result)
 	{
-		switch (feedback)
+		switch (result.Outcome)
 		{
-			case ToolHitOutcome.Failed:
-				OnHitFailed();
+			case ToolHitOutcome.Hit:
+				AudioManager.Instance.PlayVariantAt($"hit_{result.TargetType}", GlobalPosition, AudioManager.BusTools,
+					0.1f);
 				break;
+
 			case ToolHitOutcome.Destroyed:
-				OnObjectBroken();
+				OnObjectBroken(result.TargetType);
+				break;
+
+			case ToolHitOutcome.Failed:
+				OnHitFailed(result.TargetType);
 				break;
 		}
 	}
 
-	public void OnObjectBroken()
+	public void OnObjectBroken(string targetType)
 	{
 		if (IsLocal)
 			CameraController?.Shake(0.3f, 0.7f);
 	}
 
-	public void OnHitFailed()
+	public void OnHitFailed(string targetType)
 	{
 		if (IsLocal)
 			CameraController?.Shake(0.1f, 0.3f);
@@ -712,6 +718,11 @@ public partial class Player : CharacterBody3D, IToolHittable
 	}
 
 	// IToolHittable
+	public string GetImpactType()
+	{
+		return "flesh";
+	}
+
 	public Node3D GetHitRoot()
 	{
 		return this;

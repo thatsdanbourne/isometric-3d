@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://4ft8vnvwqbbu"
-path="res://.godot/imported/mob_hit_3.wav-c03f7a681e9126a159a72f97cb8dd8c3.sample"
+path="res://.godot/imported/flesh_hit_3.wav-50c8c0c6079f65562fd324384f2f115a.sample"
 
 [deps]
 
-source_file="res://assets/audio/hit/mob/mob_hit_3.wav"
-dest_files=["res://.godot/imported/mob_hit_3.wav-c03f7a681e9126a159a72f97cb8dd8c3.sample"]
+source_file="res://assets/audio/hit/flesh/flesh_hit_3.wav"
+dest_files=["res://.godot/imported/flesh_hit_3.wav-50c8c0c6079f65562fd324384f2f115a.sample"]
 
 [params]
 

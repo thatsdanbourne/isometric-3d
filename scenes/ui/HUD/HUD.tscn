@@ -2,28 +2,28 @@
 
 [ext_resource type="Script" uid="uid://drg8a4mhwswat" path="res://scripts/ui/HUD.cs" id="1_kw0id"]
 [ext_resource type="StyleBox" uid="uid://cnx8lp71uqiyw" path="res://resources/ui/WindowStyle.tres" id="2_4ed8p"]
-[ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="2_atyv1"]
+[ext_resource type="FontFile" uid="uid://dk6yf54j5fosf" path="res://assets/fonts/BitPotionExt.ttf" id="2_qamap"]
 [ext_resource type="Script" uid="uid://dud8rgc0ebwfn" path="res://scripts/ui/crafting/CraftingUI.cs" id="3_6ll6g"]
 [ext_resource type="PackedScene" uid="uid://d34hhl3mhgyeh" path="res://scenes/ui/HUD/Tooltip.tscn" id="4_ig75s"]
 [ext_resource type="PackedScene" uid="uid://b5jqdxgjquxim" path="res://scenes/ui/HUD/ItemContainerSlot.tscn" id="5_tsn87"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_qamap"]
-font = ExtResource("2_atyv1")
-font_size = 24
+font = ExtResource("2_qamap")
+font_size = 48
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tsn87"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_tsn87"]
-font = ExtResource("2_atyv1")
-font_size = 20
+font = ExtResource("2_qamap")
+font_size = 40
 
 [sub_resource type="LabelSettings" id="LabelSettings_6ll6g"]
-font = ExtResource("2_atyv1")
-font_size = 32
+font = ExtResource("2_qamap")
+font_size = 64
 
 [sub_resource type="LabelSettings" id="LabelSettings_4ed8p"]
-font = ExtResource("2_atyv1")
-font_size = 32
+font = ExtResource("2_qamap")
+font_size = 64
 
 [node name="HUD" type="CanvasLayer" unique_id=419892391]
 process_mode = 3

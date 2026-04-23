@@ -42,11 +42,8 @@ public partial class CraftingUI : Control
 		CallDeferred(nameof(BuildRecipeList));
 	}
 
-	private void OnLocalPlayerChanged(Player player)
+	private void OnLocalPlayerChanged()
 	{
-		if (_player == null)
-			return;
-
 		_player = GameManager.Instance.LocalPlayer;
 		_player.Inventory.ContainerChanged -= RefreshCraftingUI;
 		_player.Hotbar.ContainerChanged -= RefreshCraftingUI;

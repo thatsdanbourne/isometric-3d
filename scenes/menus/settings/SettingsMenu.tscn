@@ -1,11 +1,12 @@
 [gd_scene format=3 uid="uid://c35jmhuadbjjf"]
 
 [ext_resource type="Script" uid="uid://dfod8bmha88a5" path="res://scripts/menus/SettingsMenu.cs" id="1_krd2w"]
-[ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="2_5x3ak"]
+[ext_resource type="FontFile" uid="uid://dk6yf54j5fosf" path="res://assets/fonts/BitPotionExt.ttf" id="2_5x3ak"]
+[ext_resource type="Script" uid="uid://c1e3i8bk0mo2d" path="res://scripts/classes/ui/SfxButton.cs" id="3_pk8vq"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_pk8vq"]
 font = ExtResource("2_5x3ak")
-font_size = 64
+font_size = 128
 
 [node name="SettingsMenu" type="Control" unique_id=1059688152]
 layout_mode = 3
@@ -43,35 +44,41 @@ theme_override_constants/margin_top = 32
 
 [node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer" unique_id=1098541907]
 layout_mode = 2
+theme_override_constants/separation = 0
 
 [node name="Video" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=1862383136]
 layout_mode = 2
 focus_mode = 0
 theme_override_fonts/font = ExtResource("2_5x3ak")
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 64
 text = "Video"
 flat = true
+script = ExtResource("3_pk8vq")
 
 [node name="Audio" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=776862371]
 layout_mode = 2
 focus_mode = 0
 theme_override_fonts/font = ExtResource("2_5x3ak")
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 64
 text = "Audio"
 flat = true
+script = ExtResource("3_pk8vq")
 
 [node name="Gameplay" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=107448737]
 layout_mode = 2
 focus_mode = 0
 theme_override_fonts/font = ExtResource("2_5x3ak")
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 64
 text = "Gameplay"
 flat = true
+script = ExtResource("3_pk8vq")
 
 [node name="Back" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=695053341]
 layout_mode = 2
 focus_mode = 0
 theme_override_fonts/font = ExtResource("2_5x3ak")
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 64
 text = "Back"
 flat = true
+script = ExtResource("3_pk8vq")
+Type = 1

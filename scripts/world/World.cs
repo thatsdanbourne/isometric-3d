@@ -511,18 +511,7 @@ public partial class World : Node3D
 			tool,
 			swingDir,
 			player.ToolQuery,
-			hitResult =>
-			{
-				switch (hitResult.Outcome)
-				{
-					case ToolHitOutcome.Failed:
-						Sync.SendAttackFeedback(player.PlayerId, (int)ToolHitOutcome.Failed);
-						break;
-					case ToolHitOutcome.Destroyed:
-						Sync.SendAttackFeedback(player.PlayerId, (int)ToolHitOutcome.Destroyed);
-						break;
-				}
-			});
+			hitResult => { Sync.SendAttackResult(player.PlayerId, hitResult); });
 	}
 
 	public void ResolveEnemyMeleeAttack(Mob attacker, ToolItem tool, Vector3 swingDir,
@@ -553,7 +542,7 @@ public partial class World : Node3D
 
 		swingDir = swingDir.Normalized();
 
-		await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
+		await ToSignal(GetTree().CreateTimer(0.15), SceneTreeTimer.SignalName.Timeout);
 
 		var space = attacker.GetWorld3D().DirectSpaceState;
 		var hitResult = CombatUtils.PerformMeleeHit(attacker, tool, swingDir, space, toolQuery);

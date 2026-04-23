@@ -37,17 +37,12 @@ public interface IProcessingStation : ICraftingStation
 	void BindState(StationStateData state);
 }
 
-public interface IChunkStateful<TState>
-{
-	TState CaptureState();
-	void RestoreState(TState state);
-}
-
 public interface IToolHittable
 {
 	Node3D GetHitRoot();
 	ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint);
 	ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint);
+	string GetImpactType();
 
 	float ModifyIncomingToolDamage(ToolItem tool, float damage, float baseDamage)
 	{

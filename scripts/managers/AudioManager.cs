@@ -52,9 +52,6 @@ public partial class AudioManager : Node
 		if (GameManager.Instance.CurrentWorld != null)
 			OnWorldChanged(GameManager.Instance.CurrentWorld);
 
-		if (GameManager.Instance.LocalPlayer != null)
-			OnLocalPlayerChanged(GameManager.Instance.LocalPlayer);
-
 		ScheduleNextMusic();
 	}
 
@@ -253,7 +250,7 @@ public partial class AudioManager : Node
 
 	// SFX
 
-	private void PlaySfx(string key, float pitchRange = 0f, float volumeOffsetDb = 0f)
+	public void PlaySfx(string key, float pitchRange = 0f, float volumeOffsetDb = 0f)
 	{
 		if (!_audioRegistry.Sfx.TryGetValue(key, out var stream))
 			return;
@@ -333,12 +330,9 @@ public partial class AudioManager : Node
 		world.DayNightCycle.DayStateChanged += OnDayStateChanged;
 	}
 
-	private void OnLocalPlayerChanged(Player p)
+	private void OnLocalPlayerChanged()
 	{
-		if (p == null)
-			return;
-
-		p.BiomeChanged += OnBiomeChanged;
+		GameManager.Instance.LocalPlayer.BiomeChanged += OnBiomeChanged;
 	}
 
 	private void OnBiomeChanged(BiomeId biome)

@@ -40,8 +40,6 @@ public static class CombatUtils
 			query.From = from;
 			query.To = to;
 
-			// DebugDraw3D.DrawLine(from, to, Colors.Red, 0.5f);
-
 			var result = space.IntersectRay(query);
 			if (result.Count == 0)
 				continue;

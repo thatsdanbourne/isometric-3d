@@ -17,6 +17,8 @@ public static class ToolItems
 			Tier = ToolTier.Fist
 		});
 
+		#region Swords
+
 		ItemRegistry.RegisterItem(new ToolItem
 		{
 			Id = "stone_sword",
@@ -33,11 +35,14 @@ public static class ToolItems
 			DamageMultipliers = new Dictionary<string, float>
 			{
 				{ "stone", 1.5f },
-				{ "ore", 1.5f },
 				{ "wood", 1f }
 			},
 			HeldItemScene = GD.Load<PackedScene>("res://scenes/tools/StoneSword.tscn")
 		});
+
+		#endregion
+
+		#region Pickaxes
 
 		ItemRegistry.RegisterItem(new ToolItem
 		{
@@ -51,14 +56,43 @@ public static class ToolItems
 			DamageMultipliers = new Dictionary<string, float>
 			{
 				{ "stone", 2.0f },
+				{ "soft_ore", 1.5f },
 				{ "ore", 1.5f },
 				{ "wood", 0.25f }
 			},
 			HitArcDegrees = 35f,
 			HitRayCount = 3,
 			HitRange = 1.8f,
+			CooldownSeconds = 0.75f,
 			Tier = ToolTier.Stone
 		});
+
+		ItemRegistry.RegisterItem(new ToolItem
+		{
+			Id = "copper_pickaxe",
+			ToolType = "pickaxe",
+			DisplayName = "Copper Pickaxe",
+			Description = "A decent starter pickaxe.",
+			Icon = LoadTexture("copper_pickaxe"),
+			StackSize = 1,
+			Damage = 1.5f,
+			DamageMultipliers = new Dictionary<string, float>
+			{
+				{ "stone", 2.5f },
+				{ "soft_ore", 2.0f },
+				{ "ore", 2.0f },
+				{ "wood", 0.5f }
+			},
+			HitArcDegrees = 35f,
+			HitRayCount = 3,
+			HitRange = 2.0f,
+			CooldownSeconds = 0.75f,
+			Tier = ToolTier.Copper
+		});
+
+		#endregion
+
+		#region Axes
 
 		ItemRegistry.RegisterItem(new ToolItem
 		{
@@ -82,26 +116,7 @@ public static class ToolItems
 			HeldItemScene = GD.Load<PackedScene>("res://scenes/tools/Axe.tscn")
 		});
 
-		ItemRegistry.RegisterItem(new ToolItem
-		{
-			Id = "copper_pickaxe",
-			ToolType = "pickaxe",
-			DisplayName = "Copper Pickaxe",
-			Description = "A decent starter pickaxe.",
-			Icon = LoadTexture("copper_pickaxe"),
-			StackSize = 1,
-			Damage = 1.5f,
-			DamageMultipliers = new Dictionary<string, float>
-			{
-				{ "stone", 2.5f },
-				{ "ore", 2.0f },
-				{ "wood", 0.5f }
-			},
-			HitArcDegrees = 35f,
-			HitRayCount = 3,
-			HitRange = 2.0f,
-			Tier = ToolTier.Copper
-		});
+		#endregion
 	}
 
 	private static Texture2D LoadTexture(string name)

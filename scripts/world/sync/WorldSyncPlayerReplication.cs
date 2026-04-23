@@ -84,23 +84,20 @@ public partial class WorldSync
 		player.PlayRemoteUseActiveToolVisual(item, swingDir);
 	}
 
-	public void SendAttackFeedback(int playerId, int feedbackType)
+	public void SendAttackResult(int playerId, ToolHitResult result)
 	{
 		var player = _world.GetPlayerById(playerId);
 		if (player == null)
 			return;
 
-		RpcId(player.PlayerId, nameof(ReceiveAttackFeedback), feedbackType);
+		RpcId(player.PlayerId, nameof(ReceiveAttackResult), (int)result.Outcome, result.TargetType, result.HitPoint);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	public void ReceiveAttackFeedback(int feedbackType)
+	public void ReceiveAttackResult(int outcome, string targetType, Vector3 hitPoint)
 	{
-		var localPlayer = GameManager.Instance.LocalPlayer;
-		if (localPlayer == null)
-			return;
-
-		localPlayer.ApplyAttackFeedback((ToolHitOutcome)feedbackType);
+		var result = new ToolHitResult((ToolHitOutcome)outcome, targetType, hitPoint);
+		GameManager.Instance.LocalPlayer?.HandleAttackResult(result);
 	}
 
 	public void SendPlayerHitState(Player player)

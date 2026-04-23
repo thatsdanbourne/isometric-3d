@@ -5,7 +5,7 @@ public partial class GameManager : Node
 	public static GameManager Instance { get; private set; }
 
 	[Signal]
-	public delegate void LocalPlayerChangedEventHandler(Player p);
+	public delegate void LocalPlayerChangedEventHandler();
 
 	[Signal]
 	public delegate void CurrentWorldChangedEventHandler(World world);
@@ -98,7 +98,7 @@ public partial class GameManager : Node
 		if (WeatherManager != null)
 			LocalPlayer.BiomeChanged += WeatherManager.SetBiome;
 
-		EmitSignal(SignalName.LocalPlayerChanged, player);
+		EmitSignal(SignalName.LocalPlayerChanged);
 	}
 
 	public void DetachLocalPlayer()
@@ -107,7 +107,7 @@ public partial class GameManager : Node
 			LocalPlayer.BiomeChanged -= WeatherManager.SetBiome;
 
 		LocalPlayer = null;
-		EmitSignal(SignalName.LocalPlayerChanged, (Player)null);
+		EmitSignal(SignalName.LocalPlayerChanged);
 	}
 
 	public Player SpawnLocalPlayer(World world, Vector3 spawnPosition)

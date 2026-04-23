@@ -1,19 +1,23 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using Godot.Collections;
+using Array = Godot.Collections.Array;
 
 public static class SerializationUtils
 {
-	public static Godot.Collections.Dictionary SerializeItemStack(ItemStack stack)
+	#region Inventory and slots
+
+	public static Dictionary SerializeItemStack(ItemStack stack)
 	{
-		return new Godot.Collections.Dictionary
+		return new Dictionary
 		{
 			["item_id"] = stack?.Item.Id ?? "",
 			["count"] = stack?.Count ?? 0
 		};
 	}
 
-	public static ItemStack DeserializeItemStack(Godot.Collections.Dictionary source)
+	public static ItemStack DeserializeItemStack(Dictionary source)
 	{
 		var itemId = (string)source["item_id"];
 		var count = (int)source["count"];
@@ -23,9 +27,9 @@ public static class SerializationUtils
 			: new ItemStack(ItemRegistry.GetItem(itemId), count);
 	}
 
-	public static Godot.Collections.Array SerializeSlots(ItemStack[] slots)
+	public static Array SerializeSlots(ItemStack[] slots)
 	{
-		var arr = new Godot.Collections.Array();
+		var arr = new Array();
 
 		if (slots == null)
 			return arr;
@@ -36,19 +40,19 @@ public static class SerializationUtils
 		return arr;
 	}
 
-	public static ItemStack[] DeserializeSlots(Godot.Collections.Array source)
+	public static ItemStack[] DeserializeSlots(Array source)
 	{
 		var slots = new ItemStack[source.Count];
 
 		for (var i = 0; i < source.Count; i++)
-			slots[i] = DeserializeItemStack((Godot.Collections.Dictionary)source[i]);
+			slots[i] = DeserializeItemStack((Dictionary)source[i]);
 
 		return slots;
 	}
 
-	public static Godot.Collections.Dictionary SerializePlayerInventoryState(Player player)
+	public static Dictionary SerializePlayerInventoryState(Player player)
 	{
-		return new Godot.Collections.Dictionary
+		return new Dictionary
 		{
 			["inventory"] = SerializeSlots(player.Inventory.GetSlots()),
 			["hotbar"] = SerializeSlots(player.Hotbar.GetSlots()),
@@ -56,19 +60,23 @@ public static class SerializationUtils
 		};
 	}
 
-	public static PlayerInventoryStateData DeserializePlayerInventoryState(Godot.Collections.Dictionary data)
+	public static PlayerInventoryStateData DeserializePlayerInventoryState(Dictionary data)
 	{
 		return new PlayerInventoryStateData
 		{
-			Inventory = DeserializeSlots((Godot.Collections.Array)data["inventory"]),
-			Hotbar = DeserializeSlots((Godot.Collections.Array)data["hotbar"]),
-			DraggedStack = DeserializeItemStack((Godot.Collections.Dictionary)data["dragged"])
+			Inventory = DeserializeSlots((Array)data["inventory"]),
+			Hotbar = DeserializeSlots((Array)data["hotbar"]),
+			DraggedStack = DeserializeItemStack((Dictionary)data["dragged"])
 		};
 	}
 
-	public static Godot.Collections.Dictionary SerializeStorageState(StorageStateData state)
+	#endregion
+
+	#region Storage and station states
+
+	public static Dictionary SerializeStorageState(StorageStateData state)
 	{
-		var dict = new Godot.Collections.Dictionary
+		var dict = new Dictionary
 		{
 			["object_id"] = state.ObjectId,
 			["tile_x"] = state.TileCoord.X,
@@ -81,7 +89,7 @@ public static class SerializationUtils
 		return dict;
 	}
 
-	public static StorageStateData DeserializeStorageState(Godot.Collections.Dictionary dict)
+	public static StorageStateData DeserializeStorageState(Dictionary dict)
 	{
 		var state = new StorageStateData
 		{
@@ -92,14 +100,14 @@ public static class SerializationUtils
 			)
 		};
 
-		state.Slots = DeserializeSlots((Godot.Collections.Array)dict["slots"]);
+		state.Slots = DeserializeSlots((Array)dict["slots"]);
 
 		return state;
 	}
 
-	public static Godot.Collections.Dictionary SerializeStationState(StationStateData state)
+	public static Dictionary SerializeStationState(StationStateData state)
 	{
-		return new Godot.Collections.Dictionary
+		return new Dictionary
 		{
 			["object_id"] = state.ObjectId,
 			["tile_x"] = state.TileCoord.X,
@@ -113,7 +121,7 @@ public static class SerializationUtils
 		};
 	}
 
-	public static StationStateData DeserializeStationState(Godot.Collections.Dictionary dict)
+	public static StationStateData DeserializeStationState(Dictionary dict)
 	{
 		return new StationStateData
 		{
@@ -131,17 +139,21 @@ public static class SerializationUtils
 		};
 	}
 
-	public static Godot.Collections.Dictionary SerializeChunk(ChunkDto chunk)
+	#endregion
+
+	#region Chunks
+
+	public static Dictionary SerializeChunk(ChunkDto chunk)
 	{
-		var dict = new Godot.Collections.Dictionary
+		var dict = new Dictionary
 		{
 			["coord_x"] = chunk.Coord.X,
 			["coord_y"] = chunk.Coord.Y
 		};
 
-		var tiles = new Godot.Collections.Array();
+		var tiles = new Array();
 		foreach (var tile in chunk.Tiles)
-			tiles.Add(new Godot.Collections.Dictionary
+			tiles.Add(new Dictionary
 			{
 				["x"] = tile.X,
 				["y"] = tile.Y,
@@ -151,9 +163,9 @@ public static class SerializationUtils
 				["humidity"] = tile.Humidity
 			});
 
-		var objects = new Godot.Collections.Array();
+		var objects = new Array();
 		foreach (var obj in chunk.Objects)
-			objects.Add(new Godot.Collections.Dictionary
+			objects.Add(new Dictionary
 			{
 				["definition_id"] = obj.DefinitionId,
 				["chunk_x"] = obj.ChunkCoord.X,
@@ -166,11 +178,11 @@ public static class SerializationUtils
 				["source"] = (int)obj.Source
 			});
 
-		var storageStates = new Godot.Collections.Array();
+		var storageStates = new Array();
 		foreach (var kv in chunk.StorageStates)
 			storageStates.Add(SerializeStorageState(kv.Value));
 
-		var stationStates = new Godot.Collections.Array();
+		var stationStates = new Array();
 		foreach (var kv in chunk.StationStates)
 			stationStates.Add(SerializeStationState(kv.Value));
 
@@ -182,7 +194,7 @@ public static class SerializationUtils
 		return dict;
 	}
 
-	public static ChunkDto DeserializeChunk(Godot.Collections.Dictionary dict)
+	public static ChunkDto DeserializeChunk(Dictionary dict)
 	{
 		var coord = new Vector2I(
 			(int)dict["coord_x"],
@@ -190,8 +202,8 @@ public static class SerializationUtils
 		);
 
 		var tiles = new List<TileInstanceDto>();
-		var tileArray = (Godot.Collections.Array)dict["tiles"];
-		foreach (Godot.Collections.Dictionary tileDict in tileArray)
+		var tileArray = (Array)dict["tiles"];
+		foreach (Dictionary tileDict in tileArray)
 			tiles.Add(new TileInstanceDto
 			{
 				X = (int)tileDict["x"],
@@ -203,8 +215,8 @@ public static class SerializationUtils
 			});
 
 		var objects = new List<ChunkObjectDto>();
-		var objectArray = (Godot.Collections.Array)dict["objects"];
-		foreach (Godot.Collections.Dictionary objDict in objectArray)
+		var objectArray = (Array)dict["objects"];
+		foreach (Dictionary objDict in objectArray)
 			objects.Add(new ChunkObjectDto
 			{
 				DefinitionId = (int)objDict["definition_id"],
@@ -228,8 +240,8 @@ public static class SerializationUtils
 
 		if (dict.ContainsKey("storage_states"))
 		{
-			var storageArray = (Godot.Collections.Array)dict["storage_states"];
-			foreach (Godot.Collections.Dictionary storageDict in storageArray)
+			var storageArray = (Array)dict["storage_states"];
+			foreach (Dictionary storageDict in storageArray)
 			{
 				var state = DeserializeStorageState(storageDict);
 				chunk.StorageStates[state.TileCoord] = state;
@@ -238,8 +250,8 @@ public static class SerializationUtils
 
 		if (dict.ContainsKey("station_states"))
 		{
-			var stationArray = (Godot.Collections.Array)dict["station_states"];
-			foreach (Godot.Collections.Dictionary stationDict in stationArray)
+			var stationArray = (Array)dict["station_states"];
+			foreach (Dictionary stationDict in stationArray)
 			{
 				var state = DeserializeStationState(stationDict);
 				chunk.StationStates[state.TileCoord] = state;
@@ -249,11 +261,15 @@ public static class SerializationUtils
 		return chunk;
 	}
 
-	public static Godot.Collections.Dictionary SerializePickup(ulong id, string itemId, int count, Vector3 pos,
+	#endregion
+
+	#region Item Drops
+
+	public static Dictionary SerializePickup(ulong id, string itemId, int count, Vector3 pos,
 		Vector3 vel,
 		float vVel)
 	{
-		return new Godot.Collections.Dictionary
+		return new Dictionary
 		{
 			{ "id", id },
 			{ "item_id", itemId },
@@ -264,7 +280,7 @@ public static class SerializationUtils
 		};
 	}
 
-	public static ItemPickupSpawnData DeserializePickup(Godot.Collections.Dictionary dict)
+	public static ItemPickupSpawnData DeserializePickup(Dictionary dict)
 	{
 		return new ItemPickupSpawnData
 		{
@@ -276,4 +292,6 @@ public static class SerializationUtils
 			InitialVerticalVelocity = (float)dict["v_vel"]
 		};
 	}
+
+	#endregion
 }

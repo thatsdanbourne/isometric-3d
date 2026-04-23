@@ -3,12 +3,6 @@ using Godot;
 
 public partial class WorldObject : Node3D, IToolHittable
 {
-	// [Signal]
-	// public delegate void ObjectBrokenEventHandler(WorldObject obj);
-	//
-	// [Signal]
-	// public delegate void ObjectHitFailedEventHandler(WorldObject obj);
-
 	[Export] public string HitSoundsKey { get; set; } = "hit_wood";
 	[Export] public string ObjectType { get; set; }
 
@@ -80,5 +74,10 @@ public partial class WorldObject : Node3D, IToolHittable
 			return baseDamage * mult;
 
 		return baseDamage;
+	}
+
+	public string GetImpactType()
+	{
+		return ObjectType;
 	}
 }

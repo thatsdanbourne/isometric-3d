@@ -65,12 +65,12 @@ public partial class HUD : CanvasLayer
 		GetWindow().ContentScaleFactor = 1.25f;
 	}
 
-	private void OnLocalPlayerChanged(Player p)
+	private void OnLocalPlayerChanged()
 	{
 		if (_player != null)
 			_player.PlayerReady -= OnPlayerReady;
 
-		_player = p;
+		_player = GameManager.Instance.LocalPlayer;
 		_uiReady = false;
 
 		if (_player == null) return;

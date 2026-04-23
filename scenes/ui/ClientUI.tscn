@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cygag0yj8yuxs"]
 
 [ext_resource type="Script" uid="uid://ciarma0geh450" path="res://dev-tools/Debug.cs" id="1_ojr4n"]
-[ext_resource type="FontFile" uid="uid://dxraxbb3k5hlm" path="res://assets/fonts/PixeloidSans.ttf" id="2_7ltmc"]
+[ext_resource type="FontFile" uid="uid://dk6yf54j5fosf" path="res://assets/fonts/BitPotionExt.ttf" id="2_tdnrv"]
 [ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD/HUD.tscn" id="3_tdnrv"]
 [ext_resource type="Script" uid="uid://rr6jn3yd21q8" path="res://scripts/menus/MenuManager.cs" id="4_ybb0a"]
 [ext_resource type="Shader" uid="uid://cbwi8c1npa1k3" path="res://resources/shaders/Blur.gdshader" id="5_4eh3h"]
@@ -10,16 +10,16 @@
 [ext_resource type="PackedScene" uid="uid://cxwbi3kugkjk2" path="res://scenes/menus/settings/SettingsVideo.tscn" id="8_43jqp"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_rva6f"]
-font = ExtResource("2_7ltmc")
-font_size = 32
+font = ExtResource("2_tdnrv")
+font_size = 64
 
 [sub_resource type="LabelSettings" id="LabelSettings_ov1de"]
-font = ExtResource("2_7ltmc")
-font_size = 32
+font = ExtResource("2_tdnrv")
+font_size = 64
 
 [sub_resource type="LabelSettings" id="LabelSettings_yii1t"]
-font = ExtResource("2_7ltmc")
-font_size = 32
+font = ExtResource("2_tdnrv")
+font_size = 64
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_l5u4x"]
 shader = ExtResource("5_4eh3h")
@@ -44,7 +44,7 @@ theme_override_constants/margin_top = 10
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Debug/MarginContainer" unique_id=1573774640]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 0
 
 [node name="FPS" type="Label" parent="Debug/MarginContainer/VBoxContainer" unique_id=988811805]
 layout_mode = 2

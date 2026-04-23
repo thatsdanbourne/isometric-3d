@@ -171,4 +171,9 @@ public partial class Mob : CharacterBody3D, IToolHittable
 
 		return World.IsTileBlocked(tile);
 	}
+
+	public string GetImpactType()
+	{
+		return "flesh";
+	}
 }
