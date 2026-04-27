@@ -170,6 +170,7 @@ public partial class Bandit : Mob
 	public override void PlayRemoteAttackVisual()
 	{
 		ApplyAnimationForState(MobState.Attack, Vector3.Zero, true);
+		AudioManager.Instance.PlayVariantAt("swing_blade_small", GlobalPosition, AudioManager.BusTools, 0.2f);
 	}
 
 	private void UpdateTarget()

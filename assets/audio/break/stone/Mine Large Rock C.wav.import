@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bbtp50vwsndop"
+path="res://.godot/imported/Mine Large Rock C.wav-2f5d3b256f53c85ca434444df163e6cd.sample"
+
+[deps]
+
+source_file="res://assets/audio/break/stone/Mine Large Rock C.wav"
+dest_files=["res://.godot/imported/Mine Large Rock C.wav-2f5d3b256f53c85ca434444df163e6cd.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

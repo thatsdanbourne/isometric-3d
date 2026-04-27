@@ -115,12 +115,16 @@ public partial class HUD : CanvasLayer
 	public void OpenInventoryUI()
 	{
 		CloseCraftingUI();
+
+		AudioManager.Instance.PlayVariant("ui_inventory_open");
 		_inventoryRoot.Visible = true;
 	}
 
 	public void CloseInventoryUI()
 	{
 		if (_player.DraggedStack != null) DropStack();
+
+		AudioManager.Instance.PlayVariant("ui_inventory_close");
 
 		_inventoryRoot.Visible = false;
 		_craftingUI.Visible = false;
@@ -161,6 +165,7 @@ public partial class HUD : CanvasLayer
 
 	public void CloseCraftingUI()
 	{
+		AudioManager.Instance.PlayVariant("ui_inventory_close");
 		_craftingUI.Visible = false;
 		_inventoryRoot.Visible = false;
 		_tooltip.Visible = false;
@@ -326,6 +331,9 @@ public partial class HUD : CanvasLayer
 		if (world == null)
 			return;
 
+		var slotBefore = container.GetSlot(index);
+		var draggedBefore = _player.DraggedStack;
+
 		var kind = GetContainerKind(container);
 		var storageTileCoord = GetStorageTileCoord(container);
 
@@ -335,6 +343,11 @@ public partial class HUD : CanvasLayer
 			index,
 			0,
 			false);
+
+		if (draggedBefore == null && slotBefore is { Count: > 0 })
+			AudioManager.Instance.PlaySfx(UiSfxResolver.GetInventorySfx(slotBefore, InventorySfxAction.Pickup), 0.1f);
+		else if (draggedBefore is { Count: > 0 })
+			AudioManager.Instance.PlaySfx(UiSfxResolver.GetInventorySfx(draggedBefore, InventorySfxAction.Drop), 0.1f);
 
 		if (!world.Multiplayer.HasMultiplayerPeer() || world.Multiplayer.IsServer())
 		{

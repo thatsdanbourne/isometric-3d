@@ -22,21 +22,30 @@ public class ToolItem : Item
 		if (target is WorldObject wo && wo.RequiredTier > Tier)
 		{
 			var outcomeFail = target.ReceiveToolHitFailed(this, fromDirection, hitPoint);
-			return new ToolHitResult(outcomeFail, target.GetImpactType(), hitPoint);
+			return new ToolHitResult(outcomeFail, target.GetImpactType(), target.GetHitSound(), string.Empty, hitPoint);
 		}
 
 		var finalDamage = Damage;
 		finalDamage = target.ModifyIncomingToolDamage(this, finalDamage, Damage);
 		var outcome = target.ReceiveToolHit(this, finalDamage, fromDirection, hitPoint);
-		return new ToolHitResult(outcome, target.GetImpactType(), hitPoint);
+		return new ToolHitResult(outcome, target.GetImpactType(), target.GetHitSound(), target.GetBreakSound(),
+			hitPoint);
 	}
 }
 
-public readonly struct ToolHitResult(ToolHitOutcome outcome, string targetType, Vector3 hitPoint)
+public readonly struct ToolHitResult(
+	ToolHitOutcome outcome,
+	string targetType,
+	string hitSoundKey,
+	string breakSoundKey,
+	Vector3 hitPoint)
 {
 	public ToolHitOutcome Outcome { get; } = outcome;
 	public string TargetType { get; } = targetType;
+	public string HitSoundKey { get; } = hitSoundKey;
+	public string BreakSoundKey { get; } = breakSoundKey;
 	public Vector3 HitPoint { get; } = hitPoint;
 
-	public static ToolHitResult None => new(ToolHitOutcome.None, null, Vector3.Zero);
+	public static ToolHitResult None =>
+		new(ToolHitOutcome.None, string.Empty, string.Empty, string.Empty, Vector3.Zero);
 }

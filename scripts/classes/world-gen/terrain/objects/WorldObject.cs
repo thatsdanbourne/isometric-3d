@@ -3,8 +3,10 @@ using Godot;
 
 public partial class WorldObject : Node3D, IToolHittable
 {
-	[Export] public string HitSoundsKey { get; set; } = "hit_wood";
 	[Export] public string ObjectType { get; set; }
+	[Export] public string HitSoundsKey = "hit_wood";
+	[Export] public string BreakSoundsKey = "break_wood";
+	[Export] public string FailedHitSoundsKey = "hit_fail";
 
 	public Vector3 WorldPosition;
 	public bool MarkedForRemoval;
@@ -52,8 +54,6 @@ public partial class WorldObject : Node3D, IToolHittable
 		if (destroyed)
 			BreakObject();
 
-		AudioManager.Instance.PlayVariantAt(HitSoundsKey, GlobalPosition, AudioManager.BusWorld, 0.1f);
-
 		return destroyed ? ToolHitOutcome.Destroyed : ToolHitOutcome.Hit;
 	}
 
@@ -79,5 +79,15 @@ public partial class WorldObject : Node3D, IToolHittable
 	public string GetImpactType()
 	{
 		return ObjectType;
+	}
+
+	public string GetHitSound()
+	{
+		return HitSoundsKey;
+	}
+
+	public string GetBreakSound()
+	{
+		return BreakSoundsKey;
 	}
 }

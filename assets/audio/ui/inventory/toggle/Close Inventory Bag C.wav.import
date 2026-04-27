@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://c86yn7nhlupuk"
+path="res://.godot/imported/Close Inventory Bag C.wav-be8dea2b26520338d8eff38c862e032f.sample"
+
+[deps]
+
+source_file="res://assets/audio/ui/inventory/toggle/Close Inventory Bag C.wav"
+dest_files=["res://.godot/imported/Close Inventory Bag C.wav-be8dea2b26520338d8eff38c862e032f.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

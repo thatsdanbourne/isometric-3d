@@ -169,6 +169,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		UpdateLocomotionBlend(blendAlpha);
 		UpdateAimDirection(camera, viewport, hudOpen);
 		HandleToolUse(hudOpen);
+		HandlePlaceItem(hudOpen);
 		HandleInteraction(hudOpen);
 		UpdatePlacementOrFocus(dt, camera, viewport, hudOpen);
 		SyncTransform();
@@ -573,14 +574,17 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (hudOpen || !Input.IsActionPressed(UseToolAction))
 			return;
 
+		UseActiveTool();
+	}
+
+	private void HandlePlaceItem(bool hudOpen)
+	{
+		if (hudOpen || !Input.IsActionPressed(InteractAction))
+			return;
+
 		if (_equippedItem is PlaceableItem)
-		{
 			if (_placement.TryPlace())
 				UpdateEquippedItem();
-			return;
-		}
-
-		UseActiveTool();
 	}
 
 	private Vector3 GetSwingDirection()
@@ -602,13 +606,14 @@ public partial class Player : CharacterBody3D, IToolHittable
 			case "axe":
 			case "sword":
 				_animTree.Set(AxeRequestPath, (int)AnimationNodeOneShot.OneShotRequest.Fire);
+				AudioManager.Instance.PlayVariantAt("swing_blade_small", GlobalPosition, AudioManager.BusTools, 0.1f);
+
 				break;
 			default:
 				_animTree.Set(PunchRequestPath, (int)AnimationNodeOneShot.OneShotRequest.Fire);
+				AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, AudioManager.BusTools, 0.1f);
 				break;
 		}
-
-		AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, AudioManager.BusTools, 0.1f);
 
 		var targetAngle = Mathf.Atan2(swingDir.X, swingDir.Z);
 		Rotation = new Vector3(Rotation.X, targetAngle, Rotation.Z);
@@ -624,30 +629,42 @@ public partial class Player : CharacterBody3D, IToolHittable
 		switch (result.Outcome)
 		{
 			case ToolHitOutcome.Hit:
-				AudioManager.Instance.PlayVariantAt($"hit_{result.TargetType}", GlobalPosition, AudioManager.BusTools,
-					0.1f);
+				PlayToolSound(result.HitSoundKey, result.HitPoint);
 				break;
 
 			case ToolHitOutcome.Destroyed:
-				OnObjectBroken(result.TargetType);
+				PlayToolSound(result.HitSoundKey, result.HitPoint);
+				PlayToolSound(result.BreakSoundKey, result.HitPoint);
+				OnObjectBroken(result);
 				break;
 
 			case ToolHitOutcome.Failed:
-				OnHitFailed(result.TargetType);
+				OnHitFailed(result);
 				break;
 		}
 	}
 
-	public void OnObjectBroken(string targetType)
+	private void PlayToolSound(string key, Vector3 hitPoint)
 	{
-		if (IsLocal)
-			CameraController?.Shake(0.3f, 0.7f);
+		if (string.IsNullOrEmpty(key))
+			return;
+
+		AudioManager.Instance.PlayVariantAt(
+			key,
+			hitPoint,
+			AudioManager.BusTools,
+			0.1f
+		);
 	}
 
-	public void OnHitFailed(string targetType)
+	public void OnObjectBroken(ToolHitResult result)
 	{
-		if (IsLocal)
-			CameraController?.Shake(0.1f, 0.3f);
+		if (IsLocal) CameraController?.Shake(0.3f, 0.7f);
+	}
+
+	public void OnHitFailed(ToolHitResult result)
+	{
+		if (IsLocal) CameraController?.Shake(0.1f, 0.3f);
 	}
 
 	// biome
@@ -714,13 +731,23 @@ public partial class Player : CharacterBody3D, IToolHittable
 		KnockbackVelocity = knockbackVelocity;
 
 		HUD.RefreshUI();
-		AudioManager.Instance.PlayVariantAt("hit_mob", GlobalPosition, AudioManager.BusTools, 0.2f);
+		AudioManager.Instance.PlayVariantAt("hit_flesh", GlobalPosition, AudioManager.BusTools, 0.2f);
 	}
 
 	// IToolHittable
 	public string GetImpactType()
 	{
 		return "flesh";
+	}
+
+	public string GetHitSound()
+	{
+		return "hit_flesh";
+	}
+
+	public string GetBreakSound()
+	{
+		return "hit_flesh";
 	}
 
 	public Node3D GetHitRoot()
@@ -730,7 +757,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint)
 	{
-		AudioManager.Instance.PlayVariantAt("hit_mob", GlobalPosition, AudioManager.BusTools, 0.2f);
+		AudioManager.Instance.PlayVariantAt("hit_flesh", GlobalPosition, AudioManager.BusTools, 0.2f);
 
 		ApplyKnockback(fromDirection, 3f);
 		Health -= damage;

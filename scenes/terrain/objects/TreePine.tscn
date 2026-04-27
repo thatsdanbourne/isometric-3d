@@ -47,6 +47,7 @@ buffer = PackedFloat32Array(-0.49300876, -0.05873715, 0.33866414, -1.1604356, -0
 [node name="TreePine" unique_id=823955562 instance=ExtResource("1_3b2bc")]
 script = ExtResource("2_cye4l")
 ObjectType = "wood"
+BreakSoundsKey = "break_tree"
 DropItems = Array[ExtResource("3_dqv2m")]([SubResource("Resource_dqv2m")])
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." index="0" unique_id=1074874889]

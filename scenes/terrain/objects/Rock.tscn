@@ -17,8 +17,9 @@ metadata/_custom_type_script = "uid://2hhyer4i1q1g"
 
 [node name="Rock" unique_id=1657300071 instance=ExtResource("1_xhq0n")]
 script = ExtResource("2_ruplt")
-HitSoundsKey = "hit_stone"
 ObjectType = "stone"
+HitSoundsKey = "hit_stone"
+BreakSoundsKey = "break_stone"
 DropItems = Array[ExtResource("2_wfj0d")]([SubResource("Resource_u6gjy")])
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." index="0" unique_id=588379968]

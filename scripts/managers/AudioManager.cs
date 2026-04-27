@@ -267,7 +267,7 @@ public partial class AudioManager : Node
 		p.Finished += p.QueueFree;
 	}
 
-	private void PlayVariant(string key)
+	public void PlayVariant(string key)
 	{
 		if (!_audioRegistry.SfxVariants.TryGetValue(key, out var list))
 			return;

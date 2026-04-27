@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bfv1ygq7eg2to"
+path="res://.godot/imported/Whoosh Fast D.wav-a04e4341d0a1ef807760f8217b27a61d.sample"
+
+[deps]
+
+source_file="res://assets/audio/hit/Whoosh Fast D.wav"
+dest_files=["res://.godot/imported/Whoosh Fast D.wav-a04e4341d0a1ef807760f8217b27a61d.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

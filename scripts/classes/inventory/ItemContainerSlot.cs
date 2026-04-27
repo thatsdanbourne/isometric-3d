@@ -169,6 +169,7 @@ public partial class ItemContainerSlot : PanelContainer
 	private void OnMouseEntered()
 	{
 		if (Stack?.Item == null) return;
+		AudioManager.Instance.PlaySfx("ui_hover", 0.1f);
 		_tooltip.ShowTooltip(Stack.Item, this);
 	}
 

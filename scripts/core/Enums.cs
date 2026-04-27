@@ -102,6 +102,12 @@ public enum ToolHitOutcome
 	Destroyed
 }
 
+public enum InventorySfxAction
+{
+	Pickup,
+	Drop
+}
+
 // debug enums
 public enum SessionMode
 {

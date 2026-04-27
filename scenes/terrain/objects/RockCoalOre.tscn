@@ -28,8 +28,9 @@ albedo_color = Color(0.052842118, 0.052842125, 0.052842118, 1)
 
 [node name="RockCoalOre" unique_id=742521493 instance=ExtResource("1_jlmj0")]
 script = ExtResource("2_7ddnh")
-HitSoundsKey = "hit_ore"
-ObjectType = "soft_ore"
+ObjectType = "ore"
+HitSoundsKey = "hit_stone"
+BreakSoundsKey = "break_stone"
 DropItems = Array[ExtResource("2_osrtj")]([SubResource("Resource_xhipr"), SubResource("Resource_qmuk6")])
 
 [node name="Rock" parent="." index="0" unique_id=428074793]

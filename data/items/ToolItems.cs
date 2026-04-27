@@ -32,12 +32,13 @@ public static class ToolItems
 			HitRayCount = 5,
 			HitRange = 1.35f,
 			CooldownSeconds = 0.55f,
+			HeldItemScene = GD.Load<PackedScene>("res://scenes/tools/StoneSword.tscn"),
+			SoundSet = "sword",
 			DamageMultipliers = new Dictionary<string, float>
 			{
 				{ "stone", 1.5f },
 				{ "wood", 1f }
-			},
-			HeldItemScene = GD.Load<PackedScene>("res://scenes/tools/StoneSword.tscn")
+			}
 		});
 
 		#endregion
@@ -53,18 +54,18 @@ public static class ToolItems
 			Icon = LoadTexture("stone_pickaxe"),
 			StackSize = 1,
 			Damage = 1.5f,
-			DamageMultipliers = new Dictionary<string, float>
-			{
-				{ "stone", 2.0f },
-				{ "soft_ore", 1.5f },
-				{ "ore", 1.5f },
-				{ "wood", 0.25f }
-			},
 			HitArcDegrees = 35f,
 			HitRayCount = 3,
 			HitRange = 1.8f,
-			CooldownSeconds = 0.75f,
-			Tier = ToolTier.Stone
+			CooldownSeconds = 0.6f,
+			Tier = ToolTier.Stone,
+			SoundSet = "sword",
+			DamageMultipliers = new Dictionary<string, float>
+			{
+				{ "stone", 2.0f },
+				{ "ore", 1.5f },
+				{ "wood", 0.25f }
+			}
 		});
 
 		ItemRegistry.RegisterItem(new ToolItem
@@ -76,18 +77,18 @@ public static class ToolItems
 			Icon = LoadTexture("copper_pickaxe"),
 			StackSize = 1,
 			Damage = 1.5f,
-			DamageMultipliers = new Dictionary<string, float>
-			{
-				{ "stone", 2.5f },
-				{ "soft_ore", 2.0f },
-				{ "ore", 2.0f },
-				{ "wood", 0.5f }
-			},
 			HitArcDegrees = 35f,
 			HitRayCount = 3,
 			HitRange = 2.0f,
-			CooldownSeconds = 0.75f,
-			Tier = ToolTier.Copper
+			CooldownSeconds = 0.6f,
+			Tier = ToolTier.Copper,
+			SoundSet = "sword",
+			DamageMultipliers = new Dictionary<string, float>
+			{
+				{ "stone", 2.5f },
+				{ "ore", 2.0f },
+				{ "wood", 0.5f }
+			}
 		});
 
 		#endregion
@@ -103,17 +104,18 @@ public static class ToolItems
 			Icon = LoadTexture("stone_axe"),
 			Damage = 1.25f,
 			StackSize = 1,
-			DamageMultipliers = new Dictionary<string, float>
-			{
-				{ "stone", 0.25f },
-				{ "wood", 2.0f }
-			},
 			HitArcDegrees = 75f,
 			HitRayCount = 5,
 			HitRange = 1.5f,
 			CooldownSeconds = 0.6f,
 			Tier = ToolTier.Stone,
-			HeldItemScene = GD.Load<PackedScene>("res://scenes/tools/Axe.tscn")
+			SoundSet = "sword",
+			HeldItemScene = GD.Load<PackedScene>("res://scenes/tools/Axe.tscn"),
+			DamageMultipliers = new Dictionary<string, float>
+			{
+				{ "stone", 0.25f },
+				{ "wood", 2.0f }
+			}
 		});
 
 		#endregion

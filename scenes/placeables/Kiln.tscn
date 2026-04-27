@@ -15,7 +15,6 @@ metadata/_custom_type_script = "uid://2hhyer4i1q1g"
 
 [node name="Kiln" unique_id=1889547701 instance=ExtResource("1_ybkfo")]
 script = ExtResource("2_7qu8f")
-HitSoundsKey = "hit_stone"
 ObjectType = "stone"
 DropItems = Array[ExtResource("2_ybkfo")]([SubResource("Resource_ybkfo")])
 

@@ -43,6 +43,8 @@ public interface IToolHittable
 	ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint);
 	ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint);
 	string GetImpactType();
+	string GetHitSound();
+	string GetBreakSound();
 
 	float ModifyIncomingToolDamage(ToolItem tool, float damage, float baseDamage)
 	{

@@ -24,7 +24,58 @@ public class AudioRegistry
 		Sfx["ui_click"] = GD.Load<AudioStream>("res://assets/audio/ui/ui_click.wav");
 		Sfx["ui_back"] = GD.Load<AudioStream>("res://assets/audio/ui/ui_back.wav");
 
-		// Wood hit sounds
+
+		// inventory
+		SfxVariants["ui_inventory_open"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag A.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag B.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag C.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag D.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag E.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag F.wav")
+		];
+
+		SfxVariants["ui_inventory_close"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag A.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag B.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag C.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag D.wav")
+		];
+
+		Sfx["ui_inventory_generic_pickup"] =
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/generic/generic_pickup.wav");
+		Sfx["ui_inventory_generic_drop"] =
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/generic/generic_drop.wav");
+
+		Sfx["ui_inventory_wood_pickup"] =
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/wood/wood_pickup.wav");
+		Sfx["ui_inventory_wood_drop"] = GD.Load<AudioStream>("res://assets/audio/ui/inventory/wood/wood_drop.wav");
+
+		Sfx["ui_inventory_stone_pickup"] =
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/stone/stone_pickup.wav");
+		Sfx["ui_inventory_stone_drop"] = GD.Load<AudioStream>("res://assets/audio/ui/inventory/stone/stone_drop.wav");
+
+		Sfx["ui_inventory_sword_pickup"] =
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/sword/sword_pickup.wav");
+		Sfx["ui_inventory_sword_drop"] = GD.Load<AudioStream>("res://assets/audio/ui/inventory/sword/sword_drop.wav");
+
+		Sfx["ui_inventory_ore_pickup"] =
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/ore/ore_pickup.wav");
+		Sfx["ui_inventory_ore_drop"] = GD.Load<AudioStream>("res://assets/audio/ui/inventory/ore/ore_drop.wav");
+
+		Sfx["ui_inventory_ingot_pickup"] =
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/ingot/ingot_pickup.wav");
+		Sfx["ui_inventory_ingot_drop"] = GD.Load<AudioStream>("res://assets/audio/ui/inventory/ingot/ingot_drop.wav");
+
+
+		// crafting
+
+		Sfx["ui_kiln_place"] = GD.Load<AudioStream>("res://assets/audio/ui/crafting/kiln_place.wav");
+		Sfx["ui_craft_generic"] = GD.Load<AudioStream>("res://assets/audio/ui/crafting/craft_generic.wav");
+
+		// hit sounds
 		SfxVariants["hit_wood"] =
 		[
 			GD.Load<AudioStream>("res://assets/audio/hit/wood/wood_1.wav"),
@@ -35,28 +86,40 @@ public class AudioRegistry
 			GD.Load<AudioStream>("res://assets/audio/hit/wood/wood_6.wav")
 		];
 
-		// Stone hit sounds
 		SfxVariants["hit_stone"] =
 		[
-			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_1.wav"),
-			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_2.wav"),
-			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_3.wav"),
-			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_4.wav")
-		];
-
-		SfxVariants["hit_soft_ore"] =
-		[
-			GD.Load<AudioStream>("res://assets/audio/hit/ore/soft_ore_1.wav"),
-			GD.Load<AudioStream>("res://assets/audio/hit/ore/soft_ore_2.wav"),
-			GD.Load<AudioStream>("res://assets/audio/hit/ore/soft_ore_3.wav"),
-			GD.Load<AudioStream>("res://assets/audio/hit/ore/soft_ore_4.wav")
+			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_hit_1.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_hit_2.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_hit_3.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/stone/stone_hit_4.wav")
 		];
 
 		SfxVariants["hit_flesh"] =
 		[
-			GD.Load<AudioStream>("res://assets/audio/hit/mob/mob_hit_1.wav"),
-			GD.Load<AudioStream>("res://assets/audio/hit/mob/mob_hit_2.wav"),
-			GD.Load<AudioStream>("res://assets/audio/hit/mob/mob_hit_3.wav")
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_1.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_2.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_3.wav")
+		];
+
+		// break sounds 
+		SfxVariants["break_tree"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/break/tree/Tree Fall 1.wav"),
+			GD.Load<AudioStream>("res://assets/audio/break/tree/Tree Fall 2.wav")
+		];
+
+		SfxVariants["break_stone"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/break/stone/Mine Large Rock A.wav"),
+			GD.Load<AudioStream>("res://assets/audio/break/stone/Mine Large Rock B.wav"),
+			GD.Load<AudioStream>("res://assets/audio/break/stone/Mine Large Rock C.wav"),
+			GD.Load<AudioStream>("res://assets/audio/break/stone/Mine Large Rock D.wav")
+		];
+
+		SfxVariants["break_ore"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/break/ore/Mining Soft Ore Crit A.wav"),
+			GD.Load<AudioStream>("res://assets/audio/break/ore/Mining Soft Ore Crit B.wav")
 		];
 
 		Sfx["hit_fail"] = GD.Load<AudioStream>("res://assets/audio/hit/hit_fail.wav");
@@ -64,21 +127,19 @@ public class AudioRegistry
 		// Swing sounds
 		SfxVariants["swing_fist"] =
 		[
-			GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_1.wav"),
-			GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_2.wav"),
-			GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_3.wav"),
-			GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_4.wav"),
-			GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_5.wav"),
-			GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_6.wav")
-			// GD.Load<AudioStream>("res://assets/audio/tools/fist/fist_7.wav"),
+			GD.Load<AudioStream>("res://assets/audio/tools/fist/Whoosh Fast A.wav"),
+			GD.Load<AudioStream>("res://assets/audio/tools/fist/Whoosh Fast B.wav"),
+			GD.Load<AudioStream>("res://assets/audio/tools/fist/Whoosh Fast C.wav"),
+			GD.Load<AudioStream>("res://assets/audio/tools/fist/Whoosh Fast D.wav")
 		];
 
-		SfxVariants["swing_sword"] =
+		SfxVariants["swing_blade_small"] =
 		[
-			GD.Load<AudioStream>("res://assets/audio/tools/sword/sword_1.wav"),
-			GD.Load<AudioStream>("res://assets/audio/tools/sword/sword_2.wav"),
-			GD.Load<AudioStream>("res://assets/audio/tools/sword/sword_3.wav"),
-			GD.Load<AudioStream>("res://assets/audio/tools/sword/sword_4.wav")
+			GD.Load<AudioStream>("res://assets/audio/tools/blade-small/blade_small_swing_1.wav"),
+			GD.Load<AudioStream>("res://assets/audio/tools/blade-small/blade_small_swing_2.wav"),
+			GD.Load<AudioStream>("res://assets/audio/tools/blade-small/blade_small_swing_3.wav"),
+			GD.Load<AudioStream>("res://assets/audio/tools/blade-small/blade_small_swing_4.wav"),
+			GD.Load<AudioStream>("res://assets/audio/tools/blade-small/blade_small_swing_5.wav")
 		];
 
 		// Footsteps
@@ -88,8 +149,7 @@ public class AudioRegistry
 			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_2.wav"),
 			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_3.wav"),
 			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_4.wav"),
-			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_5.wav"),
-			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_6.wav")
+			GD.Load<AudioStream>("res://assets/audio/footsteps/grass/grass_walk_5.wav")
 		];
 
 		SfxVariants["footstep_snow"] =
@@ -98,8 +158,7 @@ public class AudioRegistry
 			GD.Load<AudioStream>("res://assets/audio/footsteps/snow/snow_walk_2.wav"),
 			GD.Load<AudioStream>("res://assets/audio/footsteps/snow/snow_walk_3.wav"),
 			GD.Load<AudioStream>("res://assets/audio/footsteps/snow/snow_walk_4.wav"),
-			GD.Load<AudioStream>("res://assets/audio/footsteps/snow/snow_walk_5.wav"),
-			GD.Load<AudioStream>("res://assets/audio/footsteps/snow/snow_walk_6.wav")
+			GD.Load<AudioStream>("res://assets/audio/footsteps/snow/snow_walk_5.wav")
 		];
 
 		SfxVariants["footstep_sand"] =
@@ -108,8 +167,7 @@ public class AudioRegistry
 			GD.Load<AudioStream>("res://assets/audio/footsteps/sand/sand_walk_2.wav"),
 			GD.Load<AudioStream>("res://assets/audio/footsteps/sand/sand_walk_3.wav"),
 			GD.Load<AudioStream>("res://assets/audio/footsteps/sand/sand_walk_4.wav"),
-			GD.Load<AudioStream>("res://assets/audio/footsteps/sand/sand_walk_5.wav"),
-			GD.Load<AudioStream>("res://assets/audio/footsteps/sand/sand_walk_6.wav")
+			GD.Load<AudioStream>("res://assets/audio/footsteps/sand/sand_walk_5.wav")
 		];
 	}
 

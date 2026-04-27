@@ -95,6 +95,9 @@ public partial class CraftingUI : Control
 			return;
 
 		CraftingManager.Instance.RequestCraft(_player, recipe, _currentStation);
+
+		var key = UiSfxResolver.GetCraftingSfx(recipe);
+		AudioManager.Instance.PlaySfx(key, 0.1f);
 	}
 
 	private void OnCollectPressed()
@@ -103,6 +106,7 @@ public partial class CraftingUI : Control
 			return;
 
 		CraftingManager.Instance.RequestCollect(_player, _currentStation);
+		AudioManager.Instance.PlaySfx("ui_inventory_ingot_pickup", 0.1f);
 	}
 
 	private void UpdateStationUI()

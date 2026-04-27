@@ -39,6 +39,7 @@ shader_parameter/light_steps = 5.0
 [node name="Tree" unique_id=460300137 instance=ExtResource("1_tm4eo")]
 script = ExtResource("2_2qbmg")
 ObjectType = "wood"
+BreakSoundsKey = "break_tree"
 DropItems = Array[ExtResource("5_2qbmg")]([SubResource("Resource_2qbmg")])
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." index="0" unique_id=1518532266]

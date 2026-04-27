@@ -91,18 +91,12 @@ public partial class Mob : CharacterBody3D, IToolHittable
 
 	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint)
 	{
-		if (World.Multiplayer.IsServer())
-			AudioManager.Instance.PlayVariantAt("hit_mob", GlobalPosition, AudioManager.BusTools, 0.2f);
-
 		ApplyKnockback(fromDirection, 6f);
 		CurrentHealth -= damage;
-		if (CurrentHealth <= 0)
-		{
-			Die();
-			return ToolHitOutcome.Destroyed;
-		}
+		if (!(CurrentHealth <= 0)) return ToolHitOutcome.Hit;
 
-		return ToolHitOutcome.Hit;
+		Die();
+		return ToolHitOutcome.Destroyed;
 	}
 
 	public ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint)
@@ -175,5 +169,15 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	public string GetImpactType()
 	{
 		return "flesh";
+	}
+
+	public string GetHitSound()
+	{
+		return "hit_flesh";
+	}
+
+	public string GetBreakSound()
+	{
+		return "hit_flesh";
 	}
 }
