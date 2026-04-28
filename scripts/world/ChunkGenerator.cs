@@ -13,7 +13,7 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 
 	private readonly ConcurrentQueue<Vector2I> _buildQueue = new();
 	private readonly ConcurrentQueue<Chunk> _builtChunkQueue = new();
-	private readonly Queue<ChunkDto> _clientChunkQueue = new();
+	private readonly Queue<Chunk> _clientChunkQueue = new();
 	private RandomNumberGenerator _rng = new();
 
 	private const int MaxClientChunksFinalisedPerFrame = 1;
@@ -196,38 +196,27 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 		return chunk;
 	}
 
-	public void EnqueueClientChunk(ChunkDto chunkDto)
+	public void EnqueueClientChunk(Chunk chunk)
 	{
-		if (world.ActiveChunks.ContainsKey(chunkDto.Coord))
+		if (world.ActiveChunks.ContainsKey(chunk.Coord))
 			return;
 
-		_clientChunkQueue.Enqueue(chunkDto);
+		_clientChunkQueue.Enqueue(chunk);
 	}
 
 	public void ProcessClientChunkQueue()
 	{
 		var count = 0;
 
-		while (_clientChunkQueue.TryDequeue(out var chunkDto))
+		while (_clientChunkQueue.TryDequeue(out var chunk))
 		{
-			FinaliseChunk(chunkDto);
+			FinaliseChunk(chunk);
 			count++;
 
 			if (count >= MaxClientChunksFinalisedPerFrame)
 				break;
 		}
 	}
-
-	public void FinaliseChunk(ChunkDto chunkDto)
-	{
-		var chunkCoord = chunkDto.Coord;
-		if (world.ActiveChunks.ContainsKey(chunkCoord))
-			return;
-
-		var chunk = CreateChunkFromDto(chunkDto);
-		FinaliseChunk(chunk);
-	}
-
 
 	public void FinaliseChunk(Chunk chunk)
 	{
@@ -416,48 +405,6 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 		count = CountMatchingNeighbours(chunkCtx, localX, localY, targetType, targetId, radius);
 		cache[key] = count;
 		return count;
-	}
-
-	private Chunk CreateChunkFromDto(ChunkDto chunkDto)
-	{
-		var chunkCoord = chunkDto.Coord;
-		var c = world.ChunkSize;
-		var tiles = new TileInstance[c, c];
-
-		foreach (var tileDto in chunkDto.Tiles)
-		{
-			var tileDef = TileRegistry.Get((TileId)tileDto.DefinitionId);
-			tiles[tileDto.X, tileDto.Y] = new TileInstance(
-				tileDef,
-				(BiomeId)tileDto.BiomeId,
-				tileDto.Temperature,
-				tileDto.Humidity
-			);
-		}
-
-		var objects = new List<ChunkObject>(chunkDto.Objects.Count);
-		foreach (var obj in chunkDto.Objects)
-		{
-			var def = WorldObjectRegistry.GetDefinition(obj.DefinitionId);
-			objects.Add(new ChunkObject
-			{
-				Definition = def,
-				Position = obj.Position,
-				TileCoord = obj.TileCoord,
-				ChunkCoord = obj.ChunkCoord,
-				Source = obj.Source
-			});
-		}
-
-		var chunk = new Chunk(chunkCoord, tiles, objects);
-
-		foreach (var kv in chunkDto.StorageStates)
-			chunk.StorageStates[kv.Key] = kv.Value;
-
-		foreach (var kv in chunkDto.StationStates)
-			chunk.StationStates[kv.Key] = kv.Value;
-
-		return chunk;
 	}
 }
 

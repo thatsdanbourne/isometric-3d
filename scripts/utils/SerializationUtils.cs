@@ -143,7 +143,7 @@ public static class SerializationUtils
 
 	#region Chunks
 
-	public static Dictionary SerializeChunk(ChunkDto chunk)
+	public static Dictionary SerializeChunk(Chunk chunk)
 	{
 		var dict = new Dictionary
 		{
@@ -152,22 +152,33 @@ public static class SerializationUtils
 		};
 
 		var tiles = new Array();
-		foreach (var tile in chunk.Tiles)
+
+		var c = chunk.Tiles.GetLength(0);
+		for (var x = 0; x < c; x++)
+		for (var y = 0; y < c; y++)
+		{
+			var tile = chunk.Tiles[x, y];
+
 			tiles.Add(new Dictionary
 			{
-				["x"] = tile.X,
-				["y"] = tile.Y,
-				["definition_id"] = tile.DefinitionId,
-				["biome_id"] = tile.BiomeId,
-				["temperature"] = tile.Temperature,
+				["x"] = x,
+				["y"] = y,
+				["definition_id"] = (int)tile.Definition.Id,
+				["biome_id"] = (int)tile.Biome,
+				["temperature"] = tile.Temp,
 				["humidity"] = tile.Humidity
 			});
+		}
+
+		dict["tiles"] = tiles;
 
 		var objects = new Array();
+
 		foreach (var obj in chunk.Objects)
+		{
 			objects.Add(new Dictionary
 			{
-				["definition_id"] = obj.DefinitionId,
+				["definition_id"] = obj.Definition.StableId,
 				["chunk_x"] = obj.ChunkCoord.X,
 				["chunk_y"] = obj.ChunkCoord.Y,
 				["tile_x"] = obj.TileCoord.X,
@@ -177,49 +188,61 @@ public static class SerializationUtils
 				["pos_z"] = obj.Position.Z,
 				["source"] = (int)obj.Source
 			});
+		}
+
+		dict["objects"] = objects;
 
 		var storageStates = new Array();
-		foreach (var kv in chunk.StorageStates)
-			storageStates.Add(SerializeStorageState(kv.Value));
+		foreach (var state in chunk.StorageStates.Values)
+			storageStates.Add(SerializeStorageState(state));
+
+		dict["storage_states"] = storageStates;
 
 		var stationStates = new Array();
-		foreach (var kv in chunk.StationStates)
-			stationStates.Add(SerializeStationState(kv.Value));
+		foreach (var state in chunk.StationStates.Values)
+			stationStates.Add(SerializeStationState(state));
 
-		dict["tiles"] = tiles;
-		dict["objects"] = objects;
-		dict["storage_states"] = storageStates;
 		dict["station_states"] = stationStates;
 
 		return dict;
 	}
 
-	public static ChunkDto DeserializeChunk(Dictionary dict)
+	public static Chunk DeserializeChunk(Dictionary dict, int chunkSize = 16)
 	{
 		var coord = new Vector2I(
 			(int)dict["coord_x"],
 			(int)dict["coord_y"]
 		);
 
-		var tiles = new List<TileInstanceDto>();
+		var c = chunkSize;
+		var tiles = new TileInstance[c, c];
+
 		var tileArray = (Array)dict["tiles"];
 		foreach (Dictionary tileDict in tileArray)
-			tiles.Add(new TileInstanceDto
-			{
-				X = (int)tileDict["x"],
-				Y = (int)tileDict["y"],
-				DefinitionId = (int)tileDict["definition_id"],
-				BiomeId = (int)tileDict["biome_id"],
-				Temperature = (float)tileDict["temperature"],
-				Humidity = (float)tileDict["humidity"]
-			});
+		{
+			var x = (int)tileDict["x"];
+			var y = (int)tileDict["y"];
 
-		var objects = new List<ChunkObjectDto>();
+			var tileDef = TileRegistry.Get((TileId)(int)tileDict["definition_id"]);
+
+			tiles[x, y] = new TileInstance(
+				tileDef,
+				(BiomeId)(int)tileDict["biome_id"],
+				(float)tileDict["temperature"],
+				(float)tileDict["humidity"]
+			);
+		}
+
+		var objects = new List<ChunkObject>();
+
 		var objectArray = (Array)dict["objects"];
 		foreach (Dictionary objDict in objectArray)
-			objects.Add(new ChunkObjectDto
+		{
+			var def = WorldObjectRegistry.GetDefinition((int)objDict["definition_id"]);
+
+			objects.Add(new ChunkObject
 			{
-				DefinitionId = (int)objDict["definition_id"],
+				Definition = def,
 				ChunkCoord = new Vector2I(
 					(int)objDict["chunk_x"],
 					(int)objDict["chunk_y"]
@@ -235,12 +258,13 @@ public static class SerializationUtils
 				),
 				Source = (ChunkObjectSource)(int)objDict["source"]
 			});
+		}
 
-		var chunk = new ChunkDto(coord, tiles, objects);
+		var chunk = new Chunk(coord, tiles, objects);
 
-		if (dict.ContainsKey("storage_states"))
+		if (dict.TryGetValue("storage_states", out var storageStates))
 		{
-			var storageArray = (Array)dict["storage_states"];
+			var storageArray = (Array)storageStates;
 			foreach (Dictionary storageDict in storageArray)
 			{
 				var state = DeserializeStorageState(storageDict);
@@ -248,9 +272,9 @@ public static class SerializationUtils
 			}
 		}
 
-		if (dict.ContainsKey("station_states"))
+		if (dict.TryGetValue("station_states", out var stationStates))
 		{
-			var stationArray = (Array)dict["station_states"];
+			var stationArray = (Array)stationStates;
 			foreach (Dictionary stationDict in stationArray)
 			{
 				var state = DeserializeStationState(stationDict);

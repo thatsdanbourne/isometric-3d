@@ -26,7 +26,7 @@ public partial class WorldSync
 		_world.ChunkManager.RemoveChunk(chunkCoord);
 	}
 
-	public void SendChunkToPeer(int peerId, ChunkDto chunk)
+	public void SendChunkToPeer(int peerId, Chunk chunk)
 	{
 		var serialized = SerializationUtils.SerializeChunk(chunk);
 		RpcId(peerId, nameof(ReceiveChunk), serialized);

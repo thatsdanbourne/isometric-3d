@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using System.Linq;
 
 public class ChunkManager(World world, int chunkSize, int chunkRadius)
 {
@@ -116,7 +117,7 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 			if (sentChunks.Contains(coord))
 				continue;
 
-			world.Sync.SendChunkToPeer(peerId, ToDto(chunk));
+			world.Sync.SendChunkToPeer(peerId, chunk);
 			sentChunks.Add(coord);
 		}
 	}
@@ -180,23 +181,15 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 		}
 
 		EnsureServerChunksExist(desiredChunks);
-
-		var newlyAddedChunks = new HashSet<Vector2I>();
-		foreach (var coord in desiredChunks)
+		
+		foreach (var coord in desiredChunks.Where(coord => !sentChunks.Contains(coord)))
 		{
-			if (sentChunks.Contains(coord))
-				continue;
-
 			if (!ServerChunks.TryGetValue(coord, out var chunk))
 				continue;
 
-			world.Sync.SendChunkToPeer(peerId, ToDto(chunk));
-			newlyAddedChunks.Add(coord);
+			world.Sync.SendChunkToPeer(peerId, chunk);
 			sentChunks.Add(coord);
 		}
-
-		// if (newlyAddedChunks.Count > 0)
-		// 	world.MobStreamer.SyncActiveMobsInChunksToPeer(peerId, newlyAddedChunks);
 	}
 
 	private void UnloadChunksOutsideDesiredSet(HashSet<Vector2I> desiredChunks)
@@ -251,58 +244,5 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 	{
 		_desiredChunksByPeer.Remove(peerId);
 		_sentChunksByPeer.Remove(peerId);
-	}
-
-	// utils
-
-	private ChunkDto ToDto(Chunk chunk)
-	{
-		var width = chunk.Tiles.GetLength(0);
-		var height = chunk.Tiles.GetLength(1);
-
-		var tiles = new List<TileInstanceDto>(width * height);
-		for (var x = 0; x < width; x++)
-		for (var y = 0; y < height; y++)
-		{
-			var tile = chunk.Tiles[x, y];
-
-			tiles.Add(new TileInstanceDto
-			{
-				X = x,
-				Y = y,
-				DefinitionId = (int)tile.Definition.Id,
-				BiomeId = (int)tile.Biome,
-				Temperature = tile.Temp,
-				Humidity = tile.Humidity
-			});
-		}
-
-		var objects = new List<ChunkObjectDto>(chunk.Objects.Count);
-		foreach (var obj in chunk.Objects)
-			objects.Add(new ChunkObjectDto
-			{
-				DefinitionId = obj.Definition.StableId,
-				ChunkCoord = obj.ChunkCoord,
-				TileCoord = obj.TileCoord,
-				Position = obj.Position,
-				Source = obj.Source
-			});
-
-		var dto = new ChunkDto(
-			chunk.Coord,
-			tiles,
-			objects
-		);
-
-		if (world.TryGetChunkDelta(chunk.Coord, out var delta))
-		{
-			foreach (var kv in delta.StorageStates)
-				dto.StorageStates[kv.Key] = kv.Value;
-
-			foreach (var kv in delta.StationStates)
-				dto.StationStates[kv.Key] = kv.Value;
-		}
-
-		return dto;
 	}
 }
