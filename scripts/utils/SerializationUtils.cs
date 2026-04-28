@@ -154,20 +154,16 @@ public static class SerializationUtils
 		var tiles = new Array();
 
 		var c = chunk.Tiles.GetLength(0);
-		for (var x = 0; x < c; x++)
+
 		for (var y = 0; y < c; y++)
+		for (var x = 0; x < c; x++)
 		{
 			var tile = chunk.Tiles[x, y];
 
-			tiles.Add(new Dictionary
-			{
-				["x"] = x,
-				["y"] = y,
-				["definition_id"] = (int)tile.Definition.Id,
-				["biome_id"] = (int)tile.Biome,
-				["temperature"] = tile.Temp,
-				["humidity"] = tile.Humidity
-			});
+			tiles.Add((int)tile.Definition.Id);
+			tiles.Add((int)tile.Biome);
+			tiles.Add(tile.Temp);
+			tiles.Add(tile.Humidity);
 		}
 
 		dict["tiles"] = tiles;
@@ -175,12 +171,9 @@ public static class SerializationUtils
 		var objects = new Array();
 
 		foreach (var obj in chunk.Objects)
-		{
 			objects.Add(new Dictionary
 			{
 				["definition_id"] = obj.Definition.StableId,
-				["chunk_x"] = obj.ChunkCoord.X,
-				["chunk_y"] = obj.ChunkCoord.Y,
 				["tile_x"] = obj.TileCoord.X,
 				["tile_y"] = obj.TileCoord.Y,
 				["pos_x"] = obj.Position.X,
@@ -188,21 +181,28 @@ public static class SerializationUtils
 				["pos_z"] = obj.Position.Z,
 				["source"] = (int)obj.Source
 			});
-		}
 
 		dict["objects"] = objects;
 
-		var storageStates = new Array();
-		foreach (var state in chunk.StorageStates.Values)
-			storageStates.Add(SerializeStorageState(state));
+		if (chunk.StorageStates.Count > 0)
+		{
+			var storageStates = new Array();
 
-		dict["storage_states"] = storageStates;
+			foreach (var state in chunk.StorageStates.Values)
+				storageStates.Add(SerializeStorageState(state));
 
-		var stationStates = new Array();
-		foreach (var state in chunk.StationStates.Values)
-			stationStates.Add(SerializeStationState(state));
+			dict["storage_states"] = storageStates;
+		}
 
-		dict["station_states"] = stationStates;
+		if (chunk.StationStates.Count > 0)
+		{
+			var stationStates = new Array();
+			foreach (var state in chunk.StationStates.Values)
+				stationStates.Add(SerializeStationState(state));
+
+			if (chunk.StationStates.Count > 0)
+				dict["station_states"] = stationStates;
+		}
 
 		return dict;
 	}
@@ -218,18 +218,23 @@ public static class SerializationUtils
 		var tiles = new TileInstance[c, c];
 
 		var tileArray = (Array)dict["tiles"];
-		foreach (Dictionary tileDict in tileArray)
-		{
-			var x = (int)tileDict["x"];
-			var y = (int)tileDict["y"];
 
-			var tileDef = TileRegistry.Get((TileId)(int)tileDict["definition_id"]);
+		var i = 0;
+		for (var y = 0; y < c; y++)
+		for (var x = 0; x < c; x++)
+		{
+			var definitionId = (int)tileArray[i++];
+			var biomeId = (int)tileArray[i++];
+			var temp = (float)tileArray[i++];
+			var humidity = (float)tileArray[i++];
+
+			var tileDef = TileRegistry.Get((TileId)definitionId);
 
 			tiles[x, y] = new TileInstance(
 				tileDef,
-				(BiomeId)(int)tileDict["biome_id"],
-				(float)tileDict["temperature"],
-				(float)tileDict["humidity"]
+				(BiomeId)biomeId,
+				temp,
+				humidity
 			);
 		}
 
@@ -243,10 +248,7 @@ public static class SerializationUtils
 			objects.Add(new ChunkObject
 			{
 				Definition = def,
-				ChunkCoord = new Vector2I(
-					(int)objDict["chunk_x"],
-					(int)objDict["chunk_y"]
-				),
+				ChunkCoord = coord,
 				TileCoord = new Vector2I(
 					(int)objDict["tile_x"],
 					(int)objDict["tile_y"]
