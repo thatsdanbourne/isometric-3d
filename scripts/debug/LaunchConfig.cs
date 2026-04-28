@@ -62,4 +62,9 @@ public partial class LaunchConfig : Node
 	{
 		Address = address;
 	}
+
+	public void OverridePort(int port)
+	{
+		Port = port;
+	}
 }

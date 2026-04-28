@@ -7,5 +7,11 @@
 script = ExtResource("2_tthm0")
 ObjectType = "flower"
 
-[node name="Icosphere" parent="." index="0" unique_id=750502038]
-cast_shadow = 2
+[node name="Icosphere" parent="." index="0" unique_id=181139812]
+cast_shadow = 0
+
+[node name="Icosphere_001" parent="." index="1" unique_id=853196968]
+cast_shadow = 0
+
+[node name="Icosphere_002" parent="." index="2" unique_id=2086500092]
+cast_shadow = 0

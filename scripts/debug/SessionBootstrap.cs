@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Net.Sockets;
 using Godot;
 using System.Threading.Tasks;
 
@@ -9,6 +10,7 @@ public partial class SessionBootstrap : Node
 
 	private MainMenuRoot _mainMenuRoot;
 	private MainMenu _mainMenu;
+	private MultiplayerMenu _multiplayerMenu;
 	private Control _clientUI;
 	private PauseMenu _pauseMenu;
 
@@ -35,6 +37,11 @@ public partial class SessionBootstrap : Node
 		}
 
 		GetWindow().Title = $"Emberwild [{Config.SessionMode}] [{Multiplayer.GetUniqueId()}]";
+		GetTree().Root.CloseRequested += KillLocalServer;
+
+		NetworkManager.Instance.ClientConnected += OnClientConnected;
+		NetworkManager.Instance.ClientConnectionFailed += OnClientConnectionFailed;
+		NetworkManager.Instance.ServerDisconnected += OnServerDisconnected;
 	}
 
 	private World CreateWorld()
@@ -89,13 +96,44 @@ public partial class SessionBootstrap : Node
 
 	private void StartClient()
 	{
+		StartClient(Config.Address, Config.Port);
+	}
+
+	private void StartClient(string address, int port)
+	{
+		Config.OverrideAddress(address);
+		Config.OverridePort(port);
+
+		var err = NetworkManager.Instance.Join(Config.Address, Config.Port);
+		if (err != Error.Ok)
+		{
+			_multiplayerMenu?.SetStatus($"Failed to start client: {err}");
+			return;
+		}
+
+		_multiplayerMenu?.SetStatus($@"Connecting...");
+		_multiplayerMenu?.SetConnectButtonEnabled(false);
+	}
+
+	private void OnClientConnected()
+	{
 		CreateClientUI();
 		CreateWorld();
 		GameManager.Instance.SessionMode = SessionMode.Client;
-		NetworkManager.Instance.Join(Config.Address, Config.Port);
 
 		if (IsInstanceValid(_mainMenuRoot))
 			_mainMenuRoot.QueueFree();
+	}
+
+	private void OnClientConnectionFailed()
+	{
+		_multiplayerMenu.SetStatus($"Connection failed");
+		_multiplayerMenu?.SetConnectButtonEnabled(true);
+	}
+
+	private void OnServerDisconnected()
+	{
+		// back to menu
 	}
 
 	private void StartLocalServerProcess()
@@ -116,7 +154,6 @@ public partial class SessionBootstrap : Node
 		if (Config.WorldMode == WorldLoadMode.Save && !string.IsNullOrEmpty(Config.SaveName))
 			args.Add($"--save={Config.SaveName}");
 
-		// opens a console window on Windows if the executable is a console app
 		_localServerPid = OS.CreateProcess(exePath, args.ToArray(), true);
 	}
 
@@ -128,7 +165,9 @@ public partial class SessionBootstrap : Node
 
 		_mainMenu = _mainMenuRoot.GetNode<MainMenu>("MenuManager/MainMenu");
 		_mainMenu.SingleplayerPressed += async () => await StartSinglePlayer();
-		_mainMenu.MultiplayerPressed += StartClient;
+
+		_multiplayerMenu = _mainMenuRoot.GetNode<MultiplayerMenu>("MenuManager/MultiplayerMenu");
+		_multiplayerMenu.ConnectPressed += StartClient;
 	}
 
 	private void CreateClientUI()
@@ -154,6 +193,11 @@ public partial class SessionBootstrap : Node
 	}
 
 	public override void _ExitTree()
+	{
+		KillLocalServer();
+	}
+
+	private void KillLocalServer()
 	{
 		if (_localServerPid != -1)
 			OS.Kill(_localServerPid);
