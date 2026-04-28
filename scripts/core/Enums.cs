@@ -27,6 +27,13 @@ public enum WaterFeatureType
 	LakeShore
 }
 
+public enum ObjectSpawnPass
+{
+	LargeObjects,
+	GroundPickups,
+	Decor
+}
+
 public readonly record struct WaterFeatureResult(
 	WaterFeatureType Type,
 	BiomeDefinition BiomeOverride
@@ -35,9 +42,7 @@ public readonly record struct WaterFeatureResult(
 public enum NeighbourTargetType
 {
 	WaterFeature,
-	ObjectCategory,
-	ObjectTag,
-	BiomeId
+	Object
 }
 
 public enum DistanceFalloffMode

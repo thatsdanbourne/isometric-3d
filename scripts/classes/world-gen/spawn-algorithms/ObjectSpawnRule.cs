@@ -6,6 +6,7 @@ public class ObjectSpawnRule
 	public string Id { get; set; }
 	public int StableId { get; set; }
 
+	public ObjectSpawnPass Pass { get; set; } = ObjectSpawnPass.LargeObjects;
 	public SpawnAlgorithm Algorithm { get; set; }
 	public float Density { get; set; } = 0.5f;
 	public List<SpawnVariant> Variants { get; set; } = new();

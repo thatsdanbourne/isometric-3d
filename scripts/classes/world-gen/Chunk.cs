@@ -21,7 +21,8 @@ public class Chunk(
 
 public class ChunkSpawnContext
 {
-	public required BiomeDefinition[,] BaseBiomes { get; init; }
-	public required BiomeDefinition[,] FinalBiomes { get; init; }
-	public required WaterFeatureType[,] WaterFeatures { get; init; }
+	public BiomeDefinition[,] BaseBiomes { get; init; }
+	public BiomeDefinition[,] FinalBiomes { get; init; }
+	public WaterFeatureType[,] WaterFeatures { get; init; }
+	public string?[,] Objects { get; init; }
 }

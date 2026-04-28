@@ -103,7 +103,7 @@ public static class NoisePresets
 		return Modify(
 			algo,
 			0.4f,
-			0.17f, // high threshold -> very few trees
+			0.17f,
 			0.27f,
 			0.09f
 		);
@@ -120,7 +120,7 @@ public static class NoisePresets
 		return Modify(
 			algo,
 			0.6f,
-			0.5f, // extremely restrictive
+			0.5f,
 			0.07f,
 			0.5f
 		);
@@ -130,18 +130,26 @@ public static class NoisePresets
 	// ---------------------------------------------------------------------
 	// FLOWERS / SMALL DECOR — Gentle scatter
 	// ---------------------------------------------------------------------
-	public static NoiseAlgorithm Flowers(int seed, Vector2I offset)
+	public static SpawnAlgorithm LooseStones(int seed, Vector2I offset)
 	{
-		return new NoiseAlgorithm(
+		return new ScatterAlgorithm(
 			seed,
 			offset,
 			FastNoiseLite.NoiseTypeEnum.Perlin,
-			0.12f,
-			0.3f,
-			2,
-			0.45f,
-			2f,
-			false
+			0.04f,
+			1.7f
+		);
+	}
+
+	public static SpawnAlgorithm Flowers(int seed, Vector2I offset)
+	{
+		return new ScatterAlgorithm(
+			seed,
+			offset,
+			FastNoiseLite.NoiseTypeEnum.SimplexSmooth,
+			0.04f,
+			3.2f,
+			3
 		);
 	}
 

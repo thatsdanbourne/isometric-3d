@@ -38,11 +38,35 @@ public static class BiomeDefinitions
 				},
 				new ObjectSpawnRule("plains_flowers")
 				{
-					Density = 0.3f,
+					Pass = ObjectSpawnPass.Decor,
+					Density = 0.75f,
 					Algorithm = NoisePresets.Flowers(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant("flower_poppy") { Weight = 0.5f }
+						new SpawnVariant("flower_poppy") { Weight = 1f }
+					}
+				},
+				new ObjectSpawnRule("plains_stones")
+				{
+					Pass = ObjectSpawnPass.GroundPickups,
+					Density = 0.4f,
+					Algorithm = NoisePresets.LooseStones(seed, worldOffset),
+					Variants = { new SpawnVariant("stone") { Weight = 1f } },
+					Conditions = new SpawnConditions
+					{
+						DensityModifiers =
+						{
+							new DensityModifier
+							{
+								TargetType = NeighbourTargetType.Object,
+								TargetId = "rock",
+								Radius = 3,
+								MinCount = 1,
+								MaxCount = 3,
+								MinMultiplier = 1f,
+								MaxMultiplier = 2f
+							}
+						}
 					}
 				}
 			},

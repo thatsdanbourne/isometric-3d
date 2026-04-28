@@ -16,19 +16,6 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 	private readonly Queue<ChunkDto> _clientChunkQueue = new();
 	private RandomNumberGenerator _rng = new();
 
-	// private readonly Dictionary<string, int[]> _tileVariants = new()
-	// {
-	// 	{ "grass", [0, 1] },
-	// 	{ "sand", [3] },
-	// 	{ "snow", [4] }
-	// };
-	//
-	// private readonly Dictionary<string, float[]> _tileVariantWeights = new()
-	// {
-	// 	{ "grass", [0.795f, 0.005f] },
-	// 	{ "sand", [1f] },
-	// 	{ "snow", [1f] }
-	// };
 
 	public void Start()
 	{
@@ -69,16 +56,6 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 			{
 				Thread.Sleep(1);
 			}
-	}
-
-	public Chunk GetOrBuildServerChunk(Vector2I coord)
-	{
-		if (world.ServerChunks.TryGetValue(coord, out var cached))
-			return cached;
-
-		var chunk = BuildChunk(coord);
-		world.ServerChunks[coord] = chunk;
-		return chunk;
 	}
 
 	private Chunk BuildChunk(Vector2I chunkCoord)
@@ -123,59 +100,76 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 		{
 			BaseBiomes = baseBiomes,
 			FinalBiomes = finalBiomes,
-			WaterFeatures = waterFeatures
+			WaterFeatures = waterFeatures,
+			Objects = new string?[c, c]
 		};
 
 		// pass 2, object data
-		for (var x = 0; x < c; x++)
-		for (var y = 0; y < c; y++)
+		var objectSpawnPasses = new[]
 		{
-			var globalX = chunkCoord.X * c + x;
-			var globalY = chunkCoord.Y * c + y;
-			var tilePos = new Vector2I(globalX, globalY);
+			ObjectSpawnPass.LargeObjects,
+			ObjectSpawnPass.GroundPickups,
+			ObjectSpawnPass.Decor
+		};
 
-			var tileContext = new TileSpawnContext(
-				x,
-				y,
-				globalX,
-				globalY,
-				baseBiomes[x, y],
-				finalBiomes[x, y],
-				waterFeatures[x, y]
-			);
-
-			// build procedural objects
-			foreach (var spawn in finalBiomes[x, y].ObjectRules)
+		foreach (var pass in objectSpawnPasses)
+			for (var x = 0; x < c; x++)
+			for (var y = 0; y < c; y++)
 			{
-				if (!TryGetEffectiveDensity(spawn, spawnContext, tileContext, out var effectiveDensity))
-					continue;
+				var globalX = chunkCoord.X * c + x;
+				var globalY = chunkCoord.Y * c + y;
+				var tilePos = new Vector2I(globalX, globalY);
 
-				if (!spawn.Algorithm.ShouldPlace(globalX, globalY, effectiveDensity))
-					continue;
+				var tileContext = new TileSpawnContext(
+					x,
+					y,
+					globalX,
+					globalY,
+					baseBiomes[x, y],
+					finalBiomes[x, y],
+					waterFeatures[x, y]
+				);
 
-				// skip if removed in chunk delta
-				if (chunkDelta != null && chunkDelta.RemovedProceduralObjects.Contains(tilePos))
-					continue;
-
-				if (blocked[x, y])
-					continue;
-
-				var variant = spawn.PickVariant(terrainSeed, globalX, globalY);
-				var def = variant.Definition;
-
-				objects.Add(new ChunkObject
+				// build procedural objects
+				foreach (var spawn in finalBiomes[x, y].ObjectRules)
 				{
-					Definition = def,
-					TileCoord = tilePos,
-					Position = new Vector3(globalX, 0, globalY),
-					ChunkCoord = chunkCoord,
-					Source = ChunkObjectSource.Procedural
-				});
+					if (spawn.Pass != pass)
+						continue;
 
-				if (def.BlocksTile)
-					blocked[x, y] = true;
+					if (!TryGetEffectiveDensity(spawn, spawnContext, tileContext, out var effectiveDensity))
+						continue;
+
+					if (!spawn.Algorithm.ShouldPlace(globalX, globalY, effectiveDensity))
+						continue;
+
+					if (spawn.Id == "plains_stones" && effectiveDensity > spawn.Density)
+						GD.Print($"Stone boosted at {globalX},{globalY}: {effectiveDensity}");
+
+					// skip if removed in chunk delta
+					if (chunkDelta != null && chunkDelta.RemovedProceduralObjects.Contains(tilePos))
+						continue;
+
+					if (blocked[x, y])
+						continue;
+
+					var variant = spawn.PickVariant(terrainSeed, globalX, globalY);
+					var def = variant.Definition;
+
+					objects.Add(new ChunkObject
+					{
+						Definition = def,
+						TileCoord = tilePos,
+						Position = new Vector3(globalX, 0, globalY),
+						ChunkCoord = chunkCoord,
+						Source = ChunkObjectSource.Procedural
+					});
+
+					spawnContext.Objects[x, y] = variant.Id;
+
+					if (def.BlocksTile)
+						blocked[x, y] = true;
+				}
 			}
-		}
 
 		// build player-placed objects
 		if (chunkDelta != null)
@@ -298,67 +292,98 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 		in TileSpawnContext tileCtx,
 		out float effectiveDensity)
 	{
-		effectiveDensity = 0f;
-
 		var conditions = rule.Conditions;
+
 		if (conditions == null)
 		{
 			effectiveDensity = rule.Density;
-			return true;
+			return effectiveDensity > 0f;
 		}
 
 		var cache = new Dictionary<NeighborKey, int>();
 
-		// Hard requirements
-		foreach (var requirement in conditions.NeighbourRequirements)
+		if (!MeetsNeighbourRequirements(conditions, chunkCtx, tileCtx, cache))
+		{
+			effectiveDensity = 0f;
+			return false;
+		}
+
+		var multiplier = GetDensityMultiplier(conditions, chunkCtx, tileCtx, cache);
+
+		effectiveDensity = rule.Density * multiplier;
+		return effectiveDensity > 0f;
+	}
+
+	private bool MeetsNeighbourRequirements(
+		SpawnConditions conditions,
+		ChunkSpawnContext chunkCtx,
+		in TileSpawnContext tileCtx,
+		Dictionary<NeighborKey, int> cache)
+	{
+		foreach (var req in conditions.NeighbourRequirements)
 		{
 			var count = GetNeighbourCountCached(
 				cache,
 				chunkCtx,
 				tileCtx.LocalX,
 				tileCtx.LocalY,
-				requirement.TargetType,
-				requirement.TargetId,
-				requirement.Radius);
+				req.TargetType,
+				req.TargetId,
+				req.Radius);
 
-			if (count < requirement.MinCount || count > requirement.MaxCount)
+			if (count < req.MinCount || count > req.MaxCount)
 				return false;
 		}
 
-		// Soft density modifiers
+		return true;
+	}
+
+	private float GetDensityMultiplier(
+		SpawnConditions conditions,
+		ChunkSpawnContext chunkCtx,
+		in TileSpawnContext tileCtx,
+		Dictionary<NeighborKey, int> cache)
+	{
 		var multiplier = 1f;
 
-		foreach (var modifier in conditions.DensityModifiers)
+		foreach (var mod in conditions.DensityModifiers)
 		{
 			var count = GetNeighbourCountCached(
 				cache,
 				chunkCtx,
 				tileCtx.LocalX,
 				tileCtx.LocalY,
-				modifier.TargetType,
-				modifier.TargetId,
-				modifier.Radius);
+				mod.TargetType,
+				mod.TargetId,
+				mod.Radius);
 
-			float t;
-			if (modifier.MaxCount <= modifier.MinCount)
-				t = count >= modifier.MinCount ? 1f : 0f;
-			else
-				t = Mathf.Clamp(
-					(count - modifier.MinCount) / (float)(modifier.MaxCount - modifier.MinCount),
-					0f,
-					1f);
+			var t = GetModifierT(count, mod.MinCount, mod.MaxCount);
 
-			var localMultiplier = modifier.FalloffMode switch
+			var localMultiplier = mod.FalloffMode switch
 			{
-				DistanceFalloffMode.Linear => Mathf.Lerp(modifier.MinMultiplier, modifier.MaxMultiplier, t),
+				DistanceFalloffMode.Linear =>
+					Mathf.Lerp(mod.MinMultiplier, mod.MaxMultiplier, t),
 				_ => 1f
 			};
 
 			multiplier *= localMultiplier;
 		}
 
-		effectiveDensity = rule.Density * multiplier;
-		return effectiveDensity > 0f;
+		return multiplier;
+	}
+
+	private static float GetModifierT(int count, int minCount, int maxCount)
+	{
+		if (count < minCount)
+			return 0f;
+
+		if (maxCount <= minCount)
+			return 1f;
+
+		return Mathf.Clamp(
+			(count - minCount) / (float)(maxCount - minCount),
+			0f,
+			1f);
 	}
 
 	private int CountMatchingNeighbours(ChunkSpawnContext chunkContext, int localX, int localY,
@@ -388,14 +413,16 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 	private bool MatchesTarget(ChunkSpawnContext chunkContext, int localX, int localY,
 		NeighbourTargetType targetType, string targetId)
 	{
-		switch (targetType)
+		return targetType switch
 		{
-			case NeighbourTargetType.WaterFeature:
-				return chunkContext.WaterFeatures[localX, localY].ToString() == targetId;
+			NeighbourTargetType.WaterFeature =>
+				chunkContext.WaterFeatures[localX, localY].ToString() == targetId,
 
-			default:
-				return false;
-		}
+			NeighbourTargetType.Object =>
+				chunkContext.Objects[localX, localY] == targetId,
+
+			_ => false
+		};
 	}
 
 	private int GetNeighbourCountCached(
@@ -407,7 +434,7 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 		string targetId,
 		int radius)
 	{
-		var key = new NeighborKey(targetType, targetId, radius);
+		var key = new NeighborKey(localX, localY, targetType, targetId, radius);
 
 		if (cache.TryGetValue(key, out var count))
 			return count;
@@ -461,6 +488,8 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 }
 
 public readonly record struct NeighborKey(
+	int LocalX,
+	int LocalY,
 	NeighbourTargetType TargetType,
 	string TargetId,
 	int Radius
