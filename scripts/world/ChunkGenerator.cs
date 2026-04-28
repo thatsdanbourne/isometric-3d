@@ -16,6 +16,7 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 	private readonly Queue<ChunkDto> _clientChunkQueue = new();
 	private RandomNumberGenerator _rng = new();
 
+	private const int MaxClientChunksFinalisedPerFrame = 1;
 
 	public void Start()
 	{
@@ -60,8 +61,6 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 
 	private Chunk BuildChunk(Vector2I chunkCoord)
 	{
-		var sw = System.Diagnostics.Stopwatch.StartNew();
-
 		var c = world.ChunkSize;
 		var tiles = new TileInstance[c, c];
 		var objects = new List<ChunkObject>();
@@ -101,7 +100,7 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 			BaseBiomes = baseBiomes,
 			FinalBiomes = finalBiomes,
 			WaterFeatures = waterFeatures,
-			Objects = new string?[c, c]
+			Objects = new int[c, c]
 		};
 
 		// pass 2, object data
@@ -142,9 +141,6 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 					if (!spawn.Algorithm.ShouldPlace(globalX, globalY, effectiveDensity))
 						continue;
 
-					if (spawn.Id == "plains_stones" && effectiveDensity > spawn.Density)
-						GD.Print($"Stone boosted at {globalX},{globalY}: {effectiveDensity}");
-
 					// skip if removed in chunk delta
 					if (chunkDelta != null && chunkDelta.RemovedProceduralObjects.Contains(tilePos))
 						continue;
@@ -164,7 +160,7 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 						Source = ChunkObjectSource.Procedural
 					});
 
-					spawnContext.Objects[x, y] = variant.Id;
+					spawnContext.Objects[x, y] = def.StableId;
 
 					if (def.BlocksTile)
 						blocked[x, y] = true;
@@ -185,10 +181,6 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 					Source = ChunkObjectSource.Placed
 				});
 			}
-
-
-		sw.Stop();
-		// GD.Print(sw.Elapsed.TotalMilliseconds);
 
 		var chunk = new Chunk(chunkCoord, tiles, objects);
 
@@ -214,19 +206,14 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 
 	public void ProcessClientChunkQueue()
 	{
-		var sw = System.Diagnostics.Stopwatch.StartNew();
-		const double maxMs = 2.0;
+		var count = 0;
 
-		while (_clientChunkQueue.Count > 0)
+		while (_clientChunkQueue.TryDequeue(out var chunkDto))
 		{
-			var chunkDto = _clientChunkQueue.Dequeue();
-
-			if (world.ActiveChunks.ContainsKey(chunkDto.Coord))
-				continue;
-
 			FinaliseChunk(chunkDto);
+			count++;
 
-			if (sw.Elapsed.TotalMilliseconds > maxMs)
+			if (count >= MaxClientChunksFinalisedPerFrame)
 				break;
 		}
 	}
@@ -235,10 +222,7 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 	{
 		var chunkCoord = chunkDto.Coord;
 		if (world.ActiveChunks.ContainsKey(chunkCoord))
-		{
-			GD.Print("Skipping {chunkCoord}, already active");
 			return;
-		}
 
 		var chunk = CreateChunkFromDto(chunkDto);
 		FinaliseChunk(chunk);
@@ -247,14 +231,9 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 
 	public void FinaliseChunk(Chunk chunk)
 	{
-		var sw = System.Diagnostics.Stopwatch.StartNew();
-
 		var chunkCoord = chunk.Coord;
 		if (world.ActiveChunks.ContainsKey(chunkCoord))
-		{
-			GD.Print($"Skipping {chunkCoord}, already active");
 			return;
-		}
 
 		var c = world.ChunkSize;
 		var pos = new Vector3I();
@@ -279,11 +258,6 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 
 		world.WorldObjectManager.EnqueueChunk(chunk);
 		world.ActiveChunks[chunkCoord] = chunk;
-
-		sw.Stop();
-		chunk.FinaliseTimeMs = sw.Elapsed.TotalMilliseconds;
-
-		// GD.Print($"Chunk {chunkCoord} > Build {chunk.BuildTimeMs:F3}ms | Finalise {chunk.FinaliseTimeMs:F3}ms");
 	}
 
 	private bool TryGetEffectiveDensity(
@@ -387,7 +361,7 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 	}
 
 	private int CountMatchingNeighbours(ChunkSpawnContext chunkContext, int localX, int localY,
-		NeighbourTargetType targetType, string targetId, int radius)
+		NeighbourTargetType targetType, int targetId, int radius)
 	{
 		var count = 0;
 
@@ -411,12 +385,12 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 	}
 
 	private bool MatchesTarget(ChunkSpawnContext chunkContext, int localX, int localY,
-		NeighbourTargetType targetType, string targetId)
+		NeighbourTargetType targetType, int targetId)
 	{
 		return targetType switch
 		{
 			NeighbourTargetType.WaterFeature =>
-				chunkContext.WaterFeatures[localX, localY].ToString() == targetId,
+				(int)chunkContext.WaterFeatures[localX, localY] == targetId,
 
 			NeighbourTargetType.Object =>
 				chunkContext.Objects[localX, localY] == targetId,
@@ -431,7 +405,7 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 		int localX,
 		int localY,
 		NeighbourTargetType targetType,
-		string targetId,
+		int targetId,
 		int radius)
 	{
 		var key = new NeighborKey(localX, localY, targetType, targetId, radius);
@@ -491,6 +465,6 @@ public readonly record struct NeighborKey(
 	int LocalX,
 	int LocalY,
 	NeighbourTargetType TargetType,
-	string TargetId,
+	int TargetId,
 	int Radius
 );

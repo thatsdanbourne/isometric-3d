@@ -59,7 +59,7 @@ public static class BiomeDefinitions
 							new DensityModifier
 							{
 								TargetType = NeighbourTargetType.Object,
-								TargetId = "rock",
+								TargetId = WorldObjectRegistry.GetDefinition("rock").StableId,
 								Radius = 3,
 								MinCount = 1,
 								MaxCount = 3,
@@ -259,7 +259,7 @@ public static class BiomeDefinitions
 							new NeighbourRequirement
 							{
 								TargetType = NeighbourTargetType.WaterFeature,
-								TargetId = nameof(WaterFeatureType.River),
+								TargetId = (int)WaterFeatureType.River,
 								Radius = 3,
 								MinCount = 1
 							}
@@ -269,7 +269,7 @@ public static class BiomeDefinitions
 							new DensityModifier
 							{
 								TargetType = NeighbourTargetType.WaterFeature,
-								TargetId = nameof(WaterFeatureType.River),
+								TargetId = (int)WaterFeatureType.River,
 								Radius = 3,
 								MinCount = 1,
 								MaxCount = 4,

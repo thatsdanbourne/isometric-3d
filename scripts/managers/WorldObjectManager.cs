@@ -11,7 +11,6 @@ public partial class WorldObjectManager : Node
 	private readonly Queue<ChunkObject> _removeQueue = new();
 
 	private ulong _nextPickupId = 1;
-	private readonly Dictionary<ulong, ItemPickup> _activePickups = new();
 
 	private World _world;
 	private RandomNumberGenerator _rng;

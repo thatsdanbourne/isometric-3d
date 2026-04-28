@@ -9,7 +9,7 @@ public class SpawnConditions
 public class NeighbourRequirement
 {
 	public NeighbourTargetType TargetType { get; set; }
-	public string TargetId { get; set; } = "";
+	public int TargetId { get; set; }
 	public int Radius { get; set; } = 1;
 	public int MinCount { get; set; } = 1;
 	public int MaxCount { get; set; } = int.MaxValue;
@@ -18,7 +18,7 @@ public class NeighbourRequirement
 public class DensityModifier
 {
 	public NeighbourTargetType TargetType { get; set; }
-	public string TargetId { get; set; } = "";
+	public int TargetId { get; set; }
 
 	public int Radius { get; set; } = 1;
 

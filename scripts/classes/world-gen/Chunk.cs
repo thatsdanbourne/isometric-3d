@@ -12,11 +12,6 @@ public class Chunk(
 	public readonly List<ChunkObject> Objects = objects;
 	public Dictionary<Vector2I, StorageStateData> StorageStates = new();
 	public Dictionary<Vector2I, StationStateData> StationStates = new();
-
-	public ChunkSpawnContext SpawnContext;
-
-	public double BuildTimeMs;
-	public double FinaliseTimeMs;
 }
 
 public class ChunkSpawnContext
@@ -24,5 +19,5 @@ public class ChunkSpawnContext
 	public BiomeDefinition[,] BaseBiomes { get; init; }
 	public BiomeDefinition[,] FinalBiomes { get; init; }
 	public WaterFeatureType[,] WaterFeatures { get; init; }
-	public string?[,] Objects { get; init; }
+	public int[,] Objects { get; init; }
 }

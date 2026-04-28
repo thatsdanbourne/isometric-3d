@@ -44,6 +44,15 @@ public static class WorldObjectRegistry
 		return null;
 	}
 
+	public static WorldObjectDefinition GetDefinition(string id)
+	{
+		if (Defs.TryGetValue(DeterministicHash.String32(id), out var def))
+			return def;
+
+		GD.PrintErr($"WorldObjectRegistry: No definition found for id '{id}'");
+		return null;
+	}
+
 	public static void RegisterDefaults()
 	{
 		Register("tree_oak", GD.Load<PackedScene>("res://scenes/terrain/objects/TreeOak.tscn"));
