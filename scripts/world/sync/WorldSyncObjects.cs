@@ -1,3 +1,4 @@
+using System.Linq;
 using Godot;
 
 public partial class WorldSync
@@ -45,10 +46,8 @@ public partial class WorldSync
 			return;
 
 		var item = ItemRegistry.GetItem(itemId) as PlaceableItem;
-		if (item == null)
-			return;
 
-		var def = item.PlaceableObjectDefinition;
+		var def = item?.PlaceableObjectDefinition;
 		if (def == null)
 			return;
 
@@ -80,5 +79,30 @@ public partial class WorldSync
 	private void ReceiveObjectPlaced(int defId, Vector2I chunkCoord, Vector2I tileCoord, Vector3 worldPos)
 	{
 		_world.WorldObjectManager.ApplyRemotePlace(defId, chunkCoord, tileCoord, worldPos);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+	public void RequestInteractObject(Vector2I chunkCoord, Vector2I tileCoord)
+	{
+		if (!_world.Multiplayer.IsServer())
+			return;
+
+		var player = GetRequestingPlayer();
+
+		if (player == null)
+			return;
+
+		if (!_world.ActiveChunks.TryGetValue(chunkCoord, out var chunk))
+			return;
+
+		var obj = chunk.Objects.FirstOrDefault(o => o.TileCoord == tileCoord);
+
+		if (obj?.RuntimeNode is not IInteractable interactable)
+			return;
+
+		if (!interactable.CanInteract(player))
+			return;
+
+		interactable.Interact(player);
 	}
 }

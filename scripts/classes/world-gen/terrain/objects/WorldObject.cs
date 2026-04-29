@@ -63,7 +63,7 @@ public partial class WorldObject : Node3D, IToolHittable
 		return ToolHitOutcome.Failed;
 	}
 
-	private void BreakObject()
+	protected void BreakObject()
 	{
 		World.TryBreakObject(Data);
 	}

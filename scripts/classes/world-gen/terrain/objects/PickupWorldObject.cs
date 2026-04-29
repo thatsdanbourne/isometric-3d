@@ -15,7 +15,16 @@ public partial class PickupWorldObject : WorldObject, IInteractable
 
 	public void Interact(Player player)
 	{
-		GD.Print("Pickup interacted");
+		if (!CanInteract(player))
+			return;
+
+		if (!World.Multiplayer.IsServer())
+		{
+			World.Sync.RpcId(1, nameof(World.Sync.RequestInteractObject), Data.ChunkCoord, Data.TileCoord);
+			return;
+		}
+
+		BreakObject();
 	}
 
 	public bool CanInteract(Player player)

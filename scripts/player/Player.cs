@@ -216,9 +216,8 @@ public partial class Player : CharacterBody3D, IToolHittable
 	{
 		if (hudOpen || !Input.IsActionJustPressed(InteractAction))
 			return;
-
-		if (FocusedInteractable?.CanInteract(this) == true)
-			FocusedInteractable.Interact(this);
+		
+		FocusedInteractable.Interact(this);
 	}
 
 	// movement and animation
