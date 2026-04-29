@@ -55,8 +55,10 @@ public partial class WorldObjectManager : Node
 		if (data.RuntimeNode is not { } wo)
 			return;
 
-		if (data.RuntimeNode is IItemContainer storage)
-			foreach (var stack in storage.GetSlots())
+		if (data.RuntimeNode is IItemContainer &&
+		    _world.TryGetChunkDelta(data.ChunkCoord, out var delta) &&
+		    delta.StorageStates.TryGetValue(data.TileCoord, out var state))
+			foreach (var stack in state.Slots)
 			{
 				if (stack is not { Count: > 0 })
 					continue;
@@ -112,20 +114,11 @@ public partial class WorldObjectManager : Node
 		if (!_world.ActiveChunks.TryGetValue(chunkCoord, out var chunk))
 			return;
 
-		ChunkObject target = null;
-
-		foreach (var obj in chunk.Objects)
-			if (obj.TileCoord == tileCoord)
-			{
-				target = obj;
-				break;
-			}
-
-		if (target == null)
+		if (!TryGetObject(chunkCoord, tileCoord, out var target))
 			return;
 
-		chunk.Objects.Remove(target);
-		EnqueueRemoval(target);
+		chunk.Objects.Remove(target.Data);
+		EnqueueRemoval(target.Data);
 	}
 
 	public bool RequestPlace(ChunkObject data)
@@ -153,9 +146,8 @@ public partial class WorldObjectManager : Node
 		if (!_world.ActiveChunks.TryGetValue(chunkCoord, out var chunk))
 			return;
 
-		foreach (var obj in chunk.Objects)
-			if (obj.TileCoord == tileCoord)
-				return;
+		if (TryGetObject(chunkCoord, tileCoord, out _))
+			return;
 
 		var def = WorldObjectRegistry.GetDefinition(definitionId);
 		if (def == null)
