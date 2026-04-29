@@ -10,7 +10,7 @@ public partial class WorldObjectManager : Node
 	private readonly Queue<ChunkObject> _activeSpawnQueue = new();
 	private readonly Queue<ChunkObject> _removeQueue = new();
 
-	private ulong _nextPickupId = 1;
+	private readonly Dictionary<Vector2I, Dictionary<Vector2I, WorldObject>> _worldObjectsByChunk = new();
 
 	private World _world;
 	private RandomNumberGenerator _rng;
@@ -213,6 +213,8 @@ public partial class WorldObjectManager : Node
 			node.GlobalPosition = data.Position;
 			node.Visible = true;
 
+			RegisterToChunkObjectMap(node);
+
 			if (data.Definition.BlocksTile)
 				_world.BlockTile(data.TileCoord);
 
@@ -253,11 +255,48 @@ public partial class WorldObjectManager : Node
 				_world.UnblockTile(data.TileCoord);
 
 			Recycle(data.RuntimeNode);
+			UnregisterFromChunkObjectMap(data.RuntimeNode);
 			data.RuntimeNode = null;
 			data.MarkedForRemoval = false;
 
 			count++;
 		}
+	}
+
+	private void RegisterToChunkObjectMap(WorldObject obj)
+	{
+		var chunkCoord = obj.Data.ChunkCoord;
+		var tileCoord = obj.Data.TileCoord;
+
+		if (!_worldObjectsByChunk.TryGetValue(chunkCoord, out var objectMap))
+		{
+			objectMap = new Dictionary<Vector2I, WorldObject>();
+			_worldObjectsByChunk[chunkCoord] = objectMap;
+		}
+
+		objectMap[tileCoord] = obj;
+	}
+
+	private void UnregisterFromChunkObjectMap(WorldObject obj)
+	{
+		var chunkCoord = obj.Data.ChunkCoord;
+		var tileCoord = obj.Data.TileCoord;
+
+		if (!_worldObjectsByChunk.TryGetValue(chunkCoord, out var objectMap))
+			return;
+
+		objectMap.Remove(tileCoord);
+
+		if (objectMap.Count == 0)
+			_worldObjectsByChunk.Remove(chunkCoord);
+	}
+
+	public bool TryGetObject(Vector2I chunkCoord, Vector2I tileCoord, out WorldObject obj)
+	{
+		obj = null;
+
+		return _worldObjectsByChunk.TryGetValue(chunkCoord, out var objectMap)
+		       && objectMap.TryGetValue(tileCoord, out obj);
 	}
 
 	private void Recycle(WorldObject node)

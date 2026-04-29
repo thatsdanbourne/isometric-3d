@@ -8,22 +8,10 @@ public partial class WorldSync
 		if (!Multiplayer.IsServer())
 			return;
 
-		if (!_world.ActiveChunks.TryGetValue(chunkCoord, out var chunk))
+		if (!_world.WorldObjectManager.TryGetObject(chunkCoord, tileCoord, out var target))
 			return;
 
-		ChunkObject target = null;
-
-		foreach (var obj in chunk.Objects)
-			if (obj.TileCoord == tileCoord)
-			{
-				target = obj;
-				break;
-			}
-
-		if (target == null)
-			return;
-
-		_world.WorldObjectManager.RequestBreak(target);
+		_world.WorldObjectManager.RequestBreak(target.Data);
 	}
 
 	public void BroadcastObjectRemoved(Vector2I chunkCoord, Vector2I tileCoord)
@@ -92,12 +80,10 @@ public partial class WorldSync
 		if (player == null)
 			return;
 
-		if (!_world.ActiveChunks.TryGetValue(chunkCoord, out var chunk))
+		if (!_world.WorldObjectManager.TryGetObject(chunkCoord, tileCoord, out var obj))
 			return;
 
-		var obj = chunk.Objects.FirstOrDefault(o => o.TileCoord == tileCoord);
-
-		if (obj?.RuntimeNode is not IInteractable interactable)
+		if (obj is not IInteractable interactable)
 			return;
 
 		if (!interactable.CanInteract(player))
