@@ -242,7 +242,7 @@ public partial class WorldSync
 		var delta = _world.MutateChunkDelta(chunkCoord);
 		delta.StationStates[tileCoord] = state;
 
-		var worldObject = _world.ResolveWorldObject(tileCoord);
+		_world.WorldObjectManager.TryGetObject(chunkCoord, tileCoord, out var worldObject);
 		if (worldObject is IProcessingStation station)
 			station.BindState(state);
 	}

@@ -397,26 +397,6 @@ public partial class World : Node3D
 		return _blockedTiles.ContainsKey(tile);
 	}
 
-	private bool TryResolveWorldObjectFromChunkMap(Dictionary<Vector2I, Chunk> chunks, Vector2I tileCoord,
-		Vector2I chunkCoord, out WorldObject worldObject)
-	{
-		worldObject = null;
-
-		if (!chunks.TryGetValue(chunkCoord, out var chunk))
-			return false;
-
-		foreach (var obj in chunk.Objects)
-		{
-			if (obj.TileCoord != tileCoord)
-				continue;
-
-			worldObject = obj.RuntimeNode;
-			return worldObject != null;
-		}
-
-		return false;
-	}
-
 	public ChunkObject ResolveChunkObject(Vector2I tileCoord)
 	{
 		var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(tileCoord));
@@ -430,19 +410,6 @@ public partial class World : Node3D
 			foreach (var obj in serverChunk.Objects)
 				if (obj.TileCoord == tileCoord)
 					return obj;
-
-		return null;
-	}
-
-	public WorldObject ResolveWorldObject(Vector2I tileCoord)
-	{
-		var chunkCoord = TileUtils.WorldToChunk(TileUtils.TileToWorld(tileCoord));
-
-		if (TryResolveWorldObjectFromChunkMap(ActiveChunks, tileCoord, chunkCoord, out var worldObject))
-			return worldObject;
-
-		if (TryResolveWorldObjectFromChunkMap(ServerChunks, tileCoord, chunkCoord, out worldObject))
-			return worldObject;
 
 		return null;
 	}

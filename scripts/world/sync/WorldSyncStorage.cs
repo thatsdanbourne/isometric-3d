@@ -25,7 +25,7 @@ public partial class WorldSync
 		var delta = _world.MutateChunkDelta(chunkCoord);
 		delta.StorageStates[state.TileCoord] = state;
 
-		var worldObject = _world.ResolveWorldObject(state.TileCoord);
+		_world.WorldObjectManager.TryGetObject(chunkCoord, state.TileCoord, out var worldObject);
 		if (worldObject is IItemContainer container)
 			container.BindState(state);
 	}
