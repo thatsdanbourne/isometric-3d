@@ -19,10 +19,16 @@ public class ToolItem : Item
 		if (target == null)
 			return ToolHitResult.None;
 
-		if (target is WorldObject wo && wo.RequiredTier > Tier)
+		if (target is WorldObject wo)
 		{
-			var outcomeFail = target.ReceiveToolHitFailed(this, fromDirection, hitPoint);
-			return new ToolHitResult(outcomeFail, target.GetImpactType(), target.GetHitSound(), string.Empty, hitPoint);
+			if (!wo.CanReceiveToolHits) return ToolHitResult.None;
+
+			if (wo.RequiredTier > Tier)
+			{
+				var outcomeFail = target.ReceiveToolHitFailed(this, fromDirection, hitPoint);
+				return new ToolHitResult(outcomeFail, target.GetImpactType(), target.GetHitSound(), string.Empty,
+					hitPoint);
+			}
 		}
 
 		var finalDamage = Damage;

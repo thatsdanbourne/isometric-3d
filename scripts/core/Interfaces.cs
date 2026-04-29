@@ -18,8 +18,8 @@ public interface IInteractable
 {
 	void OnFocusGained();
 	void OnFocusLost();
-
-	T GetCapability<T>() where T : class;
+	bool CanInteract(Player player);
+	void Interact(Player player);
 }
 
 public interface ICraftingStation

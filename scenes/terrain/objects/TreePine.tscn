@@ -7,7 +7,6 @@
 [ext_resource type="Texture2D" uid="uid://biw08dq8o6nnr" path="res://assets/sprites/tree/oak_trunk.png" id="3_cye4l"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/classes/drops/DropEntry.cs" id="3_dqv2m"]
 [ext_resource type="Texture2D" uid="uid://du32la2gi2lf0" path="res://assets/meshes/pine_leaf_alpha.png" id="3_tr1gr"]
-[ext_resource type="Script" uid="uid://cpls1x8o2fn0e" path="res://scripts/classes/world-gen/terrain/objects/WorldObjectCollider.cs" id="4_updbm"]
 
 [sub_resource type="Resource" id="Resource_dqv2m"]
 script = ExtResource("3_dqv2m")
@@ -47,13 +46,12 @@ buffer = PackedFloat32Array(-0.49300876, -0.05873715, 0.33866414, -1.1604356, -0
 [node name="TreePine" unique_id=823955562 instance=ExtResource("1_3b2bc")]
 script = ExtResource("2_cye4l")
 ObjectType = "wood"
-BreakSoundsKey = "break_tree"
 DropItems = Array[ExtResource("3_dqv2m")]([SubResource("Resource_dqv2m")])
+BreakSoundsKey = "break_tree"
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." index="0" unique_id=1074874889]
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("4_updbm")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" index="0" unique_id=656998091]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)

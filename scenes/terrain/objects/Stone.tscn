@@ -1,15 +1,25 @@
 [gd_scene format=3 uid="uid://xrtdkqvs01kj"]
 
 [ext_resource type="PackedScene" uid="uid://pbrhpp1dff5g" path="res://assets/meshes/stone/stone.glb" id="1_7whvg"]
-[ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/classes/world-gen/terrain/objects/WorldObject.cs" id="2_peq2f"]
+[ext_resource type="Script" uid="uid://5g8yjgghbawc" path="res://scripts/classes/world-gen/terrain/objects/PickupWorldObject.cs" id="2_peq2f"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_peq2f"]
 albedo_color = Color(0.4336509, 0.43365085, 0.43365085, 1)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_peq2f"]
+size = Vector3(0.5, 0.5, 0.5)
+
 [node name="stone" unique_id=2089080315 instance=ExtResource("1_7whvg")]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
 script = ExtResource("2_peq2f")
-ObjectType = "stone"
 
 [node name="Cube_001" parent="." index="0" unique_id=386827727]
 surface_material_override/0 = SubResource("StandardMaterial3D_peq2f")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." index="1" unique_id=1962813916]
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" index="0" unique_id=498258808]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+shape = SubResource("BoxShape3D_peq2f")

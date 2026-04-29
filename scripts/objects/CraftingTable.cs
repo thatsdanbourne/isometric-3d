@@ -2,7 +2,7 @@ using Godot;
 
 public partial class CraftingTable : WorldObject, IInteractable, ICraftingStation
 {
-	private InteractionPrompt interactPrompt;
+	private InteractionPrompt _interactPrompt;
 
 	public string Label => "Crafting Table";
 	public StationType StationType => StationType.CraftingTable;
@@ -10,21 +10,26 @@ public partial class CraftingTable : WorldObject, IInteractable, ICraftingStatio
 
 	public void OnFocusGained()
 	{
-		interactPrompt.ShowIcon();
+		_interactPrompt.ShowIcon();
 	}
 
 	public void OnFocusLost()
 	{
-		interactPrompt.HideIcon();
+		_interactPrompt.HideIcon();
 	}
 
-	public T GetCapability<T>() where T : class
+	public bool CanInteract(Player player)
 	{
-		return this as T;
+		return true;
+	}
+
+	public void Interact(Player player)
+	{
+		player.HUD.OpenCraftingUI(this);
 	}
 
 	public override void _Ready()
 	{
-		interactPrompt = GetNode<InteractionPrompt>("InteractionPrompt");
+		_interactPrompt = GetNode<InteractionPrompt>("InteractionPrompt");
 	}
 }

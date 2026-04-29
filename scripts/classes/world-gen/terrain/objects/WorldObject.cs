@@ -3,6 +3,7 @@ using Godot;
 public partial class WorldObject : Node3D, IToolHittable
 {
 	[Export] public string ObjectType { get; set; }
+	[Export] public Godot.Collections.Array<DropEntry> DropItems { get; set; } = new();
 	[Export] public string HitSoundsKey = "hit_wood";
 	[Export] public string BreakSoundsKey = "break_wood";
 	[Export] public string FailedHitSoundsKey = "hit_fail";
@@ -12,12 +13,12 @@ public partial class WorldObject : Node3D, IToolHittable
 
 	public float CurrentHealth;
 
-	[Export] public Godot.Collections.Array<DropEntry> DropItems { get; set; } = new();
-
 	public ChunkObject Data;
 	public World World;
 	public ToolTier RequiredTier;
 	public float MaxHealth;
+
+	public virtual bool CanReceiveToolHits => true;
 
 	public override void _Ready()
 	{

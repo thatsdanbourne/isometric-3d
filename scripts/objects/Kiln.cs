@@ -84,9 +84,14 @@ public partial class Kiln : WorldObject, IInteractable, IProcessingStation
 		_interactPrompt.HideIcon();
 	}
 
-	public T GetCapability<T>() where T : class
+	public void Interact(Player player)
 	{
-		return this as T;
+		player.HUD.OpenCraftingUI(this);
+	}
+
+	public bool CanInteract(Player player)
+	{
+		return true;
 	}
 
 	public override void _Ready()

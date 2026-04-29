@@ -29,9 +29,14 @@ public partial class Chest : WorldObject, IItemContainer, IInteractable
 		_interactPrompt.HideIcon();
 	}
 
-	public T GetCapability<T>() where T : class
+	public void Interact(Player player)
 	{
-		return this as T;
+		player.HUD.OpenStorageUI(this);
+	}
+
+	public bool CanInteract(Player player)
+	{
+		return true;
 	}
 
 	public ItemStack[] GetSlots()

@@ -4,7 +4,6 @@
 [ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/classes/world-gen/terrain/objects/WorldObject.cs" id="2_7ddnh"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/classes/drops/DropEntry.cs" id="2_osrtj"]
 [ext_resource type="Material" uid="uid://bmfptrd5gn133" path="res://resources/materials/Rock.tres" id="4_1wien"]
-[ext_resource type="Script" uid="uid://cpls1x8o2fn0e" path="res://scripts/classes/world-gen/terrain/objects/WorldObjectCollider.cs" id="5_jlmj0"]
 
 [sub_resource type="Resource" id="Resource_xhipr"]
 script = ExtResource("2_osrtj")
@@ -42,7 +41,6 @@ surface_material_override/0 = SubResource("StandardMaterial3D_era11")
 [node name="StaticBody3D" type="StaticBody3D" parent="." index="2" unique_id=1921269226]
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("5_jlmj0")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" index="0" unique_id=1910699497]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)

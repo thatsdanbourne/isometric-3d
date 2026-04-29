@@ -5,7 +5,6 @@
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/classes/drops/DropEntry.cs" id="2_icftp"]
 [ext_resource type="Texture2D" uid="uid://b4kw5vweh4a6r" path="res://assets/particles/flame_03_a.png" id="4_4e13r"]
 [ext_resource type="Texture2D" uid="uid://dpinrv3mnffj4" path="res://assets/particles/spotlight_01_a.png" id="4_icftp"]
-[ext_resource type="Script" uid="uid://cpls1x8o2fn0e" path="res://scripts/classes/world-gen/terrain/objects/WorldObjectCollider.cs" id="4_ymemr"]
 
 [sub_resource type="Resource" id="Resource_4e13r"]
 script = ExtResource("2_icftp")
@@ -153,7 +152,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
 [node name="StaticBody3D" type="StaticBody3D" parent="." index="1" unique_id=233947942]
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("4_ymemr")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" index="0" unique_id=590293689]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)

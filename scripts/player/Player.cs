@@ -36,7 +36,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public BiomeId CurrentBiome = BiomeId.Unknown;
 
 	public IInteractable FocusedInteractable { get; private set; }
-	public ICraftingStation FocusedStation => FocusedInteractable?.GetCapability<ICraftingStation>();
 
 	public HUD HUD;
 	public Hotbar Hotbar;
@@ -210,7 +209,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (HUD.IsCraftingOpen)
 			HUD.CloseCraftingUI();
 		else
-			HUD.OpenCraftingUI(FocusedStation);
+			HUD.OpenCraftingUI();
 	}
 
 	private void HandleInteraction(bool hudOpen)
@@ -218,15 +217,8 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (hudOpen || !Input.IsActionJustPressed(InteractAction))
 			return;
 
-		switch (FocusedInteractable)
-		{
-			case IItemContainer storage:
-				HUD.OpenStorageUI(storage);
-				break;
-			case ICraftingStation station:
-				HUD.OpenCraftingUI(station);
-				break;
-		}
+		if (FocusedInteractable?.CanInteract(this) == true)
+			FocusedInteractable.Interact(this);
 	}
 
 	// movement and animation
@@ -402,8 +394,8 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		if (result.Count > 0 && result.TryGetValue("collider", out var col))
 		{
-			var body = col.As<Node>() as WorldObjectCollider;
-			newFocus = body?.ObjectOwner as IInteractable;
+			var node = col.As<Node>();
+			newFocus = FindInteractable(node);
 		}
 
 		if (newFocus == FocusedInteractable)
@@ -734,7 +726,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 		AudioManager.Instance.PlayVariantAt("hit_flesh", GlobalPosition, AudioManager.BusTools, 0.2f);
 	}
 
-	// IToolHittable
+
+	#region IToolHittable
+
 	public string GetImpactType()
 	{
 		return "flesh";
@@ -774,6 +768,8 @@ public partial class Player : CharacterBody3D, IToolHittable
 		return ToolHitOutcome.Failed;
 	}
 
+	#endregion
+
 	private void ApplyKnockback(Vector3 direction, float strength)
 	{
 		direction.Y = 0;
@@ -781,5 +777,18 @@ public partial class Player : CharacterBody3D, IToolHittable
 			return;
 
 		KnockbackVelocity += direction.Normalized() * (strength / _knockbackResistance);
+	}
+
+	private static IInteractable FindInteractable(Node node)
+	{
+		while (node != null)
+		{
+			if (node is IInteractable interactable)
+				return interactable;
+
+			node = node.GetParent();
+		}
+
+		return null;
 	}
 }
