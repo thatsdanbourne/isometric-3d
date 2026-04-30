@@ -61,25 +61,24 @@ public partial class CraftingManager : Node
 		if (player == null || recipe == null)
 			return false;
 
-		if (station != null) return false;
+		if (station != null)
+			return false;
 
 		if (!CanCraft(player, recipe))
 			return false;
 
 		ConsumeIngredients(player, recipe);
-		CraftItem(player, recipe.ResultItemId);
+		GiveCraftResult(player, recipe);
 		return true;
 	}
 
-	public bool CraftItem(Player player, string resultItemId)
+	private void GiveCraftResult(Player player, CraftingRecipe recipe)
 	{
-		var recipe = CraftingRegistry.GetRecipeByResultId(resultItemId);
-
-		if (recipe == null || !CanCraft(player, recipe))
-			return false;
-
-		InventoryManager.Instance.AddItem(player, ItemRegistry.GetItem(recipe.ResultItemId), recipe.ResultCount);
-		return true;
+		InventoryManager.Instance.AddItem(
+			player,
+			ItemRegistry.GetItem(recipe.ResultItemId),
+			recipe.ResultCount
+		);
 	}
 
 	// called to consume ingredients when starting a craft in timed stations
