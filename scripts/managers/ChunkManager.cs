@@ -23,7 +23,7 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 		var playerChunks = GetUniquePlayerChunks(playerPositions);
 		var desiredChunks = BuildDesiredChunkSet(playerChunks);
 
-		EnsureLocalChunksActive(desiredChunks);
+		EnsureAuthorityChunksActive(desiredChunks);
 		UnloadChunksOutsideDesiredSet(desiredChunks);
 	}
 
@@ -70,7 +70,7 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 		}
 	}
 
-	private void EnsureLocalChunksActive(HashSet<Vector2I> desiredChunks)
+	private void EnsureAuthorityChunksActive(HashSet<Vector2I> desiredChunks)
 	{
 		foreach (var coord in desiredChunks)
 		{

@@ -1,19 +1,21 @@
 using Godot;
 using System;
 
-public partial class PickupWorldObject : WorldObject, IInteractable
+public partial class PickupWorldObject : InteractableObject
 {
+	private PackedScene _interactPromptScene = GD.Load<PackedScene>("res://scenes/ui/HUD/InteractionPrompt.tscn");
+
 	public override bool CanReceiveToolHits => false;
 
-	public void OnFocusGained()
+	public override void _Ready()
 	{
+		base._Ready();
+		InteractPrompt = _interactPromptScene.Instantiate<InteractionPrompt>();
+		InteractPrompt.Position = new Vector3(0f, 2f, 0f);
+		AddChild(InteractPrompt);
 	}
 
-	public void OnFocusLost()
-	{
-	}
-
-	public void Interact(Player player)
+	public override void Interact(Player player)
 	{
 		if (!CanInteract(player))
 			return;
@@ -25,10 +27,5 @@ public partial class PickupWorldObject : WorldObject, IInteractable
 		}
 
 		BreakObject();
-	}
-
-	public bool CanInteract(Player player)
-	{
-		return true;
 	}
 }

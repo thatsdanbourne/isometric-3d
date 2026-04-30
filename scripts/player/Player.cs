@@ -42,6 +42,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public Inventory Inventory;
 	public ItemStack DraggedStack;
 	public CameraController CameraController;
+	private Label3D Nameplate;
 
 	private float _aimLockTimer;
 	private float _footstepTimer;
@@ -88,6 +89,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 		Hotbar.SelectedSlotChanged += OnSelectedSlotChanged;
 		Hotbar.ContainerChanged += OnHotbarContainerChanged;
 		Inventory = GetNode<Inventory>("Inventory");
+		Nameplate = GetNode<Label3D>("Nameplate");
+		Nameplate.Visible = !IsLocal;
+		Nameplate.Text = $"Player {PlayerId}";
 
 		_focusQuery = new PhysicsRayQueryParameters3D
 		{
@@ -108,14 +112,14 @@ public partial class Player : CharacterBody3D, IToolHittable
 			_testItemsGiven = true;
 
 			// testing items
-			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_sword"), 1);
-			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("chest"), 1);
-			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
-			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("kiln"), 1);
-			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("copper_ore"), 99);
-			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("coal"), 99);
-			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("wood"), 99);
-			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone"), 99);
+			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_sword"), 1);
+			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("chest"), 1);
+			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
+			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("kiln"), 1);
+			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("copper_ore"), 99);
+			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("coal"), 99);
+			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("wood"), 99);
+			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone"), 99);
 
 			if (Multiplayer.HasMultiplayerPeer() && Multiplayer.IsServer())
 				_world.Sync.SyncPlayerInventoryState(this);
@@ -216,8 +220,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 	{
 		if (hudOpen || !Input.IsActionJustPressed(InteractAction))
 			return;
-		
-		FocusedInteractable.Interact(this);
+
+		if (FocusedInteractable != null && FocusedInteractable.CanInteract(this))
+			FocusedInteractable.Interact(this);
 	}
 
 	// movement and animation
@@ -398,11 +403,15 @@ public partial class Player : CharacterBody3D, IToolHittable
 		}
 
 		if (newFocus == FocusedInteractable)
+		{
+			FocusedInteractable?.UpdateFocus(this);
 			return;
+		}
 
-		FocusedInteractable?.OnFocusLost();
+		FocusedInteractable?.OnFocusLost(this);
 		FocusedInteractable = newFocus;
-		FocusedInteractable?.OnFocusGained();
+		FocusedInteractable?.OnFocusGained(this);
+		FocusedInteractable?.UpdateFocus(this);
 	}
 
 	private void UpdatePlacementState(Item item)

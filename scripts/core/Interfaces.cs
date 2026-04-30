@@ -16,8 +16,9 @@ public interface IItemContainer
 
 public interface IInteractable
 {
-	void OnFocusGained();
-	void OnFocusLost();
+	void OnFocusGained(Player player);
+	void OnFocusLost(Player player);
+	void UpdateFocus(Player player);
 	bool CanInteract(Player player);
 	void Interact(Player player);
 }

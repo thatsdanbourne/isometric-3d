@@ -1,6 +1,6 @@
 using Godot;
 
-public partial class Chest : WorldObject, IItemContainer, IInteractable
+public partial class Chest : InteractableObject, IItemContainer
 {
 	[Signal]
 	public delegate void ContainerChangedEventHandler();
@@ -10,8 +10,6 @@ public partial class Chest : WorldObject, IItemContainer, IInteractable
 	public string Label => "Chest";
 	public int SlotCount => 9;
 
-	private InteractionPrompt _interactPrompt;
-
 
 	public void BindState(StorageStateData state)
 	{
@@ -19,24 +17,9 @@ public partial class Chest : WorldObject, IItemContainer, IInteractable
 		EmitSignal(SignalName.ContainerChanged);
 	}
 
-	public void OnFocusGained()
-	{
-		_interactPrompt.ShowIcon();
-	}
-
-	public void OnFocusLost()
-	{
-		_interactPrompt.HideIcon();
-	}
-
-	public void Interact(Player player)
+	public override void Interact(Player player)
 	{
 		player.HUD.OpenStorageUI(this);
-	}
-
-	public bool CanInteract(Player player)
-	{
-		return true;
 	}
 
 	public ItemStack[] GetSlots()
@@ -58,6 +41,6 @@ public partial class Chest : WorldObject, IItemContainer, IInteractable
 	public override void _Ready()
 	{
 		base._Ready();
-		_interactPrompt = GetNode<InteractionPrompt>("InteractionPrompt");
+		InteractPrompt = GetNode<InteractionPrompt>("InteractionPrompt");
 	}
 }

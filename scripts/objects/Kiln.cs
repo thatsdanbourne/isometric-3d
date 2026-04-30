@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-public partial class Kiln : WorldObject, IInteractable, IProcessingStation
+public partial class Kiln : InteractableObject, IProcessingStation
 {
 	private CraftingRecipe _activeRecipe;
 	private StationStateData _state;
@@ -10,7 +10,6 @@ public partial class Kiln : WorldObject, IInteractable, IProcessingStation
 	public StationType StationType => StationType.Kiln;
 	public Vector2I TileCoord => Data.TileCoord;
 
-	private InteractionPrompt _interactPrompt;
 	private OmniLight3D _light;
 
 	public bool IsCrafting => _state?.IsCrafting ?? false;
@@ -74,31 +73,16 @@ public partial class Kiln : WorldObject, IInteractable, IProcessingStation
 		return _activeRecipe;
 	}
 
-	public void OnFocusGained()
-	{
-		_interactPrompt.ShowIcon();
-	}
-
-	public void OnFocusLost()
-	{
-		_interactPrompt.HideIcon();
-	}
-
-	public void Interact(Player player)
+	public override void Interact(Player player)
 	{
 		player.HUD.OpenCraftingUI(this);
-	}
-
-	public bool CanInteract(Player player)
-	{
-		return true;
 	}
 
 	public override void _Ready()
 	{
 		base._Ready();
 		_light = GetNode<OmniLight3D>("OmniLight3D");
-		_interactPrompt = GetNode<InteractionPrompt>("InteractionPrompt");
+		InteractPrompt = GetNode<InteractionPrompt>("InteractionPrompt");
 		UpdateVisual();
 	}
 
