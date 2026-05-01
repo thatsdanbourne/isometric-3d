@@ -19,6 +19,9 @@ public class ToolItem : Item
 		if (target == null)
 			return ToolHitResult.None;
 
+		var hitSound = target.GetHitSound(this);
+		var breakSound = target.GetBreakSound();
+
 		if (target is WorldObject wo)
 		{
 			if (!wo.CanReceiveToolHits) return ToolHitResult.None;
@@ -26,7 +29,7 @@ public class ToolItem : Item
 			if (wo.RequiredTier > Tier)
 			{
 				var outcomeFail = target.ReceiveToolHitFailed(this, fromDirection, hitPoint);
-				return new ToolHitResult(outcomeFail, target.GetImpactType(), target.GetHitSound(), string.Empty,
+				return new ToolHitResult(outcomeFail, target.GetImpactType(), hitSound, string.Empty,
 					hitPoint);
 			}
 		}
@@ -34,7 +37,7 @@ public class ToolItem : Item
 		var finalDamage = Damage;
 		finalDamage = target.ModifyIncomingToolDamage(this, finalDamage, Damage);
 		var outcome = target.ReceiveToolHit(this, finalDamage, fromDirection, hitPoint);
-		return new ToolHitResult(outcome, target.GetImpactType(), target.GetHitSound(), target.GetBreakSound(),
+		return new ToolHitResult(outcome, target.GetImpactType(), hitSound, breakSound,
 			hitPoint);
 	}
 }

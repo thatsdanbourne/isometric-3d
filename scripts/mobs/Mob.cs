@@ -169,9 +169,14 @@ public partial class Mob : CharacterBody3D, IToolHittable
 		return "flesh";
 	}
 
-	public string GetHitSound()
+	public string GetHitSound(ToolItem tool)
 	{
-		return "hit_flesh";
+		return tool.ToolType switch
+		{
+			"sword" => "hit_flesh_blade",
+			"axe" => "hit_flesh_blade",
+			_ => "hit_flesh"
+		};
 	}
 
 	public string GetBreakSound()

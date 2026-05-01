@@ -98,7 +98,23 @@ public class AudioRegistry
 		[
 			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_1.wav"),
 			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_2.wav"),
-			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_3.wav")
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_3.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_4.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_5.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_6.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_7.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_8.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_9.wav")
+		];
+
+		SfxVariants["hit_flesh_blade"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_blade_small_1.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_blade_small_2.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_blade_small_3.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_blade_small_4.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_blade_small_5.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_blade_small_6.wav")
 		];
 
 		// break sounds 
@@ -114,12 +130,6 @@ public class AudioRegistry
 			GD.Load<AudioStream>("res://assets/audio/break/stone/Mine Large Rock B.wav"),
 			GD.Load<AudioStream>("res://assets/audio/break/stone/Mine Large Rock C.wav"),
 			GD.Load<AudioStream>("res://assets/audio/break/stone/Mine Large Rock D.wav")
-		];
-
-		SfxVariants["break_ore"] =
-		[
-			GD.Load<AudioStream>("res://assets/audio/break/ore/Mining Soft Ore Crit A.wav"),
-			GD.Load<AudioStream>("res://assets/audio/break/ore/Mining Soft Ore Crit B.wav")
 		];
 
 		Sfx["hit_fail"] = GD.Load<AudioStream>("res://assets/audio/hit/hit_fail.wav");

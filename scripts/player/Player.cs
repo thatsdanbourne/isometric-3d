@@ -42,7 +42,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public Inventory Inventory;
 	public ItemStack DraggedStack;
 	public CameraController CameraController;
-	private Label3D Nameplate;
+	private Label3D _nameplate;
 
 	private float _aimLockTimer;
 	private float _footstepTimer;
@@ -89,9 +89,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 		Hotbar.SelectedSlotChanged += OnSelectedSlotChanged;
 		Hotbar.ContainerChanged += OnHotbarContainerChanged;
 		Inventory = GetNode<Inventory>("Inventory");
-		Nameplate = GetNode<Label3D>("Nameplate");
-		Nameplate.Visible = !IsLocal;
-		Nameplate.Text = $"Player {PlayerId}";
+		_nameplate = GetNode<Label3D>("Nameplate");
+		_nameplate.Visible = !IsLocal;
+		_nameplate.Text = $"Player {PlayerId}";
 
 		_focusQuery = new PhysicsRayQueryParameters3D
 		{
@@ -628,7 +628,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		PlayUseActiveToolVisual(tool, swingDir);
 	}
 
-	public void HandleLocalAttackReuslt(ToolHitResult result)
+	public void HandleLocalAttackResult(ToolHitResult result)
 	{
 		switch (result.Outcome)
 		{
@@ -672,16 +672,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 			AudioManager.BusTools,
 			0.1f
 		);
-	}
-
-	public void OnObjectBroken(ToolHitResult result)
-	{
-		if (IsLocal) CameraController?.Shake(0.3f, 0.7f);
-	}
-
-	public void OnHitFailed(ToolHitResult result)
-	{
-		if (IsLocal) CameraController?.Shake(0.1f, 0.3f);
 	}
 
 	// biome
@@ -748,7 +738,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		KnockbackVelocity = knockbackVelocity;
 
 		HUD.RefreshUI();
-		AudioManager.Instance.PlayVariantAt("hit_flesh", GlobalPosition, AudioManager.BusTools, 0.2f);
 	}
 
 
@@ -759,9 +748,14 @@ public partial class Player : CharacterBody3D, IToolHittable
 		return "flesh";
 	}
 
-	public string GetHitSound()
+	public string GetHitSound(ToolItem tool)
 	{
-		return "hit_flesh";
+		return tool.ToolType switch
+		{
+			"sword" => "hit_flesh_blade",
+			"axe" => "hit_flesh_blade",
+			_ => "hit_flesh"
+		};
 	}
 
 	public string GetBreakSound()
@@ -776,16 +770,12 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint)
 	{
-		AudioManager.Instance.PlayVariantAt("hit_flesh", GlobalPosition, AudioManager.BusTools, 0.2f);
-
 		ApplyKnockback(fromDirection, 3f);
 		Health -= damage;
 
 		_world.Sync.SendPlayerHitState(this);
 
-		if (Health <= 0) return ToolHitOutcome.Destroyed;
-
-		return ToolHitOutcome.Hit;
+		return Health <= 0f ? ToolHitOutcome.Destroyed : ToolHitOutcome.Hit;
 	}
 
 	public ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint)

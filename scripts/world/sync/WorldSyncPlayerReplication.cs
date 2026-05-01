@@ -143,7 +143,7 @@ public partial class WorldSync
 			breakSoundsKey,
 			hitPoint);
 
-		GameManager.Instance.LocalPlayer?.HandleLocalAttackReuslt(result);
+		GameManager.Instance.LocalPlayer?.HandleLocalAttackResult(result);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]

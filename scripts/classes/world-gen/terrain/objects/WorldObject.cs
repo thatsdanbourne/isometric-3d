@@ -80,7 +80,7 @@ public partial class WorldObject : Node3D, IToolHittable
 		return ObjectType;
 	}
 
-	public string GetHitSound()
+	public string GetHitSound(ToolItem tool)
 	{
 		return HitSoundsKey;
 	}
