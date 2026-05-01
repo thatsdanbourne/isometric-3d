@@ -210,7 +210,6 @@ public partial class MobStreamer : Node
 				if (!_activeMobs.TryGetValue(uid, out var mob)) continue;
 				currentVisibleUids.Add(uid);
 
-
 				if (known.Add(uid))
 					_world.Sync.RpcId(peerId,
 						nameof(WorldSync.SpawnRemoteMob),
@@ -222,6 +221,7 @@ public partial class MobStreamer : Node
 
 				snapshotBatch.Add(uid);
 				snapshotBatch.Add(mob.GlobalPosition);
+				snapshotBatch.Add(mob.Rotation);
 				snapshotBatch.Add(mob.Velocity);
 				snapshotBatch.Add((int)mob.State);
 				snapshotBatch.Add(mob.CurrentHealth);

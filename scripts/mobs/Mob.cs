@@ -17,6 +17,7 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	private Vector3 _knockbackVelocity;
 
 	protected Vector3 _netTargetPosition;
+	protected Vector3 _netTargetRotation;
 	protected Vector3 _netVelocity;
 	protected MobState _netState;
 
@@ -34,6 +35,7 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	{
 		CurrentHealth = MaxHealth;
 		_netTargetPosition = GlobalPosition;
+		_netTargetRotation = Rotation;
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -63,12 +65,7 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	private void UpdateRemoteMotion(double delta)
 	{
 		GlobalPosition = GlobalPosition.Lerp(_netTargetPosition, 12f * (float)delta);
-
-		if (_netVelocity.LengthSquared() > 0.001f)
-		{
-			var targetAngle = Mathf.Atan2(_netVelocity.X, _netVelocity.Z);
-			Rotation = new Vector3(Rotation.X, targetAngle, Rotation.Z);
-		}
+		Rotation = Rotation.Lerp(_netTargetRotation, 12f * (float)delta);
 
 		ApplyRemoteStateVisuals();
 	}
@@ -77,9 +74,10 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	{
 	}
 
-	public void ApplyRemoteSnapshot(Vector3 position, Vector3 velocity, int state, float health)
+	public void ApplyRemoteSnapshot(Vector3 position, Vector3 rotation, Vector3 velocity, int state, float health)
 	{
 		_netTargetPosition = position;
+		_netTargetRotation = rotation;
 		_netVelocity = velocity;
 		_netState = (MobState)state;
 		CurrentHealth = health;
