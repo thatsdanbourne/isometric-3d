@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Godot;
+using Godot.NativeInterop;
 
 public partial class Player : CharacterBody3D, IToolHittable
 {
@@ -34,6 +35,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public float AimLockTime = 0.5f;
 	public ToolItem DefaultTool;
 	public BiomeId CurrentBiome = BiomeId.Unknown;
+
+	public float Gravity = 24f;
+	private float _verticalVelocity;
 
 	public IInteractable FocusedInteractable { get; private set; }
 
@@ -237,6 +241,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		SetAnimState(isMoving ? "run" : "idle");
 		UpdateLocomotionBlend(blendAlpha);
 		UpdateVelocityWithKnockback(Velocity, dt);
+		ApplyGravity(dt);
 		MoveAndSlide();
 	}
 
@@ -257,6 +262,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		}
 
 		UpdateVelocityWithKnockback(moveVelocity, dt);
+		ApplyGravity(dt);
 		MoveAndSlide();
 	}
 
@@ -309,8 +315,28 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private void UpdateVelocityWithKnockback(Vector3 moveVelocity, float dt)
 	{
 		KnockbackVelocity = KnockbackVelocity.MoveToward(Vector3.Zero, _knockbackDecay * dt);
-		KnockbackVelocity.Y = 0f;
-		Velocity = new Vector3(moveVelocity.X + KnockbackVelocity.X, 0, moveVelocity.Z + KnockbackVelocity.Z);
+		Velocity = new Vector3(moveVelocity.X + KnockbackVelocity.X, moveVelocity.Y + KnockbackVelocity.Y,
+			moveVelocity.Z + KnockbackVelocity.Z);
+	}
+
+	private void ApplyGravity(float dt)
+	{
+		const float groundY = 0f;
+
+		if (GlobalPosition.Y > groundY + 0.02f)
+		{
+			_verticalVelocity -= Gravity * dt;
+		}
+		else
+		{
+			_verticalVelocity = 0f;
+
+			var pos = GlobalPosition;
+			pos.Y = groundY;
+			GlobalPosition = pos;
+		}
+
+		Velocity = new Vector3(Velocity.X, _verticalVelocity, Velocity.Z);
 	}
 
 	private void SetAnimState(string name)
@@ -787,7 +813,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	private void ApplyKnockback(Vector3 direction, float strength)
 	{
-		direction.Y = 0;
 		if (direction.LengthSquared() < 0.001f)
 			return;
 
