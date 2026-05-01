@@ -155,11 +155,17 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public override void _PhysicsProcess(double delta)
 	{
 		var dt = (float)delta;
+
+		_footstepTimer -= dt;
+		var isMoving = Velocity.LengthSquared() > 0.01f;
+		if (isMoving)
+			TryPlayFootstep();
+
 		var blendAlpha = 1f - Mathf.Exp(-14f * dt);
 
 		if (!IsLocal)
 		{
-			UpdateRemotePlayer(dt, blendAlpha);
+			UpdateRemotePlayer(dt, blendAlpha, isMoving);
 			return;
 		}
 
@@ -226,9 +232,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 	}
 
 	// movement and animation
-	private void UpdateRemotePlayer(float dt, float blendAlpha)
+	private void UpdateRemotePlayer(float dt, float blendAlpha, bool isMoving)
 	{
-		SetAnimState(Velocity.Abs() > Vector3.Zero ? "run" : "idle");
+		SetAnimState(isMoving ? "run" : "idle");
 		UpdateLocomotionBlend(blendAlpha);
 		UpdateVelocityWithKnockback(Velocity, dt);
 		MoveAndSlide();
@@ -264,7 +270,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	private Vector3 HandleMovementInput(Vector2 inputDir, float dt)
 	{
-		_footstepTimer -= dt;
 		_aimLockTimer += dt;
 
 		var moveVec = new Vector3(inputDir.X, 0, inputDir.Y).Rotated(Vector3.Up, Mathf.DegToRad(45));
@@ -276,7 +281,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 			Rotation.Z
 		);
 
-		TryPlayFootstep();
 		return moveVec * Speed;
 	}
 
