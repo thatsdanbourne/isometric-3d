@@ -9,7 +9,6 @@ public partial class CraftingManager : Node
 		Instance = this;
 	}
 
-
 	public bool CanCraft(Player player, CraftingRecipe recipe)
 	{
 		foreach (var ingredient in recipe.Ingredients)
@@ -81,7 +80,6 @@ public partial class CraftingManager : Node
 		);
 	}
 
-	// called to consume ingredients when starting a craft in timed stations
 	public bool ConsumeIngredients(Player player, CraftingRecipe recipe)
 	{
 		foreach (var ingredient in recipe.Ingredients)

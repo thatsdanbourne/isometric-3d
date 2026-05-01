@@ -476,7 +476,11 @@ public partial class World : Node3D
 			tool,
 			swingDir,
 			player.ToolQuery,
-			hitResult => { Sync.SendAttackResult(player.PlayerId, hitResult); });
+			hitResult =>
+			{
+				Sync.BroadcastAttackWorldResult(hitResult);
+				Sync.SendLocalAttackResult(player.PlayerId, hitResult);
+			});
 	}
 
 	public void ResolveEnemyMeleeAttack(Mob attacker, ToolItem tool, Vector3 swingDir,
@@ -490,7 +494,7 @@ public partial class World : Node3D
 			tool,
 			swingDir,
 			toolQuery,
-			hitResult => { });
+			hitResult => { Sync.BroadcastAttackWorldResult(hitResult); });
 	}
 
 	private async void ResolveMeleeHit(Node3D attacker, ToolItem tool, Vector3 swingDir,

@@ -84,14 +84,10 @@ public partial class WorldSync
 		player.PlayRemoteUseActiveToolVisual(item, swingDir);
 	}
 
-	public void SendAttackResult(int playerId, ToolHitResult result)
+	public void BroadcastAttackWorldResult(ToolHitResult result)
 	{
-		var player = _world.GetPlayerById(playerId);
-		if (player == null)
-			return;
-
-		RpcId(player.PlayerId,
-			nameof(ReceiveAttackResult),
+		Rpc(
+			nameof(ReceiveAttackWorldResult),
 			(int)result.Outcome,
 			result.TargetType,
 			result.HitSoundKey,
@@ -101,7 +97,8 @@ public partial class WorldSync
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	public void ReceiveAttackResult(int outcome, string targetType, string hitSoundKey, string breakSoundsKey,
+	public void ReceiveAttackWorldResult(int outcome, string targetType, string hitSoundKey,
+		string breakSoundsKey,
 		Vector3 hitPoint)
 	{
 		var result = new ToolHitResult((ToolHitOutcome)outcome, targetType, hitSoundKey, breakSoundsKey, hitPoint);
@@ -120,6 +117,33 @@ public partial class WorldSync
 			player.GlobalPosition,
 			player.KnockbackVelocity
 		);
+	}
+
+	public void SendLocalAttackResult(int playerId, ToolHitResult result)
+	{
+		RpcId(
+			playerId,
+			nameof(ReceiveLocalAttackResult),
+			(int)result.Outcome,
+			result.TargetType,
+			result.HitSoundKey,
+			result.BreakSoundKey,
+			result.HitPoint
+		);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	public void ReceiveLocalAttackResult(int outcome, string targetType, string hitSoundKey, string breakSoundsKey,
+		Vector3 hitPoint)
+	{
+		var result = new ToolHitResult(
+			(ToolHitOutcome)outcome,
+			targetType,
+			hitSoundKey,
+			breakSoundsKey,
+			hitPoint);
+
+		GameManager.Instance.LocalPlayer?.HandleLocalAttackReuslt(result);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]

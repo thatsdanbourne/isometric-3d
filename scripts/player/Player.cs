@@ -624,6 +624,20 @@ public partial class Player : CharacterBody3D, IToolHittable
 		PlayUseActiveToolVisual(tool, swingDir);
 	}
 
+	public void HandleLocalAttackReuslt(ToolHitResult result)
+	{
+		switch (result.Outcome)
+		{
+			case ToolHitOutcome.Destroyed:
+				CameraController?.Shake(0.3f, 0.7f);
+				break;
+
+			case ToolHitOutcome.Failed:
+				CameraController?.Shake(0.1f, 0.3f);
+				break;
+		}
+	}
+
 	public void HandleAttackResult(ToolHitResult result)
 	{
 		switch (result.Outcome)
@@ -635,11 +649,10 @@ public partial class Player : CharacterBody3D, IToolHittable
 			case ToolHitOutcome.Destroyed:
 				PlayToolSound(result.HitSoundKey, result.HitPoint);
 				PlayToolSound(result.BreakSoundKey, result.HitPoint);
-				OnObjectBroken(result);
 				break;
 
 			case ToolHitOutcome.Failed:
-				OnHitFailed(result);
+				// play fail sound
 				break;
 		}
 	}

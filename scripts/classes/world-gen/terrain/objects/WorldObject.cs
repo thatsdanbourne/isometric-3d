@@ -59,7 +59,6 @@ public partial class WorldObject : Node3D, IToolHittable
 
 	public ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint)
 	{
-		AudioManager.Instance.PlayAt("hit_fail", GlobalPosition, 0.1f);
 		return ToolHitOutcome.Failed;
 	}
 
