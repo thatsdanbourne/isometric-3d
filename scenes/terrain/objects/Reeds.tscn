@@ -6,24 +6,3 @@
 [node name="Reeds" unique_id=1563893801 instance=ExtResource("1_pvgte")]
 script = ExtResource("2_866yu")
 ObjectType = "flower"
-
-[node name="reeds" parent="." index="0" unique_id=1154951195]
-cast_shadow = 0
-
-[node name="reeds_001" parent="." index="1" unique_id=2048633616]
-cast_shadow = 0
-
-[node name="reeds_002" parent="." index="2" unique_id=206951232]
-cast_shadow = 0
-
-[node name="reeds_003" parent="." index="3" unique_id=1068924961]
-cast_shadow = 0
-
-[node name="reeds_004" parent="." index="4" unique_id=2023851028]
-cast_shadow = 0
-
-[node name="reeds_005" parent="." index="5" unique_id=1297375431]
-cast_shadow = 0
-
-[node name="reeds_006" parent="." index="6" unique_id=171703693]
-cast_shadow = 0

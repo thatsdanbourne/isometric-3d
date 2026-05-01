@@ -179,6 +179,7 @@ public static class SerializationUtils
 				["pos_x"] = obj.Position.X,
 				["pos_y"] = obj.Position.Y,
 				["pos_z"] = obj.Position.Z,
+				["rot_y"] = obj.Rotation,
 				["source"] = (int)obj.Source
 			});
 
@@ -258,6 +259,7 @@ public static class SerializationUtils
 					(float)objDict["pos_y"],
 					(float)objDict["pos_z"]
 				),
+				Rotation = (float)objDict["rot_y"],
 				Source = (ChunkObjectSource)(int)objDict["source"]
 			});
 		}

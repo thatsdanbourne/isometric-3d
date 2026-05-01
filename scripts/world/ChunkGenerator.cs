@@ -151,11 +151,16 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 					var variant = spawn.PickVariant(terrainSeed, globalX, globalY);
 					var def = variant.Definition;
 
+					var rotHash = DeterministicHash.CombineU32(terrainSeed, spawn.StableId, globalX, globalY,
+						variant.StableId);
+					var rot = rotHash / (float)uint.MaxValue * Mathf.Tau;
+
 					objects.Add(new ChunkObject
 					{
 						Definition = def,
 						TileCoord = tilePos,
 						Position = new Vector3(globalX, 0, globalY),
+						Rotation = rot,
 						ChunkCoord = chunkCoord,
 						Source = ChunkObjectSource.Procedural
 					});

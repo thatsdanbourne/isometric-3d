@@ -6,6 +6,7 @@ public partial class ChunkObject : RefCounted
 	public Vector2I ChunkCoord;
 	public Vector2I TileCoord;
 	public Vector3 Position;
+	public float Rotation;
 
 	public ChunkObjectSource Source;
 

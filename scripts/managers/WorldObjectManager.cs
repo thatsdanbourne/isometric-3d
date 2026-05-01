@@ -203,6 +203,7 @@ public partial class WorldObjectManager : Node
 			EnsureParent(node, _world.WorldObjects);
 
 			node.GlobalPosition = data.Position;
+			node.Rotation = new Vector3(node.Rotation.X, data.Rotation, node.Rotation.Z);
 			node.Visible = true;
 
 			RegisterToChunkObjectMap(node);
