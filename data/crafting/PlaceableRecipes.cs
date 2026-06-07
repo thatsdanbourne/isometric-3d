@@ -13,7 +13,7 @@ public static class PlaceableRecipes
 		{
 			Id = "campfire"
 		};
-		campfireRecipe.Ingredients.Add("wood", 5);
+		campfireRecipe.Ingredients.Add("stick", 5);
 		campfireRecipe.Ingredients.Add("stone", 3);
 		CraftingRegistry.RegisterRecipe(campfireRecipe);
 

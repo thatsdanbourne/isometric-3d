@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://bbxjtkpwg88n0"]
+
+[ext_resource type="PackedScene" uid="uid://5tp1ifbox1ax" path="res://assets/meshes/tall-grass/tall_grass.glb" id="1_khmyi"]
+[ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/classes/world-gen/terrain/objects/WorldObject.cs" id="2_1533f"]
+
+[node name="TallGrass" unique_id=354337679 instance=ExtResource("1_khmyi")]
+script = ExtResource("2_1533f")
+ObjectType = "flower"
+
+[node name="Low Poly Grass Mix 01" parent="." index="0" unique_id=365832755]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)

@@ -62,7 +62,7 @@ public partial class HUD : CanvasLayer
 
 		GameManager.Instance.LocalPlayerChanged += OnLocalPlayerChanged;
 
-		GetWindow().ContentScaleFactor = 1.25f;
+		GetWindow().ContentScaleFactor = 1.5f;
 	}
 
 	private void OnLocalPlayerChanged()

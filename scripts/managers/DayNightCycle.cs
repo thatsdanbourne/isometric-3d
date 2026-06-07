@@ -2,7 +2,7 @@ using Godot;
 
 public partial class DayNightCycle : Node
 {
-	[Export] public float DayLength = 300.0f;
+	[Export] public float DayLength = 600.0f;
 	[Export] public DirectionalLight3D Sun;
 	[Export] public float TimeOfDay = 0.25f;
 	[Export] public WorldEnvironment WorldEnvironment;

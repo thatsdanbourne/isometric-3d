@@ -1,66 +1,72 @@
 <Project Sdk="Godot.NET.Sdk/4.6.0">
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <TargetFramework Condition=" '$(GodotTargetPlatform)' == 'android' ">net9.0</TargetFramework>
-    <EnableDynamicLoading>true</EnableDynamicLoading>
-    <RootNamespace>isometric3d</RootNamespace>
-  </PropertyGroup>
-  <ItemGroup>
-    <Content Include="resources\materials\DetailMaterial.tres" />
-    <Content Include="resources\materials\Rock.tres" />
-    <Content Include="resources\materials\WorldObjectBase.tres" />
-    <Content Include="resources\noise\GroundNoiseTexture.tres" />
-    <Content Include="resources\noise\WindNoise.tres" />
-    <Content Include="resources\shaders\BiomeTint.gdshader" />
-    <Content Include="resources\shaders\BiomeTint.gdshader.uid" />
-    <Content Include="resources\shaders\Blur.gdshader" />
-    <Content Include="resources\shaders\Blur.gdshader.uid" />
-    <Content Include="resources\shaders\CellShade.gdshader" />
-    <Content Include="resources\shaders\CellShade.gdshader.uid" />
-    <Content Include="resources\shaders\DetailShader.gdshader" />
-    <Content Include="resources\shaders\DetailShader.gdshader.uid" />
-    <Content Include="resources\shaders\Grass.gdshader" />
-    <Content Include="resources\shaders\Grass.gdshader.uid" />
-    <Content Include="resources\shaders\GroundNoise.gdshader" />
-    <Content Include="resources\shaders\GroundNoise.gdshader.uid" />
-    <Content Include="resources\shaders\Outline.gdshader" />
-    <Content Include="resources\shaders\Outline.gdshader.uid" />
-    <Content Include="resources\shaders\PixelUpcaler.gdshader" />
-    <Content Include="resources\shaders\PixelUpcaler.gdshader.uid" />
-    <Content Include="resources\shaders\Rain.gdshader" />
-    <Content Include="resources\shaders\Rain.gdshader.uid" />
-    <Content Include="resources\shaders\Tree.gdshader" />
-    <Content Include="resources\shaders\Tree.gdshader.uid" />
-    <Content Include="resources\shaders\Water.gdshader" />
-    <Content Include="resources\shaders\Water.gdshader.uid" />
-    <Content Include="resources\ui\ItemContainerSlotHighlight.tres" />
-    <Content Include="resources\ui\ItemContainerSlotStyle.tres" />
-    <Content Include="resources\ui\TooltipStyle.tres" />
-    <Content Include="resources\ui\WindowStyle.tres" />
-    <Content Include="scenes\ItemPickup.tscn" />
-    <Content Include="scenes\menus\PauseMenu.tscn" />
-    <Content Include="scenes\menus\settings\SettingsMenu.tscn" />
-    <Content Include="scenes\menus\settings\SettingsVideo.tscn" />
-    <Content Include="scenes\placeables\Campfire.tscn" />
-    <Content Include="scenes\placeables\ChestOne.tscn" />
-    <Content Include="scenes\placeables\CraftingTable.tscn" />
-    <Content Include="scenes\placeables\Kiln.tscn" />
-    <Content Include="scenes\placeables\PlacementPreview.tscn" />
-    <Content Include="scenes\player\CameraController.tscn" />
-    <Content Include="scenes\player\Player.tscn" />
-    <Content Include="scenes\terrain\decor\FlowerPoppy.tscn" />
-    <Content Include="scenes\terrain\objects\Rock.tscn" />
-    <Content Include="scenes\terrain\objects\RockCoalOre.tscn" />
-    <Content Include="scenes\terrain\objects\RockCopperOre.tscn" />
-    <Content Include="scenes\terrain\objects\TreeBirch.tscn" />
-    <Content Include="scenes\terrain\objects\TreeOak.tscn" />
-    <Content Include="scenes\terrain\objects\TreePine.tscn" />
-    <Content Include="scenes\ui\crafting\RecipeEntry.tscn" />
-    <Content Include="scenes\ui\HUD\HUD.tscn" />
-    <Content Include="scenes\ui\HUD\InteractionPrompt.tscn" />
-    <Content Include="scenes\ui\HUD\ItemContainerSlot.tscn" />
-    <Content Include="scenes\ui\HUD\Tooltip.tscn" />
-    <Content Include="scenes\ui\retro-pixel-cute-prop.bdf" />
-    <Content Include="scenes\World.tscn" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework Condition=" '$(GodotTargetPlatform)' == 'android' ">net9.0</TargetFramework>
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+        <RootNamespace>isometric3d</RootNamespace>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+    <ItemGroup>
+        <Content Include="resources\materials\DetailMaterial.tres"/>
+        <Content Include="resources\materials\Rock.tres"/>
+        <Content Include="resources\materials\WorldObjectBase.tres"/>
+        <Content Include="resources\noise\GroundNoiseTexture.tres"/>
+        <Content Include="resources\noise\WindNoise.tres"/>
+        <Content Include="resources\shaders\BiomeTint.gdshader"/>
+        <Content Include="resources\shaders\BiomeTint.gdshader.uid"/>
+        <Content Include="resources\shaders\Blur.gdshader"/>
+        <Content Include="resources\shaders\Blur.gdshader.uid"/>
+        <Content Include="resources\shaders\CellShade.gdshader"/>
+        <Content Include="resources\shaders\CellShade.gdshader.uid"/>
+        <Content Include="resources\shaders\DetailShader.gdshader"/>
+        <Content Include="resources\shaders\DetailShader.gdshader.uid"/>
+        <Content Include="resources\shaders\Grass.gdshader"/>
+        <Content Include="resources\shaders\Grass.gdshader.uid"/>
+        <Content Include="resources\shaders\GroundNoise.gdshader"/>
+        <Content Include="resources\shaders\GroundNoise.gdshader.uid"/>
+        <Content Include="resources\shaders\Outline.gdshader"/>
+        <Content Include="resources\shaders\Outline.gdshader.uid"/>
+        <Content Include="resources\shaders\PixelUpcaler.gdshader"/>
+        <Content Include="resources\shaders\PixelUpcaler.gdshader.uid"/>
+        <Content Include="resources\shaders\Rain.gdshader"/>
+        <Content Include="resources\shaders\Rain.gdshader.uid"/>
+        <Content Include="resources\shaders\Tree.gdshader"/>
+        <Content Include="resources\shaders\Tree.gdshader.uid"/>
+        <Content Include="resources\shaders\Water.gdshader"/>
+        <Content Include="resources\shaders\Water.gdshader.uid"/>
+        <Content Include="resources\ui\ItemContainerSlotHighlight.tres"/>
+        <Content Include="resources\ui\ItemContainerSlotStyle.tres"/>
+        <Content Include="resources\ui\TooltipStyle.tres"/>
+        <Content Include="resources\ui\WindowStyle.tres"/>
+        <Content Include="scenes\ItemPickup.tscn"/>
+        <Content Include="scenes\menus\PauseMenu.tscn"/>
+        <Content Include="scenes\menus\settings\SettingsMenu.tscn"/>
+        <Content Include="scenes\menus\settings\SettingsVideo.tscn"/>
+        <Content Include="scenes\placeables\Campfire.tscn"/>
+        <Content Include="scenes\placeables\ChestOne.tscn"/>
+        <Content Include="scenes\placeables\CraftingTable.tscn"/>
+        <Content Include="scenes\placeables\Kiln.tscn"/>
+        <Content Include="scenes\placeables\PlacementPreview.tscn"/>
+        <Content Include="scenes\player\CameraController.tscn"/>
+        <Content Include="scenes\player\Player.tscn"/>
+        <Content Include="scenes\terrain\decor\FlowerPoppy.tscn"/>
+        <Content Include="scenes\terrain\objects\Rock.tscn"/>
+        <Content Include="scenes\terrain\objects\RockCoalOre.tscn"/>
+        <Content Include="scenes\terrain\objects\RockCopperOre.tscn"/>
+        <Content Include="scenes\terrain\objects\TreeBirch.tscn"/>
+        <Content Include="scenes\terrain\objects\TreeOak.tscn"/>
+        <Content Include="scenes\terrain\objects\TreePine.tscn"/>
+        <Content Include="scenes\ui\crafting\RecipeEntry.tscn"/>
+        <Content Include="scenes\ui\HUD\HUD.tscn"/>
+        <Content Include="scenes\ui\HUD\InteractionPrompt.tscn"/>
+        <Content Include="scenes\ui\HUD\ItemContainerSlot.tscn"/>
+        <Content Include="scenes\ui\HUD\Tooltip.tscn"/>
+        <Content Include="scenes\ui\retro-pixel-cute-prop.bdf"/>
+        <Content Include="scenes\World.tscn"/>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="ImGui.NET" Version="1.91.6.1"/>
+    </ItemGroup>
 </Project>

@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://d1flg2ckhuuny"]
+
+[ext_resource type="Shader" uid="uid://dcrnmdpcgk4oe" path="res://resources/shaders/Grass.gdshader" id="1_wkfeh"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_wkfeh")
+shader_parameter/color = Color(0.2509804, 0.6, 0.20392157, 1)
+shader_parameter/blade_bend_amount = 2.0
+shader_parameter/height_power = 0.5
+shader_parameter/light_steps = 5.0

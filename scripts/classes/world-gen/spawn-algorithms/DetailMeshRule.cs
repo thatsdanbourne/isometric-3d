@@ -1,7 +1,11 @@
-public partial class DetailMeshRule
+public class DetailMeshRule
 {
-    public string MeshId;
-    public float Density = 1.0f;
-    public int MinPerTile = 1;
-    public int MaxPerTile = 3;
+	public string MeshId { get; init; }
+	public float Density { get; init; } = 1f;
+
+	public int MinPerTile { get; init; } = 1;
+	public int MaxPerTile { get; init; } = 1;
+
+	public float MinScale { get; init; } = 1f;
+	public float MaxScale { get; init; } = 1f;
 }

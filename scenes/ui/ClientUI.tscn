@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://cygag0yj8yuxs"]
 
+[ext_resource type="Script" uid="uid://bonikf7e45ydc" path="res://scripts/debug/DebugMenu.cs" id="1_7ltmc"]
 [ext_resource type="Script" uid="uid://ciarma0geh450" path="res://dev-tools/Debug.cs" id="1_ojr4n"]
 [ext_resource type="FontFile" uid="uid://dk6yf54j5fosf" path="res://assets/fonts/BitPotionExt.ttf" id="2_tdnrv"]
 [ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD/HUD.tscn" id="3_tdnrv"]
@@ -32,6 +33,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="DebugMenu" type="Node" parent="." unique_id=1485758530]
+script = ExtResource("1_7ltmc")
 
 [node name="Debug" type="CanvasLayer" parent="." unique_id=1006999607]
 script = ExtResource("1_ojr4n")

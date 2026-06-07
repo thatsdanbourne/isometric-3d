@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://daf60n71mxt1i"]
+
+[ext_resource type="PackedScene" uid="uid://cxrcte8g5b0cd" path="res://assets/meshes/grass-detail/grass_detail.glb" id="1_7ab4g"]
+[ext_resource type="Material" uid="uid://d1flg2ckhuuny" path="res://resources/materials/GrassMaterial.tres" id="2_x73a0"]
+
+[node name="grass_detail" unique_id=1452872494 instance=ExtResource("1_7ab4g")]
+
+[node name="GrassDetail" parent="." index="0" unique_id=54865182]
+surface_material_override/0 = ExtResource("2_x73a0")

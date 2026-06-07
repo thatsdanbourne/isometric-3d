@@ -28,6 +28,17 @@ public static class ResourceItems
 
 		ItemRegistry.RegisterItem(new ResourceItem
 		{
+			Id = "stick",
+			DisplayName = "Stick",
+			ResourceType = "wood",
+			Description = "A common tool used for crafting.",
+			Icon = LoadTexture("stick"),
+			StackSize = 99,
+			SoundSet = "wood"
+		});
+
+		ItemRegistry.RegisterItem(new ResourceItem
+		{
 			Id = "coal",
 			DisplayName = "Coal",
 			ResourceType = "ore",

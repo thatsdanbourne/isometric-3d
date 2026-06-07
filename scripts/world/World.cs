@@ -44,6 +44,7 @@ public partial class World : Node3D
 	public ChunkManager ChunkManager { get; private set; }
 	public ChunkGenerator ChunkGenerator { get; private set; }
 	public WorldObjectManager WorldObjectManager { get; private set; }
+	public DetailMeshManager DetailMeshManager { get; private set; }
 	public ItemDropManager ItemDropManager { get; private set; }
 	public MobStreamer MobStreamer { get; private set; }
 	public BiomeSampler BiomeSampler { get; private set; }
@@ -69,14 +70,12 @@ public partial class World : Node3D
 
 		ChunkManager = new ChunkManager(this, ChunkSize, _chunkRadius);
 		WorldObjectManager = GetNode<WorldObjectManager>("WorldObjectManager");
+		DetailMeshManager = GetNode<DetailMeshManager>("DetailMeshManager");
 		ItemDropManager = GetNode<ItemDropManager>("ItemDropManager");
 		MobStreamer = GetNode<MobStreamer>("MobStreamer");
 
 		BiomeSampler = new BiomeSampler(_tempNoise, _humidityNoise, _riverNoise, _lakeNoise, _drainageNoise, _bankNoise,
 			WorldOffset);
-
-		var debugTeleporter = GetNode<DebugBiomeTeleporter>("DebugBiomeTeleporter");
-		debugTeleporter.World = this;
 
 		ChunkGenerator = new ChunkGenerator(this, TerrainSeed);
 		ChunkGenerator.Start();
@@ -167,6 +166,10 @@ public partial class World : Node3D
 				// request desired chunks from server and finalise received chunks
 				Sync.UpdateLocalChunkInterest(localPlayer.GlobalPosition, _chunkRadius);
 				ChunkGenerator.ProcessClientChunkQueue();
+				DetailMeshManager.UpdateVisibleDetails(
+					localPlayer.GlobalPosition,
+					ActiveChunks
+				);
 			}
 	}
 

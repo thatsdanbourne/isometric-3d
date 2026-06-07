@@ -226,6 +226,7 @@ public class ChunkManager(World world, int chunkSize, int chunkRadius)
 		foreach (var obj in chunk.Objects)
 			world.WorldObjectManager.EnqueueRemoval(obj);
 
+		world.DetailMeshManager.RemoveChunk(coord);
 		ActiveChunks.Remove(coord);
 	}
 

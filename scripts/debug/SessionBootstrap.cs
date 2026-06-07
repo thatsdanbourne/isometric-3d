@@ -117,8 +117,8 @@ public partial class SessionBootstrap : Node
 
 	private void OnClientConnected()
 	{
-		CreateClientUI();
 		CreateWorld();
+		CreateClientUI();
 		GameManager.Instance.SessionMode = SessionMode.Client;
 
 		if (IsInstanceValid(_mainMenuRoot))

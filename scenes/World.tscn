@@ -8,12 +8,12 @@
 [ext_resource type="Script" uid="uid://ddegcpmxjqs5a" path="res://scripts/managers/DayNightCycle.cs" id="8_nrtoj"]
 [ext_resource type="MeshLibrary" uid="uid://hvr6yjpo0ajd" path="res://water_meshlibrary.tres" id="8_pdh0q"]
 [ext_resource type="Script" uid="uid://ttuek37sjb7f" path="res://scripts/managers/MobStreamer.cs" id="13_dwmkc"]
+[ext_resource type="Script" uid="uid://c2222heoejafa" path="res://scripts/managers/DetailMeshManager.cs" id="14_i4b1j"]
 [ext_resource type="Texture2D" uid="uid://dpinrv3mnffj4" path="res://assets/particles/spotlight_01_a.png" id="15_30fn3"]
 [ext_resource type="Script" uid="uid://dgarnp7014d6a" path="res://scripts/managers/WeatherManager.cs" id="15_nthub"]
 [ext_resource type="Texture2D" uid="uid://cxxnlf6fco4uc" path="res://assets/particles/weather/raindrop.png" id="16_rpuxp"]
 [ext_resource type="Texture2D" uid="uid://b0rvrpykafb60" path="res://assets/particles/weather/snowflake.png" id="17_nthub"]
 [ext_resource type="Script" uid="uid://biupxf38shvsk" path="res://scripts/managers/WorldObjectManager.cs" id="18_nthub"]
-[ext_resource type="Script" uid="uid://7ptg4plty0r7" path="res://dev-tools/DebugBiomeTeleporter.cs" id="21_30fn3"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ygioq"]
 shader = ExtResource("5_b3faq")
@@ -96,7 +96,6 @@ script = ExtResource("7_h1bdy")
 
 [node name="DayNightCycle" type="Node" parent="." unique_id=2037639005 node_paths=PackedStringArray("Sun", "WorldEnvironment")]
 script = ExtResource("8_nrtoj")
-DayLength = 1200.0
 Sun = NodePath("../Sun")
 WorldEnvironment = NodePath("../WorldEnvironment")
 
@@ -149,6 +148,9 @@ process_material = SubResource("ParticleProcessMaterial_nthub")
 [node name="WorldObjectManager" type="Node" parent="." unique_id=1667742210]
 script = ExtResource("18_nthub")
 
+[node name="DetailMeshManager" type="Node" parent="." unique_id=185829699]
+script = ExtResource("14_i4b1j")
+
 [node name="Sun" type="DirectionalLight3D" parent="." unique_id=1543347850]
 transform = Transform3D(-0.03664387, 0.54427326, -0.83810735, 0, 0.83867055, 0.5446391, 0.9993284, 0.019957682, -0.030732136, 0, 20, 0)
 light_color = Color(1, 0.9776916, 0.9063318, 1)
@@ -189,6 +191,3 @@ metadata/_editor_floor_ = Vector3(0, 0, 0)
 [node name="PlayerContainer" type="Node3D" parent="." unique_id=2019630338]
 
 [node name="ItemPickupContainer" type="Node3D" parent="." unique_id=512490873]
-
-[node name="DebugBiomeTeleporter" type="Node" parent="." unique_id=2128277119]
-script = ExtResource("21_30fn3")

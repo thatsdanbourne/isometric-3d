@@ -46,6 +46,15 @@ public static class BiomeDefinitions
 						new SpawnVariant("flower_poppy") { Weight = 1f }
 					}
 				},
+				new ObjectSpawnRule("plains_tall_grass")
+				{
+					Density = 0.75f,
+					Algorithm = NoisePresets.Flowers(seed, worldOffset),
+					Variants =
+					{
+						new SpawnVariant("tall_grass") { Weight = 1f }
+					}
+				},
 				new ObjectSpawnRule("plains_stones")
 				{
 					Pass = ObjectSpawnPass.GroundPickups,
@@ -65,6 +74,29 @@ public static class BiomeDefinitions
 								MaxCount = 3,
 								MinMultiplier = 1f,
 								MaxMultiplier = 2f
+							}
+						}
+					}
+				},
+				new ObjectSpawnRule("plains_sticks")
+				{
+					Pass = ObjectSpawnPass.GroundPickups,
+					Density = 0.4f,
+					Algorithm = NoisePresets.LooseStones(seed, worldOffset),
+					Variants = { new SpawnVariant("stick_pile") { Weight = 1f } },
+					Conditions = new SpawnConditions
+					{
+						DensityModifiers =
+						{
+							new DensityModifier
+							{
+								TargetType = NeighbourTargetType.Object,
+								TargetId = WorldObjectRegistry.GetDefinition("tree_oak").StableId,
+								Radius = 3,
+								MinCount = 1,
+								MaxCount = 3,
+								MinMultiplier = 1f,
+								MaxMultiplier = 1.5f
 							}
 						}
 					}
@@ -121,13 +153,60 @@ public static class BiomeDefinitions
 						new SpawnVariant("rock_copper") { Weight = 0.05f }
 					}
 				},
-				new ObjectSpawnRule("plains_flowers")
+				new ObjectSpawnRule("forest_flowers")
 				{
-					Density = 0.3f,
+					Pass = ObjectSpawnPass.Decor,
+					Density = 0.7f,
 					Algorithm = NoisePresets.Flowers(seed, worldOffset),
 					Variants =
 					{
-						new SpawnVariant("flower_poppy") { Weight = 0.5f }
+						new SpawnVariant("flower_poppy") { Weight = 1f }
+					}
+				},
+				new ObjectSpawnRule("forest_stones")
+				{
+					Pass = ObjectSpawnPass.GroundPickups,
+					Density = 0.4f,
+					Algorithm = NoisePresets.LooseStones(seed, worldOffset),
+					Variants = { new SpawnVariant("stone") { Weight = 1f } },
+					Conditions = new SpawnConditions
+					{
+						DensityModifiers =
+						{
+							new DensityModifier
+							{
+								TargetType = NeighbourTargetType.Object,
+								TargetId = WorldObjectRegistry.GetDefinition("rock").StableId,
+								Radius = 3,
+								MinCount = 1,
+								MaxCount = 3,
+								MinMultiplier = 1f,
+								MaxMultiplier = 2f
+							}
+						}
+					}
+				},
+				new ObjectSpawnRule("forest_sticks")
+				{
+					Pass = ObjectSpawnPass.GroundPickups,
+					Density = 0.45f,
+					Algorithm = NoisePresets.LooseStones(seed, worldOffset),
+					Variants = { new SpawnVariant("stick_pile") { Weight = 1f } },
+					Conditions = new SpawnConditions
+					{
+						DensityModifiers =
+						{
+							new DensityModifier
+							{
+								TargetType = NeighbourTargetType.Object,
+								TargetId = WorldObjectRegistry.GetDefinition("tree_oak").StableId,
+								Radius = 3,
+								MinCount = 1,
+								MaxCount = 3,
+								MinMultiplier = 1f,
+								MaxMultiplier = 5f
+							}
+						}
 					}
 				}
 			}
