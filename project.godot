@@ -183,6 +183,7 @@ textures/vram_compression/import_etc2_astc=true
 lights_and_shadows/directional_shadow/size=8192
 anti_aliasing/quality/use_debanding=true
 environment/defaults/default_clear_color=Color(0.106236584, 0.106236584, 0.106236555, 1)
+occlusion_culling/use_occlusion_culling=true
 
 [shader_globals]
 
