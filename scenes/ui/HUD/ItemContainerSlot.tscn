@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://b5jqdxgjquxim"]
 
-[ext_resource type="Script" uid="uid://c263jx2oyqj65" path="res://scripts/classes/inventory/ItemContainerSlot.cs" id="1_tjon7"]
+[ext_resource type="Script" uid="uid://c263jx2oyqj65" path="res://scripts/gameplay/inventory/ItemContainerSlot.cs" id="1_tjon7"]
 [ext_resource type="StyleBox" uid="uid://c8b7cb2e3xdt6" path="res://resources/ui/ItemContainerSlotStyle.tres" id="1_tram2"]
 [ext_resource type="FontFile" uid="uid://dk6yf54j5fosf" path="res://assets/fonts/BitPotionExt.ttf" id="3_3o7ux"]
 

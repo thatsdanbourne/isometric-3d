@@ -1,0 +1,89 @@
+[gd_scene format=3 uid="uid://uva5v2hjcxj2"]
+
+[ext_resource type="Script" uid="uid://csm2ncjjajc0m" path="res://scripts/ui/menus/PauseMenu.cs" id="1_i7533"]
+[ext_resource type="FontFile" uid="uid://dk6yf54j5fosf" path="res://assets/fonts/BitPotionExt.ttf" id="2_i7533"]
+[ext_resource type="Script" uid="uid://c1e3i8bk0mo2d" path="res://scripts/ui/menus/inputs/SfxButton.cs" id="3_5c87e"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_5c87e"]
+font = ExtResource("2_i7533")
+font_size = 128
+
+[node name="PauseMenu" type="Control" unique_id=1344354813]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_i7533")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=2101622211]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.3
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -65.0
+offset_top = -50.5
+offset_right = 65.0
+offset_bottom = 50.5
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer" unique_id=1366208293]
+layout_mode = 2
+text = "Game Paused"
+label_settings = SubResource("LabelSettings_5c87e")
+horizontal_alignment = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer" unique_id=2126487000]
+layout_mode = 2
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 32
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer" unique_id=2089961311]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Resume" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=1784698503]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("2_i7533")
+theme_override_font_sizes/font_size = 64
+text = "Back to Game"
+flat = true
+script = ExtResource("3_5c87e")
+
+[node name="Settings" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=1905351893]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("2_i7533")
+theme_override_font_sizes/font_size = 64
+text = "Settings"
+flat = true
+script = ExtResource("3_5c87e")
+
+[node name="QuitTitle" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=295685937]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("2_i7533")
+theme_override_font_sizes/font_size = 64
+text = "Quit to Menu"
+flat = true
+script = ExtResource("3_5c87e")
+
+[node name="QuitDesktop" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=1672292217]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("2_i7533")
+theme_override_font_sizes/font_size = 64
+text = "Quit to Desktop"
+flat = true
+script = ExtResource("3_5c87e")

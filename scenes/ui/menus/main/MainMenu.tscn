@@ -1,0 +1,84 @@
+[gd_scene format=3 uid="uid://qqq6qjajvgl5"]
+
+[ext_resource type="Script" uid="uid://b5bjt575b3cej" path="res://scripts/ui/menus/MainMenu.cs" id="1_6wci7"]
+[ext_resource type="FontFile" uid="uid://dk6yf54j5fosf" path="res://assets/fonts/BitPotionExt.ttf" id="2_6wci7"]
+[ext_resource type="Script" uid="uid://c1e3i8bk0mo2d" path="res://scripts/ui/menus/inputs/SfxButton.cs" id="3_c2fms"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_6wci7"]
+font = ExtResource("2_6wci7")
+font_size = 128
+
+[node name="MainMenu" type="Control" unique_id=821917367]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_6wci7")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1065257581]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.3
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="VBoxContainer" unique_id=379415587]
+layout_mode = 2
+text = "Emberwild"
+label_settings = SubResource("LabelSettings_6wci7")
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer" unique_id=1006543238]
+layout_mode = 2
+theme_override_constants/margin_top = 64
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer" unique_id=1600685640]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="SingleplayerButton" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=1722391353]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_6wci7")
+theme_override_font_sizes/font_size = 64
+text = "Singleplayer"
+flat = true
+script = ExtResource("3_c2fms")
+
+[node name="MultiplayerButton" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=1806897339]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_6wci7")
+theme_override_font_sizes/font_size = 64
+text = "Multiplayer
+"
+flat = true
+script = ExtResource("3_c2fms")
+
+[node name="SettingsButton" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=1200894264]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_6wci7")
+theme_override_font_sizes/font_size = 64
+text = "Settings
+
+"
+flat = true
+script = ExtResource("3_c2fms")
+
+[node name="QuitButton" type="Button" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=1618320737]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_6wci7")
+theme_override_font_sizes/font_size = 64
+text = "Quit
+
+
+"
+flat = true
+script = ExtResource("3_c2fms")

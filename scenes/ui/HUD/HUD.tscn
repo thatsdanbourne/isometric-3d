@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://nf3wsg32yh2f"]
 
-[ext_resource type="Script" uid="uid://drg8a4mhwswat" path="res://scripts/ui/HUD.cs" id="1_kw0id"]
+[ext_resource type="Script" uid="uid://drg8a4mhwswat" path="res://scripts/ui/hud/HUD.cs" id="1_kw0id"]
 [ext_resource type="StyleBox" uid="uid://cnx8lp71uqiyw" path="res://resources/ui/WindowStyle.tres" id="2_4ed8p"]
 [ext_resource type="FontFile" uid="uid://dk6yf54j5fosf" path="res://assets/fonts/BitPotionExt.ttf" id="2_qamap"]
 [ext_resource type="Script" uid="uid://dud8rgc0ebwfn" path="res://scripts/ui/crafting/CraftingUI.cs" id="3_6ll6g"]

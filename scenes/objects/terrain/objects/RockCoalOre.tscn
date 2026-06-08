@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://c8qx7b2866mvt"]
+
+[ext_resource type="PackedScene" uid="uid://b7e0q7x74wk0e" path="res://assets/meshes/RockOre.glb" id="1_jlmj0"]
+[ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/world/objects/WorldObject.cs" id="2_7ddnh"]
+[ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/gameplay/pickups/DropEntry.cs" id="2_osrtj"]
+[ext_resource type="Material" uid="uid://bmfptrd5gn133" path="res://resources/materials/Rock.tres" id="4_1wien"]
+
+[sub_resource type="Resource" id="Resource_xhipr"]
+script = ExtResource("2_osrtj")
+ItemId = "stone"
+MinQuantity = 0
+MaxQuantity = 2
+Chance = 0.5
+metadata/_custom_type_script = "uid://2hhyer4i1q1g"
+
+[sub_resource type="Resource" id="Resource_qmuk6"]
+script = ExtResource("2_osrtj")
+ItemId = "coal"
+MinQuantity = 2
+MaxQuantity = 4
+metadata/_custom_type_script = "uid://2hhyer4i1q1g"
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_era11"]
+albedo_color = Color(0.052842118, 0.052842125, 0.052842118, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ptbxd"]
+
+[node name="RockCoalOre" unique_id=742521493 instance=ExtResource("1_jlmj0")]
+script = ExtResource("2_7ddnh")
+ObjectType = "ore"
+HitSoundsKey = "hit_stone"
+BreakSoundsKey = "break_stone"
+DropItems = Array[ExtResource("2_osrtj")]([SubResource("Resource_xhipr"), SubResource("Resource_qmuk6")])
+
+[node name="Rock" parent="." index="0" unique_id=428074793]
+surface_material_override/0 = ExtResource("4_1wien")
+
+[node name="Ore" parent="." index="1" unique_id=952757878]
+surface_material_override/0 = SubResource("StandardMaterial3D_era11")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." index="2" unique_id=1921269226]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" index="0" unique_id=1910699497]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("BoxShape3D_ptbxd")

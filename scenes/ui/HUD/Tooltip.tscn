@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://d34hhl3mhgyeh"]
 
-[ext_resource type="Script" uid="uid://1yfvymes6xv6" path="res://scripts/ui/Tooltip.cs" id="1_aloxc"]
+[ext_resource type="Script" uid="uid://1yfvymes6xv6" path="res://scripts/ui/hud/Tooltip.cs" id="1_aloxc"]
 [ext_resource type="StyleBox" uid="uid://bgu6rid7g7ix0" path="res://resources/ui/TooltipStyle.tres" id="2_6dc22"]
 [ext_resource type="FontFile" uid="uid://dk6yf54j5fosf" path="res://assets/fonts/BitPotionExt.ttf" id="3_b2n5k"]
 

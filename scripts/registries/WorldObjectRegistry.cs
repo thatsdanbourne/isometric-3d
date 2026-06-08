@@ -55,23 +55,23 @@ public static class WorldObjectRegistry
 
 	public static void RegisterDefaults()
 	{
-		Register("tree_oak", GD.Load<PackedScene>("res://scenes/terrain/objects/TreeOak.tscn"));
-		Register("tree_birch", GD.Load<PackedScene>("res://scenes/terrain/objects/TreeBirch.tscn"));
-		Register("tree_pine", GD.Load<PackedScene>("res://scenes/terrain/objects/TreePine.tscn"));
-		Register("stone", GD.Load<PackedScene>("res://scenes/terrain/objects/Stone.tscn"));
-		Register("stick_pile", GD.Load<PackedScene>("res://scenes/terrain/objects/StickPile.tscn"));
-		Register("rock", GD.Load<PackedScene>("res://scenes/terrain/objects/Rock.tscn"), 15f);
-		Register("rock_coal", GD.Load<PackedScene>("res://scenes/terrain/objects/RockCoalOre.tscn"), 18f);
-		Register("rock_copper", GD.Load<PackedScene>("res://scenes/terrain/objects/RockCopperOre.tscn"), 20f,
+		Register("tree_oak", GD.Load<PackedScene>("res://scenes/objects/terrain/objects/TreeOak.tscn"));
+		Register("tree_birch", GD.Load<PackedScene>("res://scenes/objects/terrain/objects/TreeBirch.tscn"));
+		Register("tree_pine", GD.Load<PackedScene>("res://scenes/objects/terrain/objects/TreePine.tscn"));
+		Register("stone", GD.Load<PackedScene>("res://scenes/objects/terrain/objects/Stone.tscn"));
+		Register("stick_pile", GD.Load<PackedScene>("res://scenes/objects/terrain/objects/StickPile.tscn"));
+		Register("rock", GD.Load<PackedScene>("res://scenes/objects/terrain/objects/Rock.tscn"), 15f);
+		Register("rock_coal", GD.Load<PackedScene>("res://scenes/objects/terrain/objects/RockCoalOre.tscn"), 18f);
+		Register("rock_copper", GD.Load<PackedScene>("res://scenes/objects/terrain/objects/RockCopperOre.tscn"), 20f,
 			ToolTier.Stone);
-		Register("campfire", GD.Load<PackedScene>("res://scenes/placeables/Campfire.tscn"));
-		Register("crafting_table", GD.Load<PackedScene>("res://scenes/placeables/CraftingTable.tscn"));
-		Register("kiln", GD.Load<PackedScene>("res://scenes/placeables/Kiln.tscn"));
-		Register("chest", GD.Load<PackedScene>("res://scenes/placeables/ChestOne.tscn"));
-		Register("flower_poppy", GD.Load<PackedScene>("res://scenes/terrain/decor/FlowerPoppy.tscn"));
-		Register("reeds", GD.Load<PackedScene>("res://scenes/terrain/objects/Reeds.tscn"));
-		Register("tall_grass", GD.Load<PackedScene>("res://scenes/terrain/decor/TallGrass.tscn"));
-		Register("standing_stone", GD.Load<PackedScene>("res://scenes/structures/StandingStone.tscn"));
+		Register("campfire", GD.Load<PackedScene>("res://scenes/objects/placeables/Campfire.tscn"));
+		Register("crafting_table", GD.Load<PackedScene>("res://scenes/objects/placeables/CraftingTable.tscn"));
+		Register("kiln", GD.Load<PackedScene>("res://scenes/objects/placeables/Kiln.tscn"));
+		Register("chest", GD.Load<PackedScene>("res://scenes/objects/placeables/ChestOne.tscn"));
+		Register("flower_poppy", GD.Load<PackedScene>("res://scenes/objects/terrain/decor/FlowerPoppy.tscn"));
+		Register("reeds", GD.Load<PackedScene>("res://scenes/objects/terrain/objects/Reeds.tscn"));
+		Register("tall_grass", GD.Load<PackedScene>("res://scenes/objects/terrain/decor/TallGrass.tscn"));
+		Register("standing_stone", GD.Load<PackedScene>("res://scenes/objects/structures/StandingStone.tscn"));
 	}
 }
 

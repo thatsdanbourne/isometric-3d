@@ -46,7 +46,7 @@ public partial class SessionBootstrap : Node
 
 	private World CreateWorld()
 	{
-		var worldScene = GD.Load<PackedScene>("res://scenes/World.tscn");
+		var worldScene = GD.Load<PackedScene>("res://scenes/world/World.tscn");
 		var world = worldScene.Instantiate<World>();
 
 		AddChild(world);
@@ -159,7 +159,7 @@ public partial class SessionBootstrap : Node
 
 	private void ShowMainMenu()
 	{
-		var menuScene = GD.Load<PackedScene>("res://scenes/menus/main/MainMenuRoot.tscn");
+		var menuScene = GD.Load<PackedScene>("res://scenes/ui/menus/main/MainMenuRoot.tscn");
 		_mainMenuRoot = menuScene.Instantiate<MainMenuRoot>();
 		AddChild(_mainMenuRoot);
 
@@ -172,7 +172,7 @@ public partial class SessionBootstrap : Node
 
 	private void CreateClientUI()
 	{
-		var uiScene = GD.Load<PackedScene>("res://scenes/ui/ClientUI.tscn");
+		var uiScene = GD.Load<PackedScene>("res://scenes/ui/client/ClientUI.tscn");
 		_clientUI = uiScene.Instantiate<Control>();
 		AddChild(_clientUI);
 

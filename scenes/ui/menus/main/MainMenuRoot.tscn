@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://da8loymm03ymy"]
+
+[ext_resource type="Script" uid="uid://rr6jn3yd21q8" path="res://scripts/ui/menus/MenuManager.cs" id="1_ajuul"]
+[ext_resource type="Script" uid="uid://blwov7m85uksu" path="res://scripts/ui/menus/MainMenuRoot.cs" id="1_xs87y"]
+[ext_resource type="Shader" uid="uid://cbwi8c1npa1k3" path="res://resources/shaders/Blur.gdshader" id="2_xs87y"]
+[ext_resource type="PackedScene" uid="uid://qqq6qjajvgl5" path="res://scenes/ui/menus/main/MainMenu.tscn" id="3_bl87l"]
+[ext_resource type="PackedScene" uid="uid://c35jmhuadbjjf" path="res://scenes/ui/menus/settings/SettingsMenu.tscn" id="4_ej0k6"]
+[ext_resource type="PackedScene" uid="uid://8qmkj7xdcjhv" path="res://scenes/ui/menus/multiplayer/MultiplayerMenu.tscn" id="5_bl87l"]
+[ext_resource type="PackedScene" uid="uid://cxwbi3kugkjk2" path="res://scenes/ui/menus/settings/SettingsVideo.tscn" id="5_x3omy"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8562k"]
+shader = ExtResource("2_xs87y")
+shader_parameter/blur_amount = 1.5
+
+[node name="MainMenuRoot" type="Control" unique_id=1014899906]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_xs87y")
+
+[node name="MenuManager" type="Node" parent="." unique_id=640000968]
+script = ExtResource("1_ajuul")
+
+[node name="BlurOverlay" type="ColorRect" parent="MenuManager" unique_id=109450423]
+material = SubResource("ShaderMaterial_8562k")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainMenu" parent="MenuManager" unique_id=821917367 instance=ExtResource("3_bl87l")]
+
+[node name="MultiplayerMenu" parent="MenuManager" unique_id=527939337 instance=ExtResource("5_bl87l")]
+visible = false
+
+[node name="SettingsMenu" parent="MenuManager" unique_id=1059688152 instance=ExtResource("4_ej0k6")]
+visible = false
+
+[node name="SettingsVideo" parent="MenuManager" unique_id=2041378796 instance=ExtResource("5_x3omy")]
+visible = false

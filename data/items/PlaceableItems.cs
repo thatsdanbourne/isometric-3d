@@ -56,6 +56,6 @@ public static class PlaceableItems
 
 	private static PackedScene LoadScene(string scene)
 	{
-		return GD.Load<PackedScene>($"res://scenes/placeables/{scene}.tscn");
+		return GD.Load<PackedScene>($"res://scenes/objects/placeables/{scene}.tscn");
 	}
 }

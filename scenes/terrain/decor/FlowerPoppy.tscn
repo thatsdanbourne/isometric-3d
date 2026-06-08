@@ -1,8 +1,0 @@
-[gd_scene format=3 uid="uid://cpg6admv5x2vh"]
-
-[ext_resource type="PackedScene" uid="uid://uly05nerhiw1" path="res://assets/meshes/flowers/poppy.glb" id="1_jqawr"]
-[ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/classes/world-gen/terrain/objects/WorldObject.cs" id="2_tthm0"]
-
-[node name="FlowerPoppy" unique_id=194147997 instance=ExtResource("1_jqawr")]
-script = ExtResource("2_tthm0")
-ObjectType = "flower"

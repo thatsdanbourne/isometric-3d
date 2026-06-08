@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://cekvka0k4igjr"]
+
+[ext_resource type="PackedScene" uid="uid://b2d2l48pgxugs" path="res://assets/meshes/kiln/Kiln.glb" id="1_ybkfo"]
+[ext_resource type="Script" uid="uid://b4qg7o00tlw77" path="res://scripts/world/objects/Kiln.cs" id="2_7qu8f"]
+[ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/gameplay/pickups/DropEntry.cs" id="2_ybkfo"]
+[ext_resource type="PackedScene" uid="uid://dfxn8jg5m0gcf" path="res://scenes/ui/HUD/InteractionPrompt.tscn" id="4_7qu8f"]
+
+[sub_resource type="Resource" id="Resource_ybkfo"]
+script = ExtResource("2_ybkfo")
+ItemId = "kiln"
+metadata/_custom_type_script = "uid://2hhyer4i1q1g"
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hbk20"]
+
+[node name="Kiln" unique_id=1889547701 instance=ExtResource("1_ybkfo")]
+script = ExtResource("2_7qu8f")
+ObjectType = "stone"
+DropItems = Array[ExtResource("2_ybkfo")]([SubResource("Resource_ybkfo")])
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." index="2" unique_id=975186339]
+collision_layer = 6
+collision_mask = 9
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" index="0" unique_id=717495445]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("BoxShape3D_hbk20")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="." index="3" unique_id=1710150754]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2718456, 0.5774321)
+visible = false
+light_color = Color(1, 0.37804863, 0, 1)
+light_size = 0.457
+light_specular = 5.0
+shadow_enabled = true
+
+[node name="InteractionPrompt" parent="." index="4" unique_id=401111205 instance=ExtResource("4_7qu8f")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5885766, 0)

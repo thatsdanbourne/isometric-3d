@@ -1,7 +1,0 @@
-[gd_scene format=3 uid="uid://sphp2x5bnkvx"]
-
-[ext_resource type="PackedScene" uid="uid://ca4wnhhkvjqvk" path="res://assets/meshes/structures/standing-stone/standing_stone.glb" id="1_oasb0"]
-[ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/classes/world-gen/terrain/objects/WorldObject.cs" id="2_7k2eu"]
-
-[node name="StandingStone" unique_id=1891357572 instance=ExtResource("1_oasb0")]
-script = ExtResource("2_7k2eu")

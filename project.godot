@@ -17,12 +17,12 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-GameManager="*res://scripts/managers/GameManager.cs"
-CraftingManager="*res://scripts/managers/CraftingManager.cs"
-InventoryManager="*res://scripts/managers/InventoryManager.cs"
-AudioManager="*res://scripts/managers/AudioManager.cs"
-SettingsManager="*res://scripts/managers/SettingsManager.cs"
-Init="*res://scripts/systems/Init.cs"
+GameManager="*res://scripts/autoload/GameManager.cs"
+CraftingManager="*res://scripts/autoload/CraftingManager.cs"
+InventoryManager="*res://scripts/autoload/InventoryManager.cs"
+AudioManager="*res://scripts/autoload/AudioManager.cs"
+SettingsManager="*res://scripts/autoload/SettingsManager.cs"
+Init="*res://scripts/autoload/Init.cs"
 NetworkManager="*uid://du4r4p0pj181k"
 LaunchConfig="*uid://2vkequ5sdwmf"
 ImGuiRoot="*uid://dugmpnsxaagba"

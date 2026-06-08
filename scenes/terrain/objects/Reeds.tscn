@@ -1,8 +1,0 @@
-[gd_scene format=3 uid="uid://bmqrai6pxje88"]
-
-[ext_resource type="PackedScene" uid="uid://dh01imccbovh4" path="res://assets/meshes/reeds/reeds.glb" id="1_pvgte"]
-[ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/classes/world-gen/terrain/objects/WorldObject.cs" id="2_866yu"]
-
-[node name="Reeds" unique_id=1563893801 instance=ExtResource("1_pvgte")]
-script = ExtResource("2_866yu")
-ObjectType = "flower"
