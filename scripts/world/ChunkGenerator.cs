@@ -103,7 +103,10 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 			Objects = new int[c, c]
 		};
 
-		// pass 2, object data
+		// pass 2, structure data
+		BuildStructuresForChunk(chunkCoord, objects, blocked, spawnContext, chunkDelta);
+
+		// pass 3, object data
 		var objectSpawnPasses = new[]
 		{
 			ObjectSpawnPass.LargeObjects,
@@ -252,6 +255,158 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 
 		world.WorldObjectManager.EnqueueChunk(chunk);
 		world.ActiveChunks[chunkCoord] = chunk;
+	}
+
+	private void BuildStructuresForChunk(Vector2I chunkCoord, List<ChunkObject> objects, bool[,] blocked,
+		ChunkSpawnContext spawnContext, ChunkDeltaData chunkDelta)
+	{
+		var c = world.ChunkSize;
+
+		var minTile = new Vector2I(chunkCoord.X * c, chunkCoord.Y * c);
+		var maxTile = minTile + new Vector2I(c - 1, c - 1);
+
+		// Need to check nearby structure regions because a structure
+		// can start outside this chunk but overlap into it.
+		const int regionSize = 64;
+
+		var minRegion = new Vector2I(Mathf.FloorToInt(minTile.X / (float)regionSize) - 1,
+			Mathf.FloorToInt(minTile.Y / (float)regionSize) - 1);
+
+		var maxRegion = new Vector2I(Mathf.FloorToInt(maxTile.X / (float)regionSize) + 1,
+			Mathf.FloorToInt(maxTile.Y / (float)regionSize) + 1);
+
+		for (var rx = minRegion.X; rx <= maxRegion.X; rx++)
+		for (var ry = minRegion.Y; ry <= maxRegion.Y; ry++)
+			TryBuildStructureFromRegion(chunkCoord, new Vector2I(rx, ry), regionSize, objects, blocked, spawnContext,
+				chunkDelta);
+	}
+
+	private void TryBuildStructureFromRegion(
+		Vector2I chunkCoord,
+		Vector2I regionCoord,
+		int regionSize,
+		List<ChunkObject> objects,
+		bool[,] blocked,
+		ChunkSpawnContext spawnContext,
+		ChunkDeltaData chunkDelta
+	)
+	{
+		var c = world.ChunkSize;
+
+		var hash = DeterministicHash.CombineU32(
+			terrainSeed,
+			regionCoord.X,
+			regionCoord.Y,
+			918273
+		);
+
+		var rng = new RandomNumberGenerator();
+		rng.Seed = hash;
+
+		var originTile = new Vector2I(
+			regionCoord.X * regionSize + rng.RandiRange(0, regionSize - 1),
+			regionCoord.Y * regionSize + rng.RandiRange(0, regionSize - 1)
+		);
+
+		var biomeDef = world.BiomeSampler.GetFinalBiomeAtTile(originTile.X, originTile.Y);
+
+		if (biomeDef.StructureRules.Count == 0)
+			return;
+
+		foreach (var rule in biomeDef.StructureRules)
+		{
+			if (rng.Randf() > rule.Density)
+				continue;
+
+			var structureId = PickStructureVariant(rule, rng);
+			var structure = StructureRegistry.Get(structureId);
+
+			EmitStructureToChunk(
+				chunkCoord,
+				originTile,
+				structure,
+				objects,
+				blocked,
+				spawnContext,
+				chunkDelta
+			);
+
+			return;
+		}
+	}
+
+	private static string PickStructureVariant(
+		StructureSpawnRule rule,
+		RandomNumberGenerator rng
+	)
+	{
+		var total = 0f;
+
+		foreach (var variant in rule.Variants)
+			total += variant.Weight;
+
+		var roll = rng.Randf() * total;
+
+		foreach (var variant in rule.Variants)
+		{
+			if (roll <= variant.Weight)
+				return variant.Id;
+
+			roll -= variant.Weight;
+		}
+
+		return rule.Variants[0].Id;
+	}
+
+	private void EmitStructureToChunk(
+		Vector2I chunkCoord,
+		Vector2I originTile,
+		StructureDefinition structure,
+		List<ChunkObject> objects,
+		bool[,] blocked,
+		ChunkSpawnContext spawnContext,
+		ChunkDeltaData chunkDelta
+	)
+	{
+		var c = world.ChunkSize;
+
+		foreach (var part in structure.Objects)
+		{
+			var tilePos = originTile + part.LocalTile;
+
+			if (TileUtils.TileToChunk(tilePos) != chunkCoord)
+				continue;
+
+			if (chunkDelta != null &&
+			    chunkDelta.RemovedProceduralObjects.Contains(tilePos))
+				continue;
+
+			var localX = tilePos.X - chunkCoord.X * c;
+			var localY = tilePos.Y - chunkCoord.Y * c;
+
+			if (localX < 0 || localX >= c || localY < 0 || localY >= c)
+				continue;
+
+			if (blocked[localX, localY])
+				continue;
+
+			var def = WorldObjectRegistry.GetDefinition(part.ObjectId);
+
+			objects.Add(new ChunkObject
+			{
+				Definition = def,
+				TileCoord = tilePos,
+				Position = new Vector3(tilePos.X, 0, tilePos.Y),
+				// Rotation = part.Rotation,
+				ChunkCoord = chunkCoord,
+				Source = ChunkObjectSource.Procedural
+			});
+
+			spawnContext.Objects[localX, localY] = def.StableId;
+
+			if (def.BlocksTile)
+				blocked[localX, localY] = true;
+		}
 	}
 
 	private bool TryGetEffectiveDensity(

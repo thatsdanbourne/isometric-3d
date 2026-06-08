@@ -10,6 +10,7 @@ public partial class Init : Node
 		CraftingRecipeDataLoader.LoadAllCraftingRecipes();
 		TileDataLoader.LoadAllTiles();
 		DetailMeshDataLoader.LoadAllDetailMeshes();
+		StructureDataLoader.LoadAllStructures();
 		MobRegistry.Instance.Register("deer", "res://scenes/mobs/Deer.tscn");
 		MobRegistry.Instance.Register("bandit", "res://scenes/mobs/Bandit.tscn");
 		GD.Print("Registries loaded! 🔥");

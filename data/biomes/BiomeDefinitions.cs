@@ -36,23 +36,15 @@ public static class BiomeDefinitions
 						new SpawnVariant("rock_copper") { Weight = 0.05f }
 					}
 				},
-				new ObjectSpawnRule("plains_flowers")
+				new ObjectSpawnRule("plains_plants")
 				{
 					Pass = ObjectSpawnPass.Decor,
 					Density = 0.75f,
 					Algorithm = NoisePresets.Flowers(seed, worldOffset),
 					Variants =
 					{
+						new SpawnVariant("tall_grass") { Weight = 3f },
 						new SpawnVariant("flower_poppy") { Weight = 1f }
-					}
-				},
-				new ObjectSpawnRule("plains_tall_grass")
-				{
-					Density = 0.75f,
-					Algorithm = NoisePresets.Flowers(seed, worldOffset),
-					Variants =
-					{
-						new SpawnVariant("tall_grass") { Weight = 1f }
 					}
 				},
 				new ObjectSpawnRule("plains_stones")
@@ -117,6 +109,19 @@ public static class BiomeDefinitions
 					ChunkChance = 0.05f,
 					MinPerChunk = 0,
 					MaxPerChunk = 3
+				}
+			},
+			StructureRules =
+			{
+				new StructureSpawnRule
+				{
+					Id = "plains_ruins",
+					Density = 1f,
+					RegionSize = 64,
+					Variants =
+					{
+						new StructureVariant { Id = "plains_stone_circle", Weight = 1f }
+					}
 				}
 			}
 		});

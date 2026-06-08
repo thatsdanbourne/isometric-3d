@@ -71,6 +71,7 @@ public static class WorldObjectRegistry
 		Register("flower_poppy", GD.Load<PackedScene>("res://scenes/terrain/decor/FlowerPoppy.tscn"));
 		Register("reeds", GD.Load<PackedScene>("res://scenes/terrain/objects/Reeds.tscn"));
 		Register("tall_grass", GD.Load<PackedScene>("res://scenes/terrain/decor/TallGrass.tscn"));
+		Register("standing_stone", GD.Load<PackedScene>("res://scenes/structures/StandingStone.tscn"));
 	}
 }
 

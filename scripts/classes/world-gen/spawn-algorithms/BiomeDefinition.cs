@@ -14,6 +14,7 @@ public class BiomeDefinition
 
 	public List<ObjectSpawnRule> ObjectRules { get; } = new();
 	public List<MobSpawnRule> MobRules { get; } = new();
+	public List<StructureSpawnRule> StructureRules = new();
 
 	public bool Matches(float temp, float humidity)
 	{

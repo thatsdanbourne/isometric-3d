@@ -25,7 +25,7 @@ public static class TileUtils
 	}
 
 	//tile <> chunk conversions
-	private static Vector2I TileToChunk(Vector2I tilePos)
+	public static Vector2I TileToChunk(Vector2I tilePos)
 	{
 		return new Vector2I(
 			Mathf.FloorToInt((float)tilePos.X / ChunkSize),
