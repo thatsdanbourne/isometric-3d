@@ -15,8 +15,7 @@ size = Vector3(0.7, 0.5, 0.7)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_peq2f"]
 albedo_color = Color(0.4336509, 0.43365085, 0.43365085, 1)
 
-[node name="stone" unique_id=2089080315 instance=ExtResource("1_2t0md")]
-transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
+[node name="stone" unique_id=1574663239 instance=ExtResource("1_2t0md")]
 script = ExtResource("2_dnhw7")
 ObjectType = "stone"
 DropItems = Array[ExtResource("3_amlwi")]([SubResource("Resource_5y754")])
@@ -29,5 +28,5 @@ collision_mask = 0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
 shape = SubResource("BoxShape3D_peq2f")
 
-[node name="Cube_001" parent="." index="1" unique_id=386827727]
+[node name="Cube_001" parent="." index="1" unique_id=229920292]
 surface_material_override/0 = SubResource("StandardMaterial3D_peq2f")

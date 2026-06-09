@@ -12,11 +12,11 @@ public static class TileDataLoader
 				new DetailMeshRule
 				{
 					MeshId = "grass",
-					Density = 0.8f,
-					MinPerTile = 1,
-					MaxPerTile = 2,
-					MinScale = 0.8f,
-					MaxScale = 1.2f
+					Density = 1f,
+					MinPerTile = 10,
+					MaxPerTile = 15
+					// MinScale = 0.8f,
+					// MaxScale = 1.2f
 				}
 			}
 		});

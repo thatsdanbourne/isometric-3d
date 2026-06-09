@@ -2,6 +2,7 @@
 
 [ext_resource type="Shader" uid="uid://bvdvkci5gnqhq" path="res://resources/shaders/GroundNoise.gdshader" id="1_ycx8f"]
 [ext_resource type="Texture2D" uid="uid://bhctc0b5ov0y0" path="res://resources/noise/GroundNoiseTexture.tres" id="2_dcmn0"]
+[ext_resource type="Material" uid="uid://b0sce57d0qury" path="res://resources/materials/grass_ground_01.tres" id="3_dcmn0"]
 
 [sub_resource type="Image" id="Image_ycx8f"]
 data = {
@@ -134,15 +135,6 @@ _surfaces = [{
 "vertex_data": PackedByteArray("8wS1vgAAAADzBLU+8wS1PgAAAADzBLW+20kBvR2zVj+RGT2/kRk9vx2zVj/bSQG9/3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/78=")
 }]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_n5m20"]
-render_priority = 0
-shader = ExtResource("1_ycx8f")
-shader_parameter/tile_tex = SubResource("ImageTexture_io3mh")
-shader_parameter/noise_tex = ExtResource("2_dcmn0")
-shader_parameter/noise_scale = 0.01
-shader_parameter/noise_strength = 0.2
-shader_parameter/steps = 3
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wykp8"]
 cull_mode = 2
 albedo_texture = SubResource("ImageTexture_ukffc")
@@ -173,7 +165,7 @@ _surfaces = [{
 "format": 34359742487,
 "index_count": 6,
 "index_data": PackedByteArray("AAABAAIAAAACAAMA"),
-"material": SubResource("ShaderMaterial_n5m20"),
+"material": ExtResource("3_dcmn0"),
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
 "vertex_count": 4,

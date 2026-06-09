@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://dnv4532e4xakj" path="res://assets/meshes/tall-grass/tall_grass.glb" id="1_bcxau"]
 [ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/world/objects/WorldObject.cs" id="2_kh6vn"]
-[ext_resource type="Shader" uid="uid://dcrnmdpcgk4oe" path="res://resources/shaders/Grass.gdshader" id="3_skd03"]
+[ext_resource type="Shader" uid="uid://dcrnmdpcgk4oe" path="res://resources/shaders/GrassDetail.gdshader" id="3_skd03"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_25xwk"]
 render_priority = 0

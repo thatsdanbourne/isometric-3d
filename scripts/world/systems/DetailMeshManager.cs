@@ -12,7 +12,7 @@ public partial class DetailMeshManager : Node
 
 	private World _world;
 
-	private ShaderMaterial _grassMaterial = GD.Load<ShaderMaterial>("res://resources/materials/GrassMaterial.tres");
+	private ShaderMaterial _grassMaterial = GD.Load<ShaderMaterial>("res://resources/materials/grass_01.tres");
 
 	public override void _Ready()
 	{
@@ -34,14 +34,15 @@ public partial class DetailMeshManager : Node
 		for (var y = 0; y < c; y++)
 		{
 			var tile = chunk.Tiles[x, y];
+			var tileCoord = new Vector2I(baseX + x, baseY + y);
 
 			foreach (var rule in tile.Definition.DetailMeshes)
 				// if (ShouldAvoidDetail(chunk, x, y, rule))
 				// 	continue;
 				AddInstancesForTile(
 					chunk.Coord,
-					baseX + x,
-					baseY + y,
+					tileCoord.X,
+					tileCoord.Y,
 					rule,
 					byMesh
 				);
@@ -103,7 +104,8 @@ public partial class DetailMeshManager : Node
 		if (rng.NextSingle() > rule.Density)
 			return;
 
-		var count = rng.Next(rule.MinPerTile, rule.MaxPerTile + 1);
+		var count = rng.Next(rule.MinPerTile, rule.MaxPerTile);
+		if (_world.WorldObjectManager.TryGetObject(chunkCoord, new Vector2I(globalX, globalY), out _)) count /= 10;
 
 		if (!byMesh.TryGetValue(rule.MeshId, out var transforms))
 		{
@@ -113,12 +115,12 @@ public partial class DetailMeshManager : Node
 
 		for (var i = 0; i < count; i++)
 		{
-			var offsetX = (float)(rng.NextDouble() * 0.8 - 0.4);
-			var offsetZ = (float)(rng.NextDouble() * 0.8 - 0.4);
+			var offsetX = (float)rng.NextDouble() - 0.5f;
+			var offsetZ = (float)rng.NextDouble() - 0.5f;
 
 			var position = new Vector3(
 				globalX + offsetX,
-				0.01f,
+				0f,
 				globalY + offsetZ
 			);
 

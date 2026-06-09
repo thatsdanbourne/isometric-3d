@@ -11,7 +11,7 @@ public partial class PickupWorldObject : InteractableObject
 	{
 		base._Ready();
 		InteractPrompt = _interactPromptScene.Instantiate<InteractionPrompt>();
-		InteractPrompt.Position = new Vector3(0f, 2f, 0f);
+		InteractPrompt.Position = new Vector3(0f, 1.5f, 0f);
 		AddChild(InteractPrompt);
 	}
 

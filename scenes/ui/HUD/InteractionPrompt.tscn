@@ -3,15 +3,16 @@
 [ext_resource type="Texture2D" uid="uid://cdp66guigpcge" path="res://assets/icons/inputs/mouse_right_outline.png" id="1_c131v"]
 [ext_resource type="Script" uid="uid://8lwiq5a4j0va" path="res://scripts/ui/hud/InteractionPrompt.cs" id="1_vpmcn"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_clq4g"]
+[sub_resource type="QuadMesh" id="QuadMesh_vpmcn"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vpmcn"]
+render_priority = 1
 transparency = 1
+no_depth_test = true
 shading_mode = 0
 albedo_texture = ExtResource("1_c131v")
 texture_filter = 0
 billboard_mode = 1
-
-[sub_resource type="QuadMesh" id="QuadMesh_vpmcn"]
-material = SubResource("StandardMaterial3D_clq4g")
 
 [node name="InteractionPrompt" type="Node3D" unique_id=401111205]
 script = ExtResource("1_vpmcn")
@@ -20,3 +21,4 @@ script = ExtResource("1_vpmcn")
 visible = false
 cast_shadow = 0
 mesh = SubResource("QuadMesh_vpmcn")
+surface_material_override/0 = SubResource("StandardMaterial3D_vpmcn")

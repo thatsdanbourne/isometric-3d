@@ -1,9 +1,19 @@
 [gd_scene format=3 uid="uid://daf60n71mxt1i"]
 
 [ext_resource type="PackedScene" uid="uid://cxrcte8g5b0cd" path="res://assets/meshes/grass-detail/grass_detail.glb" id="1_7ab4g"]
+[ext_resource type="Material" uid="uid://btkwjhwdrcgqp" path="res://resources/materials/grass_01.tres" id="2_2x0qs"]
 [ext_resource type="Material" uid="uid://d1flg2ckhuuny" path="res://resources/materials/GrassMaterial.tres" id="2_x73a0"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_a8nka"]
+size = Vector2(0.5, 0.5)
+center_offset = Vector3(0, 0.24, 0)
 
 [node name="grass_detail" unique_id=1452872494 instance=ExtResource("1_7ab4g")]
 
-[node name="GrassDetail" parent="." index="0" unique_id=54865182]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." index="0" unique_id=1345251631]
+material_override = ExtResource("2_2x0qs")
+mesh = SubResource("QuadMesh_a8nka")
+
+[node name="GrassDetail" parent="." index="1" unique_id=54865182]
+visible = false
 surface_material_override/0 = ExtResource("2_x73a0")
