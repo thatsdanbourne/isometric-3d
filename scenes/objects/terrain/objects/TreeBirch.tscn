@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://bjfjdfv4mi8i4"]
 
-[ext_resource type="PackedScene" uid="uid://cc43e4oit1w2" path="res://assets/meshes/tree.glb" id="1_tm4eo"]
-[ext_resource type="Shader" uid="uid://dgkxl5jho041u" path="res://resources/shaders/CellShade.gdshader" id="2_1grta"]
+[ext_resource type="PackedScene" uid="uid://cc43e4oit1w2" path="res://assets/meshes/trees/tree.glb" id="1_tm4eo"]
 [ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/world/objects/WorldObject.cs" id="2_2qbmg"]
 [ext_resource type="Texture2D" uid="uid://dd2v40g5t3gvh" path="res://assets/sprites/tree/birch_trunk.png" id="3_tm4eo"]
 [ext_resource type="Shader" uid="uid://5e6g7fva4pcn" path="res://resources/shaders/Tree.gdshader" id="4_cac38"]
@@ -18,13 +17,10 @@ metadata/_custom_type_script = "uid://2hhyer4i1q1g"
 [sub_resource type="BoxShape3D" id="BoxShape3D_tm4eo"]
 size = Vector3(0.5, 1, 0.5)
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_gygf0"]
-render_priority = 0
-shader = ExtResource("2_1grta")
-shader_parameter/light_steps = 3.0
-shader_parameter/color_texture = ExtResource("3_tm4eo")
-shader_parameter/uv_scale = Vector2(1.5, 2)
-shader_parameter/outline_mask = 1.0
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vrcyg"]
+albedo_texture = ExtResource("3_tm4eo")
+uv1_scale = Vector3(2, 2, 2)
+texture_filter = 0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_l1bqg"]
 render_priority = 0
@@ -38,8 +34,8 @@ shader_parameter/light_steps = 5.0
 [node name="Tree" unique_id=460300137 instance=ExtResource("1_tm4eo")]
 script = ExtResource("2_2qbmg")
 ObjectType = "wood"
-BreakSoundsKey = "break_tree"
 DropItems = Array[ExtResource("5_2qbmg")]([SubResource("Resource_2qbmg")])
+BreakSoundsKey = "break_tree"
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." index="0" unique_id=1518532266]
 collision_layer = 2
@@ -49,8 +45,8 @@ collision_mask = 0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("BoxShape3D_tm4eo")
 
-[node name="Trunk" parent="." index="1" unique_id=653135407]
-surface_material_override/0 = SubResource("ShaderMaterial_gygf0")
+[node name="Trunk" parent="." index="1" unique_id=235980117]
+surface_material_override/0 = SubResource("StandardMaterial3D_vrcyg")
 
-[node name="Canopy" parent="." index="2" unique_id=1343648332]
+[node name="Canopy" parent="." index="2" unique_id=1907685494]
 surface_material_override/0 = SubResource("ShaderMaterial_l1bqg")

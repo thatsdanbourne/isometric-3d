@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cmajno0svyt4y"]
 
-[ext_resource type="PackedScene" uid="uid://b7e0q7x74wk0e" path="res://assets/meshes/RockOre.glb" id="1_aj5fw"]
+[ext_resource type="PackedScene" uid="uid://b7e0q7x74wk0e" path="res://assets/meshes/rocks/rock_ore.glb" id="1_aj5fw"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/gameplay/pickups/DropEntry.cs" id="2_fs4fn"]
 [ext_resource type="Material" uid="uid://bmfptrd5gn133" path="res://resources/materials/Rock.tres" id="2_tso8d"]
 [ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/world/objects/WorldObject.cs" id="2_wfnr5"]
