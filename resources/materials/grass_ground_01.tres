@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://b0sce57d0qury"]
+
+[ext_resource type="Shader" uid="uid://cshnlvkwrfs2h" path="res://resources/shaders/ground.gdshader" id="1_qiimj"]
+[ext_resource type="Texture2D" uid="uid://di62ixsr75dl2" path="res://assets/palette/palette_01.tres" id="2_qlfk2"]
+[ext_resource type="Texture2D" uid="uid://bhctc0b5ov0y0" path="res://resources/noise/GroundNoiseTexture.tres" id="3_m8t08"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_qiimj")
+shader_parameter/noise_texture = ExtResource("3_m8t08")
+shader_parameter/color_gradient = ExtResource("2_qlfk2")
