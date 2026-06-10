@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://uly05nerhiw1"
-path="res://.godot/imported/poppy.glb-19f3bd2e04267124eef2649aa38e3e39.scn"
+path="res://.godot/imported/Poppy.glb-f06605d4cf3cea63cbdd6d28f60047ba.scn"
 
 [deps]
 
-source_file="res://assets/meshes/flowers/poppy.glb"
-dest_files=["res://.godot/imported/poppy.glb-19f3bd2e04267124eef2649aa38e3e39.scn"]
+source_file="res://assets/meshes/flowers/Poppy.glb"
+dest_files=["res://.godot/imported/Poppy.glb-f06605d4cf3cea63cbdd6d28f60047ba.scn"]
 
 [params]
 
