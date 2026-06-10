@@ -1,16 +1,10 @@
 using Godot;
 
-public class SpawnVariant
+public class SpawnVariant(string id)
 {
-	public string Id { get; set; }
-	public int StableId { get; set; }
+	public string Id { get; set; } = id;
+	public int StableId { get; set; } = DeterministicHash.String32(id);
 	public float Weight { get; set; } = 1f;
-
-	public SpawnVariant(string id)
-	{
-		Id = id;
-		StableId = DeterministicHash.String32(id);
-	}
 
 	public WorldObjectDefinition Definition
 	{

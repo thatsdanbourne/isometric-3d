@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://5wprgxc1ga81"]
+
+[ext_resource type="PackedScene" uid="uid://pnih3y7afbvw" path="res://assets/meshes/floors/stone_floor.glb" id="1_eliuf"]
+[ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/world/objects/WorldObject.cs" id="2_w31g8"]
+
+[node name="stone_floor" unique_id=547754678 instance=ExtResource("1_eliuf")]
+script = ExtResource("2_w31g8")

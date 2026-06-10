@@ -26,6 +26,30 @@ public class StructureDefinition
 
 public class StructureObject
 {
-	public string ObjectId { get; set; }
 	public Vector2I LocalTile { get; set; }
+	public float Chance { get; set; } = 1f;
+
+	public List<SpawnVariant> Variants { get; set; } = new();
+
+	public SpawnVariant PickVariant(int seed, int structureId, Vector2I originTile)
+	{
+		var totalWeight = 0f;
+
+		foreach (var v in Variants)
+			totalWeight += v.Weight;
+
+		var hash = DeterministicHash.Combine32(seed, structureId, originTile.X, originTile.Y, LocalTile.X, LocalTile.Y);
+
+		var roll = hash / (float)uint.MaxValue * totalWeight;
+
+		foreach (var v in Variants)
+		{
+			if (roll <= v.Weight)
+				return v;
+
+			roll -= v.Weight;
+		}
+
+		return Variants[0];
+	}
 }

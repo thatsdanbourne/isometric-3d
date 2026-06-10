@@ -390,14 +390,30 @@ public partial class ChunkGenerator(World world, int terrainSeed) : Node
 			if (blocked[localX, localY])
 				continue;
 
-			var def = WorldObjectRegistry.GetDefinition(part.ObjectId);
+
+			var chanceHash = DeterministicHash.CombineU32(
+				terrainSeed,
+				structure.StableId,
+				originTile.X,
+				originTile.Y,
+				part.LocalTile.X,
+				part.LocalTile.Y,
+				12345
+			);
+
+			var chanceRoll = chanceHash / (float)uint.MaxValue;
+
+			if (chanceRoll > part.Chance)
+				continue;
+
+			var variant = part.PickVariant(terrainSeed, structure.StableId, originTile);
+			var def = variant.Definition;
 
 			objects.Add(new ChunkObject
 			{
 				Definition = def,
 				TileCoord = tilePos,
 				Position = new Vector3(tilePos.X, 0, tilePos.Y),
-				// Rotation = part.Rotation,
 				ChunkCoord = chunkCoord,
 				Source = ChunkObjectSource.Procedural
 			});

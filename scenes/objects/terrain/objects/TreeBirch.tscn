@@ -45,8 +45,8 @@ collision_mask = 0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("BoxShape3D_tm4eo")
 
-[node name="Trunk" parent="." index="1" unique_id=235980117]
+[node name="Trunk" parent="." index="1" unique_id=956278078]
 surface_material_override/0 = SubResource("StandardMaterial3D_vrcyg")
 
-[node name="Canopy" parent="." index="2" unique_id=1907685494]
+[node name="Canopy" parent="." index="2" unique_id=1933089282]
 surface_material_override/0 = SubResource("ShaderMaterial_l1bqg")
