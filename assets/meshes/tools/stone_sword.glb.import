@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cxrcte8g5b0cd"
-path="res://.godot/imported/grass_detail.glb-533618a009b3145958598060d5a059ec.scn"
+uid="uid://cevplwxx5t3jk"
+path="res://.godot/imported/stone_sword.glb-5bae0721afda585500927ec20fd81461.scn"
 
 [deps]
 
-source_file="res://assets/meshes/grass-detail/grass_detail.glb"
-dest_files=["res://.godot/imported/grass_detail.glb-533618a009b3145958598060d5a059ec.scn"]
+source_file="res://assets/meshes/tools/stone_sword.glb"
+dest_files=["res://.godot/imported/stone_sword.glb-5bae0721afda585500927ec20fd81461.scn"]
 
 [params]
 
@@ -37,23 +37,6 @@ import_script/path=""
 materials/extract=0
 materials/extract_format=0
 materials/extract_path=""
-_subresources={
-"meshes": {
-"grass_detail_Cylinder_022": {
-"generate/lightmap_uv": 0,
-"generate/lods": 0,
-"generate/shadow_meshes": 2,
-"lods/normal_merge_angle": 20.0,
-"save_to_file/enabled": false,
-"save_to_file/fallback_path": "",
-"save_to_file/path": ""
-}
-},
-"nodes": {
-"PATH:GrassDetail": {
-"mesh_instance/cast_shadow": 0
-}
-}
-}
+_subresources={}
 gltf/naming_version=2
 gltf/embedded_image_handling=1

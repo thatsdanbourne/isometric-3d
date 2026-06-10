@@ -163,6 +163,9 @@ public partial class WorldObjectManager : Node
 		};
 
 		chunk.Objects.Add(data);
+		_world.BlockTile(tileCoord);
+		_world.DetailMeshManager.RemoveChunk(chunkCoord);
+		_world.DetailMeshManager.BuildForChunk(chunk);
 		EnqueueSpawn(data);
 	}
 

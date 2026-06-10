@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cwk7lmbmxx6se"]
 
-[ext_resource type="PackedScene" uid="uid://cevplwxx5t3jk" path="res://assets/meshes/tools/StoneSword.glb" id="1_13gex"]
+[ext_resource type="PackedScene" uid="uid://cevplwxx5t3jk" path="res://assets/meshes/tools/stone_sword.glb" id="1_13gex"]
 
 [node name="StoneSword" unique_id=169175897 instance=ExtResource("1_13gex")]
 

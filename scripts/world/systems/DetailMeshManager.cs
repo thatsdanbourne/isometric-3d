@@ -36,9 +36,9 @@ public partial class DetailMeshManager : Node
 			var tile = chunk.Tiles[x, y];
 			var tileCoord = new Vector2I(baseX + x, baseY + y);
 
+			if (_world.IsTileBlocked(tileCoord)) continue;
+
 			foreach (var rule in tile.Definition.DetailMeshes)
-				// if (ShouldAvoidDetail(chunk, x, y, rule))
-				// 	continue;
 				AddInstancesForTile(
 					chunk.Coord,
 					tileCoord.X,
@@ -105,7 +105,6 @@ public partial class DetailMeshManager : Node
 			return;
 
 		var count = rng.Next(rule.MinPerTile, rule.MaxPerTile);
-		if (_world.WorldObjectManager.TryGetObject(chunkCoord, new Vector2I(globalX, globalY), out _)) count /= 10;
 
 		if (!byMesh.TryGetValue(rule.MeshId, out var transforms))
 		{
@@ -124,8 +123,6 @@ public partial class DetailMeshManager : Node
 				globalY + offsetZ
 			);
 
-			// var rotation = (float)(rng.NextDouble() * Mathf.Tau);
-
 			var scale = Mathf.Lerp(
 				rule.MinScale,
 				rule.MaxScale,
@@ -133,7 +130,6 @@ public partial class DetailMeshManager : Node
 			);
 
 			var basis = Basis.Identity
-				// .Rotated(Vector3.Up, rotation)
 				.Scaled(new Vector3(scale, scale, scale));
 
 			transforms.Add(new Transform3D(

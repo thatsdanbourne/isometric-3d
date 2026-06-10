@@ -91,7 +91,8 @@ public partial class PlacementPreview : Node3D
 				Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
 				ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
 				AlbedoColor = new Color(0.3f, 1f, 0.3f, 0.6f),
-				CullMode = BaseMaterial3D.CullModeEnum.Disabled
+				CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+				RenderPriority = 2
 			};
 
 			mesh.MaterialOverride = mat;

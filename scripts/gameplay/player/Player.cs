@@ -116,14 +116,14 @@ public partial class Player : CharacterBody3D, IToolHittable
 			_testItemsGiven = true;
 
 			// testing items
-			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_sword"), 1);
+			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_sword"), 1);
 			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("chest"), 1);
 			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
 			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("kiln"), 1);
 			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("copper_ore"), 99);
 			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("coal"), 99);
 			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("wood"), 99);
-			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone"), 99);
+			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("campfire"), 2);
 
 			if (Multiplayer.HasMultiplayerPeer() && Multiplayer.IsServer())
 				_world.Sync.SyncPlayerInventoryState(this);

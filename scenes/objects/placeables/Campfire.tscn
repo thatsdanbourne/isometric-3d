@@ -68,9 +68,11 @@ alpha_curve = SubResource("CurveTexture_4gy27")
 emission_curve = SubResource("CurveTexture_o83ej")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6te26"]
-transparency = 1
+render_priority = 1
+transparency = 2
+alpha_scissor_threshold = 0.1
+alpha_antialiasing_mode = 0
 shading_mode = 0
-diffuse_mode = 2
 vertex_color_use_as_albedo = true
 albedo_texture = ExtResource("4_4e13r")
 billboard_mode = 3
@@ -127,9 +129,13 @@ turbulence_influence_min = 0.0
 turbulence_influence_max = 0.010000001
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_f73sd"]
-transparency = 1
+render_priority = 1
+transparency = 2
+alpha_scissor_threshold = 0.1
+alpha_antialiasing_mode = 0
 shading_mode = 0
 vertex_color_use_as_albedo = true
+albedo_color = Color(1, 1, 0, 1)
 albedo_texture = ExtResource("4_icftp")
 billboard_mode = 3
 billboard_keep_scale = true
@@ -169,16 +175,20 @@ omni_range = 20.0
 [node name="Flame" type="Node3D" parent="." index="3" unique_id=938221680]
 
 [node name="Flame" type="GPUParticles3D" parent="Flame" index="0" unique_id=1508778557]
+cast_shadow = 0
 amount = 32
 lifetime = 2.0
-fixed_fps = 60
+fixed_fps = 0
+interpolate = false
 process_material = SubResource("ParticleProcessMaterial_8nbpa")
 draw_pass_1 = SubResource("QuadMesh_gc10d")
 
 [node name="Embers" type="GPUParticles3D" parent="Flame" index="1" unique_id=1379812235]
+cast_shadow = 0
 amount = 18
 lifetime = 3.0
 explosiveness = 0.2
-fixed_fps = 60
+fixed_fps = 0
+interpolate = false
 process_material = SubResource("ParticleProcessMaterial_g2u2a")
 draw_pass_1 = SubResource("QuadMesh_o83ej")

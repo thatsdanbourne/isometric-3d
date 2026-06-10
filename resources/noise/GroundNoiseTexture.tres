@@ -2,7 +2,6 @@
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_38nwk"]
 seed = 6
-frequency = 0.008
 
 [resource]
 noise = SubResource("FastNoiseLite_38nwk")

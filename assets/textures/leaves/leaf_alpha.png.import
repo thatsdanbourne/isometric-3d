@@ -2,9 +2,9 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://du32la2gi2lf0"
-path.s3tc="res://.godot/imported/pine_leaf_alpha.png-d9b0eaa02681f3a4dd7f5c1ea4fe5522.s3tc.ctex"
-path.etc2="res://.godot/imported/pine_leaf_alpha.png-d9b0eaa02681f3a4dd7f5c1ea4fe5522.etc2.ctex"
+uid="uid://qfc417sfahcd"
+path.s3tc="res://.godot/imported/leaf_alpha.png-2a277273b208d673274b8cc351354c6a.s3tc.ctex"
+path.etc2="res://.godot/imported/leaf_alpha.png-2a277273b208d673274b8cc351354c6a.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/meshes/pine_leaf_alpha.png"
-dest_files=["res://.godot/imported/pine_leaf_alpha.png-d9b0eaa02681f3a4dd7f5c1ea4fe5522.s3tc.ctex", "res://.godot/imported/pine_leaf_alpha.png-d9b0eaa02681f3a4dd7f5c1ea4fe5522.etc2.ctex"]
+source_file="res://assets/textures/leaves/leaf_alpha.png"
+dest_files=["res://.godot/imported/leaf_alpha.png-2a277273b208d673274b8cc351354c6a.s3tc.ctex", "res://.godot/imported/leaf_alpha.png-2a277273b208d673274b8cc351354c6a.etc2.ctex"]
 
 [params]
 

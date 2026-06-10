@@ -33,7 +33,7 @@ public partial class World : Node3D
 	public readonly Dictionary<Vector2I, Chunk> ServerChunks = new();
 	public readonly Dictionary<Vector2I, Chunk> ActiveChunks = new();
 	public readonly Dictionary<Vector2I, ChunkDeltaData> ChunkDeltas = new();
-	private readonly Dictionary<Vector2I, int> _blockedTiles = new();
+	private readonly HashSet<Vector2I> _blockedTiles = new();
 
 	public int TerrainSeed;
 	public Vector2I WorldOffset; // prevents sampling noise at (0,0)
@@ -243,27 +243,17 @@ public partial class World : Node3D
 
 	public void BlockTile(Vector2I tile)
 	{
-		if (_blockedTiles.TryGetValue(tile, out var count))
-			_blockedTiles[tile] = count + 1;
-		else
-			_blockedTiles[tile] = 1;
+		_blockedTiles.Add(tile);
 	}
 
 	public void UnblockTile(Vector2I tile)
 	{
-		if (!_blockedTiles.TryGetValue(tile, out var count)) return;
-
-		count--;
-
-		if (count <= 0)
-			_blockedTiles.Remove(tile);
-		else
-			_blockedTiles[tile] = count;
+		_blockedTiles.Remove(tile);
 	}
 
 	public bool CanPlace(Vector2I tile, PlaceableItem item)
 	{
-		if (_blockedTiles.ContainsKey(tile)) return false;
+		if (_blockedTiles.Contains(tile)) return false;
 
 		return true;
 	}
@@ -397,7 +387,7 @@ public partial class World : Node3D
 
 	public bool IsTileBlocked(Vector2I tile)
 	{
-		return _blockedTiles.ContainsKey(tile);
+		return _blockedTiles.Contains(tile);
 	}
 
 	public ChunkObject ResolveChunkObject(Vector2I tileCoord)

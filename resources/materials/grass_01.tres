@@ -4,21 +4,16 @@
 [ext_resource type="Texture2D" uid="uid://di62ixsr75dl2" path="res://assets/palette/palette_01.tres" id="2_dtlve"]
 [ext_resource type="Texture2D" uid="uid://dv6g2qxppq3ec" path="res://assets/textures/grass/grass_atlas.png" id="3_2tyb0"]
 [ext_resource type="Texture2D" uid="uid://bhctc0b5ov0y0" path="res://resources/noise/GroundNoiseTexture.tres" id="3_bue1r"]
-[ext_resource type="Texture2D" uid="uid://bqe52kvd1l838" path="res://assets/textures/grass/grass_1.png" id="4_xv454"]
-[ext_resource type="Texture2D" uid="uid://bteo41l4u3kex" path="res://resources/noise/WindNoise.tres" id="6_63rqy"]
 
 [resource]
 render_priority = 0
 shader = ExtResource("1_upbw4")
 shader_parameter/billboard = true
-shader_parameter/shape_texture = ExtResource("4_xv454")
 shader_parameter/shape_atlas = ExtResource("3_2tyb0")
 shader_parameter/use_atlas = true
 shader_parameter/noise_texture = ExtResource("3_bue1r")
 shader_parameter/color_gradient = ExtResource("2_dtlve")
-shader_parameter/random_variation = 0.002
-shader_parameter/wind_texture = ExtResource("6_63rqy")
-shader_parameter/wind_velocity = Vector2(0, 0)
+shader_parameter/random_variation = 0.0
 shader_parameter/alpha_cut_start = 0.0
 shader_parameter/alpha_cut_end = 1.0
 shader_parameter/alpha_mode = 2

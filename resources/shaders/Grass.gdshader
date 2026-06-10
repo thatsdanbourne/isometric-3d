@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode blend_mix, depth_prepass_alpha;
+render_mode blend_mix, depth_draw_opaque;
 
 uniform bool billboard = false;
 
@@ -12,14 +12,16 @@ uniform sampler2D noise_texture;
 uniform sampler2D color_gradient;
 uniform float random_variation : hint_range(0.0, 1.0, 0.001) = 0.002;
 
-group_uniforms Wind;
-uniform sampler2D wind_texture;
-uniform vec2 wind_velocity;
-
 group_uniforms Transparency;
 uniform float alpha_cut_start : hint_range(0.0, 1.0, 0.05) = 0.1;
 uniform float alpha_cut_end : hint_range(0.0, 1.0, 0.05) = 0.9;
 uniform int alpha_mode : hint_enum("Smooth", "Dithered", "Cut") = 0;
+
+global uniform float wind_scale;
+global uniform float wind_speed;
+global uniform float wind_strength;
+global uniform vec3 wind_direction;
+global uniform sampler2D wind_noise : filter_linear_mipmap;
 
 varying flat int id;
 varying vec3 world_pos;
@@ -40,37 +42,47 @@ float randomf(int index, int seed){
 	return value;
 }
 
-float wind_noise(){
-	float value = texture(wind_texture, (world_pos.xz*0.03) - (vec2(TIME * 0.01) * wind_velocity)).r;
-	return value;
+float get_wind_noise(vec3 pos) {
+	float speed = TIME * wind_speed;
+
+	float noise = textureLod(
+		wind_noise,
+		(pos.xz * wind_scale) - (speed * wind_direction.xz),
+		1.0
+	).r;
+
+	return noise * 2.0 - 1.0;
 }
 
-vec3 wind(vec2 uv){
-	float wind_noise = wind_noise();
-	float wind_affect = pow(1.0 - uv.y, 2.0);
-	vec3 value = vec3(
-		wind_noise * (wind_velocity.x),
-		0.0,
-		wind_noise * (wind_velocity.y)) * 0.25;
-	value *= wind_affect;
-	return value;
+vec3 get_wind_offset(vec2 uv, vec3 pos) {
+	float noise = get_wind_noise(pos);
+
+	// Billboard grass base is usually at UV.y = 1.0 and tip at UV.y = 0.0.
+	float height_mask = pow(1.0 - uv.y, 2.0);
+
+	vec3 wind_dir = normalize(vec3(wind_direction.x, 0.0, wind_direction.z));
+
+	return wind_dir * noise * wind_strength * 0.25 * height_mask;
 }
 
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	id = INSTANCE_ID;
 
+	vec3 wind_offset = get_wind_offset(UV, world_pos) * 2.5;
+	
 	if(billboard){
 		mat4 billboard_matrix = mat4(
 				MAIN_CAM_INV_VIEW_MATRIX[0],
 				MAIN_CAM_INV_VIEW_MATRIX[1],
 				MAIN_CAM_INV_VIEW_MATRIX[2],
 				MODEL_MATRIX[3]);
+		
 		MODELVIEW_MATRIX = VIEW_MATRIX * billboard_matrix;
 
-		VERTEX += (VIEW_MATRIX * vec4(wind(UV), 0.0)).xyz;
+		VERTEX += (VIEW_MATRIX * vec4(wind_offset, 0.0)).xyz;
 	} else {
-		VERTEX += wind(UV);
+		VERTEX += wind_offset;
 	}
 	NORMAL = vec3(0.0,1.0,0.0);
 }

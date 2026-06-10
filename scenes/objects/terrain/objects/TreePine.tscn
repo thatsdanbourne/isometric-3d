@@ -6,7 +6,7 @@
 [ext_resource type="Shader" uid="uid://dgkxl5jho041u" path="res://resources/shaders/CellShade.gdshader" id="2_u4uva"]
 [ext_resource type="Texture2D" uid="uid://biw08dq8o6nnr" path="res://assets/sprites/tree/oak_trunk.png" id="3_cye4l"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/gameplay/pickups/DropEntry.cs" id="3_dqv2m"]
-[ext_resource type="Texture2D" uid="uid://du32la2gi2lf0" path="res://assets/meshes/pine_leaf_alpha.png" id="3_tr1gr"]
+[ext_resource type="Texture2D" uid="uid://du32la2gi2lf0" path="res://assets/textures/leaves/pine_leaf_alpha.png" id="3_tr1gr"]
 
 [sub_resource type="Resource" id="Resource_dqv2m"]
 script = ExtResource("3_dqv2m")
