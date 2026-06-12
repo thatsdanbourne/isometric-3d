@@ -31,7 +31,7 @@ shader_parameter/leaves_scale = 0.4
 shader_parameter/leaf_bend_amount = 0.8
 shader_parameter/light_steps = 5.0
 
-[node name="Tree" unique_id=221749709 instance=ExtResource("1_cifx4")]
+[node name="Tree" unique_id=715301084 instance=ExtResource("1_cifx4")]
 script = ExtResource("2_lbu16")
 ObjectType = "wood"
 DropItems = Array[ExtResource("3_8gb5b")]([SubResource("Resource_hq3cg")])
@@ -45,8 +45,8 @@ collision_mask = 0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("BoxShape3D_v2f0m")
 
-[node name="Trunk" parent="." index="1" unique_id=956278078]
+[node name="Trunk" parent="." index="1" unique_id=1652244882]
 surface_material_override/0 = SubResource("StandardMaterial3D_do07x")
 
-[node name="Canopy" parent="." index="2" unique_id=1933089282]
+[node name="Canopy" parent="." index="2" unique_id=1889036054]
 surface_material_override/0 = SubResource("ShaderMaterial_l1bqg")

@@ -26,12 +26,22 @@ void vertex() {
 
 	vec2 uv_offset = UV * 2.0 - 1.0;
 
-	vec3 view_offset = normalize(vec3(uv_offset.y, uv_offset.x, 0.0)) * leaves_scale;
+	// Camera-facing basis in world space
+	vec3 cam_right = MAIN_CAM_INV_VIEW_MATRIX[0].xyz;
+	vec3 cam_up = MAIN_CAM_INV_VIEW_MATRIX[1].xyz;
 
-	view_offset.x += bend * uv_offset.x;
-	view_offset.y -= bend * uv_offset.y;
+	// Billboard offset in world space
+	vec3 offset_world =
+		(cam_right * uv_offset.y + cam_up * uv_offset.x) * leaves_scale;
 
-	VERTEX += (inverse(MODELVIEW_MATRIX) * vec4(view_offset, 0.0)).xyz;
+	// Wind offset in world space
+	vec3 wind_dir = normalize(vec3(wind_direction.x, 0.0, wind_direction.z));
+	offset_world += wind_dir * bend * uv_offset.x;
+
+	// Convert world-space offset back into local/object space
+	vec3 offset_local = (inverse(MODEL_MATRIX) * vec4(offset_world, 0.0)).xyz;
+
+	VERTEX += offset_local;
 
 	v_view_pos = (MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
@@ -46,36 +56,15 @@ void fragment() {
 }
 
 void light() {
-    // Pre-calculate 1.0 / PI to turn division into multiplication
-    const float ONE_OVER_PI = 0.31830988618;
-    float inv_steps = 1.0 / light_steps;
+	// Cel shaded diffuse lighting
+	float light = clamp(dot(NORMAL, LIGHT), 0.0, 1.0);
+	light = ceil(light * light_steps) / light_steps;
+	DIFFUSE_LIGHT += light * (LIGHT_COLOR / PI) * ATTENUATION;
 
-    // Cel shaded diffuse lighting
-    float dot_nl = clamp(dot(NORMAL, LIGHT), 0.0, 1.0);
-    // Using multiplication instead of ceil(x * steps) / steps
-    float light = ceil(dot_nl * light_steps) * inv_steps;
-    
-    vec3 base_light = light * LIGHT_COLOR * ONE_OVER_PI * ATTENUATION;
-    DIFFUSE_LIGHT += base_light;
-
-    // Rim Lighting
-    float rim = clamp(1.0 - dot(NORMAL, VIEW), 0.0, 1.0) * light;
-    rim = round(rim * light_steps) * inv_steps;
-    rim *= rim;
-    
-    DIFFUSE_LIGHT += rim * ATTENUATION * LIGHT_COLOR * ONE_OVER_PI;
+	// Rim Lighting
+	float rim = clamp(1.0 - dot(NORMAL, VIEW), 0.0, 1.0);
+	rim *= light;
+	//rim = round(rim * light_steps) / light_steps;
+	rim = rim * rim;
+	DIFFUSE_LIGHT += rim * ATTENUATION * LIGHT_COLOR / PI;
 }
-
-//void light() {
-	//// Cel shaded diffuse lighting
-	//float light = clamp(dot(NORMAL, LIGHT), 0.0, 1.0);
-	//light = ceil(light * light_steps) / light_steps;
-	//DIFFUSE_LIGHT += light * (LIGHT_COLOR / PI) * ATTENUATION;
-//
-	//// Rim Lighting
-	//float rim = 1.0 - dot(NORMAL, VIEW);
-	//rim *= light;
-	////rim = round(rim * light_steps) / light_steps;
-	//rim = rim * rim;
-	//DIFFUSE_LIGHT += rim * ATTENUATION * LIGHT_COLOR / PI;
-//}
