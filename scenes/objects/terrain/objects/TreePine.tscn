@@ -31,8 +31,8 @@ render_priority = 0
 shader = ExtResource("2_tr1gr")
 shader_parameter/color = Color(0.18088949, 0.24329361, 0.0088370945, 1)
 shader_parameter/alpha = ExtResource("3_tr1gr")
-shader_parameter/leaves_scale = 1.645
-shader_parameter/leaf_bend_amount = 2.42
+shader_parameter/leaves_scale = 0.45
+shader_parameter/leaf_bend_amount = 0.6
 shader_parameter/light_steps = 5.0
 
 [sub_resource type="QuadMesh" id="QuadMesh_updbm"]

@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://yc1ojpengw5i"]
+
+[ext_resource type="PackedScene" uid="uid://ce2vtmuh8lmwb" path="res://assets/meshes/terrain/water_tiles.glb" id="1_veqns"]
+
+[node name="water_tiles" unique_id=2126844185 instance=ExtResource("1_veqns")]

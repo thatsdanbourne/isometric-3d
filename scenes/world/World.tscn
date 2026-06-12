@@ -12,8 +12,8 @@
 [ext_resource type="Texture2D" uid="uid://b0rvrpykafb60" path="res://assets/particles/weather/snowflake.png" id="10_umbuh"]
 [ext_resource type="Script" uid="uid://biupxf38shvsk" path="res://scripts/world/objects/WorldObjectManager.cs" id="11_juaju"]
 [ext_resource type="Script" uid="uid://c2222heoejafa" path="res://scripts/world/systems/DetailMeshManager.cs" id="12_lplgh"]
-[ext_resource type="MeshLibrary" uid="uid://hvr6yjpo0ajd" path="res://water_meshlibrary.tres" id="13_d6tky"]
-[ext_resource type="MeshLibrary" uid="uid://crawy4x5h3g1u" path="res://tiles_meshlibrary.tres" id="14_6mhxi"]
+[ext_resource type="MeshLibrary" uid="uid://kh5u8ocj4r7" path="res://water2_meshlibrary.tres" id="13_fe1rh"]
+[ext_resource type="MeshLibrary" uid="uid://cfhntbv4g2kqo" path="res://terrain_meshlibrary.tres" id="14_fe1rh"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ygioq"]
 shader = ExtResource("2_wryly")
@@ -164,8 +164,7 @@ directional_shadow_mode = 0
 environment = SubResource("Environment_1lgw5")
 
 [node name="WaterMap" type="GridMap" parent="." unique_id=910294709]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
-mesh_library = ExtResource("13_d6tky")
+mesh_library = ExtResource("13_fe1rh")
 cell_size = Vector3(1, 1, 1)
 cell_octant_size = 32
 cell_center_x = false
@@ -175,7 +174,7 @@ collision_mask = 8
 metadata/_editor_floor_ = Vector3(0, -1, 0)
 
 [node name="GroundMap" type="GridMap" parent="." unique_id=2028653057]
-mesh_library = ExtResource("14_6mhxi")
+mesh_library = ExtResource("14_fe1rh")
 cell_size = Vector3(1, 1, 1)
 cell_octant_size = 32
 cell_center_x = false

@@ -6,7 +6,7 @@ public static class TileDataLoader
 		{
 			Id = TileId.Grass,
 			Name = "grass",
-			GridTileId = 0,
+			GridTileId = 1,
 			DetailMeshes =
 			{
 				new DetailMeshRule
@@ -25,14 +25,14 @@ public static class TileDataLoader
 		{
 			Id = TileId.Sand,
 			Name = "sand",
-			GridTileId = 3
+			GridTileId = 2
 		});
 
 		TileRegistry.Register(new TileDefinition
 		{
 			Id = TileId.Snow,
 			Name = "snow",
-			GridTileId = 4
+			GridTileId = 0
 		});
 
 		TileRegistry.Register(new TileDefinition
