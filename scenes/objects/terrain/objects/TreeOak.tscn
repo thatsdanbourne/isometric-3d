@@ -27,8 +27,8 @@ render_priority = 0
 shader = ExtResource("6_3olt8")
 shader_parameter/color = Color(0, 0.26006752, 0, 1)
 shader_parameter/alpha = ExtResource("7_2q4ej")
-shader_parameter/leaves_scale = 0.4
-shader_parameter/leaf_bend_amount = 0.8
+shader_parameter/leaves_scale = 0.2
+shader_parameter/leaf_bend_amount = 0.175
 shader_parameter/light_steps = 5.0
 
 [node name="Tree" unique_id=715301084 instance=ExtResource("1_cifx4")]

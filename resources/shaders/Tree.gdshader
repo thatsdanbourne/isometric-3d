@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode specular_disabled, depth_prepass_alpha;
+render_mode specular_disabled;
 
 global uniform float wind_scale;
 global uniform float wind_speed;
@@ -18,6 +18,9 @@ varying vec3 v_view_pos;
 void vertex() {
 	vec3 world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 
+	// Store original view position before billboard offset
+	v_view_pos = (MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
+
 	float speed = TIME * wind_speed;
 	vec2 wind_uv = world_pos.xz * wind_scale - speed * wind_direction.xz;
 
@@ -26,24 +29,17 @@ void vertex() {
 
 	vec2 uv_offset = UV * 2.0 - 1.0;
 
-	// Camera-facing basis in world space
-	vec3 cam_right = MAIN_CAM_INV_VIEW_MATRIX[0].xyz;
-	vec3 cam_up = MAIN_CAM_INV_VIEW_MATRIX[1].xyz;
+	vec4 new_position = vec4(UV.y, UV.x, 0.0, 1.0);
+	new_position = new_position * 2.0 - 1.0;
+	new_position = normalize(new_position);
+	new_position *= leaves_scale;
 
-	// Billboard offset in world space
-	vec3 offset_world =
-		(cam_right * uv_offset.y + cam_up * uv_offset.x) * leaves_scale;
+	new_position += bend * vec4(1.0, 0.0, 0.0, 0.0) * uv_offset.x;
+	new_position -= bend * vec4(0.0, 1.0, 0.0, 0.0) * uv_offset.y;
 
-	// Wind offset in world space
-	vec3 wind_dir = normalize(vec3(wind_direction.x, 0.0, wind_direction.z));
-	offset_world += wind_dir * bend * uv_offset.x;
+	new_position *= MODELVIEW_MATRIX;
 
-	// Convert world-space offset back into local/object space
-	vec3 offset_local = (inverse(MODEL_MATRIX) * vec4(offset_world, 0.0)).xyz;
-
-	VERTEX += offset_local;
-
-	v_view_pos = (MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	VERTEX += new_position.xyz;
 }
 
 void fragment() {
@@ -68,3 +64,5 @@ void light() {
 	rim = rim * rim;
 	DIFFUSE_LIGHT += rim * ATTENUATION * LIGHT_COLOR / PI;
 }
+
+

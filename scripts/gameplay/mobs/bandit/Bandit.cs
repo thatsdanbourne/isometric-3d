@@ -135,13 +135,6 @@ public partial class Bandit : Mob
 
 				break;
 		}
-
-		UpdateAnimation();
-	}
-
-	private void UpdateAnimation()
-	{
-		ApplyAnimationForState(State, Velocity);
 	}
 
 	protected override void ApplyRemoteStateVisuals()
@@ -161,6 +154,7 @@ public partial class Bandit : Mob
 			case MobState.Attack:
 				if (forceAttack || _lastRemoteVisualState != MobState.Attack)
 					_animTree.Set(AxeRequestPath, (int)AnimationNodeOneShot.OneShotRequest.Fire);
+
 				break;
 		}
 
@@ -169,7 +163,6 @@ public partial class Bandit : Mob
 
 	public override void PlayRemoteAttackVisual()
 	{
-		ApplyAnimationForState(MobState.Attack, Vector3.Zero, true);
 		AudioManager.Instance.PlayVariantAt("swing_blade_small", GlobalPosition, AudioManager.BusTools, 0.2f);
 	}
 
@@ -182,10 +175,10 @@ public partial class Bandit : Mob
 			ClearTarget();
 		}
 
-		_targetPlayer = AquireNearestTarget();
+		_targetPlayer = AcquireNearestTarget();
 	}
 
-	private Player AquireNearestTarget()
+	private Player AcquireNearestTarget()
 	{
 		if (World == null) return null;
 
