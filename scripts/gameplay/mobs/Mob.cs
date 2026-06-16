@@ -87,9 +87,10 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	{
 	}
 
-	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint)
+	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, Vector3 fromDirection,
+		Vector3 hitPoint)
 	{
-		ApplyKnockback(fromDirection, 6f);
+		ApplyKnockback(fromDirection, knockback);
 		CurrentHealth -= damage;
 		if (!(CurrentHealth <= 0)) return ToolHitOutcome.Hit;
 

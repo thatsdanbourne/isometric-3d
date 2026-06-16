@@ -41,7 +41,10 @@ public interface IProcessingStation : ICraftingStation
 public interface IToolHittable
 {
 	Node3D GetHitRoot();
-	ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint);
+
+	ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, Vector3 fromDirection,
+		Vector3 hitPoint);
+
 	ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint);
 	string GetImpactType();
 	string GetHitSound(ToolItem tool);

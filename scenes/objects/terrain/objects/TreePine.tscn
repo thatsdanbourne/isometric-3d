@@ -2,8 +2,8 @@
 
 [ext_resource type="PackedScene" uid="uid://cy43o2xnnwa72" path="res://assets/meshes/trees/TreePine.glb" id="1_3b2bc"]
 [ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/world/objects/WorldObject.cs" id="2_cye4l"]
-[ext_resource type="Shader" uid="uid://5e6g7fva4pcn" path="res://resources/shaders/Tree.gdshader" id="2_tr1gr"]
-[ext_resource type="Shader" uid="uid://dgkxl5jho041u" path="res://resources/shaders/CellShade.gdshader" id="2_u4uva"]
+[ext_resource type="Shader" uid="uid://b2p5ktwm7l28w" path="res://resources/shaders/Tree.gdshader" id="2_tr1gr"]
+[ext_resource type="Shader" uid="uid://buditbswuq6hi" path="res://resources/shaders/CellShade.gdshader" id="2_u4uva"]
 [ext_resource type="Texture2D" uid="uid://biw08dq8o6nnr" path="res://assets/sprites/tree/oak_trunk.png" id="3_cye4l"]
 [ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/gameplay/pickups/DropEntry.cs" id="3_dqv2m"]
 [ext_resource type="Texture2D" uid="uid://du32la2gi2lf0" path="res://assets/textures/leaves/pine_leaf_alpha.png" id="3_tr1gr"]

@@ -41,7 +41,8 @@ public partial class WorldObject : Node3D, IToolHittable
 		return this;
 	}
 
-	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint)
+	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, Vector3 fromDirection,
+		Vector3 hitPoint)
 	{
 		return ApplyDamage(damage, fromDirection);
 	}

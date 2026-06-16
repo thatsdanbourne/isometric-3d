@@ -9,13 +9,29 @@
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_c3xxp"]
 
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_v42im"]
-animation = &"attack_axe"
+[sub_resource type="AnimationNodeTransition" id="AnimationNodeTransition_hgjck"]
+input_0/name = "Normal"
+input_0/auto_advance = false
+input_0/break_loop_at_end = false
+input_0/reset = true
+input_1/name = "Charging"
+input_1/auto_advance = false
+input_1/break_loop_at_end = false
+input_1/reset = true
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_hgjck"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ppr6r"]
+animation = &"attack_sword_charge"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rx1o7"]
+
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_rqk8h"]
+fadeout_time = 0.15
 
 [sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_pn6s4"]
 filter_enabled = true
 filters = ["", "metarig/Skeleton3D:forearm.L", "metarig/Skeleton3D:forearm.R", "metarig/Skeleton3D:hand.L", "metarig/Skeleton3D:hand.R", "metarig/Skeleton3D:shoulder.L", "metarig/Skeleton3D:shoulder.R", "metarig/Skeleton3D:spine.001", "metarig/Skeleton3D:spine.002", "metarig/Skeleton3D:spine.003", "metarig/Skeleton3D:spine.006", "metarig/Skeleton3D:upper_arm.L", "metarig/Skeleton3D:upper_arm.R"]
-fadein_time = 0.2
 fadeout_time = 0.2
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_aviji"]
@@ -30,31 +46,26 @@ blend_point_0/pos = 0.0
 blend_point_1/node = SubResource("AnimationNodeAnimation_6aanm")
 blend_point_1/pos = 1.0
 
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_npwbq"]
-animation = &"attack_fist"
-
-[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_c3xxp"]
-filter_enabled = true
-filters = ["", "metarig/Skeleton3D:forearm.L", "metarig/Skeleton3D:forearm.R", "metarig/Skeleton3D:hand.L", "metarig/Skeleton3D:shoulder.L", "metarig/Skeleton3D:shoulder.R", "metarig/Skeleton3D:spine.001", "metarig/Skeleton3D:spine.002", "metarig/Skeleton3D:spine.003", "metarig/Skeleton3D:spine.006", "metarig/Skeleton3D:upper_arm.L", "metarig/Skeleton3D:upper_arm.R"]
-fadein_time = 0.2
-fadeout_time = 0.2
-
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_tpg5x"]
-graph_offset = Vector2(-378.08017, 43.82234)
-nodes/output/position = Vector2(400, 304)
-nodes/PunchOS/node = SubResource("AnimationNodeOneShot_c3xxp")
-nodes/PunchOS/position = Vector2(-160, 304)
+graph_offset = Vector2(-437.32584, 96.629295)
+nodes/output/position = Vector2(304, 336)
 nodes/Locomotion/node = SubResource("AnimationNodeBlendSpace1D_npwbq")
-nodes/Locomotion/position = Vector2(-480, 160)
-nodes/Punch/node = SubResource("AnimationNodeAnimation_npwbq")
-nodes/Punch/position = Vector2(-480, 464)
-nodes/AxeOS/node = SubResource("AnimationNodeOneShot_pn6s4")
-nodes/AxeOS/position = Vector2(48, 304)
-nodes/AtrtackAxe/node = SubResource("AnimationNodeAnimation_v42im")
-nodes/AtrtackAxe/position = Vector2(-128, 608)
-node_connections = [&"output", 0, &"AxeOS", &"PunchOS", 0, &"Locomotion", &"PunchOS", 1, &"Punch", &"AxeOS", 0, &"PunchOS", &"AxeOS", 1, &"AtrtackAxe"]
+nodes/Locomotion/position = Vector2(-496, 208)
+nodes/LightAttackOS/node = SubResource("AnimationNodeOneShot_pn6s4")
+nodes/LightAttackOS/position = Vector2(-80, 256)
+nodes/DynamicAttack/node = SubResource("AnimationNodeAnimation_hgjck")
+nodes/DynamicAttack/position = Vector2(-256, 560)
+nodes/CombatState/node = SubResource("AnimationNodeTransition_hgjck")
+nodes/CombatState/position = Vector2(-288, 272)
+nodes/DynamicCharge/node = SubResource("AnimationNodeAnimation_ppr6r")
+nodes/DynamicCharge/position = Vector2(-528, 400)
+nodes/HeavyAttackOS/node = SubResource("AnimationNodeOneShot_rqk8h")
+nodes/HeavyAttackOS/position = Vector2(112, 256)
+nodes/DynamicRelease/node = SubResource("AnimationNodeAnimation_rx1o7")
+nodes/DynamicRelease/position = Vector2(-80, 560)
+node_connections = [&"output", 0, &"HeavyAttackOS", &"LightAttackOS", 0, &"CombatState", &"LightAttackOS", 1, &"DynamicAttack", &"CombatState", 0, &"Locomotion", &"CombatState", 1, &"DynamicCharge", &"HeavyAttackOS", 0, &"LightAttackOS", &"HeavyAttackOS", 1, &"DynamicRelease"]
 
-[node name="Player" unique_id=2115880167 instance=ExtResource("1_hgjck")]
+[node name="Player" unique_id=1538980564 instance=ExtResource("1_hgjck")]
 collision_layer = 10
 collision_mask = 11
 script = ExtResource("2_ppr6r")
@@ -63,55 +74,57 @@ script = ExtResource("2_ppr6r")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("SphereShape3D_c3xxp")
 
-[node name="Skeleton3D" parent="metarig" parent_id_path=PackedInt32Array(1887435297) index="0" unique_id=1998140221]
-bones/0/position = Vector3(4.6277576e-10, 0.85873574, 0.0538749)
-bones/0/rotation = Quaternion(0.12581967, 1.1826199e-07, 1.4998879e-08, 0.99205315)
-bones/1/rotation = Quaternion(0.045981612, -5.3512743e-14, 1.0962868e-08, 0.99894226)
-bones/2/rotation = Quaternion(-0.07746415, -7.5291716e-16, -1.846889e-08, 0.99699515)
-bones/3/rotation = Quaternion(0.0016271637, -1.1920915e-07, 1.9396203e-10, 0.9999987)
-bones/6/rotation = Quaternion(-0.09371171, -1.18684696e-07, -1.1171304e-08, 0.9955994)
-bones/7/rotation = Quaternion(-0.6556806, -0.34054613, -0.4332763, 0.516123)
-bones/8/rotation = Quaternion(-0.24903885, 0.59466183, -0.45316112, 0.61563146)
-bones/9/rotation = Quaternion(0.82798374, -0.023339685, -0.2448885, 0.5039126)
-bones/10/rotation = Quaternion(0.093454346, 0.44193804, -0.052777793, 0.8906019)
-bones/11/rotation = Quaternion(-0.65568066, 0.3405462, 0.4332763, 0.51612294)
-bones/12/rotation = Quaternion(-0.29413286, -0.56228304, 0.47039843, 0.61322844)
-bones/13/rotation = Quaternion(0.48255223, 0.4838168, 0.4339968, 0.58712137)
-bones/14/rotation = Quaternion(0.052613925, -0.5260751, 0.06858701, 0.84603345)
-bones/17/rotation = Quaternion(0.93386793, 0.081596166, -0.032977067, 0.34662)
-bones/18/rotation = Quaternion(0.3234128, 0.013875164, 0.072144724, 0.94340175)
-bones/19/rotation = Quaternion(-0.59593767, -0.06597592, -0.032050353, 0.79967386)
-bones/22/rotation = Quaternion(0.9482365, -0.105701536, 0.28688788, 0.085849725)
-bones/23/rotation = Quaternion(0.22716962, -0.014302131, -0.05067544, 0.9724307)
-bones/24/rotation = Quaternion(-0.68351704, 0.106456265, -0.0472827, 0.7205802)
-bones/25/rotation = Quaternion(0.007925308, 0.97007877, -0.24013908, -0.034894478)
-bones/26/rotation = Quaternion(-0.6797933, 0.69209594, -0.14528437, -0.19436257)
-bones/27/position = Vector3(0.17326254, 0.088745005, 0.2460625)
-bones/28/position = Vector3(-0.17326254, 0.0887451, -0.14099202)
-bones/29/position = Vector3(0.17340013, 0.4725983, 0.9464646)
-bones/29/rotation = Quaternion(0.70708275, -0.0058232313, -0.0058232327, 0.70708287)
-bones/30/position = Vector3(-0.73561454, 0.4725983, 0.9464646)
+[node name="Skeleton3D" parent="metarig" parent_id_path=PackedInt32Array(2062489059) index="0" unique_id=1085404408]
+bones/0/position = Vector3(-7.1586825e-10, 0.89861953, -0.03886019)
+bones/0/rotation = Quaternion(0.20305529, 1.16725865e-07, 2.4206084e-08, 0.9791673)
+bones/1/rotation = Quaternion(-0.055852026, -0.0014776704, -0.02640632, 0.9980888)
+bones/2/rotation = Quaternion(-0.084171504, 0.06615146, -0.0146507975, 0.99414515)
+bones/3/rotation = Quaternion(0.00017788913, -1.192093e-07, 2.1206559e-11, 1)
+bones/6/rotation = Quaternion(-0.07850849, -1.2336235e-07, -7.825755e-09, 0.99691343)
+bones/7/rotation = Quaternion(-0.6553077, -0.34130767, -0.4325254, 0.5167231)
+bones/8/rotation = Quaternion(-0.38011232, 0.8455715, -0.14209476, 0.3468898)
+bones/9/rotation = Quaternion(0.6632704, -0.0796016, -0.03171306, 0.7434584)
+bones/10/rotation = Quaternion(0.059833497, -0.0047005937, -0.08910185, 0.9942126)
+bones/11/rotation = Quaternion(-0.654153, 0.33927974, 0.434279, 0.5180491)
+bones/12/rotation = Quaternion(-0.26515737, -0.66046697, 0.44852036, 0.540652)
+bones/13/rotation = Quaternion(0.7011134, -0.0067537655, 0.19711316, 0.6852304)
+bones/17/rotation = Quaternion(0.8302625, 0.09649537, 0.09156289, 0.5412662)
+bones/18/rotation = Quaternion(0.48125556, 0.012793945, 0.10735526, 0.86988753)
+bones/19/rotation = Quaternion(-0.5958976, -0.06734721, -0.033787984, 0.79951787)
+bones/22/rotation = Quaternion(0.99353695, -0.05140069, -0.017686833, 0.09964755)
+bones/23/rotation = Quaternion(0.29941246, -0.013996934, -0.06679084, 0.95168024)
+bones/24/rotation = Quaternion(-0.5586309, 0.08048403, 0.020660898, 0.82524365)
+bones/25/rotation = Quaternion(0.007925332, 0.97007877, -0.2401391, -0.03489448)
+bones/26/rotation = Quaternion(-0.67979324, 0.692096, -0.14528432, -0.19436255)
+bones/27/position = Vector3(0.13301127, 0.24344179, 0.26115164)
+bones/28/position = Vector3(-0.13111337, 0.20353463, -0.36253208)
+bones/29/position = Vector3(-0.032952264, 0.46718925, 0.9541737)
+bones/29/rotation = Quaternion(0.7050077, 0.0544442, 0.0544442, 0.7050077)
+bones/30/position = Vector3(-0.057821184, 0.46351987, 0.9414765)
 
 [node name="RightHandAttach" type="BoneAttachment3D" parent="metarig/Skeleton3D" index="0" unique_id=1909800955]
-transform = Transform3D(-0.9745601, -0.21878162, -0.048649937, -0.060199887, 0.046435323, 0.9971056, -0.21588936, 0.9746681, -0.05842451, -0.34273303, 0.95453024, 0.38100585)
+transform = Transform3D(-0.86559695, 0.49735773, -0.05811342, -0.06286007, 0.0072086155, 0.9979962, 0.49678013, 0.86751544, 0.025024176, -0.20267531, 1.0123158, 0.30266243)
 bone_name = "hand.R"
 bone_idx = 14
 
 [node name="RightHandContainer" type="Node3D" parent="metarig/Skeleton3D/RightHandAttach" index="0" unique_id=2056471369]
 
-[node name="AnimationPlayer" parent="." index="2" unique_id=2111808935]
+[node name="AnimationPlayer" parent="." index="2" unique_id=1357276364]
 autoplay = &"idle"
 
 [node name="AnimationTree" type="AnimationTree" parent="." index="3" unique_id=1323499225]
 tree_root = SubResource("AnimationNodeBlendTree_tpg5x")
 anim_player = NodePath("../AnimationPlayer")
-parameters/PunchOS/active = false
-parameters/PunchOS/internal_active = false
-parameters/PunchOS/request = 0
-parameters/Locomotion/blend_position = 0.0
-parameters/AxeOS/active = false
-parameters/AxeOS/internal_active = false
-parameters/AxeOS/request = 0
+parameters/Locomotion/blend_position = 0.922
+parameters/LightAttackOS/active = false
+parameters/LightAttackOS/internal_active = false
+parameters/LightAttackOS/request = 0
+parameters/CombatState/current_state = "Normal"
+parameters/CombatState/transition_request = ""
+parameters/CombatState/current_index = 0
+parameters/HeavyAttackOS/active = false
+parameters/HeavyAttackOS/internal_active = false
+parameters/HeavyAttackOS/request = 0
 
 [node name="Nameplate" type="Label3D" parent="." index="4" unique_id=836590946]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4785233, 0)

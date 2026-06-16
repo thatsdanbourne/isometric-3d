@@ -446,7 +446,7 @@ public partial class World : Node3D
 		return null;
 	}
 
-	public void HandleUseActiveToolRequest(Player player, Vector3 swingDir)
+	public void HandleUseActiveToolRequest(Player player, Vector3 swingDir, bool isCharged)
 	{
 		if (player == null || !IsInstanceValid(player))
 			return;
@@ -469,6 +469,7 @@ public partial class World : Node3D
 			tool,
 			swingDir,
 			player.ToolQuery,
+			isCharged,
 			hitResult =>
 			{
 				Sync.BroadcastAttackWorldResult(hitResult);
@@ -487,11 +488,12 @@ public partial class World : Node3D
 			tool,
 			swingDir,
 			toolQuery,
+			false,
 			hitResult => { Sync.BroadcastAttackWorldResult(hitResult); });
 	}
 
 	private async void ResolveMeleeHit(Node3D attacker, ToolItem tool, Vector3 swingDir,
-		PhysicsRayQueryParameters3D toolQuery, Action<ToolHitResult> onResult)
+		PhysicsRayQueryParameters3D toolQuery, bool isCharged, Action<ToolHitResult> onResult)
 	{
 		if (attacker == null || !IsInstanceValid(attacker))
 			return;
@@ -507,7 +509,7 @@ public partial class World : Node3D
 		await ToSignal(GetTree().CreateTimer(0.15), SceneTreeTimer.SignalName.Timeout);
 
 		var space = attacker.GetWorld3D().DirectSpaceState;
-		var hitResult = CombatUtils.PerformMeleeHit(attacker, tool, swingDir, space, toolQuery);
+		var hitResult = CombatUtils.PerformMeleeHit(attacker, tool, swingDir, space, toolQuery, isCharged);
 
 		onResult?.Invoke(hitResult);
 	}

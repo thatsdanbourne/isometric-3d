@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cygag0yj8yuxs"]
 
 [ext_resource type="Script" uid="uid://bonikf7e45ydc" path="res://scripts/debug/DebugMenu.cs" id="1_7uekp"]
-[ext_resource type="Script" uid="uid://ciarma0geh450" path="res://dev-tools/Debug.cs" id="2_cqkbu"]
+[ext_resource type="Script" uid="uid://bx73ww1cl8d6t" path="res://dev-tools/Debug.cs" id="2_cqkbu"]
 [ext_resource type="FontFile" uid="uid://dk6yf54j5fosf" path="res://assets/fonts/BitPotionExt.ttf" id="3_w5x02"]
 [ext_resource type="PackedScene" uid="uid://nf3wsg32yh2f" path="res://scenes/ui/HUD/HUD.tscn" id="4_ja13c"]
 [ext_resource type="Script" uid="uid://rr6jn3yd21q8" path="res://scripts/ui/menus/MenuManager.cs" id="5_4dsyi"]
