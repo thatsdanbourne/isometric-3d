@@ -708,15 +708,15 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public void PlayUseActiveToolVisual(ToolItem tool, Vector3 swingDir, bool isCharged)
 	{
 		if (isCharged)
-			PlayChargedReleaseVisual(tool, swingDir);
+			PlayChargedReleaseVisual(tool);
 		else
-			PlayLightAttackVisual(tool, swingDir);
+			PlayLightAttackVisual(tool);
 
 		var targetAngle = Mathf.Atan2(swingDir.X, swingDir.Z);
 		Rotation = new Vector3(Rotation.X, targetAngle, Rotation.Z);
 	}
 
-	public void PlayLightAttackVisual(ToolItem tool, Vector3 swingDir)
+	public void PlayLightAttackVisual(ToolItem tool)
 	{
 		var treeRoot = (AnimationNodeBlendTree)_animTree.TreeRoot;
 
@@ -750,11 +750,12 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	private void PlayChargeStartVisual(ToolItem tool)
 	{
+		// add dynamic charge start anim
 		_isPlayingChargedVisuals = true;
 		_animTree.Set("parameters/CombatState/transition_request", "Charging");
 	}
 
-	private void PlayChargedReleaseVisual(ToolItem tool, Vector3 swingDir)
+	private void PlayChargedReleaseVisual(ToolItem tool)
 	{
 		var treeRoot = (AnimationNodeBlendTree)_animTree.TreeRoot;
 
@@ -819,7 +820,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		switch (animEvent)
 		{
 			case PlayerCombatAnimEvent.LightAttack:
-				PlayLightAttackVisual(tool, swingDir);
+				PlayLightAttackVisual(tool);
 				break;
 
 			case PlayerCombatAnimEvent.ChargeStart:
@@ -831,7 +832,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 				break;
 
 			case PlayerCombatAnimEvent.ChargeRelease:
-				PlayChargedReleaseVisual(tool, swingDir);
+				PlayChargedReleaseVisual(tool);
 				break;
 		}
 	}
