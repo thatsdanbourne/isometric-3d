@@ -462,7 +462,7 @@ public partial class World : Node3D
 
 		player.StartSwingCooldown(tool);
 
-		Sync.Rpc(nameof(WorldSync.PlayRemoteUseActiveToolVisual), player.PlayerId, tool.Id, swingDir);
+		Sync.Rpc(nameof(WorldSync.PlayRemoteUseActiveToolVisual), player.PlayerId, tool.Id, swingDir, isCharged);
 
 		ResolveMeleeHit(
 			player,

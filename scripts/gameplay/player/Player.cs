@@ -261,6 +261,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	{
 		SetAnimState(isMoving ? "run" : "idle");
 		UpdateLocomotionBlend(blendAlpha);
+
 		UpdateVelocity(dt, Velocity);
 		ApplyGravity(dt);
 		MoveAndSlide();
@@ -660,6 +661,8 @@ public partial class Player : CharacterBody3D, IToolHittable
 			{
 				_isPlayingChargedVisuals = true;
 				_animTree.Set("parameters/CombatState/transition_request", "Charging");
+
+				SyncCombatAnim(PlayerCombatAnimEvent.ChargeStart, GetActiveTool().Id, GetSwingDirection());
 			}
 		}
 
@@ -671,6 +674,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 				_animTree.Set("parameters/CombatState/transition_request", "Normal");
 
 			UseActiveTool(chargedAttack);
+
+			SyncCombatAnim(chargedAttack ? PlayerCombatAnimEvent.ChargeRelease : PlayerCombatAnimEvent.LightAttack,
+				GetActiveTool().Id, GetSwingDirection());
 
 			_isCharging = false;
 			_chargeTimer = 0f;
@@ -701,24 +707,24 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public void PlayUseActiveToolVisual(ToolItem tool, Vector3 swingDir, bool isCharged)
 	{
-		var treeRoot = (AnimationNodeBlendTree)_animTree.TreeRoot;
+		if (isCharged)
+			PlayChargedReleaseVisual(tool, swingDir);
+		else
+			PlayLightAttackVisual(tool, swingDir);
 
-		if (isCharged) _isDoingChargedAttack = true;
+		var targetAngle = Mathf.Atan2(swingDir.X, swingDir.Z);
+		Rotation = new Vector3(Rotation.X, targetAngle, Rotation.Z);
+	}
+
+	public void PlayLightAttackVisual(ToolItem tool, Vector3 swingDir)
+	{
+		var treeRoot = (AnimationNodeBlendTree)_animTree.TreeRoot;
 
 		switch (tool.ToolType)
 		{
 			case "axe":
 			case "sword":
-				if (isCharged)
-				{
-					if (treeRoot.GetNode("DynamicRelease") is AnimationNodeAnimation dynamicAnim)
-					{
-						dynamicAnim.Animation = "attack_sword_charge_release";
-						_animTree.Set("parameters/HeavyAttackOS/request",
-							(int)AnimationNodeOneShot.OneShotRequest.Fire);
-					}
-				}
-				else if (treeRoot.GetNode("DynamicAttack") is AnimationNodeAnimation dynamicAnim)
+				if (treeRoot.GetNode("DynamicAttack") is AnimationNodeAnimation dynamicAnim)
 				{
 					dynamicAnim.Animation = "attack_axe";
 
@@ -726,23 +732,58 @@ public partial class Player : CharacterBody3D, IToolHittable
 						(int)AnimationNodeOneShot.OneShotRequest.Fire);
 				}
 
-				AudioManager.Instance.PlayVariantAt("swing_blade_small", GlobalPosition, AudioManager.BusTools,
-					0.1f);
-
+				AudioManager.Instance.PlayVariantAt("swing_blade_small", GlobalPosition, AudioManager.BusTools, 0.1f);
 				break;
+
 			default:
 				if (treeRoot.GetNode("DynamicAttack") is AnimationNodeAnimation dynamic)
 				{
 					dynamic.Animation = "attack_fist";
-					_animTree.Set("parameters/LightAttackOS/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
+					_animTree.Set("parameters/LightAttackOS/request",
+						(int)AnimationNodeOneShot.OneShotRequest.Fire);
 				}
 
 				AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, AudioManager.BusTools, 0.1f);
 				break;
 		}
+	}
 
-		var targetAngle = Mathf.Atan2(swingDir.X, swingDir.Z);
-		Rotation = new Vector3(Rotation.X, targetAngle, Rotation.Z);
+	private void PlayChargeStartVisual(ToolItem tool)
+	{
+		_isPlayingChargedVisuals = true;
+		_animTree.Set("parameters/CombatState/transition_request", "Charging");
+	}
+
+	private void PlayChargedReleaseVisual(ToolItem tool, Vector3 swingDir)
+	{
+		var treeRoot = (AnimationNodeBlendTree)_animTree.TreeRoot;
+
+		_isDoingChargedAttack = true;
+		_isPlayingChargedVisuals = true;
+
+		if (treeRoot.GetNode("DynamicRelease") is AnimationNodeAnimation dynamicAnim)
+		{
+			dynamicAnim.Animation = tool.ToolType switch
+			{
+				"sword" => "attack_sword_charge_release",
+				"axe" => "attack_axe_charge_release",
+				_ => "attack_sword_charge_release"
+			};
+
+			_animTree.Set("parameters/HeavyAttackOS/request",
+				(int)AnimationNodeOneShot.OneShotRequest.Fire);
+		}
+
+		AudioManager.Instance.PlayVariantAt("swing_blade_small", GlobalPosition, AudioManager.BusTools, 0.1f);
+	}
+
+	private void CancelChargeVisual()
+	{
+		_isCharging = false;
+		_chargeTimer = 0f;
+		_isPlayingChargedVisuals = false;
+
+		_animTree.Set("parameters/CombatState/transition_request", "Normal");
 	}
 
 	private void ResetChargeState()
@@ -769,6 +810,28 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 			case ToolHitOutcome.Failed:
 				CameraController?.Shake(0.1f, 0.3f);
+				break;
+		}
+	}
+
+	public void PlayRemoteCombatAnim(PlayerCombatAnimEvent animEvent, ToolItem tool, Vector3 swingDir)
+	{
+		switch (animEvent)
+		{
+			case PlayerCombatAnimEvent.LightAttack:
+				PlayLightAttackVisual(tool, swingDir);
+				break;
+
+			case PlayerCombatAnimEvent.ChargeStart:
+				PlayChargeStartVisual(tool);
+				break;
+
+			case PlayerCombatAnimEvent.ChargeCancel:
+				CancelChargeVisual();
+				break;
+
+			case PlayerCombatAnimEvent.ChargeRelease:
+				PlayChargedReleaseVisual(tool, swingDir);
 				break;
 		}
 	}
@@ -824,6 +887,14 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private void SyncTransform()
 	{
 		RpcId(1, nameof(SubmitTransform), GlobalPosition, Velocity, Rotation.Y);
+	}
+
+	private void SyncCombatAnim(PlayerCombatAnimEvent animEvent, string toolId, Vector3 swingDir)
+	{
+		if (!IsLocal)
+			return;
+
+		_world.Sync.RpcId(1, nameof(_world.Sync.RequestCombatAnim), (int)animEvent, toolId, swingDir);
 	}
 
 	[Rpc(

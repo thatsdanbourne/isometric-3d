@@ -72,7 +72,7 @@ public partial class WorldSync
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	public void PlayRemoteUseActiveToolVisual(int playerId, string toolId, Vector3 swingDir)
+	public void PlayRemoteUseActiveToolVisual(int playerId, string toolId, Vector3 swingDir, bool isCharged)
 	{
 		var player = _world.GetPlayerById(playerId);
 		if (player == null || player.PlayerId == Multiplayer.GetUniqueId())
@@ -154,5 +154,29 @@ public partial class WorldSync
 			return;
 
 		player.ApplyRemoteHitState(health, position, knockbackVelocity);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+	public void RequestCombatAnim(int animEvent, string toolId, Vector3 swingDir)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		var senderId = Multiplayer.GetRemoteSenderId();
+		Rpc(nameof(ReceiveCombatAnim), senderId, animEvent, toolId, swingDir);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	private void ReceiveCombatAnim(int playerId, int animEvent, string toolId, Vector3 swingDir)
+	{
+		var player = _world.GetPlayerById(playerId);
+
+		if (player == null || player.IsLocal)
+			return;
+
+		if (ItemRegistry.GetItem(toolId) is not ToolItem tool)
+			return;
+
+		player.PlayRemoteCombatAnim((PlayerCombatAnimEvent)animEvent, tool, swingDir);
 	}
 }

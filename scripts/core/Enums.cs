@@ -139,3 +139,11 @@ public enum MobState
 	Attack,
 	Dead
 }
+
+public enum PlayerCombatAnimEvent
+{
+	LightAttack,
+	ChargeStart,
+	ChargeCancel,
+	ChargeRelease
+}
