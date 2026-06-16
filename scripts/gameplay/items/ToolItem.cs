@@ -5,16 +5,22 @@ public class ToolItem : Item
 {
 	public float Damage { get; init; } = 1.0f;
 	public string ToolType { get; set; } = "";
-	public string SwingSoundsKey { get; set; } = "fist_1";
 	public Dictionary<string, float> DamageMultipliers { get; init; } = new();
 	public float HitArcDegrees { get; init; } = 70f;
 	public int HitRayCount { get; init; } = 5;
 	public float HitRange { get; init; } = 1.0f;
+	public float Knockback { get; init; } = 1.0f;
+	public float Stagger { get; init; } = 0.0f;
 	public float CooldownSeconds { get; init; } = 0.5f;
+	public float ChargedDamageMultiplier { get; set; } = 1f;
+	public float ChargedKnockbackMultiplier { get; set; } = 1f;
+	public float ChargedStaggerMultiplier { get; set; } = 1f;
+	public float ChargedLungeDistance { get; set; } = 0f;
+	public float ChargedLungeDuration { get; set; } = 0.12f;
 	public ToolTier Tier { get; init; }
 	public PackedScene HeldItemScene { get; init; }
 
-	public ToolHitResult UseOn(IToolHittable target, Vector3 fromDirection, Vector3 hitPoint)
+	public ToolHitResult UseOn(IToolHittable target, Vector3 fromDirection, Vector3 hitPoint, AttackContext context)
 	{
 		if (target == null)
 			return ToolHitResult.None;
@@ -35,11 +41,28 @@ public class ToolItem : Item
 		}
 
 		var finalDamage = Damage;
-		finalDamage = target.ModifyIncomingToolDamage(this, finalDamage, Damage);
-		var outcome = target.ReceiveToolHit(this, finalDamage, fromDirection, hitPoint);
+		finalDamage = target.ModifyIncomingToolDamage(this, finalDamage, Damage) * context.DamageMultiplier;
+		var finalKnockback = Knockback * context.KnockbackMultiplier;
+		var outcome = target.ReceiveToolHit(this, finalDamage, finalKnockback, fromDirection, hitPoint);
 		return new ToolHitResult(outcome, target.GetImpactType(), hitSound, breakSound,
 			hitPoint);
 	}
+}
+
+public readonly struct AttackContext
+{
+	public bool IsCharged { get; init; }
+
+	public float DamageMultiplier { get; init; }
+	public float KnockbackMultiplier { get; init; }
+	public float StaggerMultiplier { get; init; }
+
+	public static AttackContext Default => new()
+	{
+		DamageMultiplier = 1f,
+		KnockbackMultiplier = 1f,
+		StaggerMultiplier = 1f
+	};
 }
 
 public readonly struct ToolHitResult(

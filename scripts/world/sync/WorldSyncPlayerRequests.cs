@@ -17,7 +17,7 @@ public partial class WorldSync
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-	public void RequestUseActiveTool(Vector3 swingDir)
+	public void RequestUseActiveTool(Vector3 swingDir, bool isCharged)
 	{
 		if (!Multiplayer.IsServer())
 			return;
@@ -26,7 +26,7 @@ public partial class WorldSync
 		if (player == null)
 			return;
 
-		_world.HandleUseActiveToolRequest(player, swingDir);
+		_world.HandleUseActiveToolRequest(player, swingDir, isCharged);
 	}
 
 	private void HandleContainerClickRequest(

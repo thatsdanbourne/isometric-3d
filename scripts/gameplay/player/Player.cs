@@ -23,8 +23,8 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private const uint HittableMask = 1u << 1;
 
 	private const string LocomotionBlendPath = "parameters/Locomotion/blend_position";
-	private const string PunchRequestPath = "parameters/PunchOS/request";
-	private const string AxeRequestPath = "parameters/AxeOS/request";
+	// private const string PunchRequestPath = "parameters/PunchOS/request";
+	// private const string AxeRequestPath = "parameters/AxeOS/request";
 
 	public int PlayerId { get; set; }
 	public bool IsLocal { get; set; }
@@ -32,6 +32,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public float MaxHealth = 20f;
 	public float Health;
 	public float Speed = 5.0f;
+	public float ChargedAttackSpeed = 1.5f;
 	public float AimLockTime = 0.5f;
 	public ToolItem DefaultTool;
 	public BiomeId CurrentBiome = BiomeId.Unknown;
@@ -58,6 +59,14 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private float _focusAccum;
 	private float _locomotionBlend;
 	private float _locomotionBlendTarget;
+
+	private const float ChargeRequiredTime = 0.5f;
+	private float _chargeTimer;
+	private bool _isCharging;
+	private bool _isDoingChargedAttack;
+	private bool _isPlayingChargedVisuals;
+	private Vector3 _lungeVelocity;
+	private float _lungeTimeRemaining;
 
 	private Vector3 _lastCheckedPosition;
 	private Vector3 _aimDirection = Vector3.Forward;
@@ -161,6 +170,18 @@ public partial class Player : CharacterBody3D, IToolHittable
 		var dt = (float)delta;
 
 		_footstepTimer -= dt;
+
+		if (_isDoingChargedAttack)
+		{
+			var isHeavyAttackActive = (bool)_animTree.Get("parameters/LightAttackOS/active");
+			if (!isHeavyAttackActive)
+			{
+				_isDoingChargedAttack = false;
+				_isPlayingChargedVisuals = false;
+				_animTree.Set("parameters/CombatState/transition_request", "Normal");
+			}
+		}
+
 		var isMoving = Velocity.LengthSquared() > 0.01f;
 		if (isMoving)
 			TryPlayFootstep();
@@ -181,7 +202,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		HandleLocalMovement(dt);
 		UpdateLocomotionBlend(blendAlpha);
 		UpdateAimDirection(camera, viewport, hudOpen);
-		HandleToolUse(hudOpen);
+		HandleToolUse(dt);
 		HandlePlaceItem(hudOpen);
 		HandleInteraction(hudOpen);
 		UpdatePlacementOrFocus(dt, camera, viewport, hudOpen);
@@ -240,7 +261,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	{
 		SetAnimState(isMoving ? "run" : "idle");
 		UpdateLocomotionBlend(blendAlpha);
-		UpdateVelocityWithKnockback(Velocity, dt);
+		UpdateVelocity(dt, Velocity);
 		ApplyGravity(dt);
 		MoveAndSlide();
 	}
@@ -249,7 +270,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 	{
 		var inputDir = GetMovementInput();
 		var moveVelocity = Vector3.Zero;
-
 		if (inputDir != Vector2.Zero)
 		{
 			moveVelocity = HandleMovementInput(inputDir, dt);
@@ -261,8 +281,8 @@ public partial class Player : CharacterBody3D, IToolHittable
 			SetAnimState("idle");
 		}
 
-		UpdateVelocityWithKnockback(moveVelocity, dt);
 		ApplyGravity(dt);
+		UpdateVelocity(dt, moveVelocity);
 		MoveAndSlide();
 	}
 
@@ -287,7 +307,10 @@ public partial class Player : CharacterBody3D, IToolHittable
 			Rotation.Z
 		);
 
-		return moveVec * Speed;
+		var speedMultiplier = 1f;
+		if (_isPlayingChargedVisuals || _lungeVelocity.LengthSquared() > 0f) speedMultiplier = 0.2f;
+
+		return moveVec * Speed * speedMultiplier;
 	}
 
 	private void TryPlayFootstep()
@@ -312,11 +335,12 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_footstepTimer = _footstepInterval;
 	}
 
-	private void UpdateVelocityWithKnockback(Vector3 moveVelocity, float dt)
+	private void UpdateVelocity(float dt, Vector3 moveVelocity)
 	{
 		KnockbackVelocity = KnockbackVelocity.MoveToward(Vector3.Zero, _knockbackDecay * dt);
-		Velocity = new Vector3(moveVelocity.X + KnockbackVelocity.X, moveVelocity.Y + KnockbackVelocity.Y,
-			moveVelocity.Z + KnockbackVelocity.Z);
+		_lungeVelocity = _lungeVelocity.MoveToward(Vector3.Zero, _knockbackDecay * dt);
+		Velocity = moveVelocity + KnockbackVelocity + _lungeVelocity;
+		Velocity = new Vector3(Velocity.X, _verticalVelocity, Velocity.Z);
 	}
 
 	private void ApplyGravity(float dt)
@@ -559,7 +583,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	}
 
 	// tool usage and hit reactions
-	private void UseActiveTool()
+	private void UseActiveTool(bool isCharged)
 	{
 		if (!CanSwing)
 			return;
@@ -571,13 +595,25 @@ public partial class Player : CharacterBody3D, IToolHittable
 			return;
 
 		StartSwingCooldown(tool);
-		PlayUseActiveToolVisual(tool, swingDir);
-		RequestUseActiveTool(swingDir);
+		PlayUseActiveToolVisual(tool, swingDir, isCharged);
+
+		if (isCharged && tool.ChargedLungeDistance > 0f)
+			StartAttackLunge(swingDir, tool.ChargedLungeDistance, tool.ChargedLungeDuration);
+		RequestUseActiveTool(swingDir, isCharged);
 	}
 
-	public void RequestUseActiveTool(Vector3 aimDir)
+	private void StartAttackLunge(Vector3 direction, float distance, float duration)
 	{
-		_world.Sync.RpcId(1, nameof(WorldSync.RequestUseActiveTool), aimDir);
+		direction.Y = 0f;
+		direction = direction.Normalized();
+
+		_lungeTimeRemaining = duration;
+		_lungeVelocity = direction * (distance / duration);
+	}
+
+	public void RequestUseActiveTool(Vector3 aimDir, bool isCharged)
+	{
+		_world.Sync.RpcId(1, nameof(WorldSync.RequestUseActiveTool), aimDir, isCharged);
 	}
 
 	public ToolItem GetActiveTool()
@@ -599,17 +635,50 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_hitCooldownAccum = tool.CooldownSeconds;
 	}
 
-	private void HandleToolUse(bool hudOpen)
+	private void HandleToolUse(float dt)
 	{
-		if (hudOpen || !Input.IsActionPressed(UseToolAction))
+		var hudOpen = HUD.WindowOpen;
+		if (hudOpen || !CanSwing)
+		{
+			ResetChargeState();
 			return;
+		}
 
-		UseActiveTool();
+		if (Input.IsActionJustPressed(UseToolAction))
+		{
+			_isCharging = true;
+			_chargeTimer = 0f;
+			_isPlayingChargedVisuals = false;
+		}
+
+		if (_isCharging)
+		{
+			_chargeTimer += dt;
+
+			if (_chargeTimer >= ChargeRequiredTime && !_isPlayingChargedVisuals)
+			{
+				_isPlayingChargedVisuals = true;
+				_animTree.Set("parameters/CombatState/transition_request", "Charging");
+			}
+		}
+
+		if (Input.IsActionJustReleased(UseToolAction) && _isCharging)
+		{
+			var chargedAttack = _chargeTimer >= ChargeRequiredTime;
+
+			if (!chargedAttack && _isPlayingChargedVisuals)
+				_animTree.Set("parameters/CombatState/transition_request", "Normal");
+
+			UseActiveTool(chargedAttack);
+
+			_isCharging = false;
+			_chargeTimer = 0f;
+		}
 	}
 
 	private void HandlePlaceItem(bool hudOpen)
 	{
-		if (hudOpen || !Input.IsActionPressed(InteractAction))
+		if (hudOpen || !Input.IsActionJustPressed(InteractAction))
 			return;
 
 		if (_equippedItem is PlaceableItem)
@@ -629,18 +698,44 @@ public partial class Player : CharacterBody3D, IToolHittable
 		return swingDir.Normalized();
 	}
 
-	public void PlayUseActiveToolVisual(ToolItem tool, Vector3 swingDir)
+	public void PlayUseActiveToolVisual(ToolItem tool, Vector3 swingDir, bool isCharged)
 	{
+		var treeRoot = (AnimationNodeBlendTree)_animTree.TreeRoot;
+
+		if (isCharged) _isDoingChargedAttack = true;
+
 		switch (tool.ToolType)
 		{
 			case "axe":
 			case "sword":
-				_animTree.Set(AxeRequestPath, (int)AnimationNodeOneShot.OneShotRequest.Fire);
-				AudioManager.Instance.PlayVariantAt("swing_blade_small", GlobalPosition, AudioManager.BusTools, 0.1f);
+				if (isCharged)
+				{
+					if (treeRoot.GetNode("DynamicRelease") is AnimationNodeAnimation dynamicAnim)
+					{
+						dynamicAnim.Animation = "attack_sword_charge_release";
+						_animTree.Set("parameters/HeavyAttackOS/request",
+							(int)AnimationNodeOneShot.OneShotRequest.Fire);
+					}
+				}
+				else if (treeRoot.GetNode("DynamicAttack") is AnimationNodeAnimation dynamicAnim)
+				{
+					dynamicAnim.Animation = "attack_axe";
+
+					_animTree.Set("parameters/LightAttackOS/request",
+						(int)AnimationNodeOneShot.OneShotRequest.Fire);
+				}
+
+				AudioManager.Instance.PlayVariantAt("swing_blade_small", GlobalPosition, AudioManager.BusTools,
+					0.1f);
 
 				break;
 			default:
-				_animTree.Set(PunchRequestPath, (int)AnimationNodeOneShot.OneShotRequest.Fire);
+				if (treeRoot.GetNode("DynamicAttack") is AnimationNodeAnimation dynamic)
+				{
+					dynamic.Animation = "attack_fist";
+					_animTree.Set("parameters/LightAttackOS/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
+				}
+
 				AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, AudioManager.BusTools, 0.1f);
 				break;
 		}
@@ -649,9 +744,18 @@ public partial class Player : CharacterBody3D, IToolHittable
 		Rotation = new Vector3(Rotation.X, targetAngle, Rotation.Z);
 	}
 
-	public void PlayRemoteUseActiveToolVisual(ToolItem tool, Vector3 swingDir)
+	private void ResetChargeState()
 	{
-		PlayUseActiveToolVisual(tool, swingDir);
+		// Safety check to ensure transition isn't stuck if interrupted by a menu or cooldown
+		if (_isPlayingChargedVisuals) _animTree.Set("parameters/CombatState/transition_request", "Normal");
+		_isCharging = false;
+		_isPlayingChargedVisuals = false;
+		_chargeTimer = 0.0f;
+	}
+
+	public void PlayRemoteUseActiveToolVisual(ToolItem tool, Vector3 swingDir, bool isCharged = false)
+	{
+		PlayUseActiveToolVisual(tool, swingDir, isCharged);
 	}
 
 	public void HandleLocalAttackResult(ToolHitResult result)
@@ -794,9 +898,10 @@ public partial class Player : CharacterBody3D, IToolHittable
 		return this;
 	}
 
-	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, Vector3 fromDirection, Vector3 hitPoint)
+	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, Vector3 fromDirection,
+		Vector3 hitPoint)
 	{
-		ApplyKnockback(fromDirection, 3f);
+		ApplyKnockback(fromDirection, knockback);
 		Health -= damage;
 
 		_world.Sync.SendPlayerHitState(this);
