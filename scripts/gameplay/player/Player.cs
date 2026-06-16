@@ -696,7 +696,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 			key,
 			hitPoint,
 			AudioManager.BusTools,
-			0.1f
+			0.2f
 		);
 	}
 

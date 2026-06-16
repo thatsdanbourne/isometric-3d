@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cc50g6x1vwk1p"]
 
 [ext_resource type="Script" uid="uid://cgks33m4rrgo3" path="res://dev-tools/IconRenderer.cs" id="1_v1bn5"]
-[ext_resource type="PackedScene" uid="uid://cwk7lmbmxx6se" path="res://scenes/tools/StoneSword.tscn" id="2_c7faj"]
+[ext_resource type="PackedScene" uid="uid://05rhj8jigefc" path="res://assets/meshes/plant_fibre.glb" id="2_c7faj"]
 
 [node name="IconRenderer" type="Node3D" unique_id=683127452 node_paths=PackedStringArray("Viewport", "PreviewRoot", "Camera", "Light")]
 script = ExtResource("1_v1bn5")
@@ -9,7 +9,7 @@ Viewport = NodePath("SubViewport")
 PreviewRoot = NodePath("SubViewport/PreviewRoot")
 Camera = NodePath("SubViewport/Camera3D")
 Light = NodePath("SubViewport/DirectionalLight3D")
-OutputFile = "stone_sword"
+OutputFile = "plant_fibre"
 
 [node name="SubViewport" type="SubViewport" parent="." unique_id=1922719966]
 transparent_bg = true
@@ -18,8 +18,8 @@ render_target_update_mode = 4
 
 [node name="PreviewRoot" type="Node3D" parent="SubViewport" unique_id=2077730827]
 
-[node name="StoneSword" parent="SubViewport/PreviewRoot" unique_id=169175897 instance=ExtResource("2_c7faj")]
-transform = Transform3D(0.7261353, 0.65619475, 0.20527041, 0.31264353, -0.58103067, 0.75143695, 0.6123574, -0.48146844, -0.6270619, 0, 0.03857541, 0.45971107)
+[node name="plant_fibre" parent="SubViewport/PreviewRoot" unique_id=1594536306 instance=ExtResource("2_c7faj")]
+transform = Transform3D(0.19192047, 0.677139, -0.7103868, -0.4175659, 0.71139693, 0.5652905, 0.888147, 0.18814267, 0.41928193, -0.0895772, 0.05805342, -0.04436767)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="SubViewport" unique_id=1155517337]
 transform = Transform3D(0.97259355, -0.12663507, 0.19500081, 0, 0.8386706, 0.54463905, -0.23251186, -0.52971256, 0.8156857, 3.3626094, 3.251422, 3.3626094)
@@ -30,3 +30,4 @@ light_specular = 0.0
 transform = Transform3D(0.7071068, -0.38511795, 0.5930297, 0, 0.83867055, 0.54463905, -0.7071068, -0.38511795, 0.5930297, 2, 1.9, 2)
 projection = 1
 current = true
+size = 1.4

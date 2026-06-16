@@ -2,7 +2,17 @@
 
 [ext_resource type="PackedScene" uid="uid://dnv4532e4xakj" path="res://assets/meshes/tall-grass/tall_grass.glb" id="1_bcxau"]
 [ext_resource type="Script" uid="uid://i063uw5b4q84" path="res://scripts/world/objects/WorldObject.cs" id="2_kh6vn"]
+[ext_resource type="Script" uid="uid://2hhyer4i1q1g" path="res://scripts/gameplay/pickups/DropEntry.cs" id="3_kh6vn"]
 [ext_resource type="Shader" uid="uid://dcrnmdpcgk4oe" path="res://resources/shaders/GrassDetail.gdshader" id="3_skd03"]
+
+[sub_resource type="Resource" id="Resource_skd03"]
+script = ExtResource("3_kh6vn")
+ItemId = "plant_fibre"
+MaxQuantity = 3
+metadata/_custom_type_script = "uid://2hhyer4i1q1g"
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kh6vn"]
+size = Vector3(0.5, 1, 0.5)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_25xwk"]
 render_priority = 0
@@ -14,7 +24,18 @@ shader_parameter/light_steps = 5.305
 
 [node name="TallGrass" unique_id=2146221642 instance=ExtResource("1_bcxau")]
 script = ExtResource("2_kh6vn")
-ObjectType = "flower"
+ObjectType = "plant"
+DropItems = Array[ExtResource("3_kh6vn")]([SubResource("Resource_skd03")])
+HitSoundsKey = ""
+BreakSoundsKey = "break_plant"
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." index="0" unique_id=585831729]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" index="0" unique_id=1819124958]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("BoxShape3D_kh6vn")
 
 [node name="Cube_002" parent="Grass D" parent_id_path=PackedInt32Array(928508554) index="0" unique_id=1113516390]
 surface_material_override/0 = SubResource("ShaderMaterial_25xwk")

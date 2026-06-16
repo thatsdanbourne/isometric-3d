@@ -31,10 +31,21 @@ public static class ResourceItems
 			Id = "stick",
 			DisplayName = "Stick",
 			ResourceType = "wood",
-			Description = "A common tool used for crafting.",
+			Description = "A common resource used for crafting.",
 			Icon = LoadTexture("stick"),
 			StackSize = 99,
 			SoundSet = "wood"
+		});
+
+		ItemRegistry.RegisterItem(new ResourceItem
+		{
+			Id = "plant_fibre",
+			DisplayName = "Plant Fibre",
+			ResourceType = "foliage",
+			Description = "A common resource used for crafting.",
+			Icon = LoadTexture("plant_fibre"),
+			StackSize = 99,
+			SoundSet = "foliage"
 		});
 
 		ItemRegistry.RegisterItem(new ResourceItem

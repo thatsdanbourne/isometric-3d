@@ -57,6 +57,14 @@ collision_mask = 0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("BoxShape3D_cye4l")
 
+[node name="StaticBody3D" type="StaticBody3D" parent="StaticBody3D" index="1" unique_id=177284729]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D/StaticBody3D" index="0" unique_id=406193767]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("BoxShape3D_cye4l")
+
 [node name="Trunk" parent="." index="1" unique_id=1466879840]
 surface_material_override/0 = SubResource("ShaderMaterial_cye4l")
 

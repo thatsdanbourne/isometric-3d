@@ -69,6 +69,11 @@ public class AudioRegistry
 			GD.Load<AudioStream>("res://assets/audio/ui/inventory/ingot/ingot_pickup.wav");
 		Sfx["ui_inventory_ingot_drop"] = GD.Load<AudioStream>("res://assets/audio/ui/inventory/ingot/ingot_drop.wav");
 
+		Sfx["ui_inventory_foliage_pickup"] =
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/foliage/foliage_pickup.wav");
+		Sfx["ui_inventory_foliage_drop"] =
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/foliage/foliage_drop.wav");
+
 
 		// crafting
 
@@ -76,6 +81,13 @@ public class AudioRegistry
 		Sfx["ui_craft_generic"] = GD.Load<AudioStream>("res://assets/audio/ui/crafting/craft_generic.wav");
 
 		// hit sounds
+		SfxVariants["hit_tree"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/hit/tree/Tree Cut Leaves Shaking 1.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/tree/Tree Cut Leaves Shaking 2.wav"),
+			GD.Load<AudioStream>("res://assets/audio/hit/tree/Tree Cut Leaves Shaking 3.wav")
+		];
+
 		SfxVariants["hit_wood"] =
 		[
 			GD.Load<AudioStream>("res://assets/audio/hit/wood/wood_1.wav"),
@@ -130,6 +142,13 @@ public class AudioRegistry
 			GD.Load<AudioStream>("res://assets/audio/break/stone/Mine Large Rock B.wav"),
 			GD.Load<AudioStream>("res://assets/audio/break/stone/Mine Large Rock C.wav"),
 			GD.Load<AudioStream>("res://assets/audio/break/stone/Mine Large Rock D.wav")
+		];
+
+		SfxVariants["break_plant"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/break/plant/Drop Foliage A.wav"),
+			GD.Load<AudioStream>("res://assets/audio/break/plant/Drop Foliage B.wav"),
+			GD.Load<AudioStream>("res://assets/audio/break/plant/Drop Foliage C.wav")
 		];
 
 		Sfx["hit_fail"] = GD.Load<AudioStream>("res://assets/audio/hit/hit_fail.wav");

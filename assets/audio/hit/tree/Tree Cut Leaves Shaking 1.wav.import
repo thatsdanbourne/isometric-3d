@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://1uqwkgts5gpf"
+path="res://.godot/imported/Tree Cut Leaves Shaking 1.wav-569757a34df327e1c9677f02736587d8.sample"
+
+[deps]
+
+source_file="res://assets/audio/hit/tree/Tree Cut Leaves Shaking 1.wav"
+dest_files=["res://.godot/imported/Tree Cut Leaves Shaking 1.wav-569757a34df327e1c9677f02736587d8.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
