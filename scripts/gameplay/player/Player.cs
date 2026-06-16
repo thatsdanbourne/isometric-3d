@@ -270,6 +270,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	{
 		var inputDir = GetMovementInput();
 		var moveVelocity = Vector3.Zero;
+
 		if (inputDir != Vector2.Zero)
 		{
 			moveVelocity = HandleMovementInput(inputDir, dt);
@@ -901,7 +902,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, Vector3 fromDirection,
 		Vector3 hitPoint)
 	{
-		ApplyKnockback(fromDirection, knockback);
+		ApplyKnockback(fromDirection, 3f);
 		Health -= damage;
 
 		_world.Sync.SendPlayerHitState(this);
