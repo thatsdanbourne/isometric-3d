@@ -24,6 +24,20 @@ public static class CombatUtils
 		return null;
 	}
 
+	public static AttackContext BuildAttackContext(ToolItem tool, bool isCharged)
+	{
+		if (!isCharged)
+			return AttackContext.Default;
+
+		return new AttackContext
+		{
+			IsCharged = true,
+			DamageMultiplier = tool.ChargedDamageMultiplier,
+			KnockbackMultiplier = tool.ChargedKnockbackMultiplier,
+			StaggerMultiplier = tool.ChargedStaggerMultiplier
+		};
+	}
+
 	public static ToolHitResult PerformMeleeHit(Node3D attacker, ToolItem tool, Vector3 swingDir,
 		PhysicsDirectSpaceState3D space, PhysicsRayQueryParameters3D query, bool isCharged,
 		Node3D requiredTarget = null)
@@ -69,15 +83,7 @@ public static class CombatUtils
 			var hitPoint = pos.AsVector3();
 			var hitDir = (hitRoot.GlobalPosition - hitPoint).Normalized();
 
-			var context = AttackContext.Default;
-
-			if (isCharged)
-				context = new AttackContext
-				{
-					IsCharged = true,
-					DamageMultiplier = tool.ChargedDamageMultiplier,
-					KnockbackMultiplier = tool.ChargedKnockbackMultiplier
-				};
+			var context = BuildAttackContext(tool, isCharged);
 
 			var toolResult = tool.UseOn(hittable, hitDir, hitPoint, context);
 			return toolResult;

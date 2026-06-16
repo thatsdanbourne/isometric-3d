@@ -23,8 +23,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private const uint HittableMask = 1u << 1;
 
 	private const string LocomotionBlendPath = "parameters/Locomotion/blend_position";
-	// private const string PunchRequestPath = "parameters/PunchOS/request";
-	// private const string AxeRequestPath = "parameters/AxeOS/request";
 
 	public int PlayerId { get; set; }
 	public bool IsLocal { get; set; }
@@ -39,6 +37,8 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public float Gravity = 24f;
 	private float _verticalVelocity;
+
+	private CombatController _combatController;
 
 	public IInteractable FocusedInteractable { get; private set; }
 
@@ -60,14 +60,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private float _locomotionBlend;
 	private float _locomotionBlendTarget;
 
-	private const float ChargeRequiredTime = 0.5f;
-	private float _chargeTimer;
-	private bool _isCharging;
-	private bool _isDoingChargedAttack;
-	private bool _isPlayingChargedVisuals;
-	private Vector3 _lungeVelocity;
-	private float _lungeTimeRemaining;
-
 	private Vector3 _lastCheckedPosition;
 	private Vector3 _aimDirection = Vector3.Forward;
 	private string _animState = "";
@@ -85,8 +77,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private AnimationTree _animTree;
 	private PhysicsRayQueryParameters3D _focusQuery;
 	public PhysicsRayQueryParameters3D ToolQuery;
-
-	public bool CanSwing => _hitCooldownAccum <= 0;
 
 	// lifecycle
 	public override void _Ready()
@@ -141,6 +131,10 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (!IsLocal)
 			return;
 
+		_combatController = new CombatController();
+		AddChild(_combatController);
+		_combatController.Init(this);
+
 		CameraController = CameraControllerScene.Instantiate<CameraController>();
 		CameraController.Player = this;
 		AddChild(CameraController);
@@ -171,17 +165,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		_footstepTimer -= dt;
 
-		if (_isDoingChargedAttack)
-		{
-			var isHeavyAttackActive = (bool)_animTree.Get("parameters/LightAttackOS/active");
-			if (!isHeavyAttackActive)
-			{
-				_isDoingChargedAttack = false;
-				_isPlayingChargedVisuals = false;
-				_animTree.Set("parameters/CombatState/transition_request", "Normal");
-			}
-		}
-
 		var isMoving = Velocity.LengthSquared() > 0.01f;
 		if (isMoving)
 			TryPlayFootstep();
@@ -197,6 +180,11 @@ public partial class Player : CharacterBody3D, IToolHittable
 		var viewport = GetViewport();
 		var camera = viewport.GetCamera3D();
 		var hudOpen = HUD.WindowOpen;
+
+		_combatController.Tick(dt);
+
+		if (_combatController.TickAnimationState(_animTree))
+			_animTree.Set("parameters/CombatState/transition_request", "Normal");
 
 		UpdateToolCooldown(dt);
 		HandleLocalMovement(dt);
@@ -310,7 +298,8 @@ public partial class Player : CharacterBody3D, IToolHittable
 		);
 
 		var speedMultiplier = 1f;
-		if (_isPlayingChargedVisuals || _lungeVelocity.LengthSquared() > 0f) speedMultiplier = 0.2f;
+		if (_combatController.IsPlayingChargedVisuals || _combatController.LungeVelocity.LengthSquared() > 0f)
+			speedMultiplier = 0.2f;
 
 		return moveVec * Speed * speedMultiplier;
 	}
@@ -340,8 +329,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private void UpdateVelocity(float dt, Vector3 moveVelocity)
 	{
 		KnockbackVelocity = KnockbackVelocity.MoveToward(Vector3.Zero, _knockbackDecay * dt);
-		_lungeVelocity = _lungeVelocity.MoveToward(Vector3.Zero, _knockbackDecay * dt);
-		Velocity = moveVelocity + KnockbackVelocity + _lungeVelocity;
+		Velocity = moveVelocity + KnockbackVelocity + _combatController.LungeVelocity;
 		Velocity = new Vector3(Velocity.X, _verticalVelocity, Velocity.Z);
 	}
 
@@ -587,7 +575,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	// tool usage and hit reactions
 	private void UseActiveTool(bool isCharged)
 	{
-		if (!CanSwing)
+		if (!_combatController.CanSwing)
 			return;
 
 		var tool = GetActiveTool();
@@ -596,21 +584,13 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (swingDir.LengthSquared() < 0.001f)
 			return;
 
-		StartSwingCooldown(tool);
+		_combatController.StartCooldown(tool);
 		PlayUseActiveToolVisual(tool, swingDir, isCharged);
 
 		if (isCharged && tool.ChargedLungeDistance > 0f)
-			StartAttackLunge(swingDir, tool.ChargedLungeDistance, tool.ChargedLungeDuration);
+			_combatController.StartLunge(swingDir, tool.ChargedLungeDistance, tool.ChargedLungeDuration);
+
 		RequestUseActiveTool(swingDir, isCharged);
-	}
-
-	private void StartAttackLunge(Vector3 direction, float distance, float duration)
-	{
-		direction.Y = 0f;
-		direction = direction.Normalized();
-
-		_lungeTimeRemaining = duration;
-		_lungeVelocity = direction * (distance / duration);
 	}
 
 	public void RequestUseActiveTool(Vector3 aimDir, bool isCharged)
@@ -640,46 +620,32 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private void HandleToolUse(float dt)
 	{
 		var hudOpen = HUD.WindowOpen;
-		if (hudOpen || !CanSwing)
+		if (hudOpen || !_combatController.CanSwing)
 		{
-			ResetChargeState();
+			if (_combatController.IsPlayingChargedVisuals)
+			{
+				CancelChargeVisual();
+				SyncCombatAnim(PlayerCombatAnimEvent.ChargeCancel, GetActiveTool().Id, GetSwingDirection());
+			}
+
+			_combatController.CancelCharge();
 			return;
 		}
 
-		if (Input.IsActionJustPressed(UseToolAction))
+		if (Input.IsActionJustPressed(UseToolAction)) _combatController.StartCharge();
+
+		if (_combatController.TickCharge(dt))
 		{
-			_isCharging = true;
-			_chargeTimer = 0f;
-			_isPlayingChargedVisuals = false;
+			PlayChargeStartVisual(GetActiveTool());
+			SyncCombatAnim(PlayerCombatAnimEvent.ChargeStart, GetActiveTool().Id, GetSwingDirection());
 		}
 
-		if (_isCharging)
+		if (Input.IsActionJustReleased(UseToolAction) && _combatController.ReleaseCharge(out var chargedAttack))
 		{
-			_chargeTimer += dt;
-
-			if (_chargeTimer >= ChargeRequiredTime && !_isPlayingChargedVisuals)
-			{
-				_isPlayingChargedVisuals = true;
-				_animTree.Set("parameters/CombatState/transition_request", "Charging");
-
-				SyncCombatAnim(PlayerCombatAnimEvent.ChargeStart, GetActiveTool().Id, GetSwingDirection());
-			}
-		}
-
-		if (Input.IsActionJustReleased(UseToolAction) && _isCharging)
-		{
-			var chargedAttack = _chargeTimer >= ChargeRequiredTime;
-
-			if (!chargedAttack && _isPlayingChargedVisuals)
-				_animTree.Set("parameters/CombatState/transition_request", "Normal");
-
 			UseActiveTool(chargedAttack);
 
 			SyncCombatAnim(chargedAttack ? PlayerCombatAnimEvent.ChargeRelease : PlayerCombatAnimEvent.LightAttack,
 				GetActiveTool().Id, GetSwingDirection());
-
-			_isCharging = false;
-			_chargeTimer = 0f;
 		}
 	}
 
@@ -751,16 +717,12 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private void PlayChargeStartVisual(ToolItem tool)
 	{
 		// add dynamic charge start anim
-		_isPlayingChargedVisuals = true;
 		_animTree.Set("parameters/CombatState/transition_request", "Charging");
 	}
 
 	private void PlayChargedReleaseVisual(ToolItem tool)
 	{
 		var treeRoot = (AnimationNodeBlendTree)_animTree.TreeRoot;
-
-		_isDoingChargedAttack = true;
-		_isPlayingChargedVisuals = true;
 
 		if (treeRoot.GetNode("DynamicRelease") is AnimationNodeAnimation dynamicAnim)
 		{
@@ -780,20 +742,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	private void CancelChargeVisual()
 	{
-		_isCharging = false;
-		_chargeTimer = 0f;
-		_isPlayingChargedVisuals = false;
-
 		_animTree.Set("parameters/CombatState/transition_request", "Normal");
-	}
-
-	private void ResetChargeState()
-	{
-		// Safety check to ensure transition isn't stuck if interrupted by a menu or cooldown
-		if (_isPlayingChargedVisuals) _animTree.Set("parameters/CombatState/transition_request", "Normal");
-		_isCharging = false;
-		_isPlayingChargedVisuals = false;
-		_chargeTimer = 0.0f;
 	}
 
 	public void PlayRemoteUseActiveToolVisual(ToolItem tool, Vector3 swingDir, bool isCharged = false)
@@ -974,7 +923,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, Vector3 fromDirection,
 		Vector3 hitPoint)
 	{
-		ApplyKnockback(fromDirection, 3f);
+		ApplyKnockback(fromDirection, knockback);
 		Health -= damage;
 
 		_world.Sync.SendPlayerHitState(this);
