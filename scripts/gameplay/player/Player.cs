@@ -163,11 +163,11 @@ public partial class Player : CharacterBody3D, IToolHittable
 		var hudOpen = HUD.WindowOpen;
 
 		_combatController.Tick(dt);
-
+		
 		if (_combatController.IsDoingChargedAttack && !_animationController.IsHeavyAttackActive())
 		{
-			_combatController.EndChargedRelease();
-			_animationController.ReturnToIdle();
+			_combatController.CancelCharge();
+			_animationController.CancelCharge();
 		}
 
 		HandleLocalMovement(dt);
@@ -420,9 +420,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 	}
 
 	// tool usage and hit reactions
-	private void UseActiveTool(bool isCharged)
+	private void UseActiveTool(bool isCharged, bool ignoreCooldown = false)
 	{
-		if (!_combatController.CanSwing)
+		if (!ignoreCooldown && !_combatController.CanSwing)
 			return;
 
 		var tool = GetActiveTool();
@@ -433,12 +433,17 @@ public partial class Player : CharacterBody3D, IToolHittable
 			return;
 
 		_combatController.StartCooldown(tool);
-		_animationController.PlayUseTool(tool, swingDir, isCharged);
+		_combatController.StartComboChainDelay(tool);
+
+		var comboIndex = isCharged ? 0 : _combatController.ConsumeComboIndex(tool);
+		_animationController.PlayUseTool(tool, swingDir, isCharged, comboIndex);
 
 		if (isCharged && tool.ChargedLungeDistance > 0f)
 			_entityMotor.StartLunge(swingDir, tool.ChargedLungeDistance, tool.ChargedLungeDuration);
 
 		RequestUseActiveTool(swingDir, isCharged);
+		SyncCombatAnim(isCharged ? PlayerCombatAnimEvent.ChargeRelease : PlayerCombatAnimEvent.LightAttack, tool.Id,
+			swingDir);
 	}
 
 	public void RequestUseActiveTool(Vector3 aimDir, bool isCharged)
@@ -457,7 +462,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private void HandleToolUse(float dt)
 	{
 		var hudOpen = HUD.WindowOpen;
-		if (hudOpen || !_combatController.CanSwing)
+		if (hudOpen)
 		{
 			if (_combatController.IsPlayingChargedVisuals)
 			{
@@ -469,7 +474,14 @@ public partial class Player : CharacterBody3D, IToolHittable
 			return;
 		}
 
-		if (Input.IsActionJustPressed(UseToolAction)) _combatController.StartCharge();
+		if (Input.IsActionJustPressed(UseToolAction))
+		{
+			if (_combatController.CanSwing)
+				_combatController.StartCharge();
+			else
+				_combatController.QueueLightAttack();
+		}
+
 
 		if (_combatController.TickCharge(dt))
 		{
@@ -478,12 +490,18 @@ public partial class Player : CharacterBody3D, IToolHittable
 		}
 
 		if (Input.IsActionJustReleased(UseToolAction) && _combatController.ReleaseCharge(out var chargedAttack))
-		{
 			UseActiveTool(chargedAttack);
 
-			SyncCombatAnim(chargedAttack ? PlayerCombatAnimEvent.ChargeRelease : PlayerCombatAnimEvent.LightAttack,
-				GetActiveTool().Id, GetSwingDirection());
-		}
+		if (_combatController.TryConsumeQueuedAttack(out var queued))
+			switch (queued)
+			{
+				case QueuedAttackType.Light:
+					UseActiveTool(false, true);
+					break;
+				case QueuedAttackType.Charged:
+					_combatController.StartCharge();
+					break;
+			}
 	}
 
 	private void HandlePlaceItem(bool hudOpen)
@@ -584,7 +602,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		Velocity = vel;
 		Rotation = new Vector3(Rotation.X, rotY, Rotation.Z);
 	}
-	
+
 	private void SyncCombatAnim(PlayerCombatAnimEvent animEvent, string toolId, Vector3 swingDir)
 	{
 		if (!IsLocal)

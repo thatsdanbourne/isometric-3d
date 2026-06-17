@@ -11,7 +11,8 @@ public class ToolItem : Item
 	public float HitRange { get; init; } = 1.0f;
 	public float Knockback { get; init; } = 1.0f;
 	public float Stagger { get; init; } = 0.0f;
-	public float CooldownSeconds { get; init; } = 0.5f;
+	public float CooldownSeconds { get; init; } = 0.55f;
+	public float ComboChainSeconds { get; init; } = 0.4f;
 	public float ChargedDamageMultiplier { get; set; } = 1f;
 	public float ChargedKnockbackMultiplier { get; set; } = 1f;
 	public float ChargedStaggerMultiplier { get; set; } = 1f;

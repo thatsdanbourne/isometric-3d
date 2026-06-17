@@ -45,17 +45,17 @@ public partial class EntityAnimationController : Node
 		);
 	}
 
-	public void PlayUseTool(ToolItem tool, Vector3 swingDir, bool isCharged)
+	public void PlayUseTool(ToolItem tool, Vector3 swingDir, bool isCharged, int comboIndex = 0)
 	{
 		if (isCharged)
 			PlayChargedRelease(tool);
 		else
-			PlayLightAttack(tool);
+			PlayLightAttack(tool, comboIndex);
 
 		FaceDirection(swingDir);
 	}
 
-	public void PlayLightAttack(ToolItem tool)
+	public void PlayLightAttack(ToolItem tool, int comboIndex)
 	{
 		var treeRoot = (AnimationNodeBlendTree)_animTree.TreeRoot;
 
@@ -63,8 +63,8 @@ public partial class EntityAnimationController : Node
 		{
 			dynamicAnim.Animation = tool.ToolType switch
 			{
-				"sword" => "attack_axe",
-				"axe" => "attack_axe",
+				"sword" => $"attack_axe_light_{comboIndex + 1}",
+				"axe" => $"attack_axe_light_{comboIndex + 1}",
 				_ => "attack_fist"
 			};
 
@@ -127,10 +127,5 @@ public partial class EntityAnimationController : Node
 	public bool IsHeavyAttackActive()
 	{
 		return (bool)_animTree.Get("parameters/HeavyAttackOS/active");
-	}
-
-	public void ReturnToIdle()
-	{
-		_animTree.Set("parameters/CombatState/transition_request", "Normal");
 	}
 }

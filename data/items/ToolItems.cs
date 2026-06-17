@@ -37,7 +37,8 @@ public static class ToolItems
 			HitArcDegrees = 85f,
 			HitRayCount = 5,
 			HitRange = 1.35f,
-			CooldownSeconds = 0.55f,
+			CooldownSeconds = 0.6f,
+			ComboChainSeconds = 0.5f,
 			HeldItemScene = GD.Load<PackedScene>("res://scenes/tools/StoneSword.tscn"),
 			SoundSet = "sword",
 			DamageMultipliers = new Dictionary<string, float>

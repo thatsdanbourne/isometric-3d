@@ -113,4 +113,14 @@ public static class CombatUtils
 
 		return ToolHitResult.None;
 	}
+
+	public static int GetComboLength(string toolType)
+	{
+		return toolType switch
+		{
+			"sword" => 2,
+			"axe" => 2,
+			_ => 1
+		};
+	}
 }

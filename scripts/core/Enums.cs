@@ -147,3 +147,10 @@ public enum PlayerCombatAnimEvent
 	ChargeCancel,
 	ChargeRelease
 }
+
+public enum QueuedAttackType
+{
+	None,
+	Light,
+	Charged
+}
