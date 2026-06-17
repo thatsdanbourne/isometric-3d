@@ -176,7 +176,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		HandlePlaceItem(hudOpen);
 		HandleInteraction(hudOpen);
 		UpdatePlacementOrFocus(dt, camera, viewport, hudOpen);
-		SyncTransform();
+		_world.Sync.SyncTransform(this);
 	}
 
 	public override void _UnhandledInput(InputEvent e)
@@ -575,53 +575,22 @@ public partial class Player : CharacterBody3D, IToolHittable
 	}
 
 	// networking
-	private void SyncTransform()
+	public void ApplyRemoteTransform(Vector3 pos, Vector3 vel, float rotY)
 	{
-		RpcId(1, nameof(SubmitTransform), GlobalPosition, Velocity, Rotation.Y);
-	}
-
-	private void SyncCombatAnim(PlayerCombatAnimEvent animEvent, string toolId, Vector3 swingDir)
-	{
-		if (!IsLocal)
-			return;
-
-		_world.Sync.RpcId(1, nameof(_world.Sync.RequestCombatAnim), (int)animEvent, toolId, swingDir);
-	}
-
-	[Rpc(
-		MultiplayerApi.RpcMode.AnyPeer,
-		CallLocal = false,
-		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable
-	)]
-	public void SubmitTransform(Vector3 pos, Vector3 vel, float rotY)
-	{
-		var senderId = Multiplayer.GetRemoteSenderId();
-		if (PlayerId != senderId)
-			return;
-
-		GlobalPosition = pos;
-		Velocity = vel;
-		Rotation = new Vector3(Rotation.X, rotY, Rotation.Z);
-
-		Rpc(nameof(ReceiveTransform), senderId, pos, vel, rotY);
-	}
-
-	[Rpc(
-		MultiplayerApi.RpcMode.Authority,
-		CallLocal = false,
-		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable
-	)]
-	private void ReceiveTransform(int playerId, Vector3 pos, Vector3 vel, float rotY)
-	{
-		if (PlayerId != playerId)
-			return;
-
 		if (IsLocal)
 			return;
 
 		GlobalPosition = pos;
 		Velocity = vel;
 		Rotation = new Vector3(Rotation.X, rotY, Rotation.Z);
+	}
+	
+	private void SyncCombatAnim(PlayerCombatAnimEvent animEvent, string toolId, Vector3 swingDir)
+	{
+		if (!IsLocal)
+			return;
+
+		_world.Sync.SyncCombatAnim(animEvent, toolId, swingDir);
 	}
 
 	public void ApplyRemoteHitEvent(float health, Vector3 hitDirection, float knockback)
@@ -631,7 +600,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (IsLocal)
 			HUD.RefreshUI();
 	}
-
 
 	#region IToolHittable
 

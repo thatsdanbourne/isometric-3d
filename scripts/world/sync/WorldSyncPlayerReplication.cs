@@ -2,6 +2,63 @@ using Godot;
 
 public partial class WorldSync
 {
+	public void SyncTransform(Player player)
+	{
+		if (player == null || !player.IsLocal)
+			return;
+
+		RpcId(
+			1,
+			nameof(RequestPlayerTransform),
+			player.GlobalPosition,
+			player.Velocity,
+			player.Rotation.Y
+		);
+	}
+	
+	[Rpc(
+		MultiplayerApi.RpcMode.AnyPeer,
+		CallLocal = false,
+		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable
+	)]
+	private void RequestPlayerTransform(Vector3 pos, Vector3 vel, float rotY)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		var senderId = Multiplayer.GetRemoteSenderId();
+		var player = _world.GetPlayerById(senderId);
+
+		if (player == null)
+			return;
+
+		player.GlobalPosition = pos;
+		player.Velocity = vel;
+		player.Rotation = new Vector3(player.Rotation.X, rotY, player.Rotation.Z);
+
+		Rpc(
+			nameof(ReceivePlayerTransform),
+			senderId,
+			pos,
+			vel,
+			rotY
+		);
+	}
+	
+	[Rpc(
+		MultiplayerApi.RpcMode.Authority,
+		CallLocal = false,
+		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable
+	)]
+	private void ReceivePlayerTransform(int playerId, Vector3 pos, Vector3 vel, float rotY)
+	{
+		var player = _world.GetPlayerById(playerId);
+		if (player == null)
+			return;
+
+		player.ApplyRemoteTransform(pos, vel, rotY);
+	}
+	
 	public void SyncPlayerInventoryState(Player player)
 	{
 		if (!Multiplayer.IsServer())
@@ -135,6 +192,17 @@ public partial class WorldSync
 			return;
 
 		player.ApplyRemoteHitEvent(health, hitDirection, knockback);
+	}
+	
+	public void SyncCombatAnim(PlayerCombatAnimEvent animEvent, string toolId, Vector3 swingDir)
+	{
+		RpcId(
+			1,
+			nameof(RequestCombatAnim),
+			(int)animEvent,
+			toolId,
+			swingDir
+		);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
