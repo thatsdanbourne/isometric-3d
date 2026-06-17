@@ -9,12 +9,20 @@ public partial class EntityMotor : Node
 	public Vector3 KnockbackVelocity { get; private set; }
 	public Vector3 LungeVelocity { get; private set; }
 
+	public bool FootstepsEnabled { get; set; } = true;
+	public float FootstepDistance { get; set; } = 1.8f;
+	public float FootstepVolume { get; set; } = 0.2f;
+
+	private float _footstepDistanceAccum;
+	private World _world;
+
 	private CharacterBody3D _body;
 	private float _verticalVelocity;
 
-	public void Init(CharacterBody3D body)
+	public void Init(CharacterBody3D body, World world)
 	{
 		_body = body;
+		_world = world;
 	}
 
 	public void ApplyKnockback(Vector3 direction, float strength)
@@ -46,6 +54,8 @@ public partial class EntityMotor : Node
 
 		_body.Velocity = moveVelocity + KnockbackVelocity + LungeVelocity;
 		_body.Velocity = new Vector3(_body.Velocity.X, _verticalVelocity, _body.Velocity.Z);
+
+		UpdateFootsteps(dt);
 	}
 
 	private void ApplyGravity(float dt)
@@ -63,5 +73,49 @@ public partial class EntityMotor : Node
 		var pos = _body.GlobalPosition;
 		pos.Y = groundY;
 		_body.GlobalPosition = pos;
+	}
+
+	private void UpdateFootsteps(float dt)
+	{
+		if (!FootstepsEnabled)
+			return;
+
+		var horizontalVelocity = _body.Velocity;
+		horizontalVelocity.Y = 0;
+
+		var speed = horizontalVelocity.Length();
+
+		if (speed < 0.1f)
+			return;
+
+		_footstepDistanceAccum += speed * dt;
+
+		if (_footstepDistanceAccum < FootstepDistance)
+			return;
+
+		_footstepDistanceAccum = 0f;
+		PlayFootstep();
+	}
+
+	private void PlayFootstep()
+	{
+		var tile = _world.GetTileAtPos(_body.GlobalPosition);
+		if (tile == null)
+			return;
+
+		var key = tile.Value.Definition.Id switch
+		{
+			TileId.Grass => "footstep_grass",
+			TileId.Sand => "footstep_sand",
+			TileId.Snow => "footstep_snow",
+			_ => "footstep_grass"
+		};
+
+		AudioManager.Instance.PlayVariantAt(
+			key,
+			_body.GlobalPosition,
+			AudioManager.BusFootsteps,
+			FootstepVolume
+		);
 	}
 }

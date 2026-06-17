@@ -38,6 +38,28 @@ public static class CombatUtils
 		};
 	}
 
+	public static Vector3 GetMouseAimDirection(Camera3D camera, Vector2 mousePos, Vector3 origin, Vector3 fallback)
+	{
+		var rayOrigin = camera.ProjectRayOrigin(mousePos);
+		var rayDir = camera.ProjectRayNormal(mousePos);
+
+		if (Mathf.Abs(rayDir.Y) < 0.0001f)
+			return fallback;
+
+		var t = (origin.Y - rayOrigin.Y) / rayDir.Y;
+		if (t < 0)
+			return fallback;
+
+		var hitPoint = rayOrigin + rayDir * t;
+		var dir = hitPoint - origin;
+		dir.Y = 0;
+
+		if (dir.LengthSquared() < 0.01f)
+			return fallback;
+
+		return dir.Rotated(Vector3.Up, Mathf.DegToRad(-45)).Normalized();
+	}
+
 	public static ToolHitResult PerformMeleeHit(Node3D attacker, ToolItem tool, Vector3 swingDir,
 		PhysicsDirectSpaceState3D space, PhysicsRayQueryParameters3D query, bool isCharged,
 		Node3D requiredTarget = null)

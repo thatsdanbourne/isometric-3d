@@ -71,19 +71,6 @@ public partial class WorldSync
 			player.GetActiveTool().Id);
 	}
 
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	public void PlayRemoteUseActiveToolVisual(int playerId, string toolId, Vector3 swingDir, bool isCharged)
-	{
-		var player = _world.GetPlayerById(playerId);
-		if (player == null || player.PlayerId == Multiplayer.GetUniqueId())
-			return;
-
-		if (ItemRegistry.GetItem(toolId) is not ToolItem item)
-			return;
-
-		player.PlayRemoteUseActiveToolVisual(item, swingDir);
-	}
-
 	public void BroadcastAttackWorldResult(ToolHitResult result)
 	{
 		Rpc(

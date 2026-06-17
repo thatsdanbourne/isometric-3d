@@ -41,22 +41,6 @@ public partial class CombatController : Node
 		return false;
 	}
 
-	public bool TickAnimationState(AnimationTree animTree)
-	{
-		if (!IsDoingChargedAttack)
-			return false;
-
-		var active = (bool)animTree.Get("parameters/HeavyAttackOS/active");
-
-		if (active)
-			return false;
-
-		IsDoingChargedAttack = false;
-		IsPlayingChargedVisuals = false;
-
-		return true;
-	}
-
 	public void StartCooldown(ToolItem tool)
 	{
 		_cooldown = tool.CooldownSeconds;
@@ -82,6 +66,12 @@ public partial class CombatController : Node
 		IsCharging = false;
 		_chargeTimer = 0f;
 		return true;
+	}
+
+	public void EndChargeRelease()
+	{
+		IsDoingChargedAttack = false;
+		IsPlayingChargedVisuals = false;
 	}
 
 	public void CancelCharge()

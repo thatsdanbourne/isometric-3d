@@ -1,7 +1,5 @@
 using System;
-using System.Threading.Tasks;
 using Godot;
-using Godot.NativeInterop;
 
 public partial class Player : CharacterBody3D, IToolHittable
 {
@@ -17,12 +15,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private static readonly StringName InteractAction = "interact";
 
 	private const float BiomeCheckDistance = 0.5f;
-	private const float FocusHz = 20f;
-	private const float FocusInterval = 1f / FocusHz;
-	private const uint InteractableMask = 1u << 2;
 	private const uint HittableMask = 1u << 1;
-
-	private const string LocomotionBlendPath = "parameters/Locomotion/blend_position";
 
 	public int PlayerId { get; set; }
 	public bool IsLocal { get; set; }
@@ -30,18 +23,14 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public float MaxHealth = 20f;
 	public float Health;
 	public float Speed = 5.0f;
-	public float ChargedAttackSpeed = 1.5f;
 	public float AimLockTime = 0.5f;
 	public ToolItem DefaultTool;
 	public BiomeId CurrentBiome = BiomeId.Unknown;
 
-	public float Gravity = 24f;
-	private float _verticalVelocity;
-
 	private EntityMotor _entityMotor;
 	private CombatController _combatController;
-
-	public IInteractable FocusedInteractable { get; private set; }
+	private EntityAnimationController _animationController;
+	private PlayerInteractionController _interactionController;
 
 	public HUD HUD;
 	public Hotbar Hotbar;
@@ -51,16 +40,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private Label3D _nameplate;
 
 	private float _aimLockTimer;
-	private float _footstepTimer;
-	private float _footstepInterval = 0.4f;
-	public Vector3 KnockbackVelocity;
-	private float _focusAccum;
-	private float _locomotionBlend;
-	private float _locomotionBlendTarget;
 
 	private Vector3 _lastCheckedPosition;
 	private Vector3 _aimDirection = Vector3.Forward;
-	private string _animState = "";
 
 	private bool _testItemsGiven;
 	private bool _suppressSelectedSlotRequest;
@@ -73,7 +55,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private World _world;
 	private BiomeTintOverlay _tintOverlay;
 	private AnimationTree _animTree;
-	private PhysicsRayQueryParameters3D _focusQuery;
 	public PhysicsRayQueryParameters3D ToolQuery;
 
 	// lifecycle
@@ -93,13 +74,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_nameplate = GetNode<Label3D>("Nameplate");
 		_nameplate.Visible = !IsLocal;
 		_nameplate.Text = $"Player {PlayerId}";
-
-		_focusQuery = new PhysicsRayQueryParameters3D
-		{
-			CollideWithAreas = false,
-			CollideWithBodies = true,
-			CollisionMask = InteractableMask
-		};
 
 		ToolQuery = new PhysicsRayQueryParameters3D
 		{
@@ -129,10 +103,18 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		_entityMotor = new EntityMotor();
 		AddChild(_entityMotor);
-		_entityMotor.Init(this);
+		_entityMotor.Init(this, _world);
+
+		_animationController = new EntityAnimationController();
+		AddChild(_animationController);
+		_animationController.Init(this, _animTree);
 
 		if (!IsLocal)
 			return;
+
+		_interactionController = new PlayerInteractionController();
+		AddChild(_interactionController);
+		_interactionController.Init(this);
 
 		_combatController = new CombatController();
 		AddChild(_combatController);
@@ -166,11 +148,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	{
 		var dt = (float)delta;
 
-		_footstepTimer -= dt;
-
 		var isMoving = Velocity.LengthSquared() > 0.01f;
-		if (isMoving)
-			TryPlayFootstep();
 
 		var blendAlpha = 1f - Mathf.Exp(-14f * dt);
 
@@ -186,12 +164,14 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		_combatController.Tick(dt);
 
-		if (_combatController.TickAnimationState(_animTree))
-			_animTree.Set("parameters/CombatState/transition_request", "Normal");
+		if (_combatController.IsDoingChargedAttack && !_animationController.IsHeavyAttackActive())
+		{
+			_combatController.EndChargedRelease();
+			_animationController.ReturnToIdle();
+		}
 
 		HandleLocalMovement(dt);
-		UpdateLocomotionBlend(blendAlpha);
-		UpdateAimDirection(camera, viewport, hudOpen);
+		_animationController.Tick(blendAlpha);
 		HandleToolUse(dt);
 		HandlePlaceItem(hudOpen);
 		HandleInteraction(hudOpen);
@@ -220,7 +200,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 			return;
 		}
 
-		if (FocusedInteractable is IItemContainer storage)
+		if (_interactionController.FocusedInteractable is IItemContainer storage)
 		{
 			HUD.OpenStorageUI(storage);
 			return;
@@ -242,15 +222,14 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (hudOpen || !Input.IsActionJustPressed(InteractAction))
 			return;
 
-		if (FocusedInteractable != null && FocusedInteractable.CanInteract(this))
-			FocusedInteractable.Interact(this);
+		_interactionController.TryInteract(true);
 	}
 
 	// movement and animation
 	private void UpdateRemotePlayer(float dt, float blendAlpha, bool isMoving)
 	{
-		SetAnimState(isMoving ? "run" : "idle");
-		UpdateLocomotionBlend(blendAlpha);
+		_animationController.SetLocomotionState(isMoving);
+		_animationController.Tick(blendAlpha);
 
 		_entityMotor.Update(dt, Velocity);
 		MoveAndSlide();
@@ -264,12 +243,12 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (inputDir != Vector2.Zero)
 		{
 			moveVelocity = HandleMovementInput(inputDir, dt);
-			SetAnimState("run");
+			_animationController.SetLocomotionState(true);
 		}
 		else
 		{
 			_aimLockTimer = 0f;
-			SetAnimState("idle");
+			_animationController.SetLocomotionState(false);
 		}
 
 		_entityMotor.Update(dt, moveVelocity);
@@ -304,79 +283,14 @@ public partial class Player : CharacterBody3D, IToolHittable
 		return moveVec * Speed * speedMultiplier;
 	}
 
-	private void TryPlayFootstep()
-	{
-		if (_footstepTimer > 0f)
-			return;
-
-		var tile = _world.GetTileAtPos(GlobalPosition);
-		if (tile != null)
-		{
-			var key = tile.Value.Definition.Id switch
-			{
-				TileId.Grass => "footstep_grass",
-				TileId.Sand => "footstep_sand",
-				TileId.Snow => "footstep_snow",
-				_ => "footstep_grass"
-			};
-
-			AudioManager.Instance.PlayVariantAt(key, GlobalPosition, AudioManager.BusFootsteps, 0.2f);
-		}
-
-		_footstepTimer = _footstepInterval;
-	}
-
-	private void SetAnimState(string name)
-	{
-		if (_animState == name)
-			return;
-
-		_animState = name;
-		_locomotionBlendTarget = name switch
-		{
-			"idle" => 0f,
-			"run" => 1f,
-			_ => _locomotionBlendTarget
-		};
-	}
-
-	private void UpdateLocomotionBlend(float blendAlpha)
-	{
-		_locomotionBlend = Mathf.Lerp(_locomotionBlend, _locomotionBlendTarget, blendAlpha);
-		_animTree.Set(LocomotionBlendPath, _locomotionBlend);
-	}
-
 	// aiming, focus, placement
-	private void UpdateAimDirection(Camera3D camera, Viewport viewport, bool hudOpen)
+	private void UpdateAimDirection()
 	{
-		if (camera != null && !hudOpen)
-			_aimDirection = GetAimDirection(camera, viewport.GetMousePosition());
-	}
-
-	private Vector3 GetAimDirection(Camera3D camera, Vector2 mousePos)
-	{
-		if (camera == null)
-			return _aimDirection;
-
-		var rayOrigin = camera.ProjectRayOrigin(mousePos);
-		var rayDir = camera.ProjectRayNormal(mousePos);
-
-		if (Mathf.Abs(rayDir.Y) < 0.0001f)
-			return _aimDirection;
-
-		var t = (GlobalPosition.Y - rayOrigin.Y) / rayDir.Y;
-		if (t < 0)
-			return _aimDirection;
-
-		var hitPoint = rayOrigin + rayDir * t;
-		var dir = hitPoint - GlobalPosition;
-		dir.Y = 0;
-
-		if (dir.LengthSquared() < 0.01f)
-			return _aimDirection;
-
-		dir = dir.Rotated(Vector3.Up, Mathf.DegToRad(-45));
-		return dir.Normalized();
+		var viewport = GetViewport();
+		var camera = viewport.GetCamera3D();
+		if (camera != null)
+			_aimDirection =
+				CombatUtils.GetMouseAimDirection(camera, viewport.GetMousePosition(), GlobalPosition, _aimDirection);
 	}
 
 	private void UpdatePlacementOrFocus(float dt, Camera3D camera, Viewport viewport, bool hudOpen)
@@ -388,47 +302,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 			return;
 		}
 
-		if (hudOpen || camera == null)
-			return;
-
-		_focusAccum += dt;
-		if (_focusAccum < FocusInterval)
-			return;
-
-		_focusAccum -= FocusInterval;
-		UpdateFocusedObject(camera, viewport.GetMousePosition());
-	}
-
-	private void UpdateFocusedObject(Camera3D camera, Vector2 mousePos)
-	{
-		if (camera == null)
-			return;
-
-		var rayOrigin = camera.ProjectRayOrigin(mousePos);
-		var rayDir = camera.ProjectRayNormal(mousePos);
-
-		_focusQuery.From = rayOrigin;
-		_focusQuery.To = rayOrigin + rayDir * 100f;
-
-		var result = GetWorld3D().DirectSpaceState.IntersectRay(_focusQuery);
-		IInteractable newFocus = null;
-
-		if (result.Count > 0 && result.TryGetValue("collider", out var col))
-		{
-			var node = col.As<Node>();
-			newFocus = FindInteractable(node);
-		}
-
-		if (newFocus == FocusedInteractable)
-		{
-			FocusedInteractable?.UpdateFocus(this);
-			return;
-		}
-
-		FocusedInteractable?.OnFocusLost(this);
-		FocusedInteractable = newFocus;
-		FocusedInteractable?.OnFocusGained(this);
-		FocusedInteractable?.UpdateFocus(this);
+		_interactionController.Tick(dt, camera, viewport.GetMousePosition(), !hudOpen);
 	}
 
 	private void UpdatePlacementState(Item item)
@@ -553,12 +427,13 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		var tool = GetActiveTool();
 
+		UpdateAimDirection();
 		var swingDir = GetSwingDirection();
 		if (swingDir.LengthSquared() < 0.001f)
 			return;
 
 		_combatController.StartCooldown(tool);
-		PlayUseActiveToolVisual(tool, swingDir, isCharged);
+		_animationController.PlayUseTool(tool, swingDir, isCharged);
 
 		if (isCharged && tool.ChargedLungeDistance > 0f)
 			_entityMotor.StartLunge(swingDir, tool.ChargedLungeDistance, tool.ChargedLungeDuration);
@@ -586,7 +461,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		{
 			if (_combatController.IsPlayingChargedVisuals)
 			{
-				CancelChargeVisual();
+				_animationController.CancelCharge();
 				SyncCombatAnim(PlayerCombatAnimEvent.ChargeCancel, GetActiveTool().Id, GetSwingDirection());
 			}
 
@@ -598,7 +473,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		if (_combatController.TickCharge(dt))
 		{
-			PlayChargeStartVisual(GetActiveTool());
+			_animationController.PlayChargeStart(GetActiveTool());
 			SyncCombatAnim(PlayerCombatAnimEvent.ChargeStart, GetActiveTool().Id, GetSwingDirection());
 		}
 
@@ -633,85 +508,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		return swingDir.Normalized();
 	}
 
-	public void PlayUseActiveToolVisual(ToolItem tool, Vector3 swingDir, bool isCharged)
-	{
-		if (isCharged)
-			PlayChargedReleaseVisual(tool);
-		else
-			PlayLightAttackVisual(tool);
-
-		var targetAngle = Mathf.Atan2(swingDir.X, swingDir.Z);
-		Rotation = new Vector3(Rotation.X, targetAngle, Rotation.Z);
-	}
-
-	public void PlayLightAttackVisual(ToolItem tool)
-	{
-		var treeRoot = (AnimationNodeBlendTree)_animTree.TreeRoot;
-
-		switch (tool.ToolType)
-		{
-			case "axe":
-			case "sword":
-				if (treeRoot.GetNode("DynamicAttack") is AnimationNodeAnimation dynamicAnim)
-				{
-					dynamicAnim.Animation = "attack_axe";
-
-					_animTree.Set("parameters/LightAttackOS/request",
-						(int)AnimationNodeOneShot.OneShotRequest.Fire);
-				}
-
-				AudioManager.Instance.PlayVariantAt("swing_blade_small", GlobalPosition, AudioManager.BusTools, 0.1f);
-				break;
-
-			default:
-				if (treeRoot.GetNode("DynamicAttack") is AnimationNodeAnimation dynamic)
-				{
-					dynamic.Animation = "attack_fist";
-					_animTree.Set("parameters/LightAttackOS/request",
-						(int)AnimationNodeOneShot.OneShotRequest.Fire);
-				}
-
-				AudioManager.Instance.PlayVariantAt("swing_fist", GlobalPosition, AudioManager.BusTools, 0.1f);
-				break;
-		}
-	}
-
-	private void PlayChargeStartVisual(ToolItem tool)
-	{
-		// add dynamic charge start anim
-		_animTree.Set("parameters/CombatState/transition_request", "Charging");
-	}
-
-	private void PlayChargedReleaseVisual(ToolItem tool)
-	{
-		var treeRoot = (AnimationNodeBlendTree)_animTree.TreeRoot;
-
-		if (treeRoot.GetNode("DynamicRelease") is AnimationNodeAnimation dynamicAnim)
-		{
-			dynamicAnim.Animation = tool.ToolType switch
-			{
-				"sword" => "attack_sword_charge_release",
-				"axe" => "attack_axe_charge_release",
-				_ => "attack_sword_charge_release"
-			};
-
-			_animTree.Set("parameters/HeavyAttackOS/request",
-				(int)AnimationNodeOneShot.OneShotRequest.Fire);
-		}
-
-		AudioManager.Instance.PlayVariantAt("swing_blade_small", GlobalPosition, AudioManager.BusTools, 0.1f);
-	}
-
-	private void CancelChargeVisual()
-	{
-		_animTree.Set("parameters/CombatState/transition_request", "Normal");
-	}
-
-	public void PlayRemoteUseActiveToolVisual(ToolItem tool, Vector3 swingDir, bool isCharged = false)
-	{
-		PlayUseActiveToolVisual(tool, swingDir, isCharged);
-	}
-
 	public void HandleLocalAttackResult(ToolHitResult result)
 	{
 		switch (result.Outcome)
@@ -728,24 +524,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public void PlayRemoteCombatAnim(PlayerCombatAnimEvent animEvent, ToolItem tool, Vector3 swingDir)
 	{
-		switch (animEvent)
-		{
-			case PlayerCombatAnimEvent.LightAttack:
-				PlayLightAttackVisual(tool);
-				break;
-
-			case PlayerCombatAnimEvent.ChargeStart:
-				PlayChargeStartVisual(tool);
-				break;
-
-			case PlayerCombatAnimEvent.ChargeCancel:
-				CancelChargeVisual();
-				break;
-
-			case PlayerCombatAnimEvent.ChargeRelease:
-				PlayChargedReleaseVisual(tool);
-				break;
-		}
+		_animationController.PlayCombatAnim(animEvent, tool, swingDir);
 	}
 
 	public void HandleAttackResult(ToolHitResult result)
@@ -897,17 +676,4 @@ public partial class Player : CharacterBody3D, IToolHittable
 	}
 
 	#endregion
-
-	private static IInteractable FindInteractable(Node node)
-	{
-		while (node != null)
-		{
-			if (node is IInteractable interactable)
-				return interactable;
-
-			node = node.GetParent();
-		}
-
-		return null;
-	}
 }

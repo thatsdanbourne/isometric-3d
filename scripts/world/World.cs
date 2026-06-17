@@ -460,8 +460,6 @@ public partial class World : Node3D
 
 		swingDir = swingDir.Normalized();
 
-		Sync.Rpc(nameof(WorldSync.PlayRemoteUseActiveToolVisual), player.PlayerId, tool.Id, swingDir, isCharged);
-
 		ResolveMeleeHit(
 			player,
 			tool,
