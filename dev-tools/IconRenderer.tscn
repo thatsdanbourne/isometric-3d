@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cc50g6x1vwk1p"]
 
-[ext_resource type="Script" uid="uid://cgks33m4rrgo3" path="res://dev-tools/IconRenderer.cs" id="1_v1bn5"]
-[ext_resource type="PackedScene" uid="uid://05rhj8jigefc" path="res://assets/meshes/plant_fibre.glb" id="2_c7faj"]
+[ext_resource type="Script" uid="uid://73a17pxrdbcu" path="res://dev-tools/IconRenderer.cs" id="1_v1bn5"]
+[ext_resource type="PackedScene" uid="uid://jvswplnvjmnw" path="res://assets/meshes/tools/stone_pickaxe.glb" id="2_c7faj"]
 
 [node name="IconRenderer" type="Node3D" unique_id=683127452 node_paths=PackedStringArray("Viewport", "PreviewRoot", "Camera", "Light")]
 script = ExtResource("1_v1bn5")
@@ -9,7 +9,7 @@ Viewport = NodePath("SubViewport")
 PreviewRoot = NodePath("SubViewport/PreviewRoot")
 Camera = NodePath("SubViewport/Camera3D")
 Light = NodePath("SubViewport/DirectionalLight3D")
-OutputFile = "plant_fibre"
+OutputFile = "stone_pickaxe"
 
 [node name="SubViewport" type="SubViewport" parent="." unique_id=1922719966]
 transparent_bg = true
@@ -18,16 +18,15 @@ render_target_update_mode = 4
 
 [node name="PreviewRoot" type="Node3D" parent="SubViewport" unique_id=2077730827]
 
-[node name="plant_fibre" parent="SubViewport/PreviewRoot" unique_id=1594536306 instance=ExtResource("2_c7faj")]
-transform = Transform3D(0.19192047, 0.677139, -0.7103868, -0.4175659, 0.71139693, 0.5652905, 0.888147, 0.18814267, 0.41928193, -0.0895772, 0.05805342, -0.04436767)
+[node name="stone_pickaxe" parent="SubViewport/PreviewRoot" unique_id=932495182 instance=ExtResource("2_c7faj")]
+transform = Transform3D(-0.606294, 0.31163698, 0.7316353, -0.38643283, 0.68863815, -0.6135529, -0.69503754, -0.65472126, -0.29709038, 0, -0.10437012, 0.36506355)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="SubViewport" unique_id=1155517337]
-transform = Transform3D(0.97259355, -0.12663507, 0.19500081, 0, 0.8386706, 0.54463905, -0.23251186, -0.52971256, 0.8156857, 3.3626094, 3.251422, 3.3626094)
-light_energy = 0.8
+transform = Transform3D(0.93138754, -0.24456102, 0.26964286, 0.20016193, 0.9627474, 0.18180409, -0.30406016, -0.1153577, 0.9456427, 3.3616943, 3.2514217, 3.3634975)
+light_energy = 0.579
 light_specular = 0.0
 
 [node name="Camera3D" type="Camera3D" parent="SubViewport" unique_id=1301835359]
 transform = Transform3D(0.7071068, -0.38511795, 0.5930297, 0, 0.83867055, 0.54463905, -0.7071068, -0.38511795, 0.5930297, 2, 1.9, 2)
 projection = 1
 current = true
-size = 1.4

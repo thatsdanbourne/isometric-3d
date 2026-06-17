@@ -19,8 +19,6 @@ public partial class Deer : Mob
 		base._Ready();
 
 		_animPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
-		_knockbackResistance = 1.5f;
-
 		PickNewDirection();
 	}
 

@@ -38,6 +38,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public float Gravity = 24f;
 	private float _verticalVelocity;
 
+	private EntityMotor _entityMotor;
 	private CombatController _combatController;
 
 	public IInteractable FocusedInteractable { get; private set; }
@@ -52,10 +53,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private float _aimLockTimer;
 	private float _footstepTimer;
 	private float _footstepInterval = 0.4f;
-	private float _knockbackResistance = 1f;
-	private float _knockbackDecay = 14f;
 	public Vector3 KnockbackVelocity;
-	private float _hitCooldownAccum;
 	private float _focusAccum;
 	private float _locomotionBlend;
 	private float _locomotionBlendTarget;
@@ -116,6 +114,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 			// testing items
 			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_sword"), 1);
+			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_pickaxe"), 1);
 			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("chest"), 1);
 			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
 			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("kiln"), 1);
@@ -127,6 +126,10 @@ public partial class Player : CharacterBody3D, IToolHittable
 			if (Multiplayer.HasMultiplayerPeer() && Multiplayer.IsServer())
 				_world.Sync.SyncPlayerInventoryState(this);
 		}
+
+		_entityMotor = new EntityMotor();
+		AddChild(_entityMotor);
+		_entityMotor.Init(this);
 
 		if (!IsLocal)
 			return;
@@ -186,7 +189,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (_combatController.TickAnimationState(_animTree))
 			_animTree.Set("parameters/CombatState/transition_request", "Normal");
 
-		UpdateToolCooldown(dt);
 		HandleLocalMovement(dt);
 		UpdateLocomotionBlend(blendAlpha);
 		UpdateAimDirection(camera, viewport, hudOpen);
@@ -250,8 +252,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		SetAnimState(isMoving ? "run" : "idle");
 		UpdateLocomotionBlend(blendAlpha);
 
-		UpdateVelocity(dt, Velocity);
-		ApplyGravity(dt);
+		_entityMotor.Update(dt, Velocity);
 		MoveAndSlide();
 	}
 
@@ -271,8 +272,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 			SetAnimState("idle");
 		}
 
-		ApplyGravity(dt);
-		UpdateVelocity(dt, moveVelocity);
+		_entityMotor.Update(dt, moveVelocity);
 		MoveAndSlide();
 	}
 
@@ -298,7 +298,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		);
 
 		var speedMultiplier = 1f;
-		if (_combatController.IsPlayingChargedVisuals || _combatController.LungeVelocity.LengthSquared() > 0f)
+		if (_combatController.IsPlayingChargedVisuals || _entityMotor.LungeVelocity.LengthSquared() > 0f)
 			speedMultiplier = 0.2f;
 
 		return moveVec * Speed * speedMultiplier;
@@ -324,33 +324,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		}
 
 		_footstepTimer = _footstepInterval;
-	}
-
-	private void UpdateVelocity(float dt, Vector3 moveVelocity)
-	{
-		KnockbackVelocity = KnockbackVelocity.MoveToward(Vector3.Zero, _knockbackDecay * dt);
-		Velocity = moveVelocity + KnockbackVelocity + _combatController.LungeVelocity;
-		Velocity = new Vector3(Velocity.X, _verticalVelocity, Velocity.Z);
-	}
-
-	private void ApplyGravity(float dt)
-	{
-		const float groundY = 0f;
-
-		if (GlobalPosition.Y > groundY + 0.02f)
-		{
-			_verticalVelocity -= Gravity * dt;
-		}
-		else
-		{
-			_verticalVelocity = 0f;
-
-			var pos = GlobalPosition;
-			pos.Y = groundY;
-			GlobalPosition = pos;
-		}
-
-		Velocity = new Vector3(Velocity.X, _verticalVelocity, Velocity.Z);
 	}
 
 	private void SetAnimState(string name)
@@ -588,7 +561,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		PlayUseActiveToolVisual(tool, swingDir, isCharged);
 
 		if (isCharged && tool.ChargedLungeDistance > 0f)
-			_combatController.StartLunge(swingDir, tool.ChargedLungeDistance, tool.ChargedLungeDuration);
+			_entityMotor.StartLunge(swingDir, tool.ChargedLungeDistance, tool.ChargedLungeDuration);
 
 		RequestUseActiveTool(swingDir, isCharged);
 	}
@@ -604,17 +577,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 			return tool;
 
 		return DefaultTool;
-	}
-
-	private void UpdateToolCooldown(float dt)
-	{
-		if (_hitCooldownAccum > 0f)
-			_hitCooldownAccum -= dt;
-	}
-
-	public void StartSwingCooldown(ToolItem tool)
-	{
-		_hitCooldownAccum = tool.CooldownSeconds;
 	}
 
 	private void HandleToolUse(float dt)
@@ -883,13 +845,12 @@ public partial class Player : CharacterBody3D, IToolHittable
 		Rotation = new Vector3(Rotation.X, rotY, Rotation.Z);
 	}
 
-	public void ApplyRemoteHitState(float health, Vector3 position, Vector3 knockbackVelocity)
+	public void ApplyRemoteHitEvent(float health, Vector3 hitDirection, float knockback)
 	{
 		Health = health;
-		GlobalPosition = position;
-		KnockbackVelocity = knockbackVelocity;
-
-		HUD.RefreshUI();
+		_entityMotor.ApplyKnockback(hitDirection, knockback);
+		if (IsLocal)
+			HUD.RefreshUI();
 	}
 
 
@@ -923,10 +884,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, Vector3 fromDirection,
 		Vector3 hitPoint)
 	{
-		ApplyKnockback(fromDirection, knockback);
 		Health -= damage;
 
-		_world.Sync.SendPlayerHitState(this);
+		_world.Sync.SendPlayerHitEvent(this, fromDirection, knockback);
 
 		return Health <= 0f ? ToolHitOutcome.Destroyed : ToolHitOutcome.Hit;
 	}
@@ -937,14 +897,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 	}
 
 	#endregion
-
-	private void ApplyKnockback(Vector3 direction, float strength)
-	{
-		if (direction.LengthSquared() < 0.001f)
-			return;
-
-		KnockbackVelocity += direction.Normalized() * (strength / _knockbackResistance);
-	}
 
 	private static IInteractable FindInteractable(Node node)
 	{

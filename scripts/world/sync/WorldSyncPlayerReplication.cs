@@ -105,18 +105,12 @@ public partial class WorldSync
 		GameManager.Instance.LocalPlayer?.HandleAttackResult(result);
 	}
 
-	public void SendPlayerHitState(Player player)
+	public void SendPlayerHitEvent(Player player, Vector3 hitDirection, float knockback)
 	{
-		if (player == null)
+		if (!Multiplayer.IsServer())
 			return;
 
-		RpcId(
-			player.PlayerId,
-			nameof(ReceivePlayerHitState),
-			player.Health,
-			player.GlobalPosition,
-			player.KnockbackVelocity
-		);
+		Rpc(nameof(ReceivePlayerHitEvent), player.PlayerId, player.Health, hitDirection, knockback);
 	}
 
 	public void SendLocalAttackResult(int playerId, ToolHitResult result)
@@ -147,13 +141,13 @@ public partial class WorldSync
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	public void ReceivePlayerHitState(float health, Vector3 position, Vector3 knockbackVelocity)
+	private void ReceivePlayerHitEvent(int playerId, float health, Vector3 hitDirection, float knockback)
 	{
-		var player = GameManager.Instance.LocalPlayer;
+		var player = _world.GetPlayerById(playerId);
 		if (player == null)
 			return;
 
-		player.ApplyRemoteHitState(health, position, knockbackVelocity);
+		player.ApplyRemoteHitEvent(health, hitDirection, knockback);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]

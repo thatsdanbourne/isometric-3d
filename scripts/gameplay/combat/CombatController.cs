@@ -9,11 +9,8 @@ public partial class CombatController : Node
 	public bool IsDoingChargedAttack { get; private set; }
 	public bool CanSwing => _cooldown <= 0f;
 
-	public Vector3 LungeVelocity { get; private set; }
-
 	private float _chargeTimer;
 	private float _cooldown;
-	private float _lungeDecay = 14f;
 
 	private CharacterBody3D _owner;
 
@@ -26,8 +23,6 @@ public partial class CombatController : Node
 	{
 		if (_cooldown > 0f)
 			_cooldown -= dt;
-
-		LungeVelocity = LungeVelocity.MoveToward(Vector3.Zero, _lungeDecay * dt);
 	}
 
 	public bool TickCharge(float dt)
@@ -106,15 +101,5 @@ public partial class CombatController : Node
 	{
 		IsDoingChargedAttack = false;
 		IsPlayingChargedVisuals = false;
-	}
-
-	public void StartLunge(Vector3 direction, float distance, float duration)
-	{
-		direction.Y = 0f;
-
-		if (direction.LengthSquared() < 0.001f || duration <= 0f)
-			return;
-
-		LungeVelocity = direction.Normalized() * (distance / duration);
 	}
 }

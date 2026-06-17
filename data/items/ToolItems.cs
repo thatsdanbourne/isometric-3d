@@ -30,7 +30,7 @@ public static class ToolItems
 			Damage = 1.25f,
 			Knockback = 4f,
 			ChargedDamageMultiplier = 1.75f,
-			ChargedKnockbackMultiplier = 2f,
+			ChargedKnockbackMultiplier = 1.5f,
 			ChargedStaggerMultiplier = 2f,
 			ChargedLungeDistance = 0.8f,
 			ChargedLungeDuration = 0.12f,
@@ -66,6 +66,7 @@ public static class ToolItems
 			CooldownSeconds = 0.6f,
 			Tier = ToolTier.Stone,
 			SoundSet = "sword",
+			HeldItemScene = GD.Load<PackedScene>("res://scenes/tools/StonePickaxe.tscn"),
 			DamageMultipliers = new Dictionary<string, float>
 			{
 				{ "stone", 2.0f },
