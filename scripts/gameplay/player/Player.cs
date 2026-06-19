@@ -163,7 +163,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		var hudOpen = HUD.WindowOpen;
 
 		_combatController.Tick(dt);
-		
+
 		if (_combatController.IsDoingChargedAttack && !_animationController.IsHeavyAttackActive())
 		{
 			_combatController.CancelCharge();
@@ -482,6 +482,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 				_combatController.QueueLightAttack();
 		}
 
+		_combatController.TickQueuedCharge(dt, Input.IsActionPressed(UseToolAction));
 
 		if (_combatController.TickCharge(dt))
 		{

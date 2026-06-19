@@ -3,7 +3,7 @@ using Godot;
 
 public partial class CombatController : Node
 {
-	public const float ChargeRequiredTime = 0.5f;
+	public const float ChargeRequiredTime = 0.25f;
 
 	public bool IsCharging { get; private set; }
 	public bool IsPlayingChargedVisuals { get; private set; }
@@ -15,6 +15,7 @@ public partial class CombatController : Node
 	private const float ComboResetTime = 0.6f;
 
 	private float _comboTimer;
+	private float _queuedChargeTimer;
 	private float _comboChainTimer;
 	private float _chargeTimer;
 	private float _cooldown;
@@ -60,6 +61,23 @@ public partial class CombatController : Node
 		return false;
 	}
 
+	public void TickQueuedCharge(float dt, bool useHeld)
+	{
+		if (!useHeld || QueuedAttack != QueuedAttackType.Light)
+		{
+			_queuedChargeTimer = 0f;
+			return;
+		}
+
+		_queuedChargeTimer += dt;
+
+		if (_queuedChargeTimer >= ChargeRequiredTime)
+		{
+			QueuedAttack = QueuedAttackType.Charged;
+			_queuedChargeTimer = 0f;
+		}
+	}
+
 	public void StartCooldown(ToolItem tool)
 	{
 		_cooldown = tool.CooldownSeconds;
@@ -73,11 +91,13 @@ public partial class CombatController : Node
 	public void QueueLightAttack()
 	{
 		QueuedAttack = QueuedAttackType.Light;
+		_queuedChargeTimer = 0f;
 	}
 
 	public void QueueChargedAttack()
 	{
 		QueuedAttack = QueuedAttackType.Charged;
+		_queuedChargeTimer = 0f;
 	}
 
 	public bool TryConsumeQueuedAttack(out QueuedAttackType attackType)
@@ -142,5 +162,6 @@ public partial class CombatController : Node
 		_chargeTimer = 0f;
 		IsPlayingChargedVisuals = false;
 		IsDoingChargedAttack = false;
+		_queuedChargeTimer = 0f;
 	}
 }

@@ -46,7 +46,7 @@ blend_point_1/node = SubResource("AnimationNodeAnimation_6aanm")
 blend_point_1/pos = 1.0
 
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_tpg5x"]
-graph_offset = Vector2(-340.8, 124)
+graph_offset = Vector2(-445.80478, 48.485107)
 nodes/output/position = Vector2(304, 336)
 nodes/Locomotion/node = SubResource("AnimationNodeBlendSpace1D_npwbq")
 nodes/Locomotion/position = Vector2(-496, 208)
@@ -77,15 +77,15 @@ shape = SubResource("SphereShape3D_c3xxp")
 bones/0/position = Vector3(4.6277399e-10, 0.85873574, 0.0538749)
 bones/0/rotation = Quaternion(0.12581967, 1.18262e-07, 1.4998877e-08, 0.99205315)
 bones/1/rotation = Quaternion(0.045981552, -5.9952037e-14, 1.0962858e-08, 0.99894226)
-bones/2/rotation = Quaternion(-0.08750569, 1.8608555e-10, -1.8467958e-08, 0.996164)
-bones/3/rotation = Quaternion(-0.009618768, -1.1920379e-07, -1.1466462e-09, 0.99995375)
-bones/6/rotation = Quaternion(-0.1062314, -1.1853472e-07, -1.2663768e-08, 0.99434143)
-bones/7/rotation = Quaternion(-0.65277255, -0.34641537, -0.42742765, 0.5207592)
+bones/2/rotation = Quaternion(-0.092149794, 2.7219732e-10, -1.8466892e-08, 0.99574524)
+bones/3/rotation = Quaternion(-0.014820204, -1.19196216e-07, -1.7667058e-09, 0.9998902)
+bones/6/rotation = Quaternion(-0.1120122, -1.1845909e-07, -1.3352897e-08, 0.9937068)
+bones/7/rotation = Quaternion(-0.6513983, -0.3491304, -0.42472517, 0.52287364)
 bones/8/rotation = Quaternion(-0.24903889, 0.59466165, -0.45316112, 0.6156315)
 bones/9/rotation = Quaternion(0.33180496, 0.07962318, -0.031501096, 0.9394538)
 bones/10/rotation = Quaternion(0.093454316, 0.44193804, -0.052777797, 0.8906019)
-bones/11/rotation = Quaternion(-0.64364445, 0.33078486, 0.44096434, 0.530899)
-bones/12/rotation = Quaternion(-0.33409792, -0.8013597, 0.19459221, 0.4564375)
+bones/11/rotation = Quaternion(-0.6380247, 0.3260859, 0.44442037, 0.5376644)
+bones/12/rotation = Quaternion(-0.33158323, -0.8010365, 0.19076017, 0.46043876)
 bones/13/rotation = Quaternion(0.4384408, -0.035629414, 0.0322497, 0.8974744)
 bones/14/rotation = Quaternion(0.05628029, 0.04382704, 0.09138773, 0.9932573)
 bones/17/rotation = Quaternion(0.93399626, 0.081853904, -0.029039977, 0.3465655)
@@ -103,7 +103,7 @@ bones/29/rotation = Quaternion(0.70708275, -0.0058232257, -0.005823225, 0.707082
 bones/30/position = Vector3(-0.73561454, 0.4725983, 0.94646466)
 
 [node name="RightHandAttach" type="BoneAttachment3D" parent="metarig/Skeleton3D" index="0" unique_id=1909800955]
-transform = Transform3D(-0.9866015, -0.11646289, 0.114253834, 0.14003655, -0.96382695, 0.22677615, 0.083709836, 0.23973745, 0.96722186, -0.3880902, 0.8659401, -0.039489094)
+transform = Transform3D(-0.9848343, -0.12819955, 0.11690152, 0.15190847, -0.96266747, 0.22404271, 0.08381509, 0.2384034, 0.9675424, -0.39343053, 0.8705216, -0.043611124)
 bone_name = "hand.R"
 bone_idx = 14
 
