@@ -57,7 +57,7 @@ public static class CombatUtils
 		if (dir.LengthSquared() < 0.01f)
 			return fallback;
 
-		return dir.Rotated(Vector3.Up, Mathf.DegToRad(-45)).Normalized();
+		return dir.Normalized();
 	}
 
 	public static ToolHitResult PerformMeleeHit(Node3D attacker, ToolItem tool, Vector3 swingDir,

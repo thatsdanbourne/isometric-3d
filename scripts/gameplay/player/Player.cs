@@ -162,13 +162,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		var camera = viewport.GetCamera3D();
 		var hudOpen = HUD.WindowOpen;
 
-		_combatController.Tick(dt);
-
-		if (_combatController.IsDoingChargedAttack && !_animationController.IsHeavyAttackActive())
-		{
-			_combatController.CancelCharge();
-			_animationController.CancelCharge();
-		}
+		if (_combatController.Tick(dt) && !_combatController.IsCharged) _animationController.ReturnToIdle();
 
 		HandleLocalMovement(dt);
 		_animationController.Tick(blendAlpha);
@@ -189,6 +183,12 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		if (e.IsActionPressed("toggle_crafting"))
 			ToggleCraftingUI();
+	}
+
+	public void OnAttackHoldFrame()
+	{
+		_animationController.HoldCurrentAttackPose();
+		_combatController.OpenComboWindow();
 	}
 
 	// input and local gameplay
@@ -270,15 +270,20 @@ public partial class Player : CharacterBody3D, IToolHittable
 		var moveVec = new Vector3(inputDir.X, 0, inputDir.Y).Rotated(Vector3.Up, Mathf.DegToRad(45));
 		var targetAngle = Mathf.Atan2(moveVec.X, moveVec.Z);
 
-		Rotation = new Vector3(
-			Rotation.X,
-			Mathf.LerpAngle(Rotation.Y, targetAngle, 10f * dt),
-			Rotation.Z
-		);
+		if (_entityMotor.LungeVelocity.LengthSquared() <= 0f)
+			Rotation = new Vector3(
+				Rotation.X,
+				Mathf.LerpAngle(Rotation.Y, targetAngle, 10f * dt),
+				Rotation.Z
+			);
 
 		var speedMultiplier = 1f;
-		if (_combatController.IsPlayingChargedVisuals || _entityMotor.LungeVelocity.LengthSquared() > 0f)
-			speedMultiplier = 0.2f;
+
+		if (_combatController.AttackInProgress || _combatController.IsComboWindowOpen)
+			speedMultiplier = 0.5f;
+
+		if (_combatController.IsCharged || _entityMotor.LungeVelocity.LengthSquared() > 0f)
+			speedMultiplier = 0f;
 
 		return moveVec * Speed * speedMultiplier;
 	}
@@ -432,8 +437,8 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (swingDir.LengthSquared() < 0.001f)
 			return;
 
+		_combatController.StartAttack();
 		_combatController.StartCooldown(tool);
-		_combatController.StartComboChainDelay(tool);
 
 		var comboIndex = isCharged ? 0 : _combatController.ConsumeComboIndex(tool);
 		_animationController.PlayUseTool(tool, swingDir, isCharged, comboIndex);
@@ -464,25 +469,11 @@ public partial class Player : CharacterBody3D, IToolHittable
 		var hudOpen = HUD.WindowOpen;
 		if (hudOpen)
 		{
-			if (_combatController.IsPlayingChargedVisuals)
-			{
-				_animationController.CancelCharge();
-				SyncCombatAnim(PlayerCombatAnimEvent.ChargeCancel, GetActiveTool().Id, GetSwingDirection());
-			}
-
 			_combatController.CancelCharge();
 			return;
 		}
 
-		if (Input.IsActionJustPressed(UseToolAction))
-		{
-			if (_combatController.CanSwing)
-				_combatController.StartCharge();
-			else
-				_combatController.QueueLightAttack();
-		}
-
-		_combatController.TickQueuedCharge(dt, Input.IsActionPressed(UseToolAction));
+		if (Input.IsActionJustPressed(UseToolAction)) _combatController.StartChargeBuffer();
 
 		if (_combatController.TickCharge(dt))
 		{
@@ -490,8 +481,24 @@ public partial class Player : CharacterBody3D, IToolHittable
 			SyncCombatAnim(PlayerCombatAnimEvent.ChargeStart, GetActiveTool().Id, GetSwingDirection());
 		}
 
-		if (Input.IsActionJustReleased(UseToolAction) && _combatController.ReleaseCharge(out var chargedAttack))
-			UseActiveTool(chargedAttack);
+		if (Input.IsActionJustReleased(UseToolAction))
+		{
+			_combatController.ReleaseCharge(out var chargedAttack);
+
+			if (chargedAttack)
+			{
+				UseActiveTool(true, true);
+			}
+			else if (_combatController.QueuedAttack == QueuedAttackType.None)
+			{
+				_combatController.CancelCharge();
+
+				if (_combatController.CanSwing && !_combatController.AttackInProgress)
+					UseActiveTool(false, true);
+				else
+					_combatController.QueueLightAttack();
+			}
+		}
 
 		if (_combatController.TryConsumeQueuedAttack(out var queued))
 			switch (queued)
@@ -500,7 +507,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 					UseActiveTool(false, true);
 					break;
 				case QueuedAttackType.Charged:
-					_combatController.StartCharge();
+					UseActiveTool(true, true);
 					break;
 			}
 	}
@@ -517,9 +524,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	private Vector3 GetSwingDirection()
 	{
-		var swingDir = _aimLockTimer > AimLockTime
-			? Velocity.Normalized()
-			: _aimDirection.Rotated(Vector3.Up, Mathf.DegToRad(45)).Normalized();
+		var swingDir = _aimDirection;
 
 		if (swingDir.LengthSquared() < 0.001f)
 			return Vector3.Zero;

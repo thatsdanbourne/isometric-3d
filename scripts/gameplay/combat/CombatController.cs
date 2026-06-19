@@ -5,20 +5,23 @@ public partial class CombatController : Node
 {
 	public const float ChargeRequiredTime = 0.25f;
 
-	public bool IsCharging { get; private set; }
+	public bool IsCharged { get; private set; }
 	public bool IsPlayingChargedVisuals { get; private set; }
 	public bool IsDoingChargedAttack { get; private set; }
 	public bool CanSwing => _cooldown <= 0f;
-	public bool CanChainCombo => _comboChainTimer <= 0f;
 	public QueuedAttackType QueuedAttack { get; private set; } = QueuedAttackType.None;
 	public int ComboIndex { get; private set; }
-	private const float ComboResetTime = 0.6f;
+	private const float ComboResetTime = 0.35f;
+	public bool IsComboWindowOpen { get; private set; }
+	public bool AttackInProgress { get; private set; }
 
-	private float _comboTimer;
 	private float _queuedChargeTimer;
-	private float _comboChainTimer;
 	private float _chargeTimer;
+
 	private float _cooldown;
+	private float _comboWindowTimer;
+
+	private bool _isChargeBuffering;
 
 	private CharacterBody3D _owner;
 
@@ -27,34 +30,48 @@ public partial class CombatController : Node
 		_owner = owner;
 	}
 
-	public void Tick(float dt)
+	public bool Tick(float dt)
 	{
+		var shouldReturnToIdle = false;
+
 		if (_cooldown > 0f)
 			_cooldown -= dt;
 
-		if (_comboTimer > 0f)
+		if (_comboWindowTimer > 0f)
 		{
-			_comboTimer -= dt;
-			if (_comboTimer <= 0f)
+			_comboWindowTimer -= dt;
+
+			if (_comboWindowTimer <= 0f)
 			{
-				ComboIndex = 0;
-				QueuedAttack = QueuedAttackType.None;
+				IsComboWindowOpen = false;
+
+				if (!AttackInProgress)
+				{
+					ResetCombo();
+					shouldReturnToIdle = true;
+				}
 			}
 		}
 
-		if (_comboChainTimer > 0f) _comboChainTimer -= dt;
+		return shouldReturnToIdle;
+	}
+
+	public void StartChargeBuffer()
+	{
+		_chargeTimer = 0f;
+		_isChargeBuffering = true;
 	}
 
 	public bool TickCharge(float dt)
 	{
-		if (!IsCharging)
-			return false;
+		if (!_isChargeBuffering) return false;
 
 		_chargeTimer += dt;
 
-		if (_chargeTimer >= ChargeRequiredTime && !IsPlayingChargedVisuals)
+		if (_chargeTimer >= ChargeRequiredTime)
 		{
-			IsPlayingChargedVisuals = true;
+			_isChargeBuffering = false;
+			MarkChargeReady();
 			return true;
 		}
 
@@ -83,13 +100,14 @@ public partial class CombatController : Node
 		_cooldown = tool.CooldownSeconds;
 	}
 
-	public void StartComboChainDelay(ToolItem tool)
+	public void StartAttack()
 	{
-		_comboChainTimer = tool.ComboChainSeconds;
+		AttackInProgress = true;
 	}
 
 	public void QueueLightAttack()
 	{
+		if (!IsComboWindowOpen) return;
 		QueuedAttack = QueuedAttackType.Light;
 		_queuedChargeTimer = 0f;
 	}
@@ -104,10 +122,11 @@ public partial class CombatController : Node
 	{
 		attackType = QueuedAttack;
 
-		if (attackType == QueuedAttackType.None || !CanChainCombo)
+		if (attackType == QueuedAttackType.None || !IsComboWindowOpen)
 			return false;
 
 		QueuedAttack = QueuedAttackType.None;
+		IsComboWindowOpen = false;
 		return true;
 	}
 
@@ -121,8 +140,6 @@ public partial class CombatController : Node
 		if (ComboIndex >= comboLength)
 			ComboIndex = 0;
 
-		_comboTimer = ComboResetTime;
-
 		return index;
 	}
 
@@ -130,38 +147,47 @@ public partial class CombatController : Node
 	{
 		ComboIndex = 0;
 		QueuedAttack = QueuedAttackType.None;
-		_comboTimer = 0f;
-	}
-
-	public void StartCharge()
-	{
-		IsCharging = true;
-		_chargeTimer = 0f;
 		IsPlayingChargedVisuals = false;
 	}
 
+	public void MarkChargeReady()
+	{
+		IsCharged = true;
+		IsPlayingChargedVisuals = false;
+	}
 
 	public bool ReleaseCharge(out bool isCharged)
 	{
-		if (!IsCharging)
+		_isChargeBuffering = false;
+
+		if (!IsCharged)
 		{
 			isCharged = false;
 			return false;
 		}
 
 		IsDoingChargedAttack = true;
-		isCharged = _chargeTimer >= ChargeRequiredTime;
-		IsCharging = false;
+		isCharged = true;
+		IsCharged = false;
 		_chargeTimer = 0f;
 		return true;
 	}
 
 	public void CancelCharge()
 	{
-		IsCharging = false;
+		IsCharged = false;
+		_isChargeBuffering = false;
 		_chargeTimer = 0f;
 		IsPlayingChargedVisuals = false;
 		IsDoingChargedAttack = false;
 		_queuedChargeTimer = 0f;
+	}
+
+	public void OpenComboWindow()
+	{
+		AttackInProgress = false;
+		IsDoingChargedAttack = false;
+		IsComboWindowOpen = true;
+		_comboWindowTimer = ComboResetTime;
 	}
 }

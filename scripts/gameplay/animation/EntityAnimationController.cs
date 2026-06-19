@@ -9,6 +9,14 @@ public partial class EntityAnimationController : Node
 	private float _locomotionBlend;
 	private float _locomotionBlendTarget;
 	private string _animState = "";
+	private int _attackBufferIndex;
+
+	private const string CombatStatePath = "parameters/CombatState/transition_request";
+	private const string AttackBuffer0AnimNode = "DynamicAttack0";
+	private const string AttackBuffer1AnimNode = "DynamicAttack1";
+	private const string AttackBuffer0Timescale = "parameters/AttackBuffer0/TimeScale";
+	private const string AttackBuffer1Timescale = "parameters/AttackBuffer1/TimeScale";
+
 
 	public void Init(CharacterBody3D owner, AnimationTree animTree)
 	{
@@ -45,6 +53,20 @@ public partial class EntityAnimationController : Node
 		);
 	}
 
+	public void ReturnToIdle()
+	{
+		_animTree.Set(AttackBuffer0Timescale, 1f);
+		_animTree.Set(AttackBuffer1Timescale, 1f);
+		_animTree.Set(CombatStatePath, "Normal");
+	}
+
+	public void HoldCurrentAttackPose()
+	{
+		var timescalePath = _attackBufferIndex == 0 ? AttackBuffer1Timescale : AttackBuffer0Timescale;
+
+		_animTree.Set(timescalePath, 0f);
+	}
+
 	public void PlayUseTool(ToolItem tool, Vector3 swingDir, bool isCharged, int comboIndex = 0)
 	{
 		if (isCharged)
@@ -57,19 +79,30 @@ public partial class EntityAnimationController : Node
 
 	public void PlayLightAttack(ToolItem tool, int comboIndex)
 	{
+		var useA = _attackBufferIndex == 0;
+		_attackBufferIndex = useA ? 1 : 0;
+
 		var treeRoot = (AnimationNodeBlendTree)_animTree.TreeRoot;
 
-		if (treeRoot.GetNode("DynamicAttack") is AnimationNodeAnimation dynamicAnim)
-		{
-			dynamicAnim.Animation = tool.ToolType switch
-			{
-				"sword" => $"attack_axe_light_{comboIndex + 1}",
-				"axe" => $"attack_axe_light_{comboIndex + 1}",
-				_ => "attack_fist"
-			};
+		var animNodeName = useA ? AttackBuffer0AnimNode : AttackBuffer1AnimNode;
+		var timescalePath = useA ? AttackBuffer0Timescale : AttackBuffer1Timescale;
+		var stateName = useA ? "AttackBuffer0" : "AttackBuffer1";
 
-			_animTree.Set("parameters/LightAttackOS/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
-		}
+		if (treeRoot.GetNode(stateName) is not AnimationNodeBlendTree buffer)
+			return;
+
+		if (buffer.GetNode(animNodeName) is not AnimationNodeAnimation dynamicAnim)
+			return;
+
+		dynamicAnim.Animation = tool.ToolType switch
+		{
+			"sword" => $"attack_axe_light_{comboIndex + 1}",
+			"axe" => $"attack_axe_light_{comboIndex + 1}",
+			_ => "attack_fist"
+		};
+
+		_animTree.Set(timescalePath, 1f);
+		_animTree.Set(CombatStatePath, stateName);
 
 		AudioManager.Instance.PlayVariantAt(tool.ToolType is "axe" or "sword" ? "swing_blade_small" : "swing_fist",
 			_owner.GlobalPosition, AudioManager.BusTools, 0.1f);
@@ -82,27 +115,27 @@ public partial class EntityAnimationController : Node
 
 	public void PlayChargedRelease(ToolItem tool)
 	{
+		var useA = _attackBufferIndex == 0;
+		_attackBufferIndex = useA ? 1 : 0;
+
 		var treeRoot = (AnimationNodeBlendTree)_animTree.TreeRoot;
 
-		if (treeRoot.GetNode("DynamicRelease") is AnimationNodeAnimation dynamicAnim)
-		{
-			dynamicAnim.Animation = tool.ToolType switch
-			{
-				"sword" => "attack_sword_charge_release",
-				"axe" => "attack_axe_charge_release",
-				_ => "attack_sword_charge_release"
-			};
+		var animNodeName = useA ? AttackBuffer0AnimNode : AttackBuffer1AnimNode;
+		var timescalePath = useA ? AttackBuffer0Timescale : AttackBuffer1Timescale;
+		var stateName = useA ? "AttackBuffer0" : "AttackBuffer1";
 
-			_animTree.Set("parameters/HeavyAttackOS/request",
-				(int)AnimationNodeOneShot.OneShotRequest.Fire);
-		}
+		if (treeRoot.GetNode(stateName) is not AnimationNodeBlendTree buffer)
+			return;
+
+		if (buffer.GetNode(animNodeName) is not AnimationNodeAnimation dynamicAnim)
+			return;
+
+		dynamicAnim.Animation = "attack_sword_charge_release";
+
+		_animTree.Set(timescalePath, 1f);
+		_animTree.Set(CombatStatePath, stateName);
 
 		AudioManager.Instance.PlayVariantAt("swing_blade_small", _owner.GlobalPosition, AudioManager.BusTools, 0.1f);
-	}
-
-	public void CancelCharge()
-	{
-		_animTree.Set("parameters/CombatState/transition_request", "Normal");
 	}
 
 	public void PlayCombatAnim(PlayerCombatAnimEvent animEvent, ToolItem tool, Vector3 swingDir)
@@ -116,16 +149,11 @@ public partial class EntityAnimationController : Node
 				PlayChargeStart(tool);
 				break;
 			case PlayerCombatAnimEvent.ChargeCancel:
-				CancelCharge();
+				ReturnToIdle();
 				break;
 			case PlayerCombatAnimEvent.ChargeRelease:
 				PlayUseTool(tool, swingDir, true);
 				break;
 		}
-	}
-
-	public bool IsHeavyAttackActive()
-	{
-		return (bool)_animTree.Get("parameters/HeavyAttackOS/active");
 	}
 }
