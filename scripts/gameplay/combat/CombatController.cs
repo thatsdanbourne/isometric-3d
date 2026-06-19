@@ -1,4 +1,3 @@
-using System.IO;
 using Godot;
 
 public partial class CombatController : Node
@@ -6,29 +5,19 @@ public partial class CombatController : Node
 	public const float ChargeRequiredTime = 0.25f;
 
 	public bool IsCharged { get; private set; }
-	public bool IsPlayingChargedVisuals { get; private set; }
-	public bool IsDoingChargedAttack { get; private set; }
 	public bool CanSwing => _cooldown <= 0f;
 	public QueuedAttackType QueuedAttack { get; private set; } = QueuedAttackType.None;
 	public int ComboIndex { get; private set; }
-	private const float ComboResetTime = 0.35f;
+	public const float ComboResetTime = 0.35f;
 	public bool IsComboWindowOpen { get; private set; }
 	public bool AttackInProgress { get; private set; }
 
-	private float _queuedChargeTimer;
 	private float _chargeTimer;
 
 	private float _cooldown;
 	private float _comboWindowTimer;
 
 	private bool _isChargeBuffering;
-
-	private CharacterBody3D _owner;
-
-	public void Init(CharacterBody3D owner)
-	{
-		_owner = owner;
-	}
 
 	public bool Tick(float dt)
 	{
@@ -78,23 +67,6 @@ public partial class CombatController : Node
 		return false;
 	}
 
-	public void TickQueuedCharge(float dt, bool useHeld)
-	{
-		if (!useHeld || QueuedAttack != QueuedAttackType.Light)
-		{
-			_queuedChargeTimer = 0f;
-			return;
-		}
-
-		_queuedChargeTimer += dt;
-
-		if (_queuedChargeTimer >= ChargeRequiredTime)
-		{
-			QueuedAttack = QueuedAttackType.Charged;
-			_queuedChargeTimer = 0f;
-		}
-	}
-
 	public void StartCooldown(ToolItem tool)
 	{
 		_cooldown = tool.CooldownSeconds;
@@ -109,13 +81,6 @@ public partial class CombatController : Node
 	{
 		if (!IsComboWindowOpen) return;
 		QueuedAttack = QueuedAttackType.Light;
-		_queuedChargeTimer = 0f;
-	}
-
-	public void QueueChargedAttack()
-	{
-		QueuedAttack = QueuedAttackType.Charged;
-		_queuedChargeTimer = 0f;
 	}
 
 	public bool TryConsumeQueuedAttack(out QueuedAttackType attackType)
@@ -147,13 +112,11 @@ public partial class CombatController : Node
 	{
 		ComboIndex = 0;
 		QueuedAttack = QueuedAttackType.None;
-		IsPlayingChargedVisuals = false;
 	}
 
 	public void MarkChargeReady()
 	{
 		IsCharged = true;
-		IsPlayingChargedVisuals = false;
 	}
 
 	public bool ReleaseCharge(out bool isCharged)
@@ -166,7 +129,6 @@ public partial class CombatController : Node
 			return false;
 		}
 
-		IsDoingChargedAttack = true;
 		isCharged = true;
 		IsCharged = false;
 		_chargeTimer = 0f;
@@ -178,15 +140,11 @@ public partial class CombatController : Node
 		IsCharged = false;
 		_isChargeBuffering = false;
 		_chargeTimer = 0f;
-		IsPlayingChargedVisuals = false;
-		IsDoingChargedAttack = false;
-		_queuedChargeTimer = 0f;
 	}
 
 	public void OpenComboWindow()
 	{
 		AttackInProgress = false;
-		IsDoingChargedAttack = false;
 		IsComboWindowOpen = true;
 		_comboWindowTimer = ComboResetTime;
 	}

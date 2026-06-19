@@ -194,29 +194,33 @@ public partial class WorldSync
 		player.ApplyRemoteHitEvent(health, hitDirection, knockback);
 	}
 	
-	public void SyncCombatAnim(PlayerCombatAnimEvent animEvent, string toolId, Vector3 swingDir)
+	public void SyncCombatAnim(PlayerCombatAnimEvent animEvent, string toolId, Vector3 swingDir, int comboIndex,
+		int sequence)
 	{
 		RpcId(
 			1,
 			nameof(RequestCombatAnim),
 			(int)animEvent,
 			toolId,
-			swingDir
+			swingDir,
+			comboIndex,
+			sequence
 		);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-	public void RequestCombatAnim(int animEvent, string toolId, Vector3 swingDir)
+	public void RequestCombatAnim(int animEvent, string toolId, Vector3 swingDir, int comboIndex, int sequence)
 	{
 		if (!Multiplayer.IsServer())
 			return;
 
 		var senderId = Multiplayer.GetRemoteSenderId();
-		Rpc(nameof(ReceiveCombatAnim), senderId, animEvent, toolId, swingDir);
+		Rpc(nameof(ReceiveCombatAnim), senderId, animEvent, toolId, swingDir, comboIndex, sequence);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	private void ReceiveCombatAnim(int playerId, int animEvent, string toolId, Vector3 swingDir)
+	private void ReceiveCombatAnim(int playerId, int animEvent, string toolId, Vector3 swingDir, int comboIndex,
+		int sequence)
 	{
 		var player = _world.GetPlayerById(playerId);
 
@@ -226,6 +230,6 @@ public partial class WorldSync
 		if (ItemRegistry.GetItem(toolId) is not ToolItem tool)
 			return;
 
-		player.PlayRemoteCombatAnim((PlayerCombatAnimEvent)animEvent, tool, swingDir);
+		player.PlayRemoteCombatAnim((PlayerCombatAnimEvent)animEvent, tool, swingDir, comboIndex, sequence);
 	}
 }

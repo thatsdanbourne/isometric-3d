@@ -15,7 +15,13 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private static readonly StringName InteractAction = "interact";
 
 	private const float BiomeCheckDistance = 0.5f;
+	private const float BiomeCheckDistanceSquared = BiomeCheckDistance * BiomeCheckDistance;
 	private const uint HittableMask = 1u << 1;
+	private const float TransformSyncInterval = 1f / 20f;
+	private const float RemotePositionCorrection = 12f;
+	private const float RemoteRotationCorrection = 14f;
+	private const float RemoteSnapDistance = 4f;
+	private const float RemoteSnapDistanceSquared = RemoteSnapDistance * RemoteSnapDistance;
 
 	public int PlayerId { get; set; }
 	public bool IsLocal { get; set; }
@@ -43,9 +49,17 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	private Vector3 _lastCheckedPosition;
 	private Vector3 _aimDirection = Vector3.Forward;
+	private Vector3 _remoteTargetPosition;
+	private Vector3 _remoteTargetVelocity;
+	private float _remoteTargetRotY;
+	private bool _hasRemoteTransform;
 
 	private bool _testItemsGiven;
 	private bool _suppressSelectedSlotRequest;
+	private float _transformSyncTimer;
+	private int _localCombatAnimSequence;
+	private int _lastRemoteCombatAnimSequence;
+	private float _remoteCombatReturnTimer;
 
 	private Item _equippedItem;
 	private Item _lastEquippedItem;
@@ -118,7 +132,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		_combatController = new CombatController();
 		AddChild(_combatController);
-		_combatController.Init(this);
 
 		CameraController = CameraControllerScene.Instantiate<CameraController>();
 		CameraController.Player = this;
@@ -137,7 +150,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public override void _Process(double delta)
 	{
-		if (_lastCheckedPosition.DistanceSquaredTo(GlobalPosition) < BiomeCheckDistance * BiomeCheckDistance)
+		if (_lastCheckedPosition.DistanceSquaredTo(GlobalPosition) < BiomeCheckDistanceSquared)
 			return;
 
 		_lastCheckedPosition = GlobalPosition;
@@ -148,13 +161,11 @@ public partial class Player : CharacterBody3D, IToolHittable
 	{
 		var dt = (float)delta;
 
-		var isMoving = Velocity.LengthSquared() > 0.01f;
-
 		var blendAlpha = 1f - Mathf.Exp(-14f * dt);
 
 		if (!IsLocal)
 		{
-			UpdateRemotePlayer(dt, blendAlpha, isMoving);
+			UpdateRemotePlayer(dt, blendAlpha);
 			return;
 		}
 
@@ -170,7 +181,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		HandlePlaceItem(hudOpen);
 		HandleInteraction(hudOpen);
 		UpdatePlacementOrFocus(dt, camera, viewport, hudOpen);
-		_world.Sync.SyncTransform(this);
+		SyncTransformTick(dt);
 	}
 
 	public override void _UnhandledInput(InputEvent e)
@@ -187,6 +198,13 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public void OnAttackHoldFrame()
 	{
+		if (!IsLocal)
+		{
+			_animationController.HoldCurrentAttackPose();
+			_remoteCombatReturnTimer = CombatController.ComboResetTime;
+			return;
+		}
+
 		_animationController.HoldCurrentAttackPose();
 		_combatController.OpenComboWindow();
 	}
@@ -226,13 +244,54 @@ public partial class Player : CharacterBody3D, IToolHittable
 	}
 
 	// movement and animation
-	private void UpdateRemotePlayer(float dt, float blendAlpha, bool isMoving)
+	private void UpdateRemotePlayer(float dt, float blendAlpha)
 	{
+		var moveVelocity = Velocity;
+
+		if (_hasRemoteTransform)
+		{
+			var positionError = _remoteTargetPosition - GlobalPosition;
+			if (positionError.LengthSquared() > RemoteSnapDistanceSquared)
+			{
+				GlobalPosition = _remoteTargetPosition;
+				positionError = Vector3.Zero;
+			}
+
+			moveVelocity = _remoteTargetVelocity + positionError * RemotePositionCorrection;
+			Rotation = new Vector3(
+				Rotation.X,
+				Mathf.LerpAngle(Rotation.Y, _remoteTargetRotY, RemoteRotationCorrection * dt),
+				Rotation.Z
+			);
+		}
+
+		var isMoving = _remoteTargetVelocity.LengthSquared() > 0.01f || moveVelocity.LengthSquared() > 0.01f;
 		_animationController.SetLocomotionState(isMoving);
 		_animationController.Tick(blendAlpha);
+		UpdateRemoteCombatVisual(dt);
 
-		_entityMotor.Update(dt, Velocity);
+		_entityMotor.Update(dt, moveVelocity);
 		MoveAndSlide();
+	}
+
+	private void UpdateRemoteCombatVisual(float dt)
+	{
+		if (_remoteCombatReturnTimer <= 0f)
+			return;
+
+		_remoteCombatReturnTimer -= dt;
+		if (_remoteCombatReturnTimer <= 0f)
+			_animationController.ReturnToIdle();
+	}
+
+	private void SyncTransformTick(float dt)
+	{
+		_transformSyncTimer += dt;
+		if (_transformSyncTimer < TransformSyncInterval)
+			return;
+
+		_transformSyncTimer = 0f;
+		_world.Sync.SyncTransform(this);
 	}
 
 	private void HandleLocalMovement(float dt)
@@ -269,8 +328,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		var moveVec = new Vector3(inputDir.X, 0, inputDir.Y).Rotated(Vector3.Up, Mathf.DegToRad(45));
 		var targetAngle = Mathf.Atan2(moveVec.X, moveVec.Z);
+		var isLunging = _entityMotor.LungeVelocity.LengthSquared() > 0f;
 
-		if (_entityMotor.LungeVelocity.LengthSquared() <= 0f)
+		if (!isLunging)
 			Rotation = new Vector3(
 				Rotation.X,
 				Mathf.LerpAngle(Rotation.Y, targetAngle, 10f * dt),
@@ -282,7 +342,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (_combatController.AttackInProgress || _combatController.IsComboWindowOpen)
 			speedMultiplier = 0.5f;
 
-		if (_combatController.IsCharged || _entityMotor.LungeVelocity.LengthSquared() > 0f)
+		if (_combatController.IsCharged || isLunging)
 			speedMultiplier = 0f;
 
 		return moveVec * Speed * speedMultiplier;
@@ -448,7 +508,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		RequestUseActiveTool(swingDir, isCharged);
 		SyncCombatAnim(isCharged ? PlayerCombatAnimEvent.ChargeRelease : PlayerCombatAnimEvent.LightAttack, tool.Id,
-			swingDir);
+			swingDir, comboIndex);
 	}
 
 	public void RequestUseActiveTool(Vector3 aimDir, bool isCharged)
@@ -477,8 +537,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		if (_combatController.TickCharge(dt))
 		{
-			_animationController.PlayChargeStart(GetActiveTool());
-			SyncCombatAnim(PlayerCombatAnimEvent.ChargeStart, GetActiveTool().Id, GetSwingDirection());
+			var tool = GetActiveTool();
+			_animationController.PlayChargeStart(tool);
+			SyncCombatAnim(PlayerCombatAnimEvent.ChargeStart, tool.Id, GetSwingDirection(), 0);
 		}
 
 		if (Input.IsActionJustReleased(UseToolAction))
@@ -546,9 +607,15 @@ public partial class Player : CharacterBody3D, IToolHittable
 		}
 	}
 
-	public void PlayRemoteCombatAnim(PlayerCombatAnimEvent animEvent, ToolItem tool, Vector3 swingDir)
+	public void PlayRemoteCombatAnim(PlayerCombatAnimEvent animEvent, ToolItem tool, Vector3 swingDir, int comboIndex,
+		int sequence)
 	{
-		_animationController.PlayCombatAnim(animEvent, tool, swingDir);
+		if (sequence <= _lastRemoteCombatAnimSequence)
+			return;
+
+		_lastRemoteCombatAnimSequence = sequence;
+		_remoteCombatReturnTimer = 0f;
+		_animationController.PlayCombatAnim(animEvent, tool, swingDir, comboIndex);
 	}
 
 	public void HandleAttackResult(ToolHitResult result)
@@ -604,17 +671,23 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (IsLocal)
 			return;
 
-		GlobalPosition = pos;
+		_remoteTargetPosition = pos;
+		_remoteTargetVelocity = vel;
+		_remoteTargetRotY = rotY;
+		_hasRemoteTransform = true;
+
+		if (GlobalPosition.DistanceSquaredTo(pos) > RemoteSnapDistanceSquared)
+			GlobalPosition = pos;
+
 		Velocity = vel;
-		Rotation = new Vector3(Rotation.X, rotY, Rotation.Z);
 	}
 
-	private void SyncCombatAnim(PlayerCombatAnimEvent animEvent, string toolId, Vector3 swingDir)
+	private void SyncCombatAnim(PlayerCombatAnimEvent animEvent, string toolId, Vector3 swingDir, int comboIndex)
 	{
 		if (!IsLocal)
 			return;
 
-		_world.Sync.SyncCombatAnim(animEvent, toolId, swingDir);
+		_world.Sync.SyncCombatAnim(animEvent, toolId, swingDir, comboIndex, ++_localCombatAnimSequence);
 	}
 
 	public void ApplyRemoteHitEvent(float health, Vector3 hitDirection, float knockback)

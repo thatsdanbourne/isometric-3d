@@ -142,6 +142,7 @@ public partial class SessionBootstrap : Node
 
 		var args = new Godot.Collections.Array<string>
 		{
+			"/c", "start", $"\"Godot Local Server Port {Config.Port}\"",
 			"--headless",
 			"--debug-session=server",
 			$"--port={Config.Port}",
