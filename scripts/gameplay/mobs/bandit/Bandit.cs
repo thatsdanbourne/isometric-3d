@@ -152,6 +152,8 @@ public partial class Bandit : Mob
 				break;
 
 			case MobState.Attack:
+				_animTree.Set(LocomotionBlendPath, velocity.Length());
+				
 				if (forceAttack || _lastRemoteVisualState != MobState.Attack)
 					_animTree.Set(AxeRequestPath, (int)AnimationNodeOneShot.OneShotRequest.Fire);
 

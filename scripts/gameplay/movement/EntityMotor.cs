@@ -32,7 +32,10 @@ public partial class EntityMotor : Node
 		if (direction.LengthSquared() < 0.001f)
 			return;
 
-		KnockbackVelocity += direction.Normalized() * (strength / KnockbackResistance);
+		var desired = direction.Normalized() * (strength / KnockbackResistance);
+
+		if (KnockbackVelocity.LengthSquared() < desired.LengthSquared())
+			KnockbackVelocity = desired;
 	}
 
 	public void StartLunge(Vector3 direction, float distance, float duration)
@@ -51,6 +54,11 @@ public partial class EntityMotor : Node
 		LungeVelocity = LungeVelocity.MoveToward(Vector3.Zero, KnockbackDecay * dt);
 
 		ApplyGravity(dt);
+
+		var movementSuppressed = KnockbackVelocity.LengthSquared() > 0.25f;
+
+		if (movementSuppressed)
+			moveVelocity = Vector3.Zero;
 
 		_body.Velocity = moveVelocity + KnockbackVelocity + LungeVelocity;
 		_body.Velocity = new Vector3(_body.Velocity.X, _verticalVelocity, _body.Velocity.Z);

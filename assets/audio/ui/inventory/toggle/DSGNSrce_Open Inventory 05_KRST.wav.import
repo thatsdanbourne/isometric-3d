@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://ccvos6mqmdcts"
+path="res://.godot/imported/DSGNSrce_Open Inventory 05_KRST.wav-a7b4ccb2359041e64f4da90d4e08ef14.sample"
+
+[deps]
+
+source_file="res://assets/audio/ui/inventory/toggle/DSGNSrce_Open Inventory 05_KRST.wav"
+dest_files=["res://.godot/imported/DSGNSrce_Open Inventory 05_KRST.wav-a7b4ccb2359041e64f4da90d4e08ef14.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

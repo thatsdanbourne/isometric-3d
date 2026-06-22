@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://6svyugomwghl"
+path="res://.godot/imported/OBJFurn_Close Chest 01_KRST.wav-9b05e61f788c0558ee670a7fccfc9a8c.sample"
+
+[deps]
+
+source_file="res://assets/audio/ui/chest/OBJFurn_Close Chest 01_KRST.wav"
+dest_files=["res://.godot/imported/OBJFurn_Close Chest 01_KRST.wav-9b05e61f788c0558ee670a7fccfc9a8c.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

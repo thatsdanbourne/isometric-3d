@@ -28,20 +28,46 @@ public class AudioRegistry
 		// inventory
 		SfxVariants["ui_inventory_open"] =
 		[
-			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag A.wav"),
-			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag B.wav"),
-			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag C.wav"),
-			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag D.wav"),
-			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag E.wav"),
-			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag F.wav")
+			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag A.wav"),
+			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag B.wav"),
+			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag C.wav"),
+			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag D.wav"),
+			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag E.wav"),
+			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag F.wav")
+			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Open Inventory 01_KRST.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Open Inventory 02_KRST.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Open Inventory 03_KRST.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Open Inventory 04_KRST.wav"),
+			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Open Inventory 05_KRST.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Open Inventory 06_KRST.wav")
 		];
 
 		SfxVariants["ui_inventory_close"] =
 		[
-			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag A.wav"),
-			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag B.wav"),
-			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag C.wav"),
-			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag D.wav")
+			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag A.wav"),
+			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag B.wav"),
+			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag C.wav"),
+			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag D.wav")
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Close Inventory 01_KRST.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Close Inventory 02_KRST.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Close Inventory 03_KRST.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Close Inventory 04_KRST.wav"),
+			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Close Inventory 05_KRST.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Close Inventory 06_KRST.wav")
+		];
+
+		SfxVariants["ui_chest_open"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/ui/chest/OBJFurn_Open Chest 01_KRST.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/chest/OBJFurn_Open Chest 02_KRST.wav")
+			// GD.Load<AudioStream>("res://assets/audio/ui/chest/OBJFurn_Open Chest 03_KRST.wav")
+		];
+
+		SfxVariants["ui_chest_close"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/ui/chest/OBJFurn_Close Chest 01_KRST.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/chest/OBJFurn_Close Chest 02_KRST.wav"),
+			GD.Load<AudioStream>("res://assets/audio/ui/chest/OBJFurn_Close Chest 03_KRST.wav")
 		];
 
 		Sfx["ui_inventory_generic_pickup"] =

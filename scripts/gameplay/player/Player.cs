@@ -22,6 +22,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private const float RemoteRotationCorrection = 14f;
 	private const float RemoteSnapDistance = 4f;
 	private const float RemoteSnapDistanceSquared = RemoteSnapDistance * RemoteSnapDistance;
+	private const float RemoteMovementThresholdSquared = 0.01f;
+	private const float MovementRotationSpeed = 5f;
+	private const float CombatMovementMultiplier = 0.5f;
 
 	public int PlayerId { get; set; }
 	public bool IsLocal { get; set; }
@@ -76,45 +79,70 @@ public partial class Player : CharacterBody3D, IToolHittable
 	{
 		Health = MaxHealth;
 		DefaultTool = ItemRegistry.GetItem("fist") as ToolItem;
-
 		_world = GameManager.Instance.CurrentWorld;
+
+		CacheSceneNodes();
+		ConfigureToolQuery();
+		GiveTestingItemsIfNeeded();
+		InitSharedControllers();
+
+		if (!IsLocal)
+			return;
+
+		InitLocalControllers();
+		EmitSignal(SignalName.PlayerReady);
+	}
+
+	private void CacheSceneNodes()
+	{
 		_animTree = GetNode<AnimationTree>("AnimationTree");
 		_tintOverlay = _world.GetNode<BiomeTintOverlay>("BiomeTint/BiomeOverlay");
 		_equipment = GetNode<PlayerEquipment>("PlayerEquipment");
+
 		Hotbar = GetNode<Hotbar>("Hotbar");
 		Hotbar.SelectedSlotChanged += OnSelectedSlotChanged;
 		Hotbar.ContainerChanged += OnHotbarContainerChanged;
+
 		Inventory = GetNode<Inventory>("Inventory");
 		_nameplate = GetNode<Label3D>("Nameplate");
 		_nameplate.Visible = !IsLocal;
 		_nameplate.Text = $"Player {PlayerId}";
+	}
 
+	private void ConfigureToolQuery()
+	{
 		ToolQuery = new PhysicsRayQueryParameters3D
 		{
 			CollideWithAreas = false,
 			CollideWithBodies = true,
 			CollisionMask = HittableMask
 		};
+	}
 
-		if (!Multiplayer.HasMultiplayerPeer() || (Multiplayer.IsServer() && !_testItemsGiven))
-		{
-			_testItemsGiven = true;
+	private void GiveTestingItemsIfNeeded()
+	{
+		if (Multiplayer.HasMultiplayerPeer() && (!Multiplayer.IsServer() || _testItemsGiven))
+			return;
 
-			// testing items
-			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_sword"), 1);
-			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_pickaxe"), 1);
-			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("chest"), 1);
-			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
-			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("kiln"), 1);
-			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("copper_ore"), 99);
-			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("coal"), 99);
-			// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("wood"), 99);
-			InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("campfire"), 2);
+		_testItemsGiven = true;
 
-			if (Multiplayer.HasMultiplayerPeer() && Multiplayer.IsServer())
-				_world.Sync.SyncPlayerInventoryState(this);
-		}
+		// testing items
+		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_sword"), 1);
+		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_pickaxe"), 1);
+		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("chest"), 1);
+		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
+		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("kiln"), 1);
+		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("copper_ore"), 99);
+		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("coal"), 99);
+		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("wood"), 99);
+		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("campfire"), 2);
 
+		if (Multiplayer.HasMultiplayerPeer())
+			_world.Sync.SyncPlayerInventoryState(this);
+	}
+
+	private void InitSharedControllers()
+	{
 		_entityMotor = new EntityMotor();
 		AddChild(_entityMotor);
 		_entityMotor.Init(this, _world);
@@ -122,10 +150,10 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_animationController = new EntityAnimationController();
 		AddChild(_animationController);
 		_animationController.Init(this, _animTree);
+	}
 
-		if (!IsLocal)
-			return;
-
+	private void InitLocalControllers()
+	{
 		_interactionController = new PlayerInteractionController();
 		AddChild(_interactionController);
 		_interactionController.Init(this);
@@ -145,7 +173,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_placement.Init(_world, this);
 
 		GetNode<AudioListener3D>("AudioListener3D").MakeCurrent();
-		EmitSignal(SignalName.PlayerReady);
 	}
 
 	public override void _Process(double delta)
@@ -173,7 +200,8 @@ public partial class Player : CharacterBody3D, IToolHittable
 		var camera = viewport.GetCamera3D();
 		var hudOpen = HUD.WindowOpen;
 
-		if (_combatController.Tick(dt) && !_combatController.IsCharged) _animationController.ReturnToIdle();
+		if (_combatController.Tick(dt) && !_combatController.IsCharged)
+			_animationController.ReturnToIdle();
 
 		HandleLocalMovement(dt);
 		_animationController.Tick(blendAlpha);
@@ -243,73 +271,17 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_interactionController.TryInteract(true);
 	}
 
-	// movement and animation
-	private void UpdateRemotePlayer(float dt, float blendAlpha)
-	{
-		var moveVelocity = Velocity;
-
-		if (_hasRemoteTransform)
-		{
-			var positionError = _remoteTargetPosition - GlobalPosition;
-			if (positionError.LengthSquared() > RemoteSnapDistanceSquared)
-			{
-				GlobalPosition = _remoteTargetPosition;
-				positionError = Vector3.Zero;
-			}
-
-			moveVelocity = _remoteTargetVelocity + positionError * RemotePositionCorrection;
-			Rotation = new Vector3(
-				Rotation.X,
-				Mathf.LerpAngle(Rotation.Y, _remoteTargetRotY, RemoteRotationCorrection * dt),
-				Rotation.Z
-			);
-		}
-
-		var isMoving = _remoteTargetVelocity.LengthSquared() > 0.01f || moveVelocity.LengthSquared() > 0.01f;
-		_animationController.SetLocomotionState(isMoving);
-		_animationController.Tick(blendAlpha);
-		UpdateRemoteCombatVisual(dt);
-
-		_entityMotor.Update(dt, moveVelocity);
-		MoveAndSlide();
-	}
-
-	private void UpdateRemoteCombatVisual(float dt)
-	{
-		if (_remoteCombatReturnTimer <= 0f)
-			return;
-
-		_remoteCombatReturnTimer -= dt;
-		if (_remoteCombatReturnTimer <= 0f)
-			_animationController.ReturnToIdle();
-	}
-
-	private void SyncTransformTick(float dt)
-	{
-		_transformSyncTimer += dt;
-		if (_transformSyncTimer < TransformSyncInterval)
-			return;
-
-		_transformSyncTimer = 0f;
-		_world.Sync.SyncTransform(this);
-	}
-
+	// local movement
 	private void HandleLocalMovement(float dt)
 	{
 		var inputDir = GetMovementInput();
-		var moveVelocity = Vector3.Zero;
+		var hasMovementInput = inputDir != Vector2.Zero;
+		var moveVelocity = hasMovementInput ? HandleMovementInput(inputDir, dt) : Vector3.Zero;
 
-		if (inputDir != Vector2.Zero)
-		{
-			moveVelocity = HandleMovementInput(inputDir, dt);
-			_animationController.SetLocomotionState(true);
-		}
-		else
-		{
+		if (!hasMovementInput)
 			_aimLockTimer = 0f;
-			_animationController.SetLocomotionState(false);
-		}
 
+		_animationController.SetLocomotionState(hasMovementInput);
 		_entityMotor.Update(dt, moveVelocity);
 		MoveAndSlide();
 	}
@@ -329,23 +301,21 @@ public partial class Player : CharacterBody3D, IToolHittable
 		var moveVec = new Vector3(inputDir.X, 0, inputDir.Y).Rotated(Vector3.Up, Mathf.DegToRad(45));
 		var targetAngle = Mathf.Atan2(moveVec.X, moveVec.Z);
 		var isLunging = _entityMotor.LungeVelocity.LengthSquared() > 0f;
+		var isAttacking = _combatController.AttackInProgress || _combatController.IsComboWindowOpen;
+		var isMovementLocked = _combatController.IsCharged || isLunging;
 
-		if (!isLunging)
-			Rotation = new Vector3(
-				Rotation.X,
-				Mathf.LerpAngle(Rotation.Y, targetAngle, 10f * dt),
-				Rotation.Z
-			);
+		if (!isLunging && !isAttacking)
+			SetRotationY(Mathf.LerpAngle(Rotation.Y, targetAngle, MovementRotationSpeed * dt));
 
-		var speedMultiplier = 1f;
+		if (isMovementLocked)
+			return Vector3.Zero;
 
-		if (_combatController.AttackInProgress || _combatController.IsComboWindowOpen)
-			speedMultiplier = 0.5f;
+		return moveVec * Speed * (isAttacking ? CombatMovementMultiplier : 1f);
+	}
 
-		if (_combatController.IsCharged || isLunging)
-			speedMultiplier = 0f;
-
-		return moveVec * Speed * speedMultiplier;
+	private void SetRotationY(float rotationY)
+	{
+		Rotation = new Vector3(Rotation.X, rotationY, Rotation.Z);
 	}
 
 	// aiming, focus, placement
@@ -379,6 +349,15 @@ public partial class Player : CharacterBody3D, IToolHittable
 			_placement.Enter(placeable);
 		else
 			_placement.Exit();
+	}
+
+	private void HandlePlaceItem(bool hudOpen)
+	{
+		if (hudOpen || !Input.IsActionJustPressed(InteractAction))
+			return;
+
+		if (_equippedItem is PlaceableItem && _placement.TryPlace())
+			UpdateEquippedItem();
 	}
 
 	// equipped item and inventory sync
@@ -573,24 +552,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 			}
 	}
 
-	private void HandlePlaceItem(bool hudOpen)
-	{
-		if (hudOpen || !Input.IsActionJustPressed(InteractAction))
-			return;
-
-		if (_equippedItem is PlaceableItem)
-			if (_placement.TryPlace())
-				UpdateEquippedItem();
-	}
-
 	private Vector3 GetSwingDirection()
 	{
-		var swingDir = _aimDirection;
-
-		if (swingDir.LengthSquared() < 0.001f)
-			return Vector3.Zero;
-
-		return swingDir.Normalized();
+		return _aimDirection.LengthSquared() < 0.001f ? Vector3.Zero : _aimDirection.Normalized();
 	}
 
 	public void HandleLocalAttackResult(ToolHitResult result)
@@ -666,6 +630,16 @@ public partial class Player : CharacterBody3D, IToolHittable
 	}
 
 	// networking
+	private void SyncTransformTick(float dt)
+	{
+		_transformSyncTimer += dt;
+		if (_transformSyncTimer < TransformSyncInterval)
+			return;
+
+		_transformSyncTimer = 0f;
+		_world.Sync.SyncTransform(this);
+	}
+
 	public void ApplyRemoteTransform(Vector3 pos, Vector3 vel, float rotY)
 	{
 		if (IsLocal)
@@ -680,6 +654,43 @@ public partial class Player : CharacterBody3D, IToolHittable
 			GlobalPosition = pos;
 
 		Velocity = vel;
+	}
+
+	private void UpdateRemotePlayer(float dt, float blendAlpha)
+	{
+		var moveVelocity = Velocity;
+
+		if (_hasRemoteTransform)
+		{
+			var positionError = _remoteTargetPosition - GlobalPosition;
+			if (positionError.LengthSquared() > RemoteSnapDistanceSquared)
+			{
+				GlobalPosition = _remoteTargetPosition;
+				positionError = Vector3.Zero;
+			}
+
+			moveVelocity = _remoteTargetVelocity + positionError * RemotePositionCorrection;
+			SetRotationY(Mathf.LerpAngle(Rotation.Y, _remoteTargetRotY, RemoteRotationCorrection * dt));
+		}
+
+		var isMoving = _remoteTargetVelocity.LengthSquared() > RemoteMovementThresholdSquared ||
+			moveVelocity.LengthSquared() > RemoteMovementThresholdSquared;
+		_animationController.SetLocomotionState(isMoving);
+		_animationController.Tick(blendAlpha);
+		UpdateRemoteCombatVisual(dt);
+
+		_entityMotor.Update(dt, moveVelocity);
+		MoveAndSlide();
+	}
+
+	private void UpdateRemoteCombatVisual(float dt)
+	{
+		if (_remoteCombatReturnTimer <= 0f)
+			return;
+
+		_remoteCombatReturnTimer -= dt;
+		if (_remoteCombatReturnTimer <= 0f)
+			_animationController.ReturnToIdle();
 	}
 
 	private void SyncCombatAnim(PlayerCombatAnimEvent animEvent, string toolId, Vector3 swingDir, int comboIndex)

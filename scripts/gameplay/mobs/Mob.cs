@@ -48,6 +48,13 @@ public partial class Mob : CharacterBody3D, IToolHittable
 		}
 
 		_knockbackVelocity = _knockbackVelocity.MoveToward(Vector3.Zero, _knockbackDecay * (float)delta);
+
+		var movementSuppressed =
+			_knockbackVelocity.LengthSquared() > 0.25f;
+
+		if (movementSuppressed)
+			MoveVelocity = Vector3.Zero;
+
 		Velocity = MoveVelocity + _knockbackVelocity;
 		MoveAndSlide();
 		World.MobStreamer.UpdateMobChunkMembership(this);
@@ -114,7 +121,10 @@ public partial class Mob : CharacterBody3D, IToolHittable
 
 		if (direction.LengthSquared() < 0.001f) return;
 
-		_knockbackVelocity += direction.Normalized() * (strength / _knockbackResistance);
+		var desired = direction.Normalized() * (strength / _knockbackResistance);
+
+		if (_knockbackVelocity.LengthSquared() < desired.LengthSquared())
+			_knockbackVelocity = desired;
 	}
 
 	private void Die()

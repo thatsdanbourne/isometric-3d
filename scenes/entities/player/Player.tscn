@@ -69,7 +69,7 @@ blend_point_1/node = SubResource("AnimationNodeAnimation_6aanm")
 blend_point_1/pos = 1.0
 
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_tpg5x"]
-graph_offset = Vector2(-316.2408, 2.00708)
+graph_offset = Vector2(-484, 4.8)
 nodes/output/position = Vector2(288, 320)
 nodes/Locomotion/node = SubResource("AnimationNodeBlendSpace1D_npwbq")
 nodes/Locomotion/position = Vector2(-80, 80)
@@ -83,7 +83,7 @@ nodes/DynamicCharge/node = SubResource("AnimationNodeAnimation_ppr6r")
 nodes/DynamicCharge/position = Vector2(-320, 224)
 node_connections = [&"output", 0, &"CombatState", &"CombatState", 0, &"Locomotion", &"CombatState", 1, &"DynamicCharge", &"CombatState", 2, &"AttackBuffer0", &"CombatState", 3, &"AttackBuffer1"]
 
-[node name="Player" unique_id=397860213 instance=ExtResource("1_hgjck")]
+[node name="Player" unique_id=1224284737 instance=ExtResource("1_hgjck")]
 collision_layer = 10
 collision_mask = 11
 script = ExtResource("2_ppr6r")
@@ -92,49 +92,47 @@ script = ExtResource("2_ppr6r")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("SphereShape3D_c3xxp")
 
-[node name="Skeleton3D" parent="metarig" parent_id_path=PackedInt32Array(1181330880) index="0" unique_id=770127905]
-bones/0/position = Vector3(4.6277399e-10, 0.85873574, 0.0538749)
-bones/0/rotation = Quaternion(0.12581967, 1.18262e-07, 1.4998877e-08, 0.99205315)
-bones/1/rotation = Quaternion(0.045981552, -5.9952037e-14, 1.0962858e-08, 0.99894226)
-bones/2/rotation = Quaternion(-0.080155805, 4.9864314e-11, -1.8468828e-08, 0.9967824)
-bones/3/rotation = Quaternion(-0.0013871777, -1.192092e-07, -1.653636e-10, 0.99999905)
-bones/6/rotation = Quaternion(-0.097069465, -1.18646334e-07, -1.1571584e-08, 0.9952777)
-bones/7/rotation = Quaternion(-0.6548764, -0.34218666, -0.43164107, 0.5174275)
-bones/8/rotation = Quaternion(-0.24903889, 0.59466165, -0.45316112, 0.6156315)
-bones/9/rotation = Quaternion(0.33180496, 0.07962318, -0.031501096, 0.9394538)
-bones/10/rotation = Quaternion(0.093454316, 0.44193804, -0.052777797, 0.8906019)
-bones/11/rotation = Quaternion(-0.6524883, 0.33799788, 0.435354, 0.52008015)
-bones/12/rotation = Quaternion(-0.33803335, -0.8018084, 0.2006133, 0.45010117)
-bones/13/rotation = Quaternion(0.4384408, -0.035629414, 0.0322497, 0.8974744)
-bones/14/rotation = Quaternion(0.05628029, 0.04382704, 0.09138773, 0.9932573)
-bones/17/rotation = Quaternion(0.93399626, 0.081853904, -0.029039977, 0.3465655)
-bones/18/rotation = Quaternion(0.32341108, 0.013875185, 0.07214438, 0.9434024)
-bones/19/rotation = Quaternion(-0.59593767, -0.06597591, -0.03205037, 0.79967386)
-bones/22/rotation = Quaternion(0.9487026, -0.10555193, 0.2854012, 0.08583958)
-bones/23/rotation = Quaternion(0.22716735, -0.0143021615, -0.050674938, 0.9724313)
-bones/24/rotation = Quaternion(-0.68351704, 0.10645625, -0.047282662, 0.7205802)
-bones/25/rotation = Quaternion(0.007925332, 0.97007877, -0.2401391, -0.034894474)
-bones/26/rotation = Quaternion(-0.67979324, 0.692096, -0.14528435, -0.19436255)
-bones/27/position = Vector3(0.17326252, 0.08874508, 0.24606253)
-bones/28/position = Vector3(-0.17326252, 0.08874508, -0.140992)
-bones/29/position = Vector3(0.17340013, 0.4725983, 0.94646466)
-bones/29/rotation = Quaternion(0.70708275, -0.0058232257, -0.005823225, 0.70708287)
-bones/30/position = Vector3(-0.73561454, 0.4725983, 0.94646466)
+[node name="Skeleton3D" parent="metarig" parent_id_path=PackedInt32Array(1891918847) index="0" unique_id=1138324565]
+bones/0/position = Vector3(2.709858e-09, 0.9035974, -0.046705455)
+bones/0/rotation = Quaternion(0.20953879, 1.1656291e-07, 2.497898e-08, 0.9778003)
+bones/1/rotation = Quaternion(-0.06441665, 0.0027753466, 0.0429548, 0.9969944)
+bones/2/rotation = Quaternion(-0.08586016, -0.10756309, 0.02367583, 0.9902009)
+bones/3/rotation = Quaternion(0.0016271637, -1.1920915e-07, 1.9397359e-10, 0.9999987)
+bones/6/rotation = Quaternion(-0.051074114, -1.2063217e-07, -7.003445e-09, 0.99869484)
+bones/7/rotation = Quaternion(-0.65568066, -0.3405462, -0.4332763, 0.51612294)
+bones/8/rotation = Quaternion(-0.23544233, 0.63630754, -0.47525984, 0.56018555)
+bones/9/rotation = Quaternion(0.7029618, -0.029204866, -0.2903614, 0.64860004)
+bones/10/rotation = Quaternion(0.056280278, -0.043827035, -0.09138773, 0.9932573)
+bones/11/rotation = Quaternion(-0.65568066, 0.3405462, 0.4332763, 0.51612294)
+bones/12/rotation = Quaternion(-0.39258614, -0.8655251, 0.08584485, 0.29895356)
+bones/13/rotation = Quaternion(0.668412, 0.07811314, 0.032396168, 0.7389683)
+bones/17/rotation = Quaternion(0.99751425, 0.046850104, 0.052304186, 0.0058922353)
+bones/18/rotation = Quaternion(0.3950696, 0.013447375, 0.08812943, 0.9143153)
+bones/19/rotation = Quaternion(-0.48416823, -0.078951694, -0.029304625, 0.8709128)
+bones/22/rotation = Quaternion(0.88209367, -0.08782526, -0.1141569, 0.44851497)
+bones/23/rotation = Quaternion(0.0024136165, -0.014705971, -0.0005384127, 0.9998889)
+bones/24/rotation = Quaternion(-0.5959454, 0.069503285, 0.036416978, 0.79918224)
+bones/25/rotation = Quaternion(0.007925331, 0.97007877, -0.2401391, -0.03489448)
+bones/26/rotation = Quaternion(-0.67979324, 0.692096, -0.14528432, -0.19436255)
+bones/27/position = Vector3(0.12502988, 0.36570823, -0.5425168)
+bones/28/position = Vector3(-0.13066755, 0.16392766, 0.46806845)
+bones/29/position = Vector3(-0.012569502, 0.4637724, 0.94458604)
+bones/30/position = Vector3(0.037359178, 0.46571106, 0.95129436)
 
 [node name="RightHandAttach" type="BoneAttachment3D" parent="metarig/Skeleton3D" index="0" unique_id=1909800955]
-transform = Transform3D(-0.9891348, -0.09787323, 0.10969652, 0.12114462, -0.9653732, 0.23103747, 0.083285704, 0.24181637, 0.9667408, -0.3794582, 0.8586785, -0.03314726)
+transform = Transform3D(-0.97306395, -0.068957016, -0.21998025, -0.045019582, -0.8790055, 0.47468168, -0.22609651, 0.47179896, 0.85222393, -0.28322068, 0.9604972, -0.21045661)
 bone_name = "hand.R"
 bone_idx = 14
 
 [node name="RightHandContainer" type="Node3D" parent="metarig/Skeleton3D/RightHandAttach" index="0" unique_id=2056471369]
 
-[node name="AnimationPlayer" parent="." index="2" unique_id=930336912]
+[node name="AnimationPlayer" parent="." index="2" unique_id=1208334400]
 autoplay = &"idle"
 
 [node name="AnimationTree" type="AnimationTree" parent="." index="3" unique_id=1323499225]
 tree_root = SubResource("AnimationNodeBlendTree_tpg5x")
 anim_player = NodePath("../AnimationPlayer")
-parameters/Locomotion/blend_position = 0.0
+parameters/Locomotion/blend_position = 1.0
 parameters/AttackBuffer1/TimeScale/scale = 1.0
 parameters/AttackBuffer0/TimeScale/scale = 1.0
 parameters/CombatState/current_state = "Normal"

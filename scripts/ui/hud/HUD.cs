@@ -116,7 +116,11 @@ public partial class HUD : CanvasLayer
 	{
 		CloseCraftingUI();
 
-		AudioManager.Instance.PlayVariant("ui_inventory_open");
+		if (_storage is Chest)
+			AudioManager.Instance.PlayVariant("ui_chest_open");
+		else
+			AudioManager.Instance.PlayVariant("ui_inventory_open");
+
 		_inventoryRoot.Visible = true;
 	}
 
@@ -124,7 +128,10 @@ public partial class HUD : CanvasLayer
 	{
 		if (_player.DraggedStack != null) DropStack();
 
-		AudioManager.Instance.PlayVariant("ui_inventory_close");
+		if (_storage is Chest)
+			AudioManager.Instance.PlayVariant("ui_chest_close");
+		else
+			AudioManager.Instance.PlayVariant("ui_inventory_close");
 
 		_inventoryRoot.Visible = false;
 		_craftingUI.Visible = false;
