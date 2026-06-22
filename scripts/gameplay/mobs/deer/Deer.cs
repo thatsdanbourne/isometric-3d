@@ -24,42 +24,21 @@ public partial class Deer : Mob
 
 	public override void TickAI(double delta)
 	{
-		// var dt = (float)delta;
-		//
-		// _timer -= dt;
-		// if (_timer <= 0f)
-		// 	PickNewDirection();
-		//
-		// if (_desiredDir.LengthSquared() > 0.0001f)
-		// {
-		// 	var forward = GlobalTransform.Basis.Z;
-		// 	var targetForward = _desiredDir.Normalized();
-		//
-		// 	forward.Y = 0;
-		// 	targetForward.Y = 0;
-		//
-		// 	if (forward.LengthSquared() > 0.0001f && targetForward.LengthSquared() > 0.0001f)
-		// 	{
-		// 		forward = forward.Normalized();
-		// 		targetForward = targetForward.Normalized();
-		//
-		// 		var angle = Mathf.Atan2(forward.Cross(targetForward).Y, forward.Dot(targetForward));
-		// 		var step = Mathf.Clamp(angle, -TurnSpeed * dt, TurnSpeed * dt);
-		// 		RotateY(step);
-		// 	}
-		//
-		// 	var moveDir = GlobalTransform.Basis.Z;
-		// 	moveDir.Y = 0;
-		// 	moveDir = moveDir.Normalized();
-		//
-		// 	MoveVelocity = new Vector3(moveDir.X * MoveSpeed, MoveVelocity.Y, moveDir.Z * MoveSpeed);
-		// }
-		// else
-		// {
-		// 	MoveVelocity = new Vector3(0f, MoveVelocity.Y, 0f);
-		// }
-		//
-		// UpdateAnim();
+		var dt = (float)delta;
+
+		_timer -= dt;
+		if (_timer <= 0f)
+			PickNewDirection();
+
+		if (TryMoveDirection(_desiredDir, MoveSpeed, out MoveVelocity, out var chosenDir))
+			TurnTowardsDirection(chosenDir, TurnSpeed, dt);
+		else
+			MoveVelocity = Vector3.Zero;
+	}
+
+	protected override void ApplyRemoteStateVisuals(float dt)
+	{
+		UpdateAnim();
 	}
 
 	private void PickNewDirection()
@@ -77,7 +56,7 @@ public partial class Deer : Mob
 	{
 		if (_animPlayer == null) return;
 
-		var isMoving = new Vector2(MoveVelocity.X, MoveVelocity.Z).Length() > 0.1f;
+		var isMoving = new Vector2(_netVelocity.X, _netVelocity.Z).Length() > 0.1f;
 
 		if (isMoving)
 		{

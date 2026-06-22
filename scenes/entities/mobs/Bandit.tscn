@@ -6,14 +6,52 @@
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_aviji"]
 
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_v42im"]
-animation = &"attack_axe_light_1"
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_attack0"]
 
-[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_pn6s4"]
-filter_enabled = true
-filters = ["", "metarig/Skeleton3D:forearm.L", "metarig/Skeleton3D:forearm.R", "metarig/Skeleton3D:hand.L", "metarig/Skeleton3D:hand.R", "metarig/Skeleton3D:shoulder.L", "metarig/Skeleton3D:shoulder.R", "metarig/Skeleton3D:spine.001", "metarig/Skeleton3D:spine.002", "metarig/Skeleton3D:spine.003", "metarig/Skeleton3D:spine.006", "metarig/Skeleton3D:upper_arm.L", "metarig/Skeleton3D:upper_arm.R"]
-fadein_time = 0.2
-fadeout_time = 0.2
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_attack0"]
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_attack0"]
+graph_offset = Vector2(-192.12924, -17.776806)
+nodes/output/position = Vector2(272, 144)
+nodes/DynamicAttack0/node = SubResource("AnimationNodeAnimation_attack0")
+nodes/DynamicAttack0/position = Vector2(-48, 144)
+nodes/TimeScale/node = SubResource("AnimationNodeTimeScale_attack0")
+nodes/TimeScale/position = Vector2(112, 144)
+node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"DynamicAttack0"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_attack1"]
+
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_attack1"]
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_attack1"]
+graph_offset = Vector2(-45.6, -23.2)
+nodes/DynamicAttack1/node = SubResource("AnimationNodeAnimation_attack1")
+nodes/DynamicAttack1/position = Vector2(-16, 128)
+nodes/TimeScale/node = SubResource("AnimationNodeTimeScale_attack1")
+nodes/TimeScale/position = Vector2(144, 128)
+node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"DynamicAttack1"]
+
+[sub_resource type="AnimationNodeTransition" id="AnimationNodeTransition_combat"]
+xfade_time = 0.2
+input_0/name = "Normal"
+input_0/auto_advance = false
+input_0/break_loop_at_end = false
+input_0/reset = true
+input_1/name = "Charging"
+input_1/auto_advance = false
+input_1/break_loop_at_end = false
+input_1/reset = true
+input_2/name = "AttackBuffer0"
+input_2/auto_advance = false
+input_2/break_loop_at_end = false
+input_2/reset = true
+input_3/name = "AttackBuffer1"
+input_3/auto_advance = false
+input_3/break_loop_at_end = false
+input_3/reset = true
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_charge"]
+animation = &"attack_sword_charge"
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_aviji"]
 animation = &"idle"
@@ -27,29 +65,20 @@ blend_point_0/pos = 0.0
 blend_point_1/node = SubResource("AnimationNodeAnimation_6aanm")
 blend_point_1/pos = 1.0
 
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_npwbq"]
-animation = &"attack_fist"
-
-[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_c3xxp"]
-filter_enabled = true
-filters = ["", "metarig/Skeleton3D:forearm.L", "metarig/Skeleton3D:forearm.R", "metarig/Skeleton3D:hand.L", "metarig/Skeleton3D:shoulder.L", "metarig/Skeleton3D:shoulder.R", "metarig/Skeleton3D:spine.001", "metarig/Skeleton3D:spine.002", "metarig/Skeleton3D:spine.003", "metarig/Skeleton3D:spine.006", "metarig/Skeleton3D:upper_arm.L", "metarig/Skeleton3D:upper_arm.R"]
-fadein_time = 0.2
-fadeout_time = 0.2
-
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_uow05"]
-graph_offset = Vector2(-405.7146, 33.344654)
+graph_offset = Vector2(-285.60864, 76.88667)
 nodes/output/position = Vector2(400, 304)
-nodes/PunchOS/node = SubResource("AnimationNodeOneShot_c3xxp")
-nodes/PunchOS/position = Vector2(-160, 304)
 nodes/Locomotion/node = SubResource("AnimationNodeBlendSpace1D_npwbq")
 nodes/Locomotion/position = Vector2(-480, 160)
-nodes/Punch/node = SubResource("AnimationNodeAnimation_npwbq")
-nodes/Punch/position = Vector2(-480, 464)
-nodes/AxeOS/node = SubResource("AnimationNodeOneShot_pn6s4")
-nodes/AxeOS/position = Vector2(48, 304)
-nodes/AtrtackAxe/node = SubResource("AnimationNodeAnimation_v42im")
-nodes/AtrtackAxe/position = Vector2(-128, 608)
-node_connections = [&"output", 0, &"AxeOS", &"PunchOS", 0, &"Locomotion", &"PunchOS", 1, &"Punch", &"AxeOS", 0, &"PunchOS", &"AxeOS", 1, &"AtrtackAxe"]
+nodes/AttackBuffer1/node = SubResource("AnimationNodeBlendTree_attack1")
+nodes/AttackBuffer1/position = Vector2(-176, 608)
+nodes/AttackBuffer0/node = SubResource("AnimationNodeBlendTree_attack0")
+nodes/AttackBuffer0/position = Vector2(-176, 448)
+nodes/CombatState/node = SubResource("AnimationNodeTransition_combat")
+nodes/CombatState/position = Vector2(112, 256)
+nodes/DynamicCharge/node = SubResource("AnimationNodeAnimation_charge")
+nodes/DynamicCharge/position = Vector2(-416, 352)
+node_connections = [&"output", 0, &"CombatState", &"CombatState", 0, &"Locomotion", &"CombatState", 1, &"DynamicCharge", &"CombatState", 2, &"AttackBuffer0", &"CombatState", 3, &"AttackBuffer1"]
 
 [node name="Bandit" unique_id=1224284737 instance=ExtResource("1_ieb7h")]
 collision_layer = 2
@@ -64,15 +93,15 @@ shape = SubResource("SphereShape3D_aviji")
 bones/0/position = Vector3(4.6277399e-10, 0.85873574, 0.0538749)
 bones/0/rotation = Quaternion(0.12581967, 1.18262e-07, 1.4998877e-08, 0.99205315)
 bones/1/rotation = Quaternion(0.045981552, -5.9952037e-14, 1.0962858e-08, 0.99894226)
-bones/2/rotation = Quaternion(-0.09343482, 2.9602906e-10, -1.8466524e-08, 0.99562544)
-bones/3/rotation = Quaternion(-0.016260266, -1.19193544e-07, -1.9383743e-09, 0.9998678)
-bones/6/rotation = Quaternion(-0.11362472, -1.1843726e-07, -1.3545123e-08, 0.9935238)
-bones/7/rotation = Quaternion(-0.65101105, -0.34988868, -0.42397076, 0.523461)
+bones/2/rotation = Quaternion(-0.07973555, 4.207824e-11, -1.8468848e-08, 0.9968161)
+bones/3/rotation = Quaternion(-0.0009041206, -1.1920926e-07, -1.07778994e-10, 0.99999964)
+bones/6/rotation = Quaternion(-0.09653144, -1.1865257e-07, -1.1507446e-08, 0.99533004)
+bones/7/rotation = Quaternion(-0.65499413, -0.34194735, -0.43187976, 0.5172375)
 bones/8/rotation = Quaternion(-0.24903889, 0.59466165, -0.45316112, 0.6156315)
 bones/9/rotation = Quaternion(0.33180496, 0.07962318, -0.031501096, 0.9394538)
 bones/10/rotation = Quaternion(0.093454316, 0.44193804, -0.052777797, 0.8906019)
-bones/11/rotation = Quaternion(-0.6364511, 0.3247549, 0.44537312, 0.53954345)
-bones/12/rotation = Quaternion(-0.33088493, -0.80094177, 0.18969801, 0.46154332)
+bones/11/rotation = Quaternion(-0.65298665, 0.33839726, 0.43503156, 0.51946455)
+bones/12/rotation = Quaternion(-0.33827385, -0.8018335, 0.20098206, 0.4497111)
 bones/13/rotation = Quaternion(0.4384408, -0.035629414, 0.0322497, 0.8974744)
 bones/14/rotation = Quaternion(0.05628029, 0.04382704, 0.09138773, 0.9932573)
 bones/17/rotation = Quaternion(0.93399626, 0.081853904, -0.029039977, 0.3465655)
@@ -90,7 +119,7 @@ bones/29/rotation = Quaternion(0.70708275, -0.0058232257, -0.005823225, 0.707082
 bones/30/position = Vector3(-0.73561454, 0.4725983, 0.94646466)
 
 [node name="RightHandAttach" type="BoneAttachment3D" parent="metarig/Skeleton3D" index="0" unique_id=257714521]
-transform = Transform3D(-0.9843239, -0.13143836, 0.11760169, 0.15517284, -0.962335, 0.22323199, 0.083831005, 0.23798123, 0.9676449, -0.39488965, 0.87180084, -0.044791795)
+transform = Transform3D(-0.98927975, -0.096729636, 0.109402806, 0.11997475, -0.96546996, 0.23124294, 0.08325726, 0.24188963, 0.9667249, -0.3789207, 0.85825837, -0.032811075)
 bone_name = "hand.R"
 bone_idx = 14
 
@@ -99,10 +128,9 @@ bone_idx = 14
 [node name="AnimationTree" type="AnimationTree" parent="." index="3" unique_id=1229928756]
 tree_root = SubResource("AnimationNodeBlendTree_uow05")
 anim_player = NodePath("../AnimationPlayer")
-parameters/PunchOS/active = false
-parameters/PunchOS/internal_active = false
-parameters/PunchOS/request = 0
 parameters/Locomotion/blend_position = 0.0
-parameters/AxeOS/active = false
-parameters/AxeOS/internal_active = false
-parameters/AxeOS/request = 0
+parameters/AttackBuffer1/TimeScale/scale = 1.0
+parameters/AttackBuffer0/TimeScale/scale = 1.0
+parameters/CombatState/current_state = "Normal"
+parameters/CombatState/transition_request = ""
+parameters/CombatState/current_index = 0

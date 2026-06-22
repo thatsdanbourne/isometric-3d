@@ -1,40 +1,45 @@
 using Godot;
-using System;
-using System.Runtime.InteropServices;
 
 public partial class Bandit : Mob
 {
 	public float AttackStartRange;
 	public float AggroRange = 15f;
 	public float MoveSpeed = 4f;
-	public float AttackWindup = 0.15f;
+	public float AttackWindup = 0.05f;
 	public float AttackRecovery = 0.35f;
 
+	private const float TurnSpeed = 10f;
+
 	private float _cooldownMultiplier = 1.5f;
-	private float _attackTimer;
 	private float _windupTimer;
 	private float _recoveryTimer;
+	private float _attackVisualReturnTimer;
 	private bool _attackCommitted;
 	private Player _targetPlayer;
 
 	private ToolItem _equippedTool;
 
 	private AnimationTree _animTree;
-	private const string LocomotionBlendPath = "parameters/Locomotion/blend_position";
-	private const string AxeRequestPath = "parameters/AxeOS/request";
+	private EntityAnimationController _animationController;
+	private CombatController _combatController;
 
 	private PhysicsRayQueryParameters3D _toolQuery;
 	private const uint HittableMask = 1u << 1;
-
-	private MobState _lastRemoteVisualState = MobState.Idle;
 
 	public override void _Ready()
 	{
 		base._Ready();
 
 		_animTree = GetNode<AnimationTree>("AnimationTree");
+		_animationController = new EntityAnimationController();
+		AddChild(_animationController);
+		_animationController.Init(this, _animTree);
+
+		_combatController = new CombatController();
+		AddChild(_combatController);
+
 		_equippedTool = ItemRegistry.GetItem("stone_axe") as ToolItem;
-		AttackStartRange = _equippedTool!.HitRange - 0.3f;
+		AttackStartRange = _equippedTool!.HitRange;
 
 		_toolQuery = new PhysicsRayQueryParameters3D
 		{
@@ -48,8 +53,10 @@ public partial class Bandit : Mob
 	{
 		var dt = (float)delta;
 
-		_attackTimer -= dt;
 		_recoveryTimer -= dt;
+
+		if (_combatController.Tick(dt))
+			_animationController.ReturnToIdle();
 
 		UpdateTarget();
 
@@ -79,9 +86,9 @@ public partial class Bandit : Mob
 					break;
 				}
 
-				MoveTowardsTarget();
+				MoveTowardsTarget(dt);
 
-				if (chaseDist < AttackStartRange && _recoveryTimer <= 0f)
+				if (chaseDist < AttackStartRange && _recoveryTimer <= 0f && _combatController.CanSwing)
 				{
 					State = MobState.Attack;
 					_windupTimer = AttackWindup;
@@ -95,19 +102,19 @@ public partial class Bandit : Mob
 				if (!HasValidTarget())
 				{
 					State = MobState.Idle;
-					_attackCommitted = false;
+					FinishAttack();
 					MoveVelocity = Vector3.Zero;
 					break;
 				}
 
 				var attackDist = DistanceToTarget();
 
-				FaceTarget();
+				FaceTarget(dt);
 
 				if (attackDist > _equippedTool.HitRange + 0.5f)
 				{
 					State = MobState.Chase;
-					_attackCommitted = false;
+					FinishAttack();
 					break;
 				}
 
@@ -119,17 +126,23 @@ public partial class Bandit : Mob
 
 					if (_windupTimer <= 0)
 					{
-						_attackCommitted = true;
-						TryAttack();
-						_recoveryTimer = AttackRecovery;
+						if (TryLightAttack())
+						{
+							_attackCommitted = true;
+							_recoveryTimer = AttackRecovery;
+						}
+						else
+						{
+							State = MobState.Chase;
+						}
 					}
 				}
 				else
 				{
-					if (_attackTimer <= 0f)
+					if (_recoveryTimer <= 0f)
 					{
+						FinishAttack();
 						State = MobState.Chase;
-						_attackCommitted = false;
 					}
 				}
 
@@ -137,35 +150,26 @@ public partial class Bandit : Mob
 		}
 	}
 
-	protected override void ApplyRemoteStateVisuals()
+	protected override void TickVisuals(float dt)
 	{
-		ApplyAnimationForState(_netState, _netVelocity);
-	}
+		var horizontalVelocity = Velocity;
+		horizontalVelocity.Y = 0f;
 
-	private void ApplyAnimationForState(MobState state, Vector3 velocity, bool forceAttack = false)
-	{
-		switch (state)
-		{
-			case MobState.Idle:
-			case MobState.Chase:
-				_animTree.Set(LocomotionBlendPath, velocity.Length());
-				break;
+		_animationController.SetLocomotionState(horizontalVelocity.LengthSquared() > 0.01f);
+		_animationController.Tick(1f - Mathf.Exp(-14f * dt));
 
-			case MobState.Attack:
-				_animTree.Set(LocomotionBlendPath, velocity.Length());
-				
-				if (forceAttack || _lastRemoteVisualState != MobState.Attack)
-					_animTree.Set(AxeRequestPath, (int)AnimationNodeOneShot.OneShotRequest.Fire);
+		if (_attackVisualReturnTimer <= 0f)
+			return;
 
-				break;
-		}
-
-		_lastRemoteVisualState = state;
+		_attackVisualReturnTimer -= dt;
+		if (_attackVisualReturnTimer <= 0f)
+			_animationController.ReturnToIdle();
 	}
 
 	public override void PlayRemoteAttackVisual()
 	{
-		AudioManager.Instance.PlayVariantAt("swing_blade_small", GlobalPosition, AudioManager.BusTools, 0.2f);
+		_animationController.PlayUseTool(_equippedTool, GlobalTransform.Basis.Z, false);
+		_attackVisualReturnTimer = AttackRecovery;
 	}
 
 	private void UpdateTarget()
@@ -208,7 +212,7 @@ public partial class Bandit : Mob
 		return GlobalPosition.DistanceTo(_targetPlayer.GlobalPosition);
 	}
 
-	private void MoveTowardsTarget()
+	private void MoveTowardsTarget(float dt)
 	{
 		if (!HasValidTarget())
 		{
@@ -219,25 +223,19 @@ public partial class Bandit : Mob
 		var dir = _targetPlayer.GlobalPosition - GlobalPosition;
 		dir.Y = 0;
 
-		if (dir.LengthSquared() < 0.001f) return;
-
-		if (TryMoveDirection(dir, MoveSpeed, out MoveVelocity, out var chosenDir))
-		{
-			var targetAngle = Mathf.Atan2(chosenDir.X, chosenDir.Z);
-
-			Rotation = new Vector3(
-				Rotation.X,
-				Mathf.LerpAngle(Rotation.Y, targetAngle, 10f * (float)GetPhysicsProcessDeltaTime()),
-				Rotation.Z
-			);
-		}
-		else
+		if (dir.LengthSquared() < 0.001f)
 		{
 			MoveVelocity = Vector3.Zero;
+			return;
 		}
+
+		if (TryMoveDirection(dir, MoveSpeed, out MoveVelocity, out var chosenDir))
+			TurnTowardsDirection(chosenDir, TurnSpeed, dt);
+		else
+			MoveVelocity = Vector3.Zero;
 	}
 
-	private void FaceTarget()
+	private void FaceTarget(float dt)
 	{
 		if (!HasValidTarget()) return;
 
@@ -245,31 +243,37 @@ public partial class Bandit : Mob
 		dir.Y = 0;
 
 		if (dir.LengthSquared() < 0.001f) return;
-		var targetAngle = Mathf.Atan2(dir.X, dir.Z);
-
-		Rotation = new Vector3(
-			Rotation.X,
-			Mathf.LerpAngle(Rotation.Y, targetAngle, 10f * (float)GetPhysicsProcessDeltaTime()),
-			Rotation.Z
-		);
+		TurnTowardsDirection(dir, TurnSpeed, dt);
 	}
 
-	private void TryAttack()
+	private bool TryLightAttack()
 	{
-		if (_attackTimer > 0f) return;
-
-		_attackTimer = _equippedTool.CooldownSeconds * _cooldownMultiplier;
-
-		World.Sync.BroadcastMobAttack(Uid);
+		if (!_combatController.CanSwing || !HasValidTarget())
+			return false;
 
 		var swingDir = _targetPlayer.GlobalPosition - GlobalPosition;
 		if (swingDir.LengthSquared() < 0.001f)
-			return;
+			return false;
 
 		var angleOffset = (float)Mathf.DegToRad(GD.RandRange(-5f, 5f));
 		swingDir = swingDir.Rotated(Vector3.Up, angleOffset).Normalized();
 
+		_combatController.StartAttack();
+		_combatController.StartCooldown(_equippedTool, _cooldownMultiplier);
+		_animationController.PlayUseTool(_equippedTool, swingDir, false);
+		_attackVisualReturnTimer = AttackRecovery;
+
+		World.Sync.BroadcastMobAttack(Uid);
 		World.ResolveEnemyMeleeAttack(this, _equippedTool, swingDir, _toolQuery);
+		return true;
+	}
+
+	private void FinishAttack()
+	{
+		_combatController.EndAttack();
+		_animationController.ReturnToIdle();
+		_attackCommitted = false;
+		_attackVisualReturnTimer = 0f;
 	}
 
 	public override void ApplyKnockback(Vector3 direction, float strength)
@@ -282,5 +286,9 @@ public partial class Bandit : Mob
 			_windupTimer = 0f;
 			_attackCommitted = false;
 		}
+	}
+
+	public void OnAttackHoldFrame()
+	{
 	}
 }

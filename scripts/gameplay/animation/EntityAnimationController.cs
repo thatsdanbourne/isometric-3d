@@ -14,8 +14,8 @@ public partial class EntityAnimationController : Node
 	private const string CombatStatePath = "parameters/CombatState/transition_request";
 	private const string AttackBuffer0AnimNode = "DynamicAttack0";
 	private const string AttackBuffer1AnimNode = "DynamicAttack1";
-	private const string AttackBuffer0Timescale = "parameters/AttackBuffer0/TimeScale";
-	private const string AttackBuffer1Timescale = "parameters/AttackBuffer1/TimeScale";
+	private const string AttackBuffer0Timescale = "parameters/AttackBuffer0/TimeScale/scale";
+	private const string AttackBuffer1Timescale = "parameters/AttackBuffer1/TimeScale/scale";
 	private const string SwingBladeSmallSound = "swing_blade_small";
 	private const string SwingFistSound = "swing_fist";
 

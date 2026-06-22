@@ -67,14 +67,19 @@ public partial class CombatController : Node
 		return false;
 	}
 
-	public void StartCooldown(ToolItem tool)
+	public void StartCooldown(ToolItem tool, float multiplier = 1f)
 	{
-		_cooldown = tool.CooldownSeconds;
+		_cooldown = tool.CooldownSeconds * multiplier;
 	}
 
 	public void StartAttack()
 	{
 		AttackInProgress = true;
+	}
+
+	public void EndAttack()
+	{
+		AttackInProgress = false;
 	}
 
 	public void QueueLightAttack()

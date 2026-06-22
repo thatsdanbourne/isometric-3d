@@ -4,6 +4,9 @@ public partial class Mob : CharacterBody3D, IToolHittable
 {
 	[Export] public float MaxHealth = 10f;
 
+	private const float RemotePositionCorrection = 12f;
+	private const float RemoteRotationCorrection = 12f;
+
 	public World World;
 	public ulong Uid { get; private set; }
 	public string MobId { get; private set; }
@@ -13,8 +16,8 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	public float CurrentHealth;
 	protected Vector3 MoveVelocity;
 	protected float _knockbackResistance = 1f;
-	private float _knockbackDecay = 14f;
-	private Vector3 _knockbackVelocity;
+	protected float _knockbackDecay = 14f;
+	protected EntityMotor EntityMotor { get; private set; }
 
 	protected Vector3 _netTargetPosition;
 	protected Vector3 _netTargetRotation;
@@ -36,31 +39,40 @@ public partial class Mob : CharacterBody3D, IToolHittable
 		CurrentHealth = MaxHealth;
 		_netTargetPosition = GlobalPosition;
 		_netTargetRotation = Rotation;
+
+		EntityMotor = new EntityMotor
+		{
+			FootstepsEnabled = true,
+			KnockbackResistance = _knockbackResistance,
+			KnockbackDecay = _knockbackDecay
+		};
+		AddChild(EntityMotor);
+		EntityMotor.Init(this, World);
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
+		var dt = (float)delta;
+
 		if (!World.Multiplayer.IsServer())
 		{
-			UpdateRemoteMotion(delta);
+			UpdateRemoteMotion(dt);
 			MoveAndSlide();
+			TickVisuals(dt);
 			return;
 		}
 
-		_knockbackVelocity = _knockbackVelocity.MoveToward(Vector3.Zero, _knockbackDecay * (float)delta);
-
-		var movementSuppressed =
-			_knockbackVelocity.LengthSquared() > 0.25f;
-
-		if (movementSuppressed)
-			MoveVelocity = Vector3.Zero;
-
-		Velocity = MoveVelocity + _knockbackVelocity;
+		EntityMotor.Update(dt, MoveVelocity);
 		MoveAndSlide();
+		TickVisuals(dt);
 		World.MobStreamer.UpdateMobChunkMembership(this);
 	}
 
 	public virtual void TickAI(double delta)
+	{
+	}
+
+	protected virtual void TickVisuals(float dt)
 	{
 	}
 
@@ -69,15 +81,18 @@ public partial class Mob : CharacterBody3D, IToolHittable
 		return this;
 	}
 
-	private void UpdateRemoteMotion(double delta)
+	private void UpdateRemoteMotion(float dt)
 	{
-		GlobalPosition = GlobalPosition.Lerp(_netTargetPosition, 12f * (float)delta);
-		Rotation = Rotation.Lerp(_netTargetRotation, 12f * (float)delta);
+		var positionError = _netTargetPosition - GlobalPosition;
+		var moveVelocity = _netVelocity + positionError * RemotePositionCorrection;
 
-		ApplyRemoteStateVisuals();
+		Rotation = Rotation.Lerp(_netTargetRotation, RemoteRotationCorrection * dt);
+		EntityMotor.Update(dt, moveVelocity);
+
+		ApplyRemoteStateVisuals(dt);
 	}
 
-	protected virtual void ApplyRemoteStateVisuals()
+	protected virtual void ApplyRemoteStateVisuals(float dt)
 	{
 	}
 
@@ -117,14 +132,7 @@ public partial class Mob : CharacterBody3D, IToolHittable
 
 	public virtual void ApplyKnockback(Vector3 direction, float strength)
 	{
-		direction.Y = 0;
-
-		if (direction.LengthSquared() < 0.001f) return;
-
-		var desired = direction.Normalized() * (strength / _knockbackResistance);
-
-		if (_knockbackVelocity.LengthSquared() < desired.LengthSquared())
-			_knockbackVelocity = desired;
+		EntityMotor.ApplyKnockback(direction, strength);
 	}
 
 	private void Die()
@@ -164,6 +172,21 @@ public partial class Mob : CharacterBody3D, IToolHittable
 		}
 
 		return false;
+	}
+
+	protected void TurnTowardsDirection(Vector3 direction, float turnSpeed, float dt)
+	{
+		direction.Y = 0f;
+
+		if (direction.LengthSquared() < 0.001f)
+			return;
+
+		var targetAngle = Mathf.Atan2(direction.X, direction.Z);
+		Rotation = new Vector3(
+			Rotation.X,
+			Mathf.LerpAngle(Rotation.Y, targetAngle, turnSpeed * dt),
+			Rotation.Z
+		);
 	}
 
 	protected bool IsDirectionBlocked(Vector3 dir)
