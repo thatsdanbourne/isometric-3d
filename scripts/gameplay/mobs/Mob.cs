@@ -118,7 +118,7 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	{
 	}
 
-	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, float stagger,
+	public ToolHitResponse ReceiveToolHit(ToolItem tool, float damage, float knockback, float stagger,
 		Vector3 fromDirection,
 		Vector3 hitPoint)
 	{
@@ -131,15 +131,15 @@ public partial class Mob : CharacterBody3D, IToolHittable
 			World.Sync.BroadcastMobStaggered(this, fromDirection);
 		}
 
-		if (!(CurrentHealth <= 0)) return ToolHitOutcome.Hit;
+		if (!(CurrentHealth <= 0)) return ToolHitResponse.Hit(knockback);
 
 		Die();
-		return ToolHitOutcome.Destroyed;
+		return ToolHitResponse.Destroyed(knockback);
 	}
 
-	public ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint)
+	public ToolHitResponse ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint)
 	{
-		return ToolHitOutcome.Failed;
+		return ToolHitResponse.Failed();
 	}
 
 	public float ModifyIncomingToolDamage(ToolItem tool, float damage, float baseDamage)
@@ -243,16 +243,6 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	public string GetImpactType()
 	{
 		return "flesh";
-	}
-
-	public string GetHitSound(ToolItem tool)
-	{
-		return tool.ToolType switch
-		{
-			"sword" => "hit_flesh_blade",
-			"axe" => "hit_flesh_blade",
-			_ => "hit_flesh"
-		};
 	}
 
 	public string GetBreakSound()

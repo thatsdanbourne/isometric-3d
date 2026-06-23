@@ -12,6 +12,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		GD.Load<PackedScene>("res://scenes/entities/player/CameraController.tscn");
 
 	private static readonly StringName UseToolAction = "use_tool";
+	private static readonly StringName BlockAction = "block";
 	private static readonly StringName InteractAction = "interact";
 
 	private const float BiomeCheckDistance = 0.5f;
@@ -37,7 +38,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public BiomeId CurrentBiome = BiomeId.Unknown;
 
 	private EntityMotor _entityMotor;
-	private CombatController _combatController;
+	public CombatController CombatController;
 	private EntityAnimationController _animationController;
 	private PlayerInteractionController _interactionController;
 
@@ -150,6 +151,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_animationController = new EntityAnimationController();
 		AddChild(_animationController);
 		_animationController.Init(this, _animTree);
+
+		CombatController = new CombatController();
+		AddChild(CombatController);
 	}
 
 	private void InitLocalControllers()
@@ -157,9 +161,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_interactionController = new PlayerInteractionController();
 		AddChild(_interactionController);
 		_interactionController.Init(this);
-
-		_combatController = new CombatController();
-		AddChild(_combatController);
 
 		CameraController = CameraControllerScene.Instantiate<CameraController>();
 		CameraController.Player = this;
@@ -200,7 +201,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		var camera = viewport.GetCamera3D();
 		var hudOpen = HUD.WindowOpen;
 
-		if (_combatController.Tick(dt) && !_combatController.IsCharged)
+		if (CombatController.Tick(dt) && !CombatController.IsCharged)
 			_animationController.ReturnToIdle();
 
 		HandleLocalMovement(dt);
@@ -234,7 +235,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		}
 
 		_animationController.HoldCurrentAttackPose();
-		_combatController.OpenComboWindow();
+		CombatController.OpenComboWindow();
 	}
 
 	// input and local gameplay
@@ -281,6 +282,12 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (!hasMovementInput)
 			_aimLockTimer = 0f;
 
+		if (CombatController.IsBlocking)
+		{
+			UpdateAimDirection();
+			_animationController.FaceDirection(_aimDirection);
+		}
+
 		_animationController.SetLocomotionState(hasMovementInput);
 		_entityMotor.Update(dt, moveVelocity);
 		MoveAndSlide();
@@ -301,8 +308,8 @@ public partial class Player : CharacterBody3D, IToolHittable
 		var moveVec = new Vector3(inputDir.X, 0, inputDir.Y).Rotated(Vector3.Up, Mathf.DegToRad(45));
 		var targetAngle = Mathf.Atan2(moveVec.X, moveVec.Z);
 		var isLunging = _entityMotor.LungeVelocity.LengthSquared() > 0f;
-		var isAttacking = _combatController.AttackInProgress || _combatController.IsComboWindowOpen;
-		var isMovementLocked = _combatController.IsCharged || isLunging;
+		var isAttacking = CombatController.AttackInProgress || CombatController.IsComboWindowOpen;
+		var isMovementLocked = CombatController.IsCharged || isLunging;
 
 		if (!isLunging && !isAttacking)
 			SetRotationY(Mathf.LerpAngle(Rotation.Y, targetAngle, MovementRotationSpeed * dt));
@@ -310,7 +317,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (isMovementLocked)
 			return Vector3.Zero;
 
-		return moveVec * Speed * (isAttacking ? CombatMovementMultiplier : 1f);
+		return moveVec * Speed * (isAttacking || CombatController.IsBlocking ? CombatMovementMultiplier : 1f);
 	}
 
 	private void SetRotationY(float rotationY)
@@ -466,7 +473,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	// tool usage and hit reactions
 	private void UseActiveTool(bool isCharged, bool ignoreCooldown = false)
 	{
-		if (!ignoreCooldown && !_combatController.CanSwing)
+		if (!ignoreCooldown && !CombatController.CanSwing)
 			return;
 
 		var tool = GetActiveTool();
@@ -476,10 +483,10 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (swingDir.LengthSquared() < 0.001f)
 			return;
 
-		_combatController.StartAttack();
-		_combatController.StartCooldown(tool);
+		CombatController.StartAttack();
+		CombatController.StartCooldown(tool);
 
-		var comboIndex = isCharged ? 0 : _combatController.ConsumeComboIndex(tool);
+		var comboIndex = isCharged ? 0 : CombatController.ConsumeComboIndex(tool);
 		_animationController.PlayUseTool(tool, swingDir, isCharged, comboIndex);
 
 		if (isCharged && tool.ChargedLungeDistance > 0f)
@@ -508,13 +515,27 @@ public partial class Player : CharacterBody3D, IToolHittable
 		var hudOpen = HUD.WindowOpen;
 		if (hudOpen)
 		{
-			_combatController.CancelCharge();
+			CombatController.CancelCharge();
 			return;
 		}
 
-		if (Input.IsActionJustPressed(UseToolAction)) _combatController.StartChargeBuffer();
+		if (Input.IsActionJustPressed(BlockAction))
+			if (CombatController.StartBlock())
+			{
+				_animationController.PlayBlockStart();
+				_world.Sync.SetBlocking(true);
+			}
 
-		if (_combatController.TickCharge(dt))
+		if (Input.IsActionJustReleased(BlockAction))
+			if (CombatController.EndBlock())
+			{
+				_animationController.ReturnToIdle();
+				_world.Sync.SetBlocking(false);
+			}
+
+		if (Input.IsActionJustPressed(UseToolAction)) CombatController.StartChargeBuffer();
+
+		if (CombatController.TickCharge(dt))
 		{
 			var tool = GetActiveTool();
 			_animationController.PlayChargeStart(tool);
@@ -523,24 +544,24 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		if (Input.IsActionJustReleased(UseToolAction))
 		{
-			_combatController.ReleaseCharge(out var chargedAttack);
+			CombatController.ReleaseCharge(out var chargedAttack);
 
 			if (chargedAttack)
 			{
 				UseActiveTool(true, true);
 			}
-			else if (_combatController.QueuedAttack == QueuedAttackType.None)
+			else if (CombatController.QueuedAttack == QueuedAttackType.None)
 			{
-				_combatController.CancelCharge();
+				CombatController.CancelCharge();
 
-				if (_combatController.CanSwing && !_combatController.AttackInProgress)
+				if (CombatController.CanSwing && !CombatController.AttackInProgress)
 					UseActiveTool(false, true);
 				else
-					_combatController.QueueLightAttack();
+					CombatController.QueueLightAttack();
 			}
 		}
 
-		if (_combatController.TryConsumeQueuedAttack(out var queued))
+		if (CombatController.TryConsumeQueuedAttack(out var queued))
 			switch (queued)
 			{
 				case QueuedAttackType.Light:
@@ -587,16 +608,20 @@ public partial class Player : CharacterBody3D, IToolHittable
 		switch (result.Outcome)
 		{
 			case ToolHitOutcome.Hit:
-				PlayToolSound(result.HitSoundKey, result.HitPoint);
+				PlayToolSound(result.PrimarySoundKey, result.HitPoint);
+				break;
+
+			case ToolHitOutcome.Blocked:
+				PlayToolSound(result.PrimarySoundKey, result.HitPoint);
 				break;
 
 			case ToolHitOutcome.Destroyed:
-				PlayToolSound(result.HitSoundKey, result.HitPoint);
+				PlayToolSound(result.PrimarySoundKey, result.HitPoint);
 				PlayToolSound(result.BreakSoundKey, result.HitPoint);
 				break;
 
 			case ToolHitOutcome.Failed:
-				// play fail sound
+				PlayToolSound(result.PrimarySoundKey, result.HitPoint);
 				break;
 		}
 	}
@@ -716,16 +741,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		return "flesh";
 	}
 
-	public string GetHitSound(ToolItem tool)
-	{
-		return tool.ToolType switch
-		{
-			"sword" => "hit_flesh_blade",
-			"axe" => "hit_flesh_blade",
-			_ => "hit_flesh"
-		};
-	}
-
 	public string GetBreakSound()
 	{
 		return "hit_flesh";
@@ -740,20 +755,33 @@ public partial class Player : CharacterBody3D, IToolHittable
 	{
 	}
 
-	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, float stagger,
+	public ToolHitResponse ReceiveToolHit(ToolItem tool, float damage, float knockback, float stagger,
 		Vector3 fromDirection,
 		Vector3 hitPoint)
 	{
+		var activeTool = GetActiveTool();
+		var blocked = false;
+
+		if (CombatController.IsBlocking && CombatUtils.IsBlockingHit(-GlobalTransform.Basis.Z, fromDirection,
+			    activeTool.BlockStats.ArcDegrees))
+		{
+			damage *= 1f - activeTool.BlockStats.DamageReduction;
+			knockback *= 1f - activeTool.BlockStats.KnockbackReduction;
+			stagger *= 1f - activeTool.BlockStats.PoiseReduction;
+			blocked = true;
+		}
+
 		Health -= damage;
 
-		_world.Sync.SendPlayerHitEvent(this, fromDirection, knockback);
+		if (blocked)
+			return ToolHitResponse.Blocked(knockback);
 
-		return Health <= 0f ? ToolHitOutcome.Destroyed : ToolHitOutcome.Hit;
+		return Health <= 0f ? ToolHitResponse.Destroyed(knockback) : ToolHitResponse.Hit(knockback);
 	}
 
-	public ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint)
+	public ToolHitResponse ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint)
 	{
-		return ToolHitOutcome.Failed;
+		return ToolHitResponse.Failed();
 	}
 
 	#endregion

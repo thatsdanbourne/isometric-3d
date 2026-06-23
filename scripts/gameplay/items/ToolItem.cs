@@ -18,6 +18,8 @@ public class ToolItem : Item
 	public float ChargedStaggerMultiplier { get; set; } = 1f;
 	public float ChargedLungeDistance { get; set; } = 0f;
 	public float ChargedLungeDuration { get; set; } = 0.12f;
+	public BlockStats BlockStats { get; set; } = BlockStats.Default;
+	public string BlockSoundKey { get; set; } = "";
 	public ToolTier Tier { get; init; }
 	public PackedScene HeldItemScene { get; init; }
 
@@ -26,8 +28,7 @@ public class ToolItem : Item
 		if (target == null)
 			return ToolHitResult.None;
 
-		var hitSound = target.GetHitSound(this);
-		var breakSound = target.GetBreakSound();
+		var hitRoot = target.GetHitRoot();
 
 		if (target is WorldObject wo)
 		{
@@ -35,9 +36,8 @@ public class ToolItem : Item
 
 			if (wo.RequiredTier > Tier)
 			{
-				var outcomeFail = target.ReceiveToolHitFailed(this, fromDirection, hitPoint);
-				return new ToolHitResult(outcomeFail, target.GetImpactType(), hitSound, string.Empty,
-					hitPoint);
+				var failedHit = target.ReceiveToolHitFailed(this, fromDirection, hitPoint);
+				return BuildHitResult(this, target, hitRoot, failedHit, fromDirection, hitPoint);
 			}
 		}
 
@@ -45,9 +45,47 @@ public class ToolItem : Item
 		finalDamage = target.ModifyIncomingToolDamage(this, finalDamage, Damage) * context.DamageMultiplier;
 		var finalKnockback = Knockback * context.KnockbackMultiplier;
 		var finalStagger = Stagger * context.StaggerMultiplier;
-		var outcome = target.ReceiveToolHit(this, finalDamage, finalKnockback, finalStagger, fromDirection, hitPoint);
-		return new ToolHitResult(outcome, target.GetImpactType(), hitSound, breakSound,
-			hitPoint);
+		var response = target.ReceiveToolHit(this, finalDamage, finalKnockback, finalStagger, fromDirection, hitPoint);
+		return BuildHitResult(this, target, hitRoot, response, fromDirection, hitPoint);
+	}
+
+	private static ToolHitResult BuildHitResult(ToolItem tool, IToolHittable target, Node3D hitRoot,
+		ToolHitResponse response, Vector3 fromDirection, Vector3 hitPoint)
+	{
+		var sounds = CombatSoundResolver.Resolve(tool, target, response.Outcome);
+		var result = new ToolHitResult(response.Outcome, target.GetImpactType(), sounds.PrimarySoundKey,
+			sounds.BreakSoundKey, hitPoint);
+
+		if (hitRoot is Player player)
+			result = result.WithPlayerTarget(player.PlayerId, player.Health, fromDirection, response.Knockback);
+
+		return result;
+	}
+}
+
+public readonly struct ToolHitResponse(ToolHitOutcome outcome, float knockback = 0f)
+{
+	public ToolHitOutcome Outcome { get; } = outcome;
+	public float Knockback { get; } = knockback;
+
+	public static ToolHitResponse Hit(float knockback = 0f)
+	{
+		return new ToolHitResponse(ToolHitOutcome.Hit, knockback);
+	}
+
+	public static ToolHitResponse Blocked(float knockback = 0f)
+	{
+		return new ToolHitResponse(ToolHitOutcome.Blocked, knockback);
+	}
+
+	public static ToolHitResponse Destroyed(float knockback = 0f)
+	{
+		return new ToolHitResponse(ToolHitOutcome.Destroyed, knockback);
+	}
+
+	public static ToolHitResponse Failed()
+	{
+		return new ToolHitResponse(ToolHitOutcome.Failed);
 	}
 }
 
@@ -67,19 +105,50 @@ public readonly struct AttackContext
 	};
 }
 
+public struct BlockStats
+{
+	public float DamageReduction;
+	public float KnockbackReduction;
+	public float PoiseReduction;
+	public float ArcDegrees;
+
+	public static readonly BlockStats Default = new()
+	{
+		DamageReduction = 1f,
+		KnockbackReduction = 0.3f,
+		PoiseReduction = 0.3f,
+		ArcDegrees = 120f
+	};
+}
+
 public readonly struct ToolHitResult(
 	ToolHitOutcome outcome,
 	string targetType,
-	string hitSoundKey,
+	string primarySoundKey,
 	string breakSoundKey,
-	Vector3 hitPoint)
+	Vector3 hitPoint,
+	int targetPlayerId = -1,
+	float targetHealth = 0f,
+	Vector3 hitDirection = default,
+	float knockback = 0f)
 {
 	public ToolHitOutcome Outcome { get; } = outcome;
 	public string TargetType { get; } = targetType;
-	public string HitSoundKey { get; } = hitSoundKey;
+	public string PrimarySoundKey { get; } = primarySoundKey;
 	public string BreakSoundKey { get; } = breakSoundKey;
 	public Vector3 HitPoint { get; } = hitPoint;
+	public int TargetPlayerId { get; } = targetPlayerId;
+	public float TargetHealth { get; } = targetHealth;
+	public Vector3 HitDirection { get; } = hitDirection;
+	public float Knockback { get; } = knockback;
+	public bool HasPlayerTarget => TargetPlayerId > 0;
 
 	public static ToolHitResult None =>
 		new(ToolHitOutcome.None, string.Empty, string.Empty, string.Empty, Vector3.Zero);
+
+	public ToolHitResult WithPlayerTarget(int playerId, float health, Vector3 direction, float appliedKnockback)
+	{
+		return new ToolHitResult(Outcome, TargetType, PrimarySoundKey, BreakSoundKey, HitPoint, playerId, health,
+			direction, appliedKnockback);
+	}
 }

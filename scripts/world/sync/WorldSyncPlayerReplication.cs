@@ -15,7 +15,7 @@ public partial class WorldSync
 			player.Rotation.Y
 		);
 	}
-	
+
 	[Rpc(
 		MultiplayerApi.RpcMode.AnyPeer,
 		CallLocal = false,
@@ -44,7 +44,7 @@ public partial class WorldSync
 			rotY
 		);
 	}
-	
+
 	[Rpc(
 		MultiplayerApi.RpcMode.Authority,
 		CallLocal = false,
@@ -58,7 +58,7 @@ public partial class WorldSync
 
 		player.ApplyRemoteTransform(pos, vel, rotY);
 	}
-	
+
 	public void SyncPlayerInventoryState(Player player)
 	{
 		if (!Multiplayer.IsServer())
@@ -128,72 +128,59 @@ public partial class WorldSync
 			player.GetActiveTool().Id);
 	}
 
-	public void BroadcastAttackWorldResult(ToolHitResult result)
+	public void BroadcastMeleeHitResult(int attackerPlayerId, ToolHitResult result)
 	{
+		if (GameManager.Instance?.LocalPlayer != null)
+			ApplyMeleeHitResult(attackerPlayerId, result);
+
 		Rpc(
-			nameof(ReceiveAttackWorldResult),
+			nameof(ReceiveMeleeHitResult),
+			attackerPlayerId,
 			(int)result.Outcome,
 			result.TargetType,
-			result.HitSoundKey,
+			result.PrimarySoundKey,
 			result.BreakSoundKey,
-			result.HitPoint
+			result.HitPoint,
+			result.TargetPlayerId,
+			result.TargetHealth,
+			result.HitDirection,
+			result.Knockback
 		);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	public void ReceiveAttackWorldResult(int outcome, string targetType, string hitSoundKey,
+	public void ReceiveMeleeHitResult(int attackerPlayerId, int outcome, string targetType, string primarySoundKey,
 		string breakSoundsKey,
-		Vector3 hitPoint)
-	{
-		var result = new ToolHitResult((ToolHitOutcome)outcome, targetType, hitSoundKey, breakSoundsKey, hitPoint);
-		GameManager.Instance.LocalPlayer?.HandleAttackResult(result);
-	}
-
-	public void SendPlayerHitEvent(Player player, Vector3 hitDirection, float knockback)
-	{
-		if (!Multiplayer.IsServer())
-			return;
-
-		Rpc(nameof(ReceivePlayerHitEvent), player.PlayerId, player.Health, hitDirection, knockback);
-	}
-
-	public void SendLocalAttackResult(int playerId, ToolHitResult result)
-	{
-		RpcId(
-			playerId,
-			nameof(ReceiveLocalAttackResult),
-			(int)result.Outcome,
-			result.TargetType,
-			result.HitSoundKey,
-			result.BreakSoundKey,
-			result.HitPoint
-		);
-	}
-
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	public void ReceiveLocalAttackResult(int outcome, string targetType, string hitSoundKey, string breakSoundsKey,
-		Vector3 hitPoint)
+		Vector3 hitPoint, int targetPlayerId, float targetHealth, Vector3 hitDirection, float knockback)
 	{
 		var result = new ToolHitResult(
 			(ToolHitOutcome)outcome,
 			targetType,
-			hitSoundKey,
+			primarySoundKey,
 			breakSoundsKey,
-			hitPoint);
+			hitPoint,
+			targetPlayerId,
+			targetHealth,
+			hitDirection,
+			knockback);
 
-		GameManager.Instance.LocalPlayer?.HandleLocalAttackResult(result);
+		ApplyMeleeHitResult(attackerPlayerId, result);
 	}
 
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	private void ReceivePlayerHitEvent(int playerId, float health, Vector3 hitDirection, float knockback)
+	private void ApplyMeleeHitResult(int attackerPlayerId, ToolHitResult result)
 	{
-		var player = _world.GetPlayerById(playerId);
-		if (player == null)
-			return;
+		GameManager.Instance.LocalPlayer?.HandleAttackResult(result);
 
-		player.ApplyRemoteHitEvent(health, hitDirection, knockback);
+		if (result.HasPlayerTarget)
+		{
+			var player = _world.GetPlayerById(result.TargetPlayerId);
+			player?.ApplyRemoteHitEvent(result.TargetHealth, result.HitDirection, result.Knockback);
+		}
+
+		if (attackerPlayerId == Multiplayer.GetUniqueId())
+			GameManager.Instance.LocalPlayer?.HandleLocalAttackResult(result);
 	}
-	
+
 	public void SyncCombatAnim(PlayerCombatAnimEvent animEvent, string toolId, Vector3 swingDir, int comboIndex,
 		int sequence)
 	{
@@ -231,5 +218,40 @@ public partial class WorldSync
 			return;
 
 		player.PlayRemoteCombatAnim((PlayerCombatAnimEvent)animEvent, tool, swingDir, comboIndex, sequence);
+	}
+
+	public void SetBlocking(bool blocking)
+	{
+		RpcId(1, nameof(RequestBlockingState), blocking);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+	private void RequestBlockingState(bool blocking)
+	{
+		var senderId = Multiplayer.GetRemoteSenderId();
+
+		var player = _world.GetPlayerById(senderId);
+		if (player == null)
+			return;
+
+		if (blocking)
+			player.CombatController.StartBlock();
+		else
+			player.CombatController.EndBlock();
+
+		Rpc(nameof(ReceiveBlockingState), senderId, blocking);
+	}
+
+	[Rpc]
+	private void ReceiveBlockingState(int playerId, bool blocking)
+	{
+		var player = _world.GetPlayerById(playerId);
+		if (player == null)
+			return;
+
+		if (blocking)
+			player.CombatController.StartBlock();
+		else
+			player.CombatController.EndBlock();
 	}
 }

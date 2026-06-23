@@ -42,13 +42,28 @@ public interface IToolHittable
 {
 	Node3D GetHitRoot();
 
-	ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, float stagger, Vector3 fromDirection,
+	ToolHitResponse ReceiveToolHit(ToolItem tool, float damage, float knockback, float stagger, Vector3 fromDirection,
 		Vector3 hitPoint);
 
-	ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint);
+	ToolHitResponse ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint);
 	string GetImpactType();
-	string GetHitSound(ToolItem tool);
+
+	string GetHitSound(ToolItem tool)
+	{
+		return string.Empty;
+	}
+
+	string GetBlockSound(ToolItem tool)
+	{
+		return "block_weapon";
+	}
+
 	string GetBreakSound();
+
+	string GetFailedHitSound()
+	{
+		return "hit_fail";
+	}
 
 	float ModifyIncomingToolDamage(ToolItem tool, float damage, float baseDamage)
 	{

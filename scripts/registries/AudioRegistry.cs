@@ -28,31 +28,18 @@ public class AudioRegistry
 		// inventory
 		SfxVariants["ui_inventory_open"] =
 		[
-			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag A.wav"),
-			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag B.wav"),
-			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag C.wav"),
-			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag D.wav"),
-			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag E.wav"),
-			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Open Inventory Bag F.wav")
-			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Open Inventory 01_KRST.wav"),
 			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Open Inventory 02_KRST.wav"),
 			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Open Inventory 03_KRST.wav"),
 			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Open Inventory 04_KRST.wav"),
-			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Open Inventory 05_KRST.wav"),
 			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Open Inventory 06_KRST.wav")
 		];
 
 		SfxVariants["ui_inventory_close"] =
 		[
-			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag A.wav"),
-			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag B.wav"),
-			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag C.wav"),
-			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/Close Inventory Bag D.wav")
 			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Close Inventory 01_KRST.wav"),
 			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Close Inventory 02_KRST.wav"),
 			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Close Inventory 03_KRST.wav"),
 			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Close Inventory 04_KRST.wav"),
-			// GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Close Inventory 05_KRST.wav"),
 			GD.Load<AudioStream>("res://assets/audio/ui/inventory/toggle/DSGNSrce_Close Inventory 06_KRST.wav")
 		];
 
@@ -153,6 +140,17 @@ public class AudioRegistry
 			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_blade_small_4.wav"),
 			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_blade_small_5.wav"),
 			GD.Load<AudioStream>("res://assets/audio/hit/flesh/flesh_hit_blade_small_6.wav")
+		];
+
+		SfxVariants["block_weapon"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/block/Parry or Block (1).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/Parry or Block (2).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/Parry or Block (3).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/Parry or Block (4).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/Parry or Block (6).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/Parry or Block (7).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/Parry or Block (8).wav")
 		];
 
 		// break sounds 

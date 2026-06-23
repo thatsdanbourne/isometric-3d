@@ -11,6 +11,7 @@ public partial class CombatController : Node
 	public const float ComboResetTime = 0.35f;
 	public bool IsComboWindowOpen { get; private set; }
 	public bool AttackInProgress { get; private set; }
+	public bool IsBlocking { get; private set; }
 
 	private float _chargeTimer;
 
@@ -34,7 +35,7 @@ public partial class CombatController : Node
 			{
 				IsComboWindowOpen = false;
 
-				if (!AttackInProgress)
+				if (!AttackInProgress && !IsBlocking)
 				{
 					ResetCombo();
 					shouldReturnToIdle = true;
@@ -142,6 +143,7 @@ public partial class CombatController : Node
 
 	public void CancelCharge()
 	{
+		EndAttack();
 		IsCharged = false;
 		_isChargeBuffering = false;
 		_chargeTimer = 0f;
@@ -149,8 +151,29 @@ public partial class CombatController : Node
 
 	public void OpenComboWindow()
 	{
-		AttackInProgress = false;
+		EndAttack();
 		IsComboWindowOpen = true;
 		_comboWindowTimer = ComboResetTime;
+	}
+
+	public bool StartBlock()
+	{
+		if (AttackInProgress || IsCharged || _isChargeBuffering)
+			return false;
+
+		ResetCombo();
+		IsBlocking = true;
+		return true;
+	}
+
+	public bool EndBlock()
+	{
+		if (IsBlocking)
+		{
+			IsBlocking = false;
+			return true;
+		}
+
+		return false;
 	}
 }

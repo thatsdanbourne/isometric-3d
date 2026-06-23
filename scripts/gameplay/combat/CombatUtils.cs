@@ -114,6 +114,26 @@ public static class CombatUtils
 		return ToolHitResult.None;
 	}
 
+	public static bool IsBlockingHit(Vector3 defenderForward, Vector3 incomingDir, float blockArcDegrees)
+	{
+		defenderForward.Y = 0;
+		incomingDir.Y = 0;
+
+		if (defenderForward.LengthSquared() < 0.001f)
+			return false;
+
+		if (incomingDir.LengthSquared() < 0.001f)
+			return false;
+
+		defenderForward = defenderForward.Normalized();
+
+		var directionToAttacker = incomingDir.Normalized();
+		var dot = defenderForward.Dot(directionToAttacker);
+		var angle = Mathf.RadToDeg(Mathf.Acos(Mathf.Clamp(dot, -1f, 1f)));
+
+		return angle < blockArcDegrees * 0.5f;
+	}
+
 	public static int GetComboLength(string toolType)
 	{
 		return toolType switch

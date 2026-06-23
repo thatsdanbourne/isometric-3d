@@ -1,4 +1,3 @@
-using System;
 using Godot;
 using System.Collections.Generic;
 
@@ -466,11 +465,7 @@ public partial class World : Node3D
 			swingDir,
 			player.ToolQuery,
 			isCharged,
-			hitResult =>
-			{
-				Sync.BroadcastAttackWorldResult(hitResult);
-				Sync.SendLocalAttackResult(player.PlayerId, hitResult);
-			});
+			player.PlayerId);
 	}
 
 	public void ResolveEnemyMeleeAttack(Mob attacker, ToolItem tool, Vector3 swingDir,
@@ -485,11 +480,11 @@ public partial class World : Node3D
 			swingDir,
 			toolQuery,
 			false,
-			hitResult => { Sync.BroadcastAttackWorldResult(hitResult); });
+			-1);
 	}
 
 	private async void ResolveMeleeHit(Node3D attacker, ToolItem tool, Vector3 swingDir,
-		PhysicsRayQueryParameters3D toolQuery, bool isCharged, Action<ToolHitResult> onResult)
+		PhysicsRayQueryParameters3D toolQuery, bool isCharged, int attackerPlayerId)
 	{
 		if (attacker == null || !IsInstanceValid(attacker))
 			return;
@@ -507,6 +502,6 @@ public partial class World : Node3D
 		var space = attacker.GetWorld3D().DirectSpaceState;
 		var hitResult = CombatUtils.PerformMeleeHit(attacker, tool, swingDir, space, toolQuery, isCharged);
 
-		onResult?.Invoke(hitResult);
+		Sync.BroadcastMeleeHitResult(attackerPlayerId, hitResult);
 	}
 }

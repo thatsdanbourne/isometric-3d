@@ -131,9 +131,9 @@ public partial class EntityAnimationController : Node
 		_animTree.Set(CombatStatePath, "Staggered");
 	}
 
-	public void EndStagger()
+	public void PlayBlockStart()
 	{
-		_animTree.Set(CombatStatePath, "Normal");
+		_animTree.Set(CombatStatePath, "Blocking");
 	}
 
 	public void PlayCombatAnim(PlayerCombatAnimEvent animEvent, ToolItem tool, Vector3 swingDir, int comboIndex = 0)
@@ -151,6 +151,12 @@ public partial class EntityAnimationController : Node
 				break;
 			case PlayerCombatAnimEvent.ChargeRelease:
 				PlayUseTool(tool, swingDir, true);
+				break;
+			case PlayerCombatAnimEvent.BlockStart:
+				PlayBlockStart();
+				break;
+			case PlayerCombatAnimEvent.BlockEnd:
+				ReturnToIdle();
 				break;
 		}
 	}

@@ -41,14 +41,14 @@ public partial class WorldObject : Node3D, IToolHittable
 		return this;
 	}
 
-	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, float stagger,
+	public ToolHitResponse ReceiveToolHit(ToolItem tool, float damage, float knockback, float stagger,
 		Vector3 fromDirection,
 		Vector3 hitPoint)
 	{
 		return ApplyDamage(damage, fromDirection);
 	}
 
-	public ToolHitOutcome ApplyDamage(float amount, Vector3 fromDirection)
+	public ToolHitResponse ApplyDamage(float amount, Vector3 fromDirection)
 	{
 		CurrentHealth -= amount;
 		var destroyed = CurrentHealth <= 0;
@@ -56,12 +56,12 @@ public partial class WorldObject : Node3D, IToolHittable
 		if (destroyed)
 			BreakObject();
 
-		return destroyed ? ToolHitOutcome.Destroyed : ToolHitOutcome.Hit;
+		return destroyed ? ToolHitResponse.Destroyed() : ToolHitResponse.Hit();
 	}
 
-	public ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint)
+	public ToolHitResponse ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint)
 	{
-		return ToolHitOutcome.Failed;
+		return ToolHitResponse.Failed();
 	}
 
 	protected void BreakObject()
@@ -94,5 +94,10 @@ public partial class WorldObject : Node3D, IToolHittable
 	public string GetBreakSound()
 	{
 		return BreakSoundsKey;
+	}
+
+	public string GetFailedHitSound()
+	{
+		return FailedHitSoundsKey;
 	}
 }

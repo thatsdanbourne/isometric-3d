@@ -61,7 +61,7 @@ public partial class Bandit : Mob
 
 			if (StaggerTimer <= 0f)
 			{
-				_animationController.EndStagger();
+				_animationController.ReturnToIdle();
 				State = MobState.Idle;
 			}
 		}
@@ -175,10 +175,10 @@ public partial class Bandit : Mob
 
 		_animationController.SetLocomotionState(horizontalVelocity.LengthSquared() > 0.01f);
 		_animationController.Tick(1f - Mathf.Exp(-14f * dt));
-		
+
 		if (StaggerTimer > 0f)
 			return;
-		
+
 		if (_attackVisualReturnTimer <= 0f)
 			return;
 
@@ -301,6 +301,8 @@ public partial class Bandit : Mob
 	{
 		base.OnStaggered(fromDirection);
 
+		_animationController.ReturnToIdle();
+		_combatController.EndAttack();
 		_combatController.CancelCharge();
 		State = MobState.Staggered;
 	}

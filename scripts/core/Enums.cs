@@ -102,8 +102,9 @@ public enum WeatherType
 public enum ToolHitOutcome
 {
 	None,
-	Failed,
+	Failed, // tool can't hit this target
 	Hit,
+	Blocked,
 	Destroyed
 }
 
@@ -146,7 +147,9 @@ public enum PlayerCombatAnimEvent
 	LightAttack,
 	ChargeStart,
 	ChargeCancel,
-	ChargeRelease
+	ChargeRelease,
+	BlockStart,
+	BlockEnd
 }
 
 public enum QueuedAttackType
