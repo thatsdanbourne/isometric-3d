@@ -14,10 +14,10 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	public Vector2I? SavedChunk { get; internal set; }
 
 	public float CurrentHealth;
-	public float MaxPoise = 8f;
+	public float MaxPoise = 4f;
 	public float CurrentPoise;
 	public float PoiseRecoveryPerSec = 2f;
-	public float StaggerDuration = 1f;
+	public float StaggerDuration = 1.5f;
 	protected float KnockbackResistance = 1f;
 	protected float KnockbackDecay = 14f;
 
@@ -125,10 +125,9 @@ public partial class Mob : CharacterBody3D, IToolHittable
 		CurrentHealth -= damage;
 		ApplyKnockback(fromDirection, knockback);
 
-		if (ApplyPoiseDamage(stagger))
+		if (!IsStaggered && ApplyPoiseDamage(stagger))
 		{
 			OnStaggered(fromDirection);
-
 			World.Sync.BroadcastMobStaggered(this, fromDirection);
 		}
 
