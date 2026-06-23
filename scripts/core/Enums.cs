@@ -137,6 +137,7 @@ public enum MobState
 	Wander,
 	Chase,
 	Attack,
+	Staggered,
 	Dead
 }
 

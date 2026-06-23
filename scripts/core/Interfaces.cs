@@ -42,7 +42,7 @@ public interface IToolHittable
 {
 	Node3D GetHitRoot();
 
-	ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, Vector3 fromDirection,
+	ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, float stagger, Vector3 fromDirection,
 		Vector3 hitPoint);
 
 	ToolHitOutcome ReceiveToolHitFailed(ToolItem tool, Vector3 fromDirection, Vector3 hitPoint);

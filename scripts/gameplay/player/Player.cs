@@ -674,7 +674,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		}
 
 		var isMoving = _remoteTargetVelocity.LengthSquared() > RemoteMovementThresholdSquared ||
-			moveVelocity.LengthSquared() > RemoteMovementThresholdSquared;
+		               moveVelocity.LengthSquared() > RemoteMovementThresholdSquared;
 		_animationController.SetLocomotionState(isMoving);
 		_animationController.Tick(blendAlpha);
 		UpdateRemoteCombatVisual(dt);
@@ -736,7 +736,12 @@ public partial class Player : CharacterBody3D, IToolHittable
 		return this;
 	}
 
-	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, Vector3 fromDirection,
+	public void OnStaggered()
+	{
+	}
+
+	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, float stagger,
+		Vector3 fromDirection,
 		Vector3 hitPoint)
 	{
 		Health -= damage;

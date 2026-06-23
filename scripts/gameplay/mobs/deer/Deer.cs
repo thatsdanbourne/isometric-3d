@@ -56,7 +56,7 @@ public partial class Deer : Mob
 	{
 		if (_animPlayer == null) return;
 
-		var isMoving = new Vector2(_netVelocity.X, _netVelocity.Z).Length() > 0.1f;
+		var isMoving = new Vector2(NetVelocity.X, NetVelocity.Z).Length() > 0.1f;
 
 		if (isMoving)
 		{

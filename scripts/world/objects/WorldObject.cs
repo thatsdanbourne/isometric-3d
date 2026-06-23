@@ -41,7 +41,8 @@ public partial class WorldObject : Node3D, IToolHittable
 		return this;
 	}
 
-	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, Vector3 fromDirection,
+	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, float stagger,
+		Vector3 fromDirection,
 		Vector3 hitPoint)
 	{
 		return ApplyDamage(damage, fromDirection);
@@ -74,6 +75,10 @@ public partial class WorldObject : Node3D, IToolHittable
 			return baseDamage * mult;
 
 		return baseDamage;
+	}
+
+	public void OnStagger()
+	{
 	}
 
 	public string GetImpactType()

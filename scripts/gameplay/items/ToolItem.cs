@@ -10,7 +10,7 @@ public class ToolItem : Item
 	public int HitRayCount { get; init; } = 5;
 	public float HitRange { get; init; } = 1.0f;
 	public float Knockback { get; init; } = 1.0f;
-	public float Stagger { get; init; } = 0.0f;
+	public float Stagger { get; init; } = 1.0f;
 	public float CooldownSeconds { get; init; } = 0.55f;
 	public float ComboChainSeconds { get; init; } = 0.4f;
 	public float ChargedDamageMultiplier { get; set; } = 1f;
@@ -44,7 +44,8 @@ public class ToolItem : Item
 		var finalDamage = Damage;
 		finalDamage = target.ModifyIncomingToolDamage(this, finalDamage, Damage) * context.DamageMultiplier;
 		var finalKnockback = Knockback * context.KnockbackMultiplier;
-		var outcome = target.ReceiveToolHit(this, finalDamage, finalKnockback, fromDirection, hitPoint);
+		var finalStagger = Stagger * context.StaggerMultiplier;
+		var outcome = target.ReceiveToolHit(this, finalDamage, finalKnockback, finalStagger, fromDirection, hitPoint);
 		return new ToolHitResult(outcome, target.GetImpactType(), hitSound, breakSound,
 			hitPoint);
 	}

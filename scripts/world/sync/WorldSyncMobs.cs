@@ -29,6 +29,20 @@ public partial class WorldSync
 			mob.PlayRemoteAttackVisual();
 	}
 
+	public void BroadcastMobStaggered(Mob mob, Vector3 fromDirection)
+	{
+		Rpc(nameof(ReceiveMobStaggered), mob.Uid, fromDirection);
+	}
+
+	[Rpc(CallLocal = false)]
+	private void ReceiveMobStaggered(ulong uid, Vector3 fromDirection)
+	{
+		if (!_world.MobStreamer.TryGetMob(uid, out var mob))
+			return;
+
+		mob.ApplyRemoteStagger(fromDirection);
+	}
+
 	public void BroadcastMobDeath(ulong uid)
 	{
 		Rpc(nameof(ApplyMobDeath), uid);

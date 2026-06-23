@@ -126,6 +126,16 @@ public partial class EntityAnimationController : Node
 		AudioManager.Instance.PlayVariantAt(soundKey, _owner.GlobalPosition, AudioManager.BusTools, 0.1f);
 	}
 
+	public void PlayStagger()
+	{
+		_animTree.Set(CombatStatePath, "Staggered");
+	}
+
+	public void EndStagger()
+	{
+		_animTree.Set(CombatStatePath, "Normal");
+	}
+
 	public void PlayCombatAnim(PlayerCombatAnimEvent animEvent, ToolItem tool, Vector3 swingDir, int comboIndex = 0)
 	{
 		switch (animEvent)

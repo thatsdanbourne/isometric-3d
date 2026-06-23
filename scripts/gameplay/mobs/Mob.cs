@@ -2,7 +2,7 @@ using Godot;
 
 public partial class Mob : CharacterBody3D, IToolHittable
 {
-	[Export] public float MaxHealth = 10f;
+	public float MaxHealth = 40f;
 
 	private const float RemotePositionCorrection = 12f;
 	private const float RemoteRotationCorrection = 12f;
@@ -14,15 +14,23 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	public Vector2I? SavedChunk { get; internal set; }
 
 	public float CurrentHealth;
-	protected Vector3 MoveVelocity;
-	protected float _knockbackResistance = 1f;
-	protected float _knockbackDecay = 14f;
+	public float MaxPoise = 8f;
+	public float CurrentPoise;
+	public float PoiseRecoveryPerSec = 2f;
+	public float StaggerDuration = 1f;
+	protected float KnockbackResistance = 1f;
+	protected float KnockbackDecay = 14f;
+
 	protected EntityMotor EntityMotor { get; private set; }
 
-	protected Vector3 _netTargetPosition;
-	protected Vector3 _netTargetRotation;
-	protected Vector3 _netVelocity;
-	protected MobState _netState;
+	protected Vector3 MoveVelocity;
+	protected Vector3 NetTargetPosition;
+	protected Vector3 NetTargetRotation;
+	protected Vector3 NetVelocity;
+	protected MobState NetState;
+
+	protected float StaggerTimer;
+	public bool IsStaggered => StaggerTimer > 0f;
 
 
 	public MobState State { get; protected set; } = MobState.Idle;
@@ -37,14 +45,15 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	public override void _Ready()
 	{
 		CurrentHealth = MaxHealth;
-		_netTargetPosition = GlobalPosition;
-		_netTargetRotation = Rotation;
+		CurrentPoise = MaxPoise;
+		NetTargetPosition = GlobalPosition;
+		NetTargetRotation = Rotation;
 
 		EntityMotor = new EntityMotor
 		{
 			FootstepsEnabled = true,
-			KnockbackResistance = _knockbackResistance,
-			KnockbackDecay = _knockbackDecay
+			KnockbackResistance = KnockbackResistance,
+			KnockbackDecay = KnockbackDecay
 		};
 		AddChild(EntityMotor);
 		EntityMotor.Init(this, World);
@@ -83,10 +92,10 @@ public partial class Mob : CharacterBody3D, IToolHittable
 
 	private void UpdateRemoteMotion(float dt)
 	{
-		var positionError = _netTargetPosition - GlobalPosition;
-		var moveVelocity = _netVelocity + positionError * RemotePositionCorrection;
+		var positionError = NetTargetPosition - GlobalPosition;
+		var moveVelocity = NetVelocity + positionError * RemotePositionCorrection;
 
-		Rotation = Rotation.Lerp(_netTargetRotation, RemoteRotationCorrection * dt);
+		Rotation = Rotation.Lerp(NetTargetRotation, RemoteRotationCorrection * dt);
 		EntityMotor.Update(dt, moveVelocity);
 
 		ApplyRemoteStateVisuals(dt);
@@ -98,10 +107,10 @@ public partial class Mob : CharacterBody3D, IToolHittable
 
 	public void ApplyRemoteSnapshot(Vector3 position, Vector3 rotation, Vector3 velocity, int state, float health)
 	{
-		_netTargetPosition = position;
-		_netTargetRotation = rotation;
-		_netVelocity = velocity;
-		_netState = (MobState)state;
+		NetTargetPosition = position;
+		NetTargetRotation = rotation;
+		NetVelocity = velocity;
+		NetState = (MobState)state;
 		CurrentHealth = health;
 	}
 
@@ -109,11 +118,20 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	{
 	}
 
-	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, Vector3 fromDirection,
+	public ToolHitOutcome ReceiveToolHit(ToolItem tool, float damage, float knockback, float stagger,
+		Vector3 fromDirection,
 		Vector3 hitPoint)
 	{
-		ApplyKnockback(fromDirection, knockback);
 		CurrentHealth -= damage;
+		ApplyKnockback(fromDirection, knockback);
+
+		if (ApplyPoiseDamage(stagger))
+		{
+			OnStaggered(fromDirection);
+
+			World.Sync.BroadcastMobStaggered(this, fromDirection);
+		}
+
 		if (!(CurrentHealth <= 0)) return ToolHitOutcome.Hit;
 
 		Die();
@@ -133,6 +151,31 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	public virtual void ApplyKnockback(Vector3 direction, float strength)
 	{
 		EntityMotor.ApplyKnockback(direction, strength);
+	}
+
+	protected bool ApplyPoiseDamage(float stagger)
+	{
+		if (stagger <= 0f)
+			return false;
+
+		CurrentPoise -= stagger;
+
+		if (CurrentPoise > 0f)
+			return false;
+
+		CurrentPoise = MaxPoise;
+		return true;
+	}
+
+	protected virtual void OnStaggered(Vector3 fromDirection)
+	{
+		MoveVelocity = Vector3.Zero;
+		StaggerTimer = StaggerDuration;
+	}
+
+	public virtual void ApplyRemoteStagger(Vector3 fromDirection)
+	{
+		StaggerTimer = StaggerDuration;
 	}
 
 	private void Die()
