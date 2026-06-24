@@ -497,7 +497,7 @@ public partial class World : Node3D
 
 		swingDir = swingDir.Normalized();
 
-		await ToSignal(GetTree().CreateTimer(0.15), SceneTreeTimer.SignalName.Timeout);
+		// await ToSignal(GetTree().CreateTimer(0.15), SceneTreeTimer.SignalName.Timeout);
 
 		var space = attacker.GetWorld3D().DirectSpaceState;
 		var hitResult = CombatUtils.PerformMeleeHit(attacker, tool, swingDir, space, toolQuery, isCharged);

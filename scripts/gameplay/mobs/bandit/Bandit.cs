@@ -23,6 +23,10 @@ public partial class Bandit : Mob
 	private EntityAnimationController _animationController;
 	private CombatController _combatController;
 
+	private ToolItem _pendingAttackTool;
+	private Vector3 _pendingAttackDir;
+	private bool _pendingAttackCharged;
+
 	private PhysicsRayQueryParameters3D _toolQuery;
 	private const uint HittableMask = 1u << 1;
 
@@ -284,8 +288,10 @@ public partial class Bandit : Mob
 		_animationController.PlayUseTool(_equippedTool, swingDir, false);
 		_attackVisualReturnTimer = AttackRecovery;
 
+		_pendingAttackTool = _equippedTool;
+		_pendingAttackDir = swingDir;
+
 		World.Sync.BroadcastMobAttack(Uid);
-		World.ResolveEnemyMeleeAttack(this, _equippedTool, swingDir, _toolQuery);
 		return true;
 	}
 
@@ -327,7 +333,19 @@ public partial class Bandit : Mob
 		}
 	}
 
+	// animation callbacks
 	public void OnAttackHoldFrame()
 	{
+	}
+
+	public void Anim_AttackHitFrame()
+	{
+		if (!_combatController.AttackInProgress)
+			return;
+
+		if (_pendingAttackTool == null)
+			return;
+
+		World.ResolveEnemyMeleeAttack(this, _pendingAttackTool, _pendingAttackDir, _toolQuery);
 	}
 }

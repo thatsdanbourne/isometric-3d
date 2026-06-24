@@ -83,6 +83,13 @@ public partial class CombatController : Node
 		AttackInProgress = false;
 	}
 
+	public void CancelAttack()
+	{
+		AttackInProgress = false;
+		QueuedAttack = QueuedAttackType.None;
+		IsComboWindowOpen = false;
+	}
+
 	public void QueueLightAttack()
 	{
 		if (!IsComboWindowOpen) return;

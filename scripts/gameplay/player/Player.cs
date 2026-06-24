@@ -70,6 +70,10 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private PlayerEquipment _equipment;
 	private PlacementController _placement;
 
+	private ToolItem _pendingAttackTool;
+	private Vector3 _pendingAttackDir;
+	private bool _pendingAttackCharged;
+
 	private World _world;
 	private BiomeTintOverlay _tintOverlay;
 	private AnimationTree _animTree;
@@ -223,6 +227,18 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		if (e.IsActionPressed("toggle_crafting"))
 			ToggleCraftingUI();
+	}
+
+	// animation callbacks
+	public void Anim_AttackHitFrame()
+	{
+		if (!CombatController.AttackInProgress)
+			return;
+
+		if (_pendingAttackTool == null)
+			return;
+
+		RequestUseActiveTool(_pendingAttackDir, _pendingAttackCharged);
 	}
 
 	public void OnAttackHoldFrame()
@@ -492,7 +508,11 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (isCharged && tool.ChargedLungeDistance > 0f)
 			_entityMotor.StartLunge(swingDir, tool.ChargedLungeDistance, tool.ChargedLungeDuration);
 
-		RequestUseActiveTool(swingDir, isCharged);
+		_pendingAttackTool = tool;
+		_pendingAttackDir = swingDir;
+		_pendingAttackCharged = isCharged;
+
+		// RequestUseActiveTool(swingDir, isCharged);
 		SyncCombatAnim(isCharged ? PlayerCombatAnimEvent.ChargeRelease : PlayerCombatAnimEvent.LightAttack, tool.Id,
 			swingDir, comboIndex);
 	}
