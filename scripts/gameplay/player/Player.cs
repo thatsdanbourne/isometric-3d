@@ -305,6 +305,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		}
 
 		_animationController.SetLocomotionState(hasMovementInput);
+		_animationController.SetLocomotionBlend(Velocity.Length() / Speed);
 		_entityMotor.Update(dt, moveVelocity);
 		MoveAndSlide();
 	}
@@ -720,7 +721,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		var isMoving = _remoteTargetVelocity.LengthSquared() > RemoteMovementThresholdSquared ||
 		               moveVelocity.LengthSquared() > RemoteMovementThresholdSquared;
+
 		_animationController.SetLocomotionState(isMoving);
+		_animationController.SetLocomotionBlend(Velocity.Length() / Speed);
 		_animationController.Tick(blendAlpha);
 		UpdateRemoteCombatVisual(dt);
 

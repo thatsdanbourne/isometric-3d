@@ -139,7 +139,7 @@ public static class CombatUtils
 		return toolType switch
 		{
 			"sword" => 3,
-			"axe" => 2,
+			"axe" => 3,
 			_ => 1
 		};
 	}

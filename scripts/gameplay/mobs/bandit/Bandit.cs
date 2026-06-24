@@ -9,12 +9,23 @@ public partial class Bandit : Mob
 	public float AttackRecovery = 0.35f;
 
 	private const float TurnSpeed = 10f;
+	private const float StrafeDistancePadding = 0.45f;
+	private const float StrafeDistanceTolerance = 0.35f;
+	private const float StrafeLateralSpeedMultiplier = 0.55f;
+	private const float StrafeRadialSpeedMultiplier = 0.5f;
+	private const float ComboFollowupChance = 1f;
+	private const float ComboFollowupDelay = 0.22f;
+	private const float RemoteAttackReturnDelay = CombatController.ComboResetTime;
 
 	private float _cooldownMultiplier = 1.5f;
 	private float _windupTimer;
 	private float _recoveryTimer;
-	private float _attackVisualReturnTimer;
+	private float _remoteAttackReturnTimer;
 	private bool _attackCommitted;
+	private float _strafeTimer;
+	private int _strafeDir = 1;
+	private float _nextDecisionTimer;
+	private float _comboFollowupTimer;
 	private Player _targetPlayer;
 
 	private ToolItem _equippedTool;
@@ -25,7 +36,6 @@ public partial class Bandit : Mob
 
 	private ToolItem _pendingAttackTool;
 	private Vector3 _pendingAttackDir;
-	private bool _pendingAttackCharged;
 
 	private PhysicsRayQueryParameters3D _toolQuery;
 	private const uint HittableMask = 1u << 1;
@@ -56,8 +66,9 @@ public partial class Bandit : Mob
 	public override void _PhysicsProcess(double delta)
 	{
 		base._PhysicsProcess(delta);
-
 		var dt = (float)delta;
+
+		if (_nextDecisionTimer > 0f) _nextDecisionTimer -= dt;
 
 		if (StaggerTimer > 0f)
 		{
@@ -77,10 +88,29 @@ public partial class Bandit : Mob
 
 		_recoveryTimer -= dt;
 
-		if (_combatController.Tick(dt))
+		if (_combatController.Tick(dt) && !IsWaitingForComboFollowup())
 			_animationController.ReturnToIdle();
 
 		UpdateTarget();
+
+		if (_comboFollowupTimer > 0f)
+			_comboFollowupTimer -= dt;
+
+		if (State == MobState.Attack &&
+		    _comboFollowupTimer <= 0f &&
+		    _combatController.TryConsumeQueuedAttack(out var queuedAttack) &&
+		    queuedAttack == QueuedAttackType.Light)
+		{
+			if (TryLightAttack(true))
+			{
+				_attackCommitted = true;
+				_recoveryTimer = AttackRecovery;
+			}
+			else
+			{
+				State = MobState.Chase;
+			}
+		}
 
 		switch (State)
 		{
@@ -110,14 +140,36 @@ public partial class Bandit : Mob
 
 				MoveTowardsTarget(dt);
 
-				if (chaseDist < AttackStartRange && _recoveryTimer <= 0f && _combatController.CanSwing)
+				if (chaseDist < AttackStartRange && _recoveryTimer <= 0f && _combatController.CanSwing &&
+				    _nextDecisionTimer <= 0f)
 				{
-					State = MobState.Attack;
-					_windupTimer = AttackWindup;
-					_attackCommitted = false;
-					MoveVelocity = Vector3.Zero;
+					if (GD.Randf() < 0.45f)
+						StartStrafe();
+					else
+						StartAttack();
+
+					_nextDecisionTimer = 0.5f;
 				}
 
+				break;
+
+			case MobState.Strafe:
+				if (!HasValidTarget())
+				{
+					State = MobState.Idle;
+					MoveVelocity = Vector3.Zero;
+					break;
+				}
+
+				if (DistanceToTarget() > AggroRange)
+				{
+					ClearTarget();
+					State = MobState.Idle;
+					MoveVelocity = Vector3.Zero;
+					break;
+				}
+
+				TickStrafe(dt, _targetPlayer.GlobalPosition - GlobalPosition);
 				break;
 
 			case MobState.Attack:
@@ -142,6 +194,9 @@ public partial class Bandit : Mob
 
 				MoveVelocity = Vector3.Zero;
 
+				if (IsWaitingForComboFollowup())
+					break;
+
 				if (!_attackCommitted)
 				{
 					_windupTimer -= dt;
@@ -163,6 +218,12 @@ public partial class Bandit : Mob
 				{
 					if (_recoveryTimer <= 0f)
 					{
+						if (_combatController.QueuedAttack != QueuedAttackType.None)
+						{
+							HoldForComboFollowup();
+							break;
+						}
+
 						FinishAttack();
 						State = MobState.Chase;
 					}
@@ -172,29 +233,85 @@ public partial class Bandit : Mob
 		}
 	}
 
+	private void TickStrafe(float dt, Vector3 toTarget)
+	{
+		toTarget.Y = 0f;
+		var distance = toTarget.Length();
+		if (distance < 0.001f)
+		{
+			MoveVelocity = Vector3.Zero;
+			return;
+		}
+
+		_strafeTimer -= dt;
+		if (_strafeTimer <= 0f)
+		{
+			if (distance <= _equippedTool.HitRange + 0.5f && _recoveryTimer <= 0f && _combatController.CanSwing)
+			{
+				StartAttack();
+				return;
+			}
+
+			State = MobState.Chase;
+			MoveVelocity = Vector3.Zero;
+			_nextDecisionTimer = 0.25f;
+			return;
+		}
+
+		var dirToTarget = toTarget / distance;
+		var strafeDir = new Vector3(-dirToTarget.Z, 0f, dirToTarget.X) * _strafeDir;
+		var desiredMove = strafeDir * MoveSpeed * StrafeLateralSpeedMultiplier;
+
+		var rangeError = distance - StrafePreferredRange();
+		if (rangeError < -StrafeDistanceTolerance)
+			desiredMove -= dirToTarget * MoveSpeed * StrafeRadialSpeedMultiplier;
+		else if (rangeError > StrafeDistanceTolerance)
+			desiredMove += dirToTarget * MoveSpeed * StrafeRadialSpeedMultiplier;
+
+		FaceTarget(dt);
+
+		if (TryMoveDirection(desiredMove, desiredMove.Length(), out MoveVelocity, out _))
+			return;
+
+		MoveVelocity = Vector3.Zero;
+	}
+
 	protected override void TickVisuals(float dt)
 	{
-		var horizontalVelocity = Velocity;
+		if (World != null && !World.Multiplayer.IsServer())
+			return;
+
+		TickVisuals(dt, Velocity);
+	}
+
+	protected override void ApplyRemoteStateVisuals(float dt)
+	{
+		TickVisuals(dt, NetVelocity);
+	}
+
+	private void TickVisuals(float dt, Vector3 velocity)
+	{
+		var horizontalVelocity = velocity;
 		horizontalVelocity.Y = 0f;
 
-		_animationController.SetLocomotionState(horizontalVelocity.LengthSquared() > 0.01f);
+		_animationController.SetLocomotionBlend(horizontalVelocity.Length() / MoveSpeed);
 		_animationController.Tick(1f - Mathf.Exp(-14f * dt));
 
 		if (StaggerTimer > 0f)
 			return;
 
-		if (_attackVisualReturnTimer <= 0f)
+		if (_remoteAttackReturnTimer <= 0f)
 			return;
 
-		_attackVisualReturnTimer -= dt;
-		if (_attackVisualReturnTimer <= 0f)
+		_remoteAttackReturnTimer -= dt;
+		if (_remoteAttackReturnTimer <= 0f)
 			_animationController.ReturnToIdle();
 	}
 
-	public override void PlayRemoteAttackVisual()
+	public override void PlayRemoteAttackVisual(int comboIndex)
 	{
-		_animationController.PlayUseTool(_equippedTool, GlobalTransform.Basis.Z, false);
-		_attackVisualReturnTimer = AttackRecovery;
+		_animationController.PlayUseTool(_equippedTool, GlobalTransform.Basis.Z, false, comboIndex);
+		_remoteAttackReturnTimer = AttackRecovery;
 	}
 
 	private void UpdateTarget()
@@ -271,27 +388,24 @@ public partial class Bandit : Mob
 		TurnTowardsDirection(dir, TurnSpeed, dt);
 	}
 
-	private bool TryLightAttack()
+	private bool TryLightAttack(bool ignoreCooldown = false)
 	{
-		if (!_combatController.CanSwing || !HasValidTarget())
+		if ((!ignoreCooldown && !_combatController.CanSwing) || !HasValidTarget())
 			return false;
 
 		var swingDir = _targetPlayer.GlobalPosition - GlobalPosition;
 		if (swingDir.LengthSquared() < 0.001f)
 			return false;
 
-		var angleOffset = (float)Mathf.DegToRad(GD.RandRange(-5f, 5f));
-		swingDir = swingDir.Rotated(Vector3.Up, angleOffset).Normalized();
-
 		_combatController.StartAttack();
 		_combatController.StartCooldown(_equippedTool, _cooldownMultiplier);
-		_animationController.PlayUseTool(_equippedTool, swingDir, false);
-		_attackVisualReturnTimer = AttackRecovery;
+		var comboIndex = _combatController.ConsumeComboIndex(_equippedTool);
+		_animationController.PlayUseTool(_equippedTool, swingDir, false, comboIndex);
 
 		_pendingAttackTool = _equippedTool;
 		_pendingAttackDir = swingDir;
 
-		World.Sync.BroadcastMobAttack(Uid);
+		World.Sync.BroadcastMobAttack(Uid, comboIndex);
 		return true;
 	}
 
@@ -300,7 +414,42 @@ public partial class Bandit : Mob
 		_combatController.EndAttack();
 		_animationController.ReturnToIdle();
 		_attackCommitted = false;
-		_attackVisualReturnTimer = 0f;
+		_comboFollowupTimer = 0f;
+	}
+
+	private void HoldForComboFollowup()
+	{
+		_combatController.EndAttack();
+		_attackCommitted = false;
+		MoveVelocity = Vector3.Zero;
+	}
+
+	private bool IsWaitingForComboFollowup()
+	{
+		return World != null &&
+		       World.Multiplayer.IsServer() &&
+		       _combatController.QueuedAttack != QueuedAttackType.None &&
+		       _comboFollowupTimer > 0f;
+	}
+
+	private float StrafePreferredRange()
+	{
+		return AttackStartRange + StrafeDistancePadding;
+	}
+
+	private void StartAttack()
+	{
+		State = MobState.Attack;
+		_windupTimer = AttackWindup;
+		_attackCommitted = false;
+		MoveVelocity = Vector3.Zero;
+	}
+
+	private void StartStrafe()
+	{
+		State = MobState.Strafe;
+		_strafeTimer = (float)GD.RandRange(0.4f, 0.9f);
+		_strafeDir = GD.Randi() % 2 == 0 ? -1 : 1;
 	}
 
 	protected override void OnStaggered(Vector3 fromDirection)
@@ -310,6 +459,7 @@ public partial class Bandit : Mob
 		_animationController.ReturnToIdle();
 		_combatController.EndAttack();
 		_combatController.CancelCharge();
+		_comboFollowupTimer = 0f;
 		State = MobState.Staggered;
 	}
 
@@ -336,6 +486,22 @@ public partial class Bandit : Mob
 	// animation callbacks
 	public void OnAttackHoldFrame()
 	{
+		_animationController.HoldCurrentAttackPose();
+
+		if (World != null && !World.Multiplayer.IsServer())
+		{
+			_remoteAttackReturnTimer = RemoteAttackReturnDelay;
+			return;
+		}
+
+		_combatController.OpenComboWindow();
+		_comboFollowupTimer = 0f;
+
+		if (GD.Randf() < ComboFollowupChance)
+		{
+			_combatController.QueueLightAttack();
+			_comboFollowupTimer = ComboFollowupDelay;
+		}
 	}
 
 	public void Anim_AttackHitFrame()

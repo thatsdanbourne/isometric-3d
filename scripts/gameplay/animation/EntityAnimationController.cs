@@ -28,12 +28,13 @@ public partial class EntityAnimationController : Node
 
 	public void SetLocomotionState(bool isMoving)
 	{
-		var name = isMoving ? "run" : "idle";
-		if (_animState == name)
-			return;
+		SetLocomotionBlend(isMoving ? 1f : 0f);
+	}
 
-		_animState = name;
-		_locomotionBlendTarget = name == "run" ? 1f : 0f;
+	public void SetLocomotionBlend(float blend)
+	{
+		_locomotionBlendTarget = Mathf.Clamp(blend, 0f, 1f);
+		_animState = _locomotionBlendTarget > 0.01f ? "run" : "idle";
 	}
 
 	public void Tick(float blendAlpha)

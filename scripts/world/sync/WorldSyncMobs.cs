@@ -14,19 +14,19 @@ public partial class WorldSync
 		_world.MobStreamer.RemoveRemoteMob(uid);
 	}
 
-	public void BroadcastMobAttack(ulong uid)
+	public void BroadcastMobAttack(ulong uid, int comboIndex)
 	{
-		Rpc(nameof(PlayRemoteMobAttack), uid);
+		Rpc(nameof(PlayRemoteMobAttack), uid, comboIndex);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	public void PlayRemoteMobAttack(ulong uid)
+	public void PlayRemoteMobAttack(ulong uid, int comboIndex)
 	{
 		if (!_world.MobStreamer.TryGetMob(uid, out var mob))
 			return;
 
 		if (IsInstanceValid(mob))
-			mob.PlayRemoteAttackVisual();
+			mob.PlayRemoteAttackVisual(comboIndex);
 	}
 
 	public void BroadcastMobStaggered(Mob mob, Vector3 fromDirection)

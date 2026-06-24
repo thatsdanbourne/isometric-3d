@@ -483,7 +483,7 @@ public partial class World : Node3D
 			-1);
 	}
 
-	private async void ResolveMeleeHit(Node3D attacker, ToolItem tool, Vector3 swingDir,
+	private void ResolveMeleeHit(Node3D attacker, ToolItem tool, Vector3 swingDir,
 		PhysicsRayQueryParameters3D toolQuery, bool isCharged, int attackerPlayerId)
 	{
 		if (attacker == null || !IsInstanceValid(attacker))

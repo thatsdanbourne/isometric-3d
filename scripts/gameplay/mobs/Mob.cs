@@ -73,7 +73,6 @@ public partial class Mob : CharacterBody3D, IToolHittable
 
 		EntityMotor.Update(dt, MoveVelocity);
 		MoveAndSlide();
-		TickVisuals(dt);
 		World.MobStreamer.UpdateMobChunkMembership(this);
 	}
 
@@ -114,7 +113,7 @@ public partial class Mob : CharacterBody3D, IToolHittable
 		CurrentHealth = health;
 	}
 
-	public virtual void PlayRemoteAttackVisual()
+	public virtual void PlayRemoteAttackVisual(int comboIndex)
 	{
 	}
 

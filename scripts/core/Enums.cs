@@ -137,6 +137,7 @@ public enum MobState
 	Idle,
 	Wander,
 	Chase,
+	Strafe,
 	Attack,
 	Staggered,
 	Dead
