@@ -519,7 +519,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 			return;
 		}
 
-		if (Input.IsActionJustPressed(BlockAction))
+		if (Input.IsActionPressed(BlockAction) && !CombatController.IsBlocking)
 			if (CombatController.StartBlock())
 			{
 				_animationController.PlayBlockStart();
