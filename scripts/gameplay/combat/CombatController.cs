@@ -3,6 +3,7 @@ using Godot;
 public partial class CombatController : Node
 {
 	public const float ChargeRequiredTime = 0.5f;
+	public const float ComboResetTime = 0.5f;
 
 	public bool IsCharged { get; private set; }
 	public bool CanSwing => _cooldown <= 0f;
@@ -10,7 +11,6 @@ public partial class CombatController : Node
 	public bool HasQueuedAttack => QueuedAttack != QueuedAttackType.None;
 	public bool IsQueuedAttackReady => HasQueuedAttack && _queuedAttackDelay <= 0f;
 	public int ComboIndex { get; private set; }
-	public const float ComboResetTime = 0.35f;
 	public bool IsComboWindowOpen { get; private set; }
 	public bool AttackInProgress { get; private set; }
 	public bool IsBlocking { get; private set; }
@@ -25,31 +25,20 @@ public partial class CombatController : Node
 
 	public bool Tick(float dt)
 	{
-		var shouldReturnToIdle = false;
+		TickTimer(ref _cooldown, dt);
+		TickTimer(ref _queuedAttackDelay, dt);
 
-		if (_cooldown > 0f)
-			_cooldown -= dt;
+		if (!IsComboWindowOpen || !TickTimer(ref _comboWindowTimer, dt))
+			return false;
 
-		if (_queuedAttackDelay > 0f)
-			_queuedAttackDelay -= dt;
+		CloseComboWindow();
+		EndAttack();
 
-		if (_comboWindowTimer > 0f)
-		{
-			_comboWindowTimer -= dt;
+		if (IsBlocking)
+			return false;
 
-			if (_comboWindowTimer <= 0f)
-			{
-				IsComboWindowOpen = false;
-
-				if (!AttackInProgress && !IsBlocking)
-				{
-					ResetCombo();
-					shouldReturnToIdle = true;
-				}
-			}
-		}
-
-		return shouldReturnToIdle;
+		ResetCombo();
+		return true;
 	}
 
 	public void StartChargeBuffer()
@@ -92,9 +81,8 @@ public partial class CombatController : Node
 	public void CancelAttack()
 	{
 		AttackInProgress = false;
-		QueuedAttack = QueuedAttackType.None;
-		_queuedAttackDelay = 0f;
-		IsComboWindowOpen = false;
+		ClearQueuedAttack();
+		CloseComboWindow();
 	}
 
 	public void QueueLightAttack(float delay = 0f)
@@ -107,13 +95,11 @@ public partial class CombatController : Node
 	public bool TryConsumeQueuedAttack(out QueuedAttackType attackType)
 	{
 		attackType = QueuedAttack;
-
-		if (attackType == QueuedAttackType.None || !IsComboWindowOpen || _queuedAttackDelay > 0f)
+		if (!IsQueuedAttackReady || !IsComboWindowOpen)
 			return false;
 
-		QueuedAttack = QueuedAttackType.None;
-		_queuedAttackDelay = 0f;
-		IsComboWindowOpen = false;
+		ClearQueuedAttack();
+		CloseComboWindow();
 		return true;
 	}
 
@@ -133,8 +119,7 @@ public partial class CombatController : Node
 	public void ResetCombo()
 	{
 		ComboIndex = 0;
-		QueuedAttack = QueuedAttackType.None;
-		_queuedAttackDelay = 0f;
+		ClearQueuedAttack();
 	}
 
 	public void MarkChargeReady()
@@ -144,19 +129,18 @@ public partial class CombatController : Node
 
 	public bool ReleaseCharge(out bool isCharged)
 	{
-		_isChargeBuffering = false;
-
-		if (!IsCharged)
+		if (_isChargeBuffering)
 		{
-			CancelCharge();
+			_isChargeBuffering = false;
+			_chargeTimer = 0f;
 			isCharged = false;
 			return false;
 		}
 
-		isCharged = true;
+		isCharged = IsCharged;
 		IsCharged = false;
 		_chargeTimer = 0f;
-		return true;
+		return isCharged;
 	}
 
 	public void CancelCharge()
@@ -169,14 +153,13 @@ public partial class CombatController : Node
 
 	public void OpenComboWindow()
 	{
-		EndAttack();
 		IsComboWindowOpen = true;
 		_comboWindowTimer = ComboResetTime;
 	}
 
 	public bool StartBlock()
 	{
-		if (AttackInProgress || IsCharged || _isChargeBuffering || IsBlocking)
+		if (!CanStartBlock())
 			return false;
 
 		ResetCombo();
@@ -193,5 +176,31 @@ public partial class CombatController : Node
 		}
 
 		return false;
+	}
+
+	private static bool TickTimer(ref float timer, float dt)
+	{
+		if (timer <= 0f)
+			return false;
+
+		timer = Mathf.Max(timer - dt, 0f);
+		return timer <= 0f;
+	}
+
+	private void ClearQueuedAttack()
+	{
+		QueuedAttack = QueuedAttackType.None;
+		_queuedAttackDelay = 0f;
+	}
+
+	private void CloseComboWindow()
+	{
+		IsComboWindowOpen = false;
+		_comboWindowTimer = 0f;
+	}
+
+	private bool CanStartBlock()
+	{
+		return !AttackInProgress && !IsCharged && !_isChargeBuffering && !IsBlocking;
 	}
 }

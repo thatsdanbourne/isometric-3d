@@ -249,12 +249,10 @@ public partial class Player : CharacterBody3D, IToolHittable
 	{
 		if (!IsLocal)
 		{
-			_animationController.HoldCurrentAttackPose();
 			_remoteCombatReturnTimer = CombatController.ComboResetTime;
 			return;
 		}
 
-		_animationController.HoldCurrentAttackPose();
 		CombatController.OpenComboWindow();
 	}
 
@@ -579,8 +577,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 			}
 			else if (CombatController.QueuedAttack == QueuedAttackType.None)
 			{
-				CombatController.CancelCharge();
-
 				if (CombatController.CanSwing && !CombatController.AttackInProgress)
 					UseActiveTool(false, true);
 				else

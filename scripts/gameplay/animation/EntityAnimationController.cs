@@ -3,21 +3,32 @@ using Godot;
 public partial class EntityAnimationController : Node
 {
 	private const string LocomotionBlendPath = "parameters/Locomotion/blend_position";
+	private const string CombatStatePath = "parameters/FullBodyState/transition_request";
+	private const string ComboMuxPath = "parameters/ComboMux/transition_request";
+	private const string UpperBodyStatePath = "parameters/UpperBodyState/transition_request";
+	private const string UpperBodyBlendPath = "parameters/UpperBodyFilter/blend_amount";
+
+	private const string AttackBuffer0 = "AttackBuffer0";
+	private const string AttackBuffer1 = "AttackBuffer1";
+	private const string AttackBuffer0AnimNode = "DynamicAttack0";
+	private const string AttackBuffer1AnimNode = "DynamicAttack1";
+
+	private const string NormalState = "Normal";
+	private const string AttackState = "Attack";
+	private const string BlockState = "Block";
+	private const string ChargingState = "Charging";
+	private const string StaggeredState = "Staggered";
+
+	private const string SwingBladeSmallSound = "swing_blade_small";
+	private const string SwingFistSound = "swing_fist";
+	private const float UpperBodyBlendDuration = 0.2f;
 
 	private CharacterBody3D _owner;
 	private AnimationTree _animTree;
 	private float _locomotionBlend;
 	private float _locomotionBlendTarget;
-	private string _animState = "";
 	private int _attackBufferIndex;
-
-	private const string CombatStatePath = "parameters/CombatState/transition_request";
-	private const string AttackBuffer0AnimNode = "DynamicAttack0";
-	private const string AttackBuffer1AnimNode = "DynamicAttack1";
-	private const string AttackBuffer0Timescale = "parameters/AttackBuffer0/TimeScale/scale";
-	private const string AttackBuffer1Timescale = "parameters/AttackBuffer1/TimeScale/scale";
-	private const string SwingBladeSmallSound = "swing_blade_small";
-	private const string SwingFistSound = "swing_fist";
+	private Tween _upperBodyTween;
 
 
 	public void Init(CharacterBody3D owner, AnimationTree animTree)
@@ -34,7 +45,6 @@ public partial class EntityAnimationController : Node
 	public void SetLocomotionBlend(float blend)
 	{
 		_locomotionBlendTarget = Mathf.Clamp(blend, 0f, 1f);
-		_animState = _locomotionBlendTarget > 0.01f ? "run" : "idle";
 	}
 
 	public void Tick(float blendAlpha)
@@ -58,16 +68,20 @@ public partial class EntityAnimationController : Node
 
 	public void ReturnToIdle()
 	{
-		_animTree.Set(AttackBuffer0Timescale, 1f);
-		_animTree.Set(AttackBuffer1Timescale, 1f);
-		_animTree.Set(CombatStatePath, "Normal");
+		SetUpperBodyBlend(0f);
+		SetCombatState(NormalState);
 	}
 
-	public void HoldCurrentAttackPose()
+	public void SetUpperBodyBlend(float blend)
 	{
-		var timescalePath = _attackBufferIndex == 0 ? AttackBuffer1Timescale : AttackBuffer0Timescale;
+		_upperBodyTween?.Kill();
+		_upperBodyTween = CreateTween();
 
-		_animTree.Set(timescalePath, 0f);
+		_upperBodyTween.TweenProperty(
+				_animTree,
+				UpperBodyBlendPath, blend, UpperBodyBlendDuration)
+			.SetTrans(Tween.TransitionType.Sine)
+			.SetEase(Tween.EaseType.InOut);
 	}
 
 	public void PlayUseTool(ToolItem tool, Vector3 swingDir, bool isCharged, int comboIndex = 0)
@@ -82,59 +96,93 @@ public partial class EntityAnimationController : Node
 
 	public void PlayLightAttack(ToolItem tool, int comboIndex)
 	{
-		var animation = tool.ToolType switch
+		PlayBufferedAttack(GetLightAttackAnimation(tool, comboIndex), GetSwingSound(tool));
+	}
+
+	public void PlayChargeStart(ToolItem tool)
+	{
+		SetCombatState(ChargingState);
+	}
+
+	public void PlayChargedRelease(ToolItem tool)
+	{
+		PlayBufferedAttack(GetChargedReleaseAnimation(tool), GetSwingSound(tool));
+	}
+
+	private static string GetLightAttackAnimation(ToolItem tool, int comboIndex)
+	{
+		return tool.ToolType switch
 		{
 			"sword" => $"attack_axe_light_{comboIndex + 1}",
 			"axe" => $"attack_axe_light_{comboIndex + 1}",
 			_ => "attack_fist"
 		};
-
-		PlayBufferedAttack(animation, tool.ToolType is "axe" or "sword" ? SwingBladeSmallSound : SwingFistSound);
 	}
 
-	public void PlayChargeStart(ToolItem tool)
+	private static string GetChargedReleaseAnimation(ToolItem tool)
 	{
-		_animTree.Set(CombatStatePath, "Charging");
+		return tool.ToolType switch
+		{
+			"sword" => "attack_sword_charge_release",
+			"axe" => "attack_sword_charge_release",
+			_ => "attack_fist"
+		};
 	}
 
-	public void PlayChargedRelease(ToolItem tool)
+	private static string GetSwingSound(ToolItem tool)
 	{
-		PlayBufferedAttack("attack_sword_charge_release", SwingBladeSmallSound);
+		return tool.ToolType is "axe" or "sword" ? SwingBladeSmallSound : SwingFistSound;
 	}
 
 	private void PlayBufferedAttack(string animation, string soundKey)
 	{
-		var useA = _attackBufferIndex == 0;
-		_attackBufferIndex = useA ? 1 : 0;
+		var useFirstBuffer = _attackBufferIndex == 0;
 
-		var treeRoot = (AnimationNodeBlendTree)_animTree.TreeRoot;
-
-		var animNodeName = useA ? AttackBuffer0AnimNode : AttackBuffer1AnimNode;
-		var timescalePath = useA ? AttackBuffer0Timescale : AttackBuffer1Timescale;
-		var stateName = useA ? "AttackBuffer0" : "AttackBuffer1";
-
-		if (treeRoot.GetNode(stateName) is not AnimationNodeBlendTree buffer)
+		if (!TryGetAttackBuffer(useFirstBuffer, out var bufferName, out var buffer, out var animNodeName))
 			return;
 
 		if (buffer.GetNode(animNodeName) is not AnimationNodeAnimation dynamicAnim)
 			return;
 
 		dynamicAnim.Animation = animation;
+		_attackBufferIndex = useFirstBuffer ? 1 : 0;
 
-		_animTree.Set(timescalePath, 1f);
-		_animTree.Set(CombatStatePath, stateName);
+		PlayAttackBuffer(bufferName);
 
 		AudioManager.Instance.PlayVariantAt(soundKey, _owner.GlobalPosition, AudioManager.BusTools, 0.1f);
 	}
 
+	private bool TryGetAttackBuffer(bool useFirstBuffer, out string bufferName, out AnimationNodeBlendTree buffer,
+		out string animNodeName)
+	{
+		bufferName = useFirstBuffer ? AttackBuffer0 : AttackBuffer1;
+		animNodeName = useFirstBuffer ? AttackBuffer0AnimNode : AttackBuffer1AnimNode;
+		buffer = null;
+
+		if (_animTree.TreeRoot is not AnimationNodeBlendTree treeRoot)
+			return false;
+
+		buffer = treeRoot.GetNode(bufferName) as AnimationNodeBlendTree;
+		return buffer != null;
+	}
+
+	private void PlayAttackBuffer(string bufferName)
+	{
+		SetCombatState(NormalState);
+		_animTree.Set(ComboMuxPath, bufferName);
+		_animTree.Set(UpperBodyStatePath, AttackState);
+		SetUpperBodyBlend(1f);
+	}
+
 	public void PlayStagger()
 	{
-		_animTree.Set(CombatStatePath, "Staggered");
+		SetCombatState(StaggeredState);
 	}
 
 	public void PlayBlockStart()
 	{
-		_animTree.Set(CombatStatePath, "Blocking");
+		_animTree.Set(UpperBodyStatePath, BlockState);
+		SetUpperBodyBlend(1f);
 	}
 
 	public void PlayCombatAnim(PlayerCombatAnimEvent animEvent, ToolItem tool, Vector3 swingDir, int comboIndex = 0)
@@ -163,5 +211,10 @@ public partial class EntityAnimationController : Node
 				ReturnToIdle();
 				break;
 		}
+	}
+
+	private void SetCombatState(string state)
+	{
+		_animTree.Set(CombatStatePath, state);
 	}
 }

@@ -600,7 +600,7 @@ public partial class Bandit : Mob
 	// animation callbacks
 	public void OnAttackHoldFrame()
 	{
-		_animationController.HoldCurrentAttackPose();
+		// _animationController.HoldCurrentAttackPose();
 
 		if (World != null && !World.Multiplayer.IsServer())
 		{
