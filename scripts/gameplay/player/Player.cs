@@ -39,6 +39,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	private EntityMotor _entityMotor;
 	public CombatController CombatController;
+	public CombatIntent CombatIntent;
 	private EntityAnimationController _animationController;
 	private PlayerInteractionController _interactionController;
 
@@ -206,7 +207,10 @@ public partial class Player : CharacterBody3D, IToolHittable
 		var hudOpen = HUD.WindowOpen;
 
 		if (CombatController.Tick(dt) && !CombatController.IsCharged)
+		{
+			SyncCombatAnim(PlayerCombatAnimEvent.None, "", Vector3.Zero, 0);
 			_animationController.ReturnToIdle();
+		}
 
 		HandleLocalMovement(dt);
 		_animationController.Tick(blendAlpha);
@@ -544,6 +548,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 			if (CombatController.StartBlock())
 			{
 				_animationController.PlayBlockStart();
+				SyncCombatAnim(PlayerCombatAnimEvent.BlockStart, _equippedItem.Id, Vector3.Zero, 0);
 				_world.Sync.SetBlocking(true);
 			}
 
@@ -551,6 +556,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 			if (CombatController.EndBlock())
 			{
 				_animationController.ReturnToIdle();
+				SyncCombatAnim(PlayerCombatAnimEvent.BlockEnd, _equippedItem.Id, Vector3.Zero, 0);
 				_world.Sync.SetBlocking(false);
 			}
 
@@ -747,6 +753,11 @@ public partial class Player : CharacterBody3D, IToolHittable
 			return;
 
 		_world.Sync.SyncCombatAnim(animEvent, toolId, swingDir, comboIndex, ++_localCombatAnimSequence);
+	}
+
+	public void SetCombatIntent(CombatIntent intent)
+	{
+		CombatIntent = intent;
 	}
 
 	public void ApplyRemoteHitEvent(float health, Vector3 hitDirection, float knockback)

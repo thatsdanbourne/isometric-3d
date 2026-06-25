@@ -16,7 +16,7 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	public float CurrentHealth;
 	public float MaxPoise = 4f;
 	public float CurrentPoise;
-	public float PoiseRecoveryPerSec = 2f;
+	public float PoiseRecoveryPerSec = 1f;
 	public float StaggerDuration = 1.5f;
 	protected float KnockbackResistance = 1f;
 	protected float KnockbackDecay = 14f;
@@ -71,6 +71,9 @@ public partial class Mob : CharacterBody3D, IToolHittable
 			return;
 		}
 
+		if (State != MobState.Staggered && CurrentPoise < MaxPoise)
+			CurrentPoise += PoiseRecoveryPerSec * dt;
+
 		EntityMotor.Update(dt, MoveVelocity);
 		MoveAndSlide();
 		World.MobStreamer.UpdateMobChunkMembership(this);
@@ -117,7 +120,7 @@ public partial class Mob : CharacterBody3D, IToolHittable
 	{
 	}
 
-	public ToolHitResponse ReceiveToolHit(ToolItem tool, float damage, float knockback, float stagger,
+	public virtual ToolHitResponse ReceiveToolHit(ToolItem tool, float damage, float knockback, float stagger,
 		Vector3 fromDirection,
 		Vector3 hitPoint)
 	{
@@ -176,7 +179,7 @@ public partial class Mob : CharacterBody3D, IToolHittable
 		StaggerTimer = StaggerDuration;
 	}
 
-	private void Die()
+	public void Die()
 	{
 		World.MobStreamer.HandleMobDeath(this);
 	}

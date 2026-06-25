@@ -2,11 +2,13 @@ using Godot;
 
 public partial class CombatController : Node
 {
-	public const float ChargeRequiredTime = 0.25f;
+	public const float ChargeRequiredTime = 0.5f;
 
 	public bool IsCharged { get; private set; }
 	public bool CanSwing => _cooldown <= 0f;
 	public QueuedAttackType QueuedAttack { get; private set; } = QueuedAttackType.None;
+	public bool HasQueuedAttack => QueuedAttack != QueuedAttackType.None;
+	public bool IsQueuedAttackReady => HasQueuedAttack && _queuedAttackDelay <= 0f;
 	public int ComboIndex { get; private set; }
 	public const float ComboResetTime = 0.35f;
 	public bool IsComboWindowOpen { get; private set; }
@@ -17,6 +19,7 @@ public partial class CombatController : Node
 
 	private float _cooldown;
 	private float _comboWindowTimer;
+	private float _queuedAttackDelay;
 
 	private bool _isChargeBuffering;
 
@@ -26,6 +29,9 @@ public partial class CombatController : Node
 
 		if (_cooldown > 0f)
 			_cooldown -= dt;
+
+		if (_queuedAttackDelay > 0f)
+			_queuedAttackDelay -= dt;
 
 		if (_comboWindowTimer > 0f)
 		{
@@ -87,23 +93,26 @@ public partial class CombatController : Node
 	{
 		AttackInProgress = false;
 		QueuedAttack = QueuedAttackType.None;
+		_queuedAttackDelay = 0f;
 		IsComboWindowOpen = false;
 	}
 
-	public void QueueLightAttack()
+	public void QueueLightAttack(float delay = 0f)
 	{
 		if (!IsComboWindowOpen) return;
 		QueuedAttack = QueuedAttackType.Light;
+		_queuedAttackDelay = Mathf.Max(delay, 0f);
 	}
 
 	public bool TryConsumeQueuedAttack(out QueuedAttackType attackType)
 	{
 		attackType = QueuedAttack;
 
-		if (attackType == QueuedAttackType.None || !IsComboWindowOpen)
+		if (attackType == QueuedAttackType.None || !IsComboWindowOpen || _queuedAttackDelay > 0f)
 			return false;
 
 		QueuedAttack = QueuedAttackType.None;
+		_queuedAttackDelay = 0f;
 		IsComboWindowOpen = false;
 		return true;
 	}
@@ -125,6 +134,7 @@ public partial class CombatController : Node
 	{
 		ComboIndex = 0;
 		QueuedAttack = QueuedAttackType.None;
+		_queuedAttackDelay = 0f;
 	}
 
 	public void MarkChargeReady()
@@ -138,6 +148,7 @@ public partial class CombatController : Node
 
 		if (!IsCharged)
 		{
+			CancelCharge();
 			isCharged = false;
 			return false;
 		}
@@ -165,7 +176,7 @@ public partial class CombatController : Node
 
 	public bool StartBlock()
 	{
-		if (AttackInProgress || IsCharged || _isChargeBuffering)
+		if (AttackInProgress || IsCharged || _isChargeBuffering || IsBlocking)
 			return false;
 
 		ResetCombo();

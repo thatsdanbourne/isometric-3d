@@ -159,6 +159,9 @@ public partial class EntityAnimationController : Node
 			case PlayerCombatAnimEvent.BlockEnd:
 				ReturnToIdle();
 				break;
+			default:
+				ReturnToIdle();
+				break;
 		}
 	}
 }

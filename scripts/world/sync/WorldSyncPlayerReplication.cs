@@ -202,6 +202,19 @@ public partial class WorldSync
 			return;
 
 		var senderId = Multiplayer.GetRemoteSenderId();
+
+		var player = _world.GetPlayerById(senderId);
+
+		var intent = (PlayerCombatAnimEvent)animEvent switch
+		{
+			PlayerCombatAnimEvent.LightAttack => CombatIntent.LightAttack,
+			PlayerCombatAnimEvent.ChargeStart => CombatIntent.ChargedAttack,
+			PlayerCombatAnimEvent.ChargeRelease => CombatIntent.ChargedAttack,
+			PlayerCombatAnimEvent.BlockStart => CombatIntent.Blocking,
+			_ => CombatIntent.None
+		};
+
+		player.SetCombatIntent(intent);
 		Rpc(nameof(ReceiveCombatAnim), senderId, animEvent, toolId, swingDir, comboIndex, sequence);
 	}
 

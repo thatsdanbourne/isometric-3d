@@ -138,6 +138,7 @@ public enum MobState
 	Wander,
 	Chase,
 	Strafe,
+	Block,
 	Attack,
 	Staggered,
 	Dead
@@ -145,12 +146,21 @@ public enum MobState
 
 public enum PlayerCombatAnimEvent
 {
+	None,
 	LightAttack,
 	ChargeStart,
 	ChargeCancel,
 	ChargeRelease,
 	BlockStart,
 	BlockEnd
+}
+
+public enum CombatIntent
+{
+	None,
+	LightAttack,
+	ChargedAttack,
+	Blocking
 }
 
 public enum QueuedAttackType

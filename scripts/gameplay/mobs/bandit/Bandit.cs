@@ -15,6 +15,8 @@ public partial class Bandit : Mob
 	private const float StrafeRadialSpeedMultiplier = 0.5f;
 	private const float ComboFollowupChance = 1f;
 	private const float ComboFollowupDelay = 0.22f;
+	private const float BlockChance = 0.35f;
+	private const float BlockDuration = 1.2f;
 	private const float RemoteAttackReturnDelay = CombatController.ComboResetTime;
 
 	private float _cooldownMultiplier = 1.5f;
@@ -25,7 +27,7 @@ public partial class Bandit : Mob
 	private float _strafeTimer;
 	private int _strafeDir = 1;
 	private float _nextDecisionTimer;
-	private float _comboFollowupTimer;
+	private float _blockTimer;
 	private Player _targetPlayer;
 
 	private ToolItem _equippedTool;
@@ -53,7 +55,7 @@ public partial class Bandit : Mob
 		AddChild(_combatController);
 
 		_equippedTool = ItemRegistry.GetItem("stone_axe") as ToolItem;
-		AttackStartRange = _equippedTool!.HitRange;
+		AttackStartRange = _equippedTool!.HitRange + 0.5f;
 
 		_toolQuery = new PhysicsRayQueryParameters3D
 		{
@@ -93,11 +95,7 @@ public partial class Bandit : Mob
 
 		UpdateTarget();
 
-		if (_comboFollowupTimer > 0f)
-			_comboFollowupTimer -= dt;
-
 		if (State == MobState.Attack &&
-		    _comboFollowupTimer <= 0f &&
 		    _combatController.TryConsumeQueuedAttack(out var queuedAttack) &&
 		    queuedAttack == QueuedAttackType.Light)
 		{
@@ -140,9 +138,16 @@ public partial class Bandit : Mob
 
 				MoveTowardsTarget(dt);
 
+
 				if (chaseDist < AttackStartRange && _recoveryTimer <= 0f && _combatController.CanSwing &&
 				    _nextDecisionTimer <= 0f)
 				{
+					if (ShouldBlock())
+					{
+						StartBlock();
+						break;
+					}
+
 					if (GD.Randf() < 0.45f)
 						StartStrafe();
 					else
@@ -218,7 +223,7 @@ public partial class Bandit : Mob
 				{
 					if (_recoveryTimer <= 0f)
 					{
-						if (_combatController.QueuedAttack != QueuedAttackType.None)
+						if (_combatController.HasQueuedAttack)
 						{
 							HoldForComboFollowup();
 							break;
@@ -229,6 +234,9 @@ public partial class Bandit : Mob
 					}
 				}
 
+				break;
+			case MobState.Block:
+				TickBlock(dt);
 				break;
 		}
 	}
@@ -274,6 +282,24 @@ public partial class Bandit : Mob
 			return;
 
 		MoveVelocity = Vector3.Zero;
+	}
+
+	private void TickBlock(float dt)
+	{
+		if (!HasValidTarget())
+		{
+			EndBlock();
+			State = MobState.Idle;
+			return;
+		}
+
+		FaceTarget(dt);
+		_blockTimer -= dt;
+		if (_blockTimer <= 0f)
+		{
+			EndBlock();
+			State = MobState.Chase;
+		}
 	}
 
 	protected override void TickVisuals(float dt)
@@ -339,6 +365,7 @@ public partial class Bandit : Mob
 	}
 
 	private bool HasValidTargetInRange()
+
 	{
 		return HasValidTarget() && DistanceToTarget() <= AggroRange;
 	}
@@ -388,6 +415,59 @@ public partial class Bandit : Mob
 		TurnTowardsDirection(dir, TurnSpeed, dt);
 	}
 
+	private bool ShouldBlock()
+	{
+		if (!HasValidTarget()) return false;
+
+		var targetIntent = _targetPlayer.CombatIntent;
+
+		if (targetIntent != CombatIntent.LightAttack && targetIntent != CombatIntent.ChargedAttack)
+		{
+			GD.Print("no attack or charge");
+			return false;
+		}
+
+		if (_combatController.IsBlocking || _combatController.AttackInProgress)
+		{
+			GD.Print("already blocking or attacking");
+			return false;
+		}
+
+		GD.Print("running block chance");
+		return GD.Randf() < BlockChance;
+	}
+
+	public void StartBlock()
+	{
+		if (!_combatController.StartBlock())
+			return;
+
+		State = MobState.Block;
+		_blockTimer = BlockDuration;
+		MoveVelocity = Vector3.Zero;
+
+		FaceTarget(0.1f);
+		_animationController.PlayBlockStart();
+		World.Sync.BroadcastMobBlockState(this, true);
+	}
+
+	public void EndBlock()
+	{
+		if (!_combatController.EndBlock())
+			return;
+
+		_animationController.ReturnToIdle();
+		World.Sync.BroadcastMobBlockState(this, false);
+	}
+
+	public void ApplyRemoteBlockState(bool isBlocking)
+	{
+		if (isBlocking)
+			_animationController.PlayBlockStart();
+		else
+			_animationController.ReturnToIdle();
+	}
+
 	private bool TryLightAttack(bool ignoreCooldown = false)
 	{
 		if ((!ignoreCooldown && !_combatController.CanSwing) || !HasValidTarget())
@@ -414,7 +494,6 @@ public partial class Bandit : Mob
 		_combatController.EndAttack();
 		_animationController.ReturnToIdle();
 		_attackCommitted = false;
-		_comboFollowupTimer = 0f;
 	}
 
 	private void HoldForComboFollowup()
@@ -428,8 +507,8 @@ public partial class Bandit : Mob
 	{
 		return World != null &&
 		       World.Multiplayer.IsServer() &&
-		       _combatController.QueuedAttack != QueuedAttackType.None &&
-		       _comboFollowupTimer > 0f;
+		       _combatController.HasQueuedAttack &&
+		       !_combatController.IsQueuedAttackReady;
 	}
 
 	private float StrafePreferredRange()
@@ -448,7 +527,7 @@ public partial class Bandit : Mob
 	private void StartStrafe()
 	{
 		State = MobState.Strafe;
-		_strafeTimer = (float)GD.RandRange(0.4f, 0.9f);
+		_strafeTimer = (float)GD.RandRange(0.7f, 2f);
 		_strafeDir = GD.Randi() % 2 == 0 ? -1 : 1;
 	}
 
@@ -456,10 +535,9 @@ public partial class Bandit : Mob
 	{
 		base.OnStaggered(fromDirection);
 
-		_animationController.ReturnToIdle();
-		_combatController.EndAttack();
+		_combatController.CancelAttack();
 		_combatController.CancelCharge();
-		_comboFollowupTimer = 0f;
+		_combatController.EndBlock();
 		State = MobState.Staggered;
 	}
 
@@ -468,7 +546,9 @@ public partial class Bandit : Mob
 		base.ApplyRemoteStagger(fromDirection);
 
 		_animationController.PlayStagger();
+		_combatController.CancelAttack();
 		_combatController.CancelCharge();
+		_combatController.EndBlock();
 	}
 
 	public override void ApplyKnockback(Vector3 direction, float strength)
@@ -483,6 +563,40 @@ public partial class Bandit : Mob
 		}
 	}
 
+	public override ToolHitResponse ReceiveToolHit(ToolItem tool, float damage, float knockback, float stagger,
+		Vector3 fromDirection,
+		Vector3 hitPoint)
+	{
+		var blocked = false;
+
+		if (_combatController.IsBlocking && CombatUtils.IsBlockingHit(-GlobalTransform.Basis.Z, fromDirection,
+			    _equippedTool.BlockStats.ArcDegrees))
+		{
+			damage *= 1f - _equippedTool.BlockStats.DamageReduction;
+			knockback *= 1f - _equippedTool.BlockStats.KnockbackReduction;
+			stagger *= 1f - _equippedTool.BlockStats.PoiseReduction;
+			blocked = true;
+		}
+
+		CurrentHealth -= damage;
+
+		ApplyKnockback(fromDirection, knockback);
+
+		if (!IsStaggered && ApplyPoiseDamage(stagger))
+		{
+			OnStaggered(fromDirection);
+			World.Sync.BroadcastMobStaggered(this, fromDirection);
+		}
+
+		if (blocked)
+			return ToolHitResponse.Blocked(knockback);
+
+		if (!(CurrentHealth <= 0)) return ToolHitResponse.Hit(knockback);
+
+		Die();
+		return ToolHitResponse.Destroyed(knockback);
+	}
+
 	// animation callbacks
 	public void OnAttackHoldFrame()
 	{
@@ -495,13 +609,9 @@ public partial class Bandit : Mob
 		}
 
 		_combatController.OpenComboWindow();
-		_comboFollowupTimer = 0f;
 
 		if (GD.Randf() < ComboFollowupChance)
-		{
-			_combatController.QueueLightAttack();
-			_comboFollowupTimer = ComboFollowupDelay;
-		}
+			_combatController.QueueLightAttack(ComboFollowupDelay);
 	}
 
 	public void Anim_AttackHitFrame()

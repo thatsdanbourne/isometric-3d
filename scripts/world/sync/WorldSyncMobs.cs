@@ -43,6 +43,19 @@ public partial class WorldSync
 		mob.ApplyRemoteStagger(fromDirection);
 	}
 
+	public void BroadcastMobBlockState(Mob mob, bool blockState)
+	{
+		Rpc(nameof(ReceiveMobBlockState), mob.Uid, blockState);
+	}
+
+	[Rpc(CallLocal = false)]
+	private void ReceiveMobBlockState(ulong uid, bool blockState)
+	{
+		if (!_world.MobStreamer.TryGetMob(uid, out var mob)) return;
+
+		if (mob is Bandit b) b.ApplyRemoteBlockState(blockState);
+	}
+
 	public void BroadcastMobDeath(ulong uid)
 	{
 		Rpc(nameof(ApplyMobDeath), uid);
