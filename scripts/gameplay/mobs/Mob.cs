@@ -2,7 +2,7 @@ using Godot;
 
 public partial class Mob : CharacterBody3D, IToolHittable
 {
-	public float MaxHealth = 40f;
+	public float MaxHealth = 20f;
 
 	private const float RemotePositionCorrection = 12f;
 	private const float RemoteRotationCorrection = 12f;

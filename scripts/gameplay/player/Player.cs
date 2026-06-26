@@ -11,8 +11,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private static readonly PackedScene CameraControllerScene =
 		GD.Load<PackedScene>("res://scenes/entities/player/CameraController.tscn");
 
-	private static readonly StringName UseToolAction = "use_tool";
-	private static readonly StringName BlockAction = "block";
 	private static readonly StringName InteractAction = "interact";
 
 	private const float BiomeCheckDistance = 0.5f;
@@ -36,7 +34,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public ToolItem DefaultTool;
 	public BiomeId CurrentBiome = BiomeId.Unknown;
 	public CombatController CombatController;
-	public CombatIntent CombatIntent;
+	public CombatIntent CombatIntent => _combatDriver?.CombatIntent ?? CombatIntent.None;
 	public HUD HUD;
 	public Hotbar Hotbar;
 	public Inventory Inventory;
@@ -48,35 +46,25 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private EntityMotor _entityMotor;
 	private EntityAnimationController _animationController;
 	private PlayerInteractionController _interactionController;
+	private PlayerCombatDriver _combatDriver;
 	private PlayerEquipment _equipment;
 	private PlacementController _placement;
 	private BiomeTintOverlay _tintOverlay;
 	private AnimationTree _animTree;
 	private Label3D _nameplate;
 
-	private Item _equippedItem;
-	private Item _lastEquippedItem;
-	private Item _equippedOffhand;
-	private ToolItem _pendingAttackTool;
-
 	private float _aimLockTimer;
 	private float _transformSyncTimer;
 	private float _remoteTargetRotY;
-	private float _remoteCombatReturnTimer;
 
 	private Vector3 _lastCheckedPosition;
 	private Vector3 _aimDirection = Vector3.Forward;
 	private Vector3 _remoteTargetPosition;
 	private Vector3 _remoteTargetVelocity;
-	private Vector3 _pendingAttackDir;
 
 	private bool _testItemsGiven;
 	private bool _suppressSelectedSlotRequest;
 	private bool _hasRemoteTransform;
-	private bool _pendingAttackCharged;
-
-	private int _localCombatAnimSequence;
-	private int _lastRemoteCombatAnimSequence;
 
 	// lifecycle
 	public override void _Ready()
@@ -102,6 +90,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_animTree = GetNode<AnimationTree>("AnimationTree");
 		_tintOverlay = _world.GetNode<BiomeTintOverlay>("BiomeTint/BiomeOverlay");
 		_equipment = GetNode<PlayerEquipment>("PlayerEquipment");
+		_equipment.Init(DefaultTool);
 
 		Hotbar = GetNode<Hotbar>("Hotbar");
 		Hotbar.SelectedSlotChanged += OnSelectedSlotChanged;
@@ -158,6 +147,10 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		CombatController = new CombatController();
 		AddChild(CombatController);
+
+		_combatDriver = new PlayerCombatDriver();
+		_combatDriver.Init(this, _world, _equipment, _entityMotor, _animationController, CombatController,
+			UpdateAimDirection, GetSwingDirection);
 	}
 
 	private void InitLocalControllers()
@@ -205,18 +198,12 @@ public partial class Player : CharacterBody3D, IToolHittable
 		var camera = viewport.GetCamera3D();
 		var hudOpen = HUD.WindowOpen;
 
-		if (CombatController.Tick(dt) && !CombatController.IsCharged)
-		{
-			SyncCombatAnim(PlayerCombatAnimEvent.None, "", Vector3.Zero, 0);
-			_animationController.ReturnToIdle();
-		}
-
 		if (Input.IsActionJustPressed("equip_offhand"))
 			EquipOffhand();
 
+		_combatDriver.TickLocal(dt, hudOpen);
 		HandleLocalMovement(dt);
 		_animationController.Tick(blendAlpha);
-		HandleToolUse(dt);
 		HandlePlaceItem(hudOpen);
 		HandleInteraction(hudOpen);
 		UpdatePlacementOrFocus(dt, camera, viewport, hudOpen);
@@ -238,24 +225,12 @@ public partial class Player : CharacterBody3D, IToolHittable
 	// animation callbacks
 	public void Anim_AttackHitFrame()
 	{
-		if (!CombatController.AttackInProgress)
-			return;
-
-		if (_pendingAttackTool == null)
-			return;
-
-		RequestUseActiveTool(_pendingAttackDir, _pendingAttackCharged);
+		_combatDriver.OnAttackHitFrame();
 	}
 
 	public void OnAttackHoldFrame()
 	{
-		if (!IsLocal)
-		{
-			_remoteCombatReturnTimer = CombatController.ComboResetTime;
-			return;
-		}
-
-		CombatController.OpenComboWindow();
+		_combatDriver.OnAttackHoldFrame(IsLocal);
 	}
 
 	// input and local gameplay
@@ -384,7 +359,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (hudOpen || !Input.IsActionJustPressed(InteractAction))
 			return;
 
-		if (_equippedItem is PlaceableItem && _placement.TryPlace())
+		if (_equipment.HeldItem is PlaceableItem && _placement.TryPlace())
 			UpdateEquippedItem();
 	}
 
@@ -392,53 +367,23 @@ public partial class Player : CharacterBody3D, IToolHittable
 	private void UpdateEquippedItem()
 	{
 		var stack = Hotbar.GetSlot(Hotbar.SelectedSlot);
-		var newItem = stack?.Item ?? DefaultTool;
+		var newItem = stack?.Item;
 
-		if (newItem == _lastEquippedItem)
+		if (!_equipment.UpdateHeldItem(newItem))
 			return;
 
-		_lastEquippedItem = newItem;
-		_equippedItem = newItem;
-
-		ApplyHeldItemVisual(newItem);
-
 		if (IsLocal)
-			UpdatePlacementState(newItem);
-	}
-
-	private void ApplyHeldItemVisual(Item item)
-	{
-		if (item is ToolItem { HeldItemScene: not null, CanEquipOffhand: false } tool)
-			_equipment.EquipTool(tool.HeldItemScene);
-		else
-			_equipment.UnequipTool();
+			UpdatePlacementState(_equipment.HeldItem);
 	}
 
 	private void EquipOffhand()
 	{
-		if (!TryGetSelectedOffhandTool(out var tool))
+		var stack = Hotbar.GetSlot(Hotbar.SelectedSlot);
+		if (!_equipment.TryEquipOffhand(stack?.Item, out var tool))
 			return;
-
-		SetOffhandItem(tool);
 
 		if (IsLocal)
 			_world.Sync.RequestOffhandItemChange(this, tool.Id);
-	}
-
-	private void SetOffhandItem(ToolItem tool)
-	{
-		_equippedOffhand = tool;
-
-		if (tool?.HeldItemScene != null)
-			_equipment.EquipOffhand(tool.HeldItemScene);
-		else
-			_equipment.UnequipOffhand();
-	}
-
-	private bool TryGetSelectedOffhandTool(out ToolItem tool)
-	{
-		tool = Hotbar.GetSlot(Hotbar.SelectedSlot)?.Item as ToolItem;
-		return tool is { CanEquipOffhand: true };
 	}
 
 	private void OnSelectedSlotChanged(int slotIndex)
@@ -457,7 +402,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public string GetOffhandToolId()
 	{
-		return _equippedOffhand is ToolItem tool ? tool.Id : string.Empty;
+		return _equipment.OffhandToolId;
 	}
 
 	public void HandleSelectedSlotChanged(int slotIndex)
@@ -471,10 +416,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public void HandleOffhandItemChanged(string itemId)
 	{
-		if (!TryResolveOffhandTool(itemId, out var tool))
+		if (!_equipment.TrySetOffhandById(itemId))
 			return;
 
-		SetOffhandItem(tool);
 		_world.Sync.BroadcastHeldItem(this);
 	}
 
@@ -488,9 +432,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 		SetSelectedSlotSilently(slotIndex);
 
 		var item = ItemRegistry.GetItem(itemId) ?? DefaultTool;
-		ApplyHeldItemVisual(item);
+		_equipment.UpdateHeldItem(item);
 
-		SetOffhandItem(TryResolveOffhandTool(offhandItemId, out var offhandTool) ? offhandTool : null);
+		_equipment.TrySetOffhandById(offhandItemId);
 	}
 
 	private bool SetSelectedSlotSilently(int slotIndex)
@@ -501,20 +445,6 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_suppressSelectedSlotRequest = true;
 		Hotbar.SelectSlot(slotIndex);
 		_suppressSelectedSlotRequest = false;
-		return true;
-	}
-
-	private static bool TryResolveOffhandTool(string itemId, out ToolItem tool)
-	{
-		tool = null;
-
-		if (string.IsNullOrEmpty(itemId))
-			return true;
-
-		if (ItemRegistry.GetItem(itemId) is not ToolItem { CanEquipOffhand: true } resolvedTool)
-			return false;
-
-		tool = resolvedTool;
 		return true;
 	}
 
@@ -537,130 +467,19 @@ public partial class Player : CharacterBody3D, IToolHittable
 	}
 
 	// tool usage and hit reactions
-	private void UseActiveTool(bool isCharged, bool ignoreCooldown = false)
-	{
-		if (!ignoreCooldown && !CombatController.CanSwing)
-			return;
-
-		var tool = GetActiveTool();
-
-		UpdateAimDirection();
-		var swingDir = GetSwingDirection();
-		if (swingDir.LengthSquared() < 0.001f)
-			return;
-
-		CombatController.StartAttack();
-		CombatController.StartCooldown(tool);
-
-		var comboIndex = isCharged ? 0 : CombatController.ConsumeComboIndex(tool);
-		_animationController.PlayUseTool(tool, swingDir, isCharged, comboIndex);
-
-		if (isCharged && tool.ChargedLungeDistance > 0f)
-			_entityMotor.StartLunge(swingDir, tool.ChargedLungeDistance, tool.ChargedLungeDuration);
-
-		_pendingAttackTool = tool;
-		_pendingAttackDir = swingDir;
-		_pendingAttackCharged = isCharged;
-
-		SyncCombatAnim(isCharged ? PlayerCombatAnimEvent.ChargeRelease : PlayerCombatAnimEvent.LightAttack, tool.Id,
-			swingDir, comboIndex);
-	}
-
-	public void RequestUseActiveTool(Vector3 aimDir, bool isCharged)
-	{
-		_world.Sync.RequestActiveToolUse(aimDir, isCharged);
-	}
-
 	public ToolItem GetActiveTool()
 	{
-		if (_equippedItem is ToolItem tool)
-			return tool;
-
-		return DefaultTool;
+		return _equipment.ActiveTool;
 	}
 
 	public ToolItem GetBlockingTool()
 	{
-		if (_equippedOffhand is ToolItem { BlockStats.CanBlock: true } shield)
-			return shield;
-
-		var activeTool = GetActiveTool();
-		return activeTool.BlockStats.CanBlock ? activeTool : null;
+		return _equipment.BlockingTool;
 	}
 
-	private void HandleToolUse(float dt)
+	public void RequestUseActiveTool(Vector3 aimDir, bool isCharged)
 	{
-		var hudOpen = HUD.WindowOpen;
-		if (hudOpen)
-		{
-			CombatController.CancelCharge();
-			return;
-		}
-
-		var blockingTool = GetBlockingTool();
-		if (blockingTool != null && Input.IsActionPressed(BlockAction) && !CombatController.IsBlocking)
-			if (CombatController.StartBlock())
-				StartBlockVisuals(blockingTool);
-
-		if (Input.IsActionJustReleased(BlockAction))
-			EndBlockVisuals(blockingTool);
-
-		if (Input.IsActionJustPressed(UseToolAction)) CombatController.StartChargeBuffer();
-
-		if (CombatController.TickCharge(dt))
-		{
-			var tool = GetActiveTool();
-			_animationController.PlayChargeStart(tool);
-			SyncCombatAnim(PlayerCombatAnimEvent.ChargeStart, tool.Id, GetSwingDirection(), 0);
-		}
-
-		if (Input.IsActionJustReleased(UseToolAction))
-		{
-			CombatController.ReleaseCharge(out var chargedAttack);
-
-			if (chargedAttack)
-			{
-				UseActiveTool(true, true);
-			}
-			else if (CombatController.QueuedAttack == QueuedAttackType.None)
-			{
-				if (CombatController.CanSwing && !CombatController.AttackInProgress)
-					UseActiveTool(false, true);
-				else
-					CombatController.QueueLightAttack();
-			}
-		}
-
-		if (CombatController.TryConsumeQueuedAttack(out var queued))
-			switch (queued)
-			{
-				case QueuedAttackType.Light:
-					UseActiveTool(false, true);
-					break;
-				case QueuedAttackType.Charged:
-					UseActiveTool(true, true);
-					break;
-			}
-	}
-
-	private void StartBlockVisuals(ToolItem blockingTool)
-	{
-		_animationController.PlayBlockStart(blockingTool);
-		SyncCombatAnim(PlayerCombatAnimEvent.BlockStart, blockingTool.Id, Vector3.Zero, 0);
-		_world.Sync.SetBlocking(true);
-	}
-
-	private void EndBlockVisuals(ToolItem blockingTool)
-	{
-		if (!CombatController.EndBlock())
-			return;
-
-		_animationController.ReturnToIdle();
-
-		if (blockingTool != null)
-			SyncCombatAnim(PlayerCombatAnimEvent.BlockEnd, blockingTool.Id, Vector3.Zero, 0);
-
-		_world.Sync.SetBlocking(false);
+		_combatDriver.RequestUseActiveTool(aimDir, isCharged);
 	}
 
 	private Vector3 GetSwingDirection()
@@ -670,63 +489,18 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public void HandleLocalAttackResult(ToolHitResult result)
 	{
-		switch (result.Outcome)
-		{
-			case ToolHitOutcome.Destroyed:
-				CameraController?.Shake(0.3f, 0.7f);
-				break;
-
-			case ToolHitOutcome.Failed:
-				CameraController?.Shake(0.1f, 0.3f);
-				break;
-		}
+		_combatDriver.HandleLocalAttackResult(result);
 	}
 
 	public void PlayRemoteCombatAnim(PlayerCombatAnimEvent animEvent, ToolItem tool, Vector3 swingDir, int comboIndex,
 		int sequence)
 	{
-		if (sequence <= _lastRemoteCombatAnimSequence)
-			return;
-
-		_lastRemoteCombatAnimSequence = sequence;
-		_remoteCombatReturnTimer = 0f;
-		_animationController.PlayCombatAnim(animEvent, tool, swingDir, comboIndex);
+		_combatDriver.PlayRemoteCombatAnim(animEvent, tool, swingDir, comboIndex, sequence);
 	}
 
 	public void HandleAttackResult(ToolHitResult result)
 	{
-		switch (result.Outcome)
-		{
-			case ToolHitOutcome.Hit:
-				PlayToolSound(result.PrimarySoundKey, result.HitPoint);
-				break;
-
-			case ToolHitOutcome.Blocked:
-				PlayToolSound(result.PrimarySoundKey, result.HitPoint);
-				break;
-
-			case ToolHitOutcome.Destroyed:
-				PlayToolSound(result.PrimarySoundKey, result.HitPoint);
-				PlayToolSound(result.BreakSoundKey, result.HitPoint);
-				break;
-
-			case ToolHitOutcome.Failed:
-				PlayToolSound(result.PrimarySoundKey, result.HitPoint);
-				break;
-		}
-	}
-
-	private void PlayToolSound(string key, Vector3 hitPoint)
-	{
-		if (string.IsNullOrEmpty(key))
-			return;
-
-		AudioManager.Instance.PlayVariantAt(
-			key,
-			hitPoint,
-			AudioManager.BusTools,
-			0.2f
-		);
+		_combatDriver.HandleAttackResult(result);
 	}
 
 	// biome
@@ -794,41 +568,20 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_animationController.SetLocomotionState(isMoving);
 		_animationController.SetLocomotionBlend(Velocity.Length() / Speed);
 		_animationController.Tick(blendAlpha);
-		UpdateRemoteCombatVisual(dt);
+		_combatDriver.TickRemoteCombatVisual(dt);
 
 		_entityMotor.Update(dt, moveVelocity);
 		MoveAndSlide();
 	}
 
-	private void UpdateRemoteCombatVisual(float dt)
-	{
-		if (_remoteCombatReturnTimer <= 0f)
-			return;
-
-		_remoteCombatReturnTimer -= dt;
-		if (_remoteCombatReturnTimer <= 0f)
-			_animationController.ReturnToIdle();
-	}
-
-	private void SyncCombatAnim(PlayerCombatAnimEvent animEvent, string toolId, Vector3 swingDir, int comboIndex)
-	{
-		if (!IsLocal)
-			return;
-
-		_world.Sync.SyncCombatAnim(animEvent, toolId, swingDir, comboIndex, ++_localCombatAnimSequence);
-	}
-
 	public void SetCombatIntent(CombatIntent intent)
 	{
-		CombatIntent = intent;
+		_combatDriver.SetCombatIntent(intent);
 	}
 
 	public void ApplyRemoteHitEvent(float health, Vector3 hitDirection, float knockback)
 	{
-		Health = health;
-		_entityMotor.ApplyKnockback(hitDirection, knockback);
-		if (IsLocal)
-			HUD.RefreshUI();
+		_combatDriver.ApplyRemoteHitEvent(health, hitDirection, knockback);
 	}
 
 	#region IToolHittable
