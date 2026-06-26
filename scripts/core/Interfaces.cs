@@ -53,9 +53,13 @@ public interface IToolHittable
 		return string.Empty;
 	}
 
-	string GetBlockSound(ToolItem tool)
+	string GetBlockSound(ToolItem blockingTool)
 	{
-		return "block_weapon";
+		return blockingTool?.ToolType switch
+		{
+			"shield" => "block_shield",
+			_ => "block_weapon"
+		};
 	}
 
 	string GetBreakSound();

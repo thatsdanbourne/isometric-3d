@@ -109,11 +109,33 @@ public partial class WorldSync
 		player?.ApplyRemoteSelectedSlot(slotIndex);
 	}
 
+	public void BroadcastSelectedHotbarSlot(Player player, int slotIndex)
+	{
+		if (!CanBroadcastPlayerState(player))
+			return;
+
+		Rpc(nameof(SyncSelectedHotbarSlot), player.PlayerId, slotIndex);
+	}
+
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	public void SyncHeldItem(int playerId, int slotIndex, string itemId)
+	public void SyncHeldItem(int playerId, int slotIndex, string itemId, string offhandItemId)
 	{
 		var player = _world.GetPlayerById(playerId);
-		player?.ApplyRemoteHeldItem(slotIndex, itemId);
+		player?.ApplyRemoteHeldItem(slotIndex, itemId, offhandItemId);
+	}
+
+	public void BroadcastHeldItem(Player player)
+	{
+		if (!CanBroadcastPlayerState(player))
+			return;
+
+		Rpc(
+			nameof(SyncHeldItem),
+			player.PlayerId,
+			player.Hotbar.SelectedSlot,
+			player.GetActiveTool().Id,
+			player.GetOffhandToolId()
+		);
 	}
 
 	public void SyncHeldItemToPeer(int peerId, Player player)
@@ -125,7 +147,13 @@ public partial class WorldSync
 			nameof(SyncHeldItem),
 			player.PlayerId,
 			player.Hotbar.SelectedSlot,
-			player.GetActiveTool().Id);
+			player.GetActiveTool().Id,
+			player.GetOffhandToolId());
+	}
+
+	private bool CanBroadcastPlayerState(Player player)
+	{
+		return player != null && Multiplayer.IsServer();
 	}
 
 	public void BroadcastMeleeHitResult(int attackerPlayerId, ToolHitResult result)

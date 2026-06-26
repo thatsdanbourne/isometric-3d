@@ -12,6 +12,7 @@ public partial class EntityAnimationController : Node
 	private const string AttackBuffer1 = "AttackBuffer1";
 	private const string AttackBuffer0AnimNode = "DynamicAttack0";
 	private const string AttackBuffer1AnimNode = "DynamicAttack1";
+	private const string BlockAnimNode = "DynamicBlock";
 
 	private const string NormalState = "Normal";
 	private const string AttackState = "Attack";
@@ -179,8 +180,15 @@ public partial class EntityAnimationController : Node
 		SetCombatState(StaggeredState);
 	}
 
-	public void PlayBlockStart()
+	public void PlayBlockStart(ToolItem blockingTool)
 	{
+		if (_animTree.TreeRoot is not AnimationNodeBlendTree treeRoot)
+			return;
+
+		if (treeRoot.GetNode(BlockAnimNode) is not AnimationNodeAnimation anim)
+			return;
+
+		anim.Animation = blockingTool.ToolType == "shield" ? "block_shield" : "block_weapon";
 		_animTree.Set(UpperBodyStatePath, BlockState);
 		SetUpperBodyBlend(1f);
 	}
@@ -202,7 +210,7 @@ public partial class EntityAnimationController : Node
 				PlayUseTool(tool, swingDir, true);
 				break;
 			case PlayerCombatAnimEvent.BlockStart:
-				PlayBlockStart();
+				PlayBlockStart(tool);
 				break;
 			case PlayerCombatAnimEvent.BlockEnd:
 				ReturnToIdle();

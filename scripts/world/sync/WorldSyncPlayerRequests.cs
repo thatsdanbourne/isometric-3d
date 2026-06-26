@@ -3,6 +3,11 @@ using System;
 
 public partial class WorldSync
 {
+	public void RequestSelectedHotbarSlotChange(int slotIndex)
+	{
+		RpcId(1, nameof(RequestSelectHotbarSlot), slotIndex);
+	}
+
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
 	public void RequestSelectHotbarSlot(int slotIndex)
 	{
@@ -14,6 +19,35 @@ public partial class WorldSync
 			return;
 
 		player.HandleSelectedSlotChanged(slotIndex);
+	}
+
+	public void RequestOffhandItemChange(Player player, string itemId)
+	{
+		if (Multiplayer.IsServer())
+		{
+			player?.HandleOffhandItemChanged(itemId);
+			return;
+		}
+
+		RpcId(1, nameof(RequestEquipOffhandItem), itemId);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+	public void RequestEquipOffhandItem(string itemId)
+	{
+		if (!Multiplayer.IsServer())
+			return;
+
+		var player = GetRequestingPlayer();
+		if (player == null)
+			return;
+
+		player.HandleOffhandItemChanged(itemId);
+	}
+
+	public void RequestActiveToolUse(Vector3 swingDir, bool isCharged)
+	{
+		RpcId(1, nameof(RequestUseActiveTool), swingDir, isCharged);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]

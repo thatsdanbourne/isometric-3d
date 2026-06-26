@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://dib22xl5detk8"
-path="res://.godot/imported/Parry or Block (6).wav-068914372364fdd736e29168720041a6.sample"
+path="res://.godot/imported/Parry or Block (6).wav-58e2c51b22202256e40ea848866139d5.sample"
 
 [deps]
 
-source_file="res://assets/audio/block/Parry or Block (6).wav"
-dest_files=["res://.godot/imported/Parry or Block (6).wav-068914372364fdd736e29168720041a6.sample"]
+source_file="res://assets/audio/block/weapon/Parry or Block (6).wav"
+dest_files=["res://.godot/imported/Parry or Block (6).wav-58e2c51b22202256e40ea848866139d5.sample"]
 
 [params]
 

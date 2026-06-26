@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://bu320hmsk62v3"
-path="res://.godot/imported/Parry or Block (3).wav-0d56e6813e00b5da2a59ed6d003b13b1.sample"
+path="res://.godot/imported/Parry or Block (3).wav-86ab00f0f832df091e037a02c39f411a.sample"
 
 [deps]
 
-source_file="res://assets/audio/block/Parry or Block (3).wav"
-dest_files=["res://.godot/imported/Parry or Block (3).wav-0d56e6813e00b5da2a59ed6d003b13b1.sample"]
+source_file="res://assets/audio/block/weapon/Parry or Block (3).wav"
+dest_files=["res://.godot/imported/Parry or Block (3).wav-86ab00f0f832df091e037a02c39f411a.sample"]
 
 [params]
 

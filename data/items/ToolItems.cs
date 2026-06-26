@@ -133,6 +133,29 @@ public static class ToolItems
 		});
 
 		#endregion
+
+		ItemRegistry.RegisterItem(new ToolItem
+			{
+				Id = "iron_shield",
+				ToolType = "shield",
+				DisplayName = "Iron Shield",
+				Description = "Bad boi blocking",
+				Icon = LoadTexture("iron_shield"),
+				Damage = 1.25f,
+				Knockback = 5f,
+				Stagger = 4f,
+				HeldItemScene = GD.Load<PackedScene>("res://scenes/tools/IronShield.tscn"),
+				CanEquipOffhand = true,
+				BlockStats = new BlockStats
+				{
+					CanBlock = true,
+					DamageReduction = 1f,
+					KnockbackReduction = 0.5f,
+					PoiseReduction = 0.5f,
+					ArcDegrees = 150f
+				}
+			}
+		);
 	}
 
 	private static Texture2D LoadTexture(string name)

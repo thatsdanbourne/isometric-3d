@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cc50g6x1vwk1p"]
 
 [ext_resource type="Script" uid="uid://73a17pxrdbcu" path="res://dev-tools/IconRenderer.cs" id="1_v1bn5"]
-[ext_resource type="PackedScene" uid="uid://jvswplnvjmnw" path="res://assets/meshes/tools/stone_pickaxe.glb" id="2_c7faj"]
+[ext_resource type="PackedScene" uid="uid://pto6m61owotg" path="res://scenes/tools/IronShield.tscn" id="2_c7faj"]
 
 [node name="IconRenderer" type="Node3D" unique_id=683127452 node_paths=PackedStringArray("Viewport", "PreviewRoot", "Camera", "Light")]
 script = ExtResource("1_v1bn5")
@@ -9,7 +9,7 @@ Viewport = NodePath("SubViewport")
 PreviewRoot = NodePath("SubViewport/PreviewRoot")
 Camera = NodePath("SubViewport/Camera3D")
 Light = NodePath("SubViewport/DirectionalLight3D")
-OutputFile = "stone_pickaxe"
+OutputFile = "iron_shield"
 
 [node name="SubViewport" type="SubViewport" parent="." unique_id=1922719966]
 transparent_bg = true
@@ -18,11 +18,11 @@ render_target_update_mode = 4
 
 [node name="PreviewRoot" type="Node3D" parent="SubViewport" unique_id=2077730827]
 
-[node name="stone_pickaxe" parent="SubViewport/PreviewRoot" unique_id=932495182 instance=ExtResource("2_c7faj")]
-transform = Transform3D(-0.606294, 0.31163698, 0.7316353, -0.38643283, 0.68863815, -0.6135529, -0.69503754, -0.65472126, -0.29709038, 0, -0.10437012, 0.36506355)
+[node name="iron_shield" parent="SubViewport/PreviewRoot" unique_id=1364314155 instance=ExtResource("2_c7faj")]
+transform = Transform3D(-0.5999944, -0.28473026, -0.74762005, -0.5120095, 0.85472554, 0.08538642, 0.6146977, 0.43401965, -0.6586149, -0.119740754, 0.084776744, -0.11468598)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="SubViewport" unique_id=1155517337]
-transform = Transform3D(0.93138754, -0.24456102, 0.26964286, 0.20016193, 0.9627474, 0.18180409, -0.30406016, -0.1153577, 0.9456427, 3.3616943, 3.2514217, 3.3634975)
+transform = Transform3D(0.87643254, -0.24099074, 0.41688097, 0.10973363, 0.9429302, 0.3143903, -0.46885478, -0.2297959, 0.8528593, 3.3616943, 3.2514217, 3.3634975)
 light_energy = 0.579
 light_specular = 0.0
 

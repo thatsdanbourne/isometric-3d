@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://dr42i7qg8vidy"
+path="res://.godot/imported/Shield Block for Slash (5).wav-46125da3fe8a33f63d85c9d492d437ff.sample"
+
+[deps]
+
+source_file="res://assets/audio/block/shield/Shield Block for Slash (5).wav"
+dest_files=["res://.godot/imported/Shield Block for Slash (5).wav-46125da3fe8a33f63d85c9d492d437ff.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

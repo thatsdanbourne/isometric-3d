@@ -144,13 +144,24 @@ public class AudioRegistry
 
 		SfxVariants["block_weapon"] =
 		[
-			GD.Load<AudioStream>("res://assets/audio/block/Parry or Block (1).wav"),
-			GD.Load<AudioStream>("res://assets/audio/block/Parry or Block (2).wav"),
-			GD.Load<AudioStream>("res://assets/audio/block/Parry or Block (3).wav"),
-			GD.Load<AudioStream>("res://assets/audio/block/Parry or Block (4).wav"),
-			GD.Load<AudioStream>("res://assets/audio/block/Parry or Block (6).wav"),
-			GD.Load<AudioStream>("res://assets/audio/block/Parry or Block (7).wav"),
-			GD.Load<AudioStream>("res://assets/audio/block/Parry or Block (8).wav")
+			GD.Load<AudioStream>("res://assets/audio/block/weapon/Parry or Block (1).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/weapon/Parry or Block (2).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/weapon/Parry or Block (3).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/weapon/Parry or Block (4).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/weapon/Parry or Block (6).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/weapon/Parry or Block (7).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/weapon/Parry or Block (8).wav")
+		];
+
+		SfxVariants["block_shield"] =
+		[
+			GD.Load<AudioStream>("res://assets/audio/block/shield/Shield Block for Slash (1).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/shield/Shield Block for Slash (2).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/shield/Shield Block for Slash (3).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/shield/Shield Block for Slash (4).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/shield/Shield Block for Slash (6).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/shield/Shield Block for Slash (7).wav"),
+			GD.Load<AudioStream>("res://assets/audio/block/shield/Shield Block for Slash (8).wav")
 		];
 
 		// break sounds 

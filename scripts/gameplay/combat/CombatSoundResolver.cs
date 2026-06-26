@@ -1,18 +1,20 @@
+using Godot;
+
 public static class CombatSoundResolver
 {
-	public static CombatSoundKeys Resolve(ToolItem tool, IToolHittable target, ToolHitOutcome outcome)
+	public static CombatSoundKeys Resolve(ToolItem tool, IToolHittable target, ToolHitResponse response)
 	{
 		var hitSound = ResolveHitSound(tool, target);
-		var primarySound = outcome switch
+		var primarySound = response.Outcome switch
 		{
-			ToolHitOutcome.Blocked => ResolveBlockSound(tool, target, hitSound),
+			ToolHitOutcome.Blocked => ResolveBlockSound(tool, target, response.BlockingTool, hitSound),
 			ToolHitOutcome.Failed => ResolveFailedSound(target),
 			_ => hitSound
 		};
 
 		return new CombatSoundKeys(
 			primarySound,
-			outcome == ToolHitOutcome.Destroyed ? target.GetBreakSound() : string.Empty
+			response.Outcome == ToolHitOutcome.Destroyed ? target.GetBreakSound() : string.Empty
 		);
 	}
 
@@ -33,14 +35,16 @@ public static class CombatSoundResolver
 		};
 	}
 
-	private static string ResolveBlockSound(ToolItem tool, IToolHittable target, string fallbackSound)
+	private static string ResolveBlockSound(ToolItem attackingTool, IToolHittable target, ToolItem blockingTool,
+		string fallbackSound)
 	{
-		var targetSound = target.GetBlockSound(tool);
+		var targetSound = target.GetBlockSound(blockingTool);
+		GD.Print($"Block sound: {targetSound}");
 		if (!string.IsNullOrEmpty(targetSound))
 			return targetSound;
 
-		if (!string.IsNullOrEmpty(tool.BlockSoundKey))
-			return tool.BlockSoundKey;
+		if (!string.IsNullOrEmpty(blockingTool?.BlockSoundKey))
+			return blockingTool.BlockSoundKey;
 
 		return fallbackSound;
 	}

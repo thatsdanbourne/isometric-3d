@@ -3,6 +3,11 @@ using Godot;
 
 public partial class WorldSync
 {
+	public void RequestItemPickup(ulong pickupId)
+	{
+		RpcId(1, nameof(RequestPickup), pickupId);
+	}
+
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
 	public void RequestPickup(ulong pickupId)
 	{
@@ -14,6 +19,11 @@ public partial class WorldSync
 			return;
 
 		_world.ItemDropManager.HandlePickupRequest(player, pickupId);
+	}
+
+	public void RequestItemDrop(string itemId, int count)
+	{
+		RpcId(1, nameof(RequestDropItem), itemId, count);
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]

@@ -29,56 +29,54 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	public int PlayerId { get; set; }
 	public bool IsLocal { get; set; }
-
 	public float MaxHealth = 20f;
 	public float Health;
 	public float Speed = 5.0f;
 	public float AimLockTime = 0.5f;
 	public ToolItem DefaultTool;
 	public BiomeId CurrentBiome = BiomeId.Unknown;
-
-	private EntityMotor _entityMotor;
 	public CombatController CombatController;
 	public CombatIntent CombatIntent;
-	private EntityAnimationController _animationController;
-	private PlayerInteractionController _interactionController;
-
 	public HUD HUD;
 	public Hotbar Hotbar;
 	public Inventory Inventory;
 	public ItemStack DraggedStack;
 	public CameraController CameraController;
+	public PhysicsRayQueryParameters3D ToolQuery;
+
+	private World _world;
+	private EntityMotor _entityMotor;
+	private EntityAnimationController _animationController;
+	private PlayerInteractionController _interactionController;
+	private PlayerEquipment _equipment;
+	private PlacementController _placement;
+	private BiomeTintOverlay _tintOverlay;
+	private AnimationTree _animTree;
 	private Label3D _nameplate;
 
+	private Item _equippedItem;
+	private Item _lastEquippedItem;
+	private Item _equippedOffhand;
+	private ToolItem _pendingAttackTool;
+
 	private float _aimLockTimer;
+	private float _transformSyncTimer;
+	private float _remoteTargetRotY;
+	private float _remoteCombatReturnTimer;
 
 	private Vector3 _lastCheckedPosition;
 	private Vector3 _aimDirection = Vector3.Forward;
 	private Vector3 _remoteTargetPosition;
 	private Vector3 _remoteTargetVelocity;
-	private float _remoteTargetRotY;
-	private bool _hasRemoteTransform;
+	private Vector3 _pendingAttackDir;
 
 	private bool _testItemsGiven;
 	private bool _suppressSelectedSlotRequest;
-	private float _transformSyncTimer;
-	private int _localCombatAnimSequence;
-	private int _lastRemoteCombatAnimSequence;
-	private float _remoteCombatReturnTimer;
-
-	private Item _equippedItem;
-	private Item _lastEquippedItem;
-	private PlayerEquipment _equipment;
-	private PlacementController _placement;
-
-	private ToolItem _pendingAttackTool;
-	private Vector3 _pendingAttackDir;
+	private bool _hasRemoteTransform;
 	private bool _pendingAttackCharged;
 
-	private World _world;
-	private BiomeTintOverlay _tintOverlay;
-	private AnimationTree _animTree;
-	public PhysicsRayQueryParameters3D ToolQuery;
+	private int _localCombatAnimSequence;
+	private int _lastRemoteCombatAnimSequence;
 
 	// lifecycle
 	public override void _Ready()
@@ -135,6 +133,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		// testing items
 		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_sword"), 1);
 		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_pickaxe"), 1);
+		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("iron_shield"), 1);
 		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("chest"), 1);
 		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
 		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("kiln"), 1);
@@ -211,6 +210,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 			SyncCombatAnim(PlayerCombatAnimEvent.None, "", Vector3.Zero, 0);
 			_animationController.ReturnToIdle();
 		}
+
+		if (Input.IsActionJustPressed("equip_offhand"))
+			EquipOffhand();
 
 		HandleLocalMovement(dt);
 		_animationController.Tick(blendAlpha);
@@ -406,10 +408,37 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	private void ApplyHeldItemVisual(Item item)
 	{
-		if (item is ToolItem { HeldItemScene: not null } tool)
+		if (item is ToolItem { HeldItemScene: not null, CanEquipOffhand: false } tool)
 			_equipment.EquipTool(tool.HeldItemScene);
 		else
 			_equipment.UnequipTool();
+	}
+
+	private void EquipOffhand()
+	{
+		if (!TryGetSelectedOffhandTool(out var tool))
+			return;
+
+		SetOffhandItem(tool);
+
+		if (IsLocal)
+			_world.Sync.RequestOffhandItemChange(this, tool.Id);
+	}
+
+	private void SetOffhandItem(ToolItem tool)
+	{
+		_equippedOffhand = tool;
+
+		if (tool?.HeldItemScene != null)
+			_equipment.EquipOffhand(tool.HeldItemScene);
+		else
+			_equipment.UnequipOffhand();
+	}
+
+	private bool TryGetSelectedOffhandTool(out ToolItem tool)
+	{
+		tool = Hotbar.GetSlot(Hotbar.SelectedSlot)?.Item as ToolItem;
+		return tool is { CanEquipOffhand: true };
 	}
 
 	private void OnSelectedSlotChanged(int slotIndex)
@@ -417,63 +446,81 @@ public partial class Player : CharacterBody3D, IToolHittable
 		UpdateEquippedItem();
 
 		if (IsLocal && !_suppressSelectedSlotRequest)
-			RequestSelectedSlotSync(slotIndex);
+			_world.Sync.RequestSelectedHotbarSlotChange(slotIndex);
 	}
 
 	private void OnHotbarContainerChanged()
 	{
 		UpdateEquippedItem();
-		BroadcastHeldItem();
+		_world.Sync.BroadcastHeldItem(this);
+	}
+
+	public string GetOffhandToolId()
+	{
+		return _equippedOffhand is ToolItem tool ? tool.Id : string.Empty;
 	}
 
 	public void HandleSelectedSlotChanged(int slotIndex)
 	{
-		if (slotIndex < 0 || slotIndex >= Hotbar.SlotCount)
+		if (!SetSelectedSlotSilently(slotIndex))
 			return;
 
-		_suppressSelectedSlotRequest = true;
-		Hotbar.SelectSlot(slotIndex);
-		_suppressSelectedSlotRequest = false;
+		_world.Sync.BroadcastSelectedHotbarSlot(this, slotIndex);
+		_world.Sync.BroadcastHeldItem(this);
+	}
 
-		_world.Sync.Rpc(nameof(WorldSync.SyncSelectedHotbarSlot), PlayerId, slotIndex);
-		BroadcastHeldItem();
+	public void HandleOffhandItemChanged(string itemId)
+	{
+		if (!TryResolveOffhandTool(itemId, out var tool))
+			return;
+
+		SetOffhandItem(tool);
+		_world.Sync.BroadcastHeldItem(this);
 	}
 
 	public void ApplyRemoteSelectedSlot(int slotIndex)
 	{
+		SetSelectedSlotSilently(slotIndex);
+	}
+
+	public void ApplyRemoteHeldItem(int slotIndex, string itemId, string offhandItemId)
+	{
+		SetSelectedSlotSilently(slotIndex);
+
+		var item = ItemRegistry.GetItem(itemId) ?? DefaultTool;
+		ApplyHeldItemVisual(item);
+
+		SetOffhandItem(TryResolveOffhandTool(offhandItemId, out var offhandTool) ? offhandTool : null);
+	}
+
+	private bool SetSelectedSlotSilently(int slotIndex)
+	{
 		if (slotIndex < 0 || slotIndex >= Hotbar.SlotCount)
-			return;
+			return false;
 
 		_suppressSelectedSlotRequest = true;
 		Hotbar.SelectSlot(slotIndex);
 		_suppressSelectedSlotRequest = false;
+		return true;
 	}
 
-	private void RequestSelectedSlotSync(int slotIndex)
+	private static bool TryResolveOffhandTool(string itemId, out ToolItem tool)
 	{
-		_world.Sync.RpcId(1, nameof(WorldSync.RequestSelectHotbarSlot), slotIndex);
-	}
+		tool = null;
 
-	public void ApplyRemoteHeldItem(int slotIndex, string itemId)
-	{
-		if (slotIndex >= 0 && slotIndex < Hotbar.SlotCount)
-			Hotbar.SelectedSlot = slotIndex;
+		if (string.IsNullOrEmpty(itemId))
+			return true;
 
-		var item = ItemRegistry.GetItem(itemId) ?? DefaultTool;
-		ApplyHeldItemVisual(item);
-	}
+		if (ItemRegistry.GetItem(itemId) is not ToolItem { CanEquipOffhand: true } resolvedTool)
+			return false;
 
-	private void BroadcastHeldItem()
-	{
-		if (_world == null || !_world.Multiplayer.IsServer())
-			return;
-
-		_world.Sync.Rpc(nameof(WorldSync.SyncHeldItem), PlayerId, Hotbar.SelectedSlot, GetActiveTool().Id);
+		tool = resolvedTool;
+		return true;
 	}
 
 	public void RequestItemPickup(ulong pickupId)
 	{
-		_world.Sync.RpcId(1, nameof(WorldSync.RequestPickup), pickupId);
+		_world.Sync.RequestItemPickup(pickupId);
 	}
 
 	public void RequestDropItem(Item item, int count)
@@ -481,7 +528,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		if (item == null || count <= 0)
 			return;
 
-		_world.Sync.RpcId(1, nameof(WorldSync.RequestDropItem), item.Id, count);
+		_world.Sync.RequestItemDrop(item.Id, count);
 	}
 
 	public void GiveItem(Item item, int count)
@@ -515,14 +562,13 @@ public partial class Player : CharacterBody3D, IToolHittable
 		_pendingAttackDir = swingDir;
 		_pendingAttackCharged = isCharged;
 
-		// RequestUseActiveTool(swingDir, isCharged);
 		SyncCombatAnim(isCharged ? PlayerCombatAnimEvent.ChargeRelease : PlayerCombatAnimEvent.LightAttack, tool.Id,
 			swingDir, comboIndex);
 	}
 
 	public void RequestUseActiveTool(Vector3 aimDir, bool isCharged)
 	{
-		_world.Sync.RpcId(1, nameof(WorldSync.RequestUseActiveTool), aimDir, isCharged);
+		_world.Sync.RequestActiveToolUse(aimDir, isCharged);
 	}
 
 	public ToolItem GetActiveTool()
@@ -531,6 +577,15 @@ public partial class Player : CharacterBody3D, IToolHittable
 			return tool;
 
 		return DefaultTool;
+	}
+
+	public ToolItem GetBlockingTool()
+	{
+		if (_equippedOffhand is ToolItem { BlockStats.CanBlock: true } shield)
+			return shield;
+
+		var activeTool = GetActiveTool();
+		return activeTool.BlockStats.CanBlock ? activeTool : null;
 	}
 
 	private void HandleToolUse(float dt)
@@ -542,21 +597,13 @@ public partial class Player : CharacterBody3D, IToolHittable
 			return;
 		}
 
-		if (Input.IsActionPressed(BlockAction) && !CombatController.IsBlocking)
+		var blockingTool = GetBlockingTool();
+		if (blockingTool != null && Input.IsActionPressed(BlockAction) && !CombatController.IsBlocking)
 			if (CombatController.StartBlock())
-			{
-				_animationController.PlayBlockStart();
-				SyncCombatAnim(PlayerCombatAnimEvent.BlockStart, _equippedItem.Id, Vector3.Zero, 0);
-				_world.Sync.SetBlocking(true);
-			}
+				StartBlockVisuals(blockingTool);
 
 		if (Input.IsActionJustReleased(BlockAction))
-			if (CombatController.EndBlock())
-			{
-				_animationController.ReturnToIdle();
-				SyncCombatAnim(PlayerCombatAnimEvent.BlockEnd, _equippedItem.Id, Vector3.Zero, 0);
-				_world.Sync.SetBlocking(false);
-			}
+			EndBlockVisuals(blockingTool);
 
 		if (Input.IsActionJustPressed(UseToolAction)) CombatController.StartChargeBuffer();
 
@@ -594,6 +641,26 @@ public partial class Player : CharacterBody3D, IToolHittable
 					UseActiveTool(true, true);
 					break;
 			}
+	}
+
+	private void StartBlockVisuals(ToolItem blockingTool)
+	{
+		_animationController.PlayBlockStart(blockingTool);
+		SyncCombatAnim(PlayerCombatAnimEvent.BlockStart, blockingTool.Id, Vector3.Zero, 0);
+		_world.Sync.SetBlocking(true);
+	}
+
+	private void EndBlockVisuals(ToolItem blockingTool)
+	{
+		if (!CombatController.EndBlock())
+			return;
+
+		_animationController.ReturnToIdle();
+
+		if (blockingTool != null)
+			SyncCombatAnim(PlayerCombatAnimEvent.BlockEnd, blockingTool.Id, Vector3.Zero, 0);
+
+		_world.Sync.SetBlocking(false);
 	}
 
 	private Vector3 GetSwingDirection()
@@ -789,22 +856,24 @@ public partial class Player : CharacterBody3D, IToolHittable
 		Vector3 fromDirection,
 		Vector3 hitPoint)
 	{
-		var activeTool = GetActiveTool();
 		var blocked = false;
+		var blockingTool = GetBlockingTool();
 
-		if (CombatController.IsBlocking && CombatUtils.IsBlockingHit(-GlobalTransform.Basis.Z, fromDirection,
-			    activeTool.BlockStats.ArcDegrees))
+		if (blockingTool != null && CombatController.IsBlocking && CombatUtils.IsBlockingHit(-GlobalTransform.Basis.Z,
+			    fromDirection,
+			    blockingTool.BlockStats.ArcDegrees))
 		{
-			damage *= 1f - activeTool.BlockStats.DamageReduction;
-			knockback *= 1f - activeTool.BlockStats.KnockbackReduction;
-			stagger *= 1f - activeTool.BlockStats.PoiseReduction;
+			var blockStats = blockingTool.BlockStats;
+			damage *= 1f - blockStats.DamageReduction;
+			knockback *= 1f - blockStats.KnockbackReduction;
+			stagger *= 1f - blockStats.PoiseReduction;
 			blocked = true;
 		}
 
 		Health -= damage;
 
 		if (blocked)
-			return ToolHitResponse.Blocked(knockback);
+			return ToolHitResponse.Blocked(knockback, blockingTool);
 
 		return Health <= 0f ? ToolHitResponse.Destroyed(knockback) : ToolHitResponse.Hit(knockback);
 	}

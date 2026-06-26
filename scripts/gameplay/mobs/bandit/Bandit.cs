@@ -55,7 +55,7 @@ public partial class Bandit : Mob
 		AddChild(_combatController);
 
 		_equippedTool = ItemRegistry.GetItem("stone_axe") as ToolItem;
-		AttackStartRange = _equippedTool!.HitRange + 0.5f;
+		AttackStartRange = _equippedTool!.HitRange;
 
 		_toolQuery = new PhysicsRayQueryParameters3D
 		{
@@ -421,19 +421,10 @@ public partial class Bandit : Mob
 
 		var targetIntent = _targetPlayer.CombatIntent;
 
-		if (targetIntent != CombatIntent.LightAttack && targetIntent != CombatIntent.ChargedAttack)
-		{
-			GD.Print("no attack or charge");
-			return false;
-		}
+		if (targetIntent != CombatIntent.LightAttack && targetIntent != CombatIntent.ChargedAttack) return false;
 
-		if (_combatController.IsBlocking || _combatController.AttackInProgress)
-		{
-			GD.Print("already blocking or attacking");
-			return false;
-		}
+		if (_combatController.IsBlocking || _combatController.AttackInProgress) return false;
 
-		GD.Print("running block chance");
 		return GD.Randf() < BlockChance;
 	}
 
@@ -447,7 +438,7 @@ public partial class Bandit : Mob
 		MoveVelocity = Vector3.Zero;
 
 		FaceTarget(0.1f);
-		_animationController.PlayBlockStart();
+		_animationController.PlayBlockStart(_equippedTool);
 		World.Sync.BroadcastMobBlockState(this, true);
 	}
 
@@ -463,7 +454,7 @@ public partial class Bandit : Mob
 	public void ApplyRemoteBlockState(bool isBlocking)
 	{
 		if (isBlocking)
-			_animationController.PlayBlockStart();
+			_animationController.PlayBlockStart(_equippedTool);
 		else
 			_animationController.ReturnToIdle();
 	}
@@ -568,13 +559,15 @@ public partial class Bandit : Mob
 		Vector3 hitPoint)
 	{
 		var blocked = false;
+		var blockingTool = _equippedTool;
 
-		if (_combatController.IsBlocking && CombatUtils.IsBlockingHit(-GlobalTransform.Basis.Z, fromDirection,
-			    _equippedTool.BlockStats.ArcDegrees))
+		if (blockingTool != null && _combatController.IsBlocking && CombatUtils.IsBlockingHit(-GlobalTransform.Basis.Z,
+			    fromDirection,
+			    blockingTool.BlockStats.ArcDegrees))
 		{
-			damage *= 1f - _equippedTool.BlockStats.DamageReduction;
-			knockback *= 1f - _equippedTool.BlockStats.KnockbackReduction;
-			stagger *= 1f - _equippedTool.BlockStats.PoiseReduction;
+			damage *= 1f - blockingTool.BlockStats.DamageReduction;
+			knockback *= 1f - blockingTool.BlockStats.KnockbackReduction;
+			stagger *= 1f - blockingTool.BlockStats.PoiseReduction;
 			blocked = true;
 		}
 
@@ -589,7 +582,7 @@ public partial class Bandit : Mob
 		}
 
 		if (blocked)
-			return ToolHitResponse.Blocked(knockback);
+			return ToolHitResponse.Blocked(knockback, blockingTool);
 
 		if (!(CurrentHealth <= 0)) return ToolHitResponse.Hit(knockback);
 

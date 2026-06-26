@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://pto6m61owotg"]
+
+[ext_resource type="PackedScene" uid="uid://b0mla4d17urbd" path="res://assets/meshes/tools/iron_shield.glb" id="1_x8rth"]
+
+[node name="iron_shield" unique_id=1364314155 instance=ExtResource("1_x8rth")]
+
+[node name="shield" parent="." index="0" unique_id=901156964]
+transform = Transform3D(-0.257541, -0.75157183, -0.6072993, -0.9569273, 0.28555608, 0.052415997, 0.13402364, 0.5946404, -0.79274225, 0, 0, -0.075)
