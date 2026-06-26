@@ -6,7 +6,6 @@ public partial class Bandit : Mob
 	public float AggroRange = 15f;
 	public float MoveSpeed = 4f;
 	public float AttackWindup = 0.05f;
-	public float AttackRecovery = 0.35f;
 
 	private const float TurnSpeed = 10f;
 	private const float StrafeDistancePadding = 0.45f;
@@ -21,7 +20,6 @@ public partial class Bandit : Mob
 
 	private float _cooldownMultiplier = 1.5f;
 	private float _windupTimer;
-	private float _recoveryTimer;
 	private float _remoteAttackReturnTimer;
 	private bool _attackCommitted;
 	private float _strafeTimer;
@@ -54,7 +52,7 @@ public partial class Bandit : Mob
 		_combatController = new CombatController();
 		AddChild(_combatController);
 
-		_equippedTool = ItemRegistry.GetItem("stone_axe") as ToolItem;
+		_equippedTool = ItemRegistry.GetItem("stone_sword") as ToolItem;
 		AttackStartRange = _equippedTool!.HitRange;
 
 		_toolQuery = new PhysicsRayQueryParameters3D
@@ -88,26 +86,22 @@ public partial class Bandit : Mob
 	{
 		var dt = (float)delta;
 
-		_recoveryTimer -= dt;
-
-		if (_combatController.Tick(dt) && !IsWaitingForComboFollowup())
-			_animationController.ReturnToIdle();
+		if (_combatController.Tick(dt))
+			CompleteAttack();
 
 		UpdateTarget();
 
-		if (State == MobState.Attack &&
-		    _combatController.TryConsumeQueuedAttack(out var queuedAttack) &&
-		    queuedAttack == QueuedAttackType.Light)
+		if (State == MobState.Attack && _combatController.TryConsumeQueuedAttack(out var queuedAttack))
 		{
-			if (TryLightAttack(true))
+			if (queuedAttack == QueuedAttackType.Light && TryLightAttack(true))
 			{
 				_attackCommitted = true;
-				_recoveryTimer = AttackRecovery;
+				return;
 			}
-			else
-			{
-				State = MobState.Chase;
-			}
+
+			CancelAttack();
+			State = MobState.Chase;
+			return;
 		}
 
 		switch (State)
@@ -139,8 +133,7 @@ public partial class Bandit : Mob
 				MoveTowardsTarget(dt);
 
 
-				if (chaseDist < AttackStartRange && _recoveryTimer <= 0f && _combatController.CanSwing &&
-				    _nextDecisionTimer <= 0f)
+				if (chaseDist < AttackStartRange && _combatController.CanSwing && _nextDecisionTimer <= 0f)
 				{
 					if (ShouldBlock())
 					{
@@ -181,7 +174,6 @@ public partial class Bandit : Mob
 				if (!HasValidTarget())
 				{
 					State = MobState.Idle;
-					FinishAttack();
 					MoveVelocity = Vector3.Zero;
 					break;
 				}
@@ -190,10 +182,9 @@ public partial class Bandit : Mob
 
 				FaceTarget(dt);
 
-				if (attackDist > _equippedTool.HitRange + 0.5f)
+				if (!_attackCommitted && attackDist > _equippedTool.HitRange + 0.5f)
 				{
 					State = MobState.Chase;
-					FinishAttack();
 					break;
 				}
 
@@ -209,29 +200,14 @@ public partial class Bandit : Mob
 					if (_windupTimer <= 0)
 					{
 						if (TryLightAttack())
-						{
 							_attackCommitted = true;
-							_recoveryTimer = AttackRecovery;
-						}
 						else
-						{
 							State = MobState.Chase;
-						}
 					}
 				}
 				else
 				{
-					if (_recoveryTimer <= 0f)
-					{
-						if (_combatController.HasQueuedAttack)
-						{
-							HoldForComboFollowup();
-							break;
-						}
-
-						FinishAttack();
-						State = MobState.Chase;
-					}
+					MoveVelocity = Vector3.Zero;
 				}
 
 				break;
@@ -254,7 +230,7 @@ public partial class Bandit : Mob
 		_strafeTimer -= dt;
 		if (_strafeTimer <= 0f)
 		{
-			if (distance <= _equippedTool.HitRange + 0.5f && _recoveryTimer <= 0f && _combatController.CanSwing)
+			if (distance <= _equippedTool.HitRange + 0.5f && _combatController.CanSwing)
 			{
 				StartAttack();
 				return;
@@ -262,7 +238,7 @@ public partial class Bandit : Mob
 
 			State = MobState.Chase;
 			MoveVelocity = Vector3.Zero;
-			_nextDecisionTimer = 0.25f;
+			_nextDecisionTimer = 0.5f;
 			return;
 		}
 
@@ -330,14 +306,13 @@ public partial class Bandit : Mob
 			return;
 
 		_remoteAttackReturnTimer -= dt;
-		if (_remoteAttackReturnTimer <= 0f)
-			_animationController.ReturnToIdle();
+		if (_remoteAttackReturnTimer <= 0f) _animationController.ReturnToIdle();
 	}
 
 	public override void PlayRemoteAttackVisual(int comboIndex)
 	{
+		_remoteAttackReturnTimer = 0f;
 		_animationController.PlayUseTool(_equippedTool, GlobalTransform.Basis.Z, false, comboIndex);
-		_remoteAttackReturnTimer = AttackRecovery;
 	}
 
 	private void UpdateTarget()
@@ -468,8 +443,7 @@ public partial class Bandit : Mob
 		if (swingDir.LengthSquared() < 0.001f)
 			return false;
 
-		_combatController.StartAttack();
-		_combatController.StartCooldown(_equippedTool, _cooldownMultiplier);
+		_combatController.StartAttack(_equippedTool);
 		var comboIndex = _combatController.ConsumeComboIndex(_equippedTool);
 		_animationController.PlayUseTool(_equippedTool, swingDir, false, comboIndex);
 
@@ -480,17 +454,33 @@ public partial class Bandit : Mob
 		return true;
 	}
 
-	private void FinishAttack()
+	private void CompleteAttack()
 	{
-		_combatController.EndAttack();
+		// StartChainCooldown();
 		_animationController.ReturnToIdle();
-		_attackCommitted = false;
+		ClearAttackState();
+
+		if (State == MobState.Attack) State = HasValidTarget() ? MobState.Chase : MobState.Idle;
 	}
 
-	private void HoldForComboFollowup()
+	private void CancelAttack()
 	{
-		_combatController.EndAttack();
+		// StartChainCooldown();
+		_combatController.CancelAttack();
+		_animationController.ReturnToIdle();
+		ClearAttackState();
+	}
+
+	private void StartChainCooldown()
+	{
+		if (!_combatController.LastChainCompleted && _combatController.LastAttackTool != null)
+			_combatController.StartCooldown(_combatController.LastAttackTool, _cooldownMultiplier);
+	}
+
+	private void ClearAttackState()
+	{
 		_attackCommitted = false;
+		_pendingAttackTool = null;
 		MoveVelocity = Vector3.Zero;
 	}
 
@@ -529,6 +519,7 @@ public partial class Bandit : Mob
 		_combatController.CancelAttack();
 		_combatController.CancelCharge();
 		_combatController.EndBlock();
+		ClearAttackState();
 		State = MobState.Staggered;
 	}
 
@@ -540,6 +531,7 @@ public partial class Bandit : Mob
 		_combatController.CancelAttack();
 		_combatController.CancelCharge();
 		_combatController.EndBlock();
+		ClearAttackState();
 	}
 
 	public override void ApplyKnockback(Vector3 direction, float strength)
@@ -593,18 +585,33 @@ public partial class Bandit : Mob
 	// animation callbacks
 	public void OnAttackHoldFrame()
 	{
-		// _animationController.HoldCurrentAttackPose();
-
 		if (World != null && !World.Multiplayer.IsServer())
 		{
 			_remoteAttackReturnTimer = RemoteAttackReturnDelay;
 			return;
 		}
 
+		if (State != MobState.Attack || !_attackCommitted)
+			return;
+
 		_combatController.OpenComboWindow();
 
-		if (GD.Randf() < ComboFollowupChance)
+		if (ShouldQueueComboFollowup())
 			_combatController.QueueLightAttack(ComboFollowupDelay);
+	}
+
+	private bool ShouldQueueComboFollowup()
+	{
+		if (!HasValidTarget())
+			return false;
+
+		if (DistanceToTarget() > _equippedTool.HitRange + 0.5f)
+			return false;
+
+		if (_combatController.HasCompletedCombo)
+			return false;
+
+		return GD.Randf() < ComboFollowupChance;
 	}
 
 	public void Anim_AttackHitFrame()
@@ -616,5 +623,11 @@ public partial class Bandit : Mob
 			return;
 
 		World.ResolveEnemyMeleeAttack(this, _pendingAttackTool, _pendingAttackDir, _toolQuery);
+	}
+
+	public void Anim_AttackSwingFrame()
+	{
+		var key = _equippedTool.ToolType is "axe" or "sword" ? "swing_blade_small" : "swing_fist";
+		AudioManager.Instance.PlayVariantAt(key, GlobalPosition, AudioManager.BusTools, 0.2f);
 	}
 }

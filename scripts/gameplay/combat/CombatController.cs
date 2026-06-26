@@ -14,6 +14,9 @@ public partial class CombatController : Node
 	public bool IsComboWindowOpen { get; private set; }
 	public bool AttackInProgress { get; private set; }
 	public bool IsBlocking { get; private set; }
+	public ToolItem LastAttackTool { get; private set; }
+	public bool LastChainCompleted { get; private set; }
+	public bool HasCompletedCombo => _hasCompletedCombo;
 
 	private float _chargeTimer;
 
@@ -22,6 +25,7 @@ public partial class CombatController : Node
 	private float _queuedAttackDelay;
 
 	private bool _isChargeBuffering;
+	private bool _hasCompletedCombo;
 
 	public bool Tick(float dt)
 	{
@@ -37,7 +41,10 @@ public partial class CombatController : Node
 		if (IsBlocking)
 			return false;
 
-		ResetCombo();
+		LastChainCompleted = _hasCompletedCombo;
+		ComboIndex = 0;
+		_hasCompletedCombo = false;
+		ClearQueuedAttack();
 		return true;
 	}
 
@@ -65,11 +72,17 @@ public partial class CombatController : Node
 
 	public void StartCooldown(ToolItem tool, float multiplier = 1f)
 	{
+		if (tool == null)
+			return;
+
 		_cooldown = tool.CooldownSeconds * multiplier;
+		LastAttackTool = null;
 	}
 
-	public void StartAttack()
+	public void StartAttack(ToolItem tool = null)
 	{
+		LastChainCompleted = false;
+		LastAttackTool = tool ?? LastAttackTool;
 		AttackInProgress = true;
 	}
 
@@ -81,13 +94,16 @@ public partial class CombatController : Node
 	public void CancelAttack()
 	{
 		AttackInProgress = false;
+		LastAttackTool = null;
+		LastChainCompleted = false;
+		_hasCompletedCombo = false;
 		ClearQueuedAttack();
 		CloseComboWindow();
 	}
 
 	public void QueueLightAttack(float delay = 0f)
 	{
-		if (!IsComboWindowOpen) return;
+		if (!IsComboWindowOpen || _hasCompletedCombo) return;
 		QueuedAttack = QueuedAttackType.Light;
 		_queuedAttackDelay = Mathf.Max(delay, 0f);
 	}
@@ -95,7 +111,7 @@ public partial class CombatController : Node
 	public bool TryConsumeQueuedAttack(out QueuedAttackType attackType)
 	{
 		attackType = QueuedAttack;
-		if (!IsQueuedAttackReady || !IsComboWindowOpen)
+		if (!IsQueuedAttackReady || !IsComboWindowOpen || _hasCompletedCombo)
 			return false;
 
 		ClearQueuedAttack();
@@ -111,7 +127,10 @@ public partial class CombatController : Node
 		ComboIndex++;
 
 		if (ComboIndex >= comboLength)
+		{
 			ComboIndex = 0;
+			_hasCompletedCombo = true;
+		}
 
 		return index;
 	}
@@ -119,6 +138,9 @@ public partial class CombatController : Node
 	public void ResetCombo()
 	{
 		ComboIndex = 0;
+		LastAttackTool = null;
+		LastChainCompleted = false;
+		_hasCompletedCombo = false;
 		ClearQueuedAttack();
 	}
 

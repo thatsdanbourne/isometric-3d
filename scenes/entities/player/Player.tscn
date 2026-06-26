@@ -87,6 +87,7 @@ filter_enabled = true
 filters = [".", "metarig/Skeleton3D:forearm.L", "metarig/Skeleton3D:forearm.R", "metarig/Skeleton3D:hand.L", "metarig/Skeleton3D:hand.R", "metarig/Skeleton3D:shoulder.L", "metarig/Skeleton3D:shoulder.R", "metarig/Skeleton3D:spine.001", "metarig/Skeleton3D:spine.002", "metarig/Skeleton3D:spine.003", "metarig/Skeleton3D:spine.004", "metarig/Skeleton3D:spine.005", "metarig/Skeleton3D:spine.006", "metarig/Skeleton3D:upper_arm.L", "metarig/Skeleton3D:upper_arm.R"]
 
 [sub_resource type="AnimationNodeTransition" id="AnimationNodeTransition_rx1o7"]
+xfade_time = 0.2
 input_0/name = "Attack"
 input_0/auto_advance = false
 input_0/break_loop_at_end = false
@@ -121,7 +122,7 @@ nodes/UpperBodyFilter/node = SubResource("AnimationNodeBlend2_hgjck")
 nodes/UpperBodyFilter/position = Vector2(544, 32)
 node_connections = [&"output", 0, &"FullBodyState", &"FullBodyState", 0, &"UpperBodyFilter", &"FullBodyState", 1, &"DynamicCharge", &"FullBodyState", 2, &"Animation", &"ComboMux", 0, &"AttackBuffer0", &"ComboMux", 1, &"AttackBuffer1", &"UpperBodyState", 0, &"ComboMux", &"UpperBodyState", 1, &"DynamicBlock", &"UpperBodyFilter", 0, &"Locomotion", &"UpperBodyFilter", 1, &"UpperBodyState"]
 
-[node name="Player" unique_id=180753958 instance=ExtResource("1_hgjck")]
+[node name="Player" unique_id=1353418016 instance=ExtResource("1_hgjck")]
 collision_layer = 10
 collision_mask = 11
 script = ExtResource("2_ppr6r")
@@ -130,21 +131,21 @@ script = ExtResource("2_ppr6r")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("SphereShape3D_c3xxp")
 
-[node name="Skeleton3D" parent="metarig" parent_id_path=PackedInt32Array(371555775) index="0" unique_id=629376654]
+[node name="Skeleton3D" parent="metarig" parent_id_path=PackedInt32Array(1273122209) index="0" unique_id=290624168]
 bones/0/position = Vector3(4.6277399e-10, 0.85873574, 0.0538749)
 bones/0/rotation = Quaternion(0.12581967, 1.18262e-07, 1.4998877e-08, 0.99205315)
 bones/1/rotation = Quaternion(0.045981552, -5.9952037e-14, 1.0962858e-08, 0.99894226)
-bones/2/rotation = Quaternion(-0.08349835, -2.7991015e-10, -2.3510058e-08, 0.996508)
-bones/3/rotation = Quaternion(-0.0051285615, -1.1920775e-07, -6.11371e-10, 0.9999869)
+bones/2/rotation = Quaternion(-0.083763465, -2.749964e-10, -2.3510033e-08, 0.9964857)
+bones/3/rotation = Quaternion(-0.0054254658, -1.19207556e-07, -6.467648e-10, 0.9999853)
 bones/4/rotation = Quaternion(0.2017382, 1.1675826e-07, 2.4049061e-08, 0.9794395)
 bones/5/rotation = Quaternion(-0.094858244, 3.084094e-14, -2.2615964e-08, 0.9954908)
-bones/6/rotation = Quaternion(-0.10124994, -1.1859668e-07, -1.20699335e-08, 0.9948611)
-bones/7/rotation = Quaternion(-0.65394706, -0.34406567, -0.42976776, 0.518914)
+bones/6/rotation = Quaternion(-0.10157424, -1.1859273e-07, -1.2108593e-08, 0.994828)
+bones/7/rotation = Quaternion(-0.65386754, -0.3442257, -0.4296085, 0.51904)
 bones/8/rotation = Quaternion(-0.24903889, 0.59466165, -0.45316112, 0.6156315)
 bones/9/rotation = Quaternion(0.33180496, 0.07962318, -0.031501096, 0.9394538)
 bones/10/rotation = Quaternion(0.093454316, 0.44193804, -0.052777797, 0.8906019)
-bones/11/rotation = Quaternion(-0.64847934, 0.3347561, 0.43792355, 0.52501047)
-bones/12/rotation = Quaternion(-0.33626187, -0.8016151, 0.19789942, 0.45296472)
+bones/11/rotation = Quaternion(-0.64815557, 0.3344922, 0.43812913, 0.5254067)
+bones/12/rotation = Quaternion(-0.33611485, -0.8015985, 0.19767441, 0.45320162)
 bones/13/rotation = Quaternion(0.4384408, -0.035629414, 0.0322497, 0.8974744)
 bones/14/rotation = Quaternion(0.05628029, 0.04382704, 0.09138773, 0.9932573)
 bones/17/rotation = Quaternion(0.93399626, 0.081853904, -0.029039977, 0.3465655)
@@ -162,20 +163,20 @@ bones/29/rotation = Quaternion(0.70708275, -0.0058232257, -0.005823225, 0.707082
 bones/30/position = Vector3(-0.73561454, 0.4725983, 0.94646466)
 
 [node name="RightHandAttach" type="BoneAttachment3D" parent="metarig/Skeleton3D" index="0" unique_id=1909800955]
-transform = Transform3D(-0.98803025, -0.10627357, 0.11181252, 0.12969616, -0.9647162, 0.22913156, 0.083516695, 0.24089062, 0.9669519, -0.3833857, 0.8619665, -0.03599552)
+transform = Transform3D(-0.9879359, -0.106968395, 0.11198297, 0.13040107, -0.96466243, 0.22895747, 0.083534636, 0.24079809, 0.9669735, -0.3837084, 0.8622381, -0.036232762)
 bone_name = "hand.R"
 bone_idx = 14
 
 [node name="RightHandContainer" type="Node3D" parent="metarig/Skeleton3D/RightHandAttach" index="0" unique_id=2056471369]
 
 [node name="LeftHandAttach" type="BoneAttachment3D" parent="metarig/Skeleton3D" index="1" unique_id=833429096]
-transform = Transform3D(-0.4273864, 0.09888244, -0.898645, -0.6682989, -0.70398676, 0.2403726, -0.6088656, 0.70329547, 0.3669573, 0.382395, 0.8177242, 0.29744506)
+transform = Transform3D(-0.4270073, 0.09924182, -0.8987857, -0.66921467, -0.7031411, 0.24030012, -0.60812527, 0.70409054, 0.36666048, 0.3826757, 0.81810135, 0.29785097)
 bone_name = "hand.L"
 bone_idx = 10
 
 [node name="LeftHandContainer" type="Node3D" parent="metarig/Skeleton3D/LeftHandAttach" index="0" unique_id=682270713]
 
-[node name="AnimationPlayer" parent="." index="2" unique_id=1113316990]
+[node name="AnimationPlayer" parent="." index="2" unique_id=812311161]
 autoplay = &"idle"
 
 [node name="AnimationTree" type="AnimationTree" parent="." index="3" unique_id=1323499225]

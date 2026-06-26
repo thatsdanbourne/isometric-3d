@@ -39,7 +39,6 @@ public static class CombatSoundResolver
 		string fallbackSound)
 	{
 		var targetSound = target.GetBlockSound(blockingTool);
-		GD.Print($"Block sound: {targetSound}");
 		if (!string.IsNullOrEmpty(targetSound))
 			return targetSound;
 

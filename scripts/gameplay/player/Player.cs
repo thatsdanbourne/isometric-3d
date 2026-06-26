@@ -121,6 +121,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 		// testing items
 		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_sword"), 1);
+		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_axe"), 1);
 		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_pickaxe"), 1);
 		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("iron_shield"), 1);
 		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("chest"), 1);
@@ -231,6 +232,11 @@ public partial class Player : CharacterBody3D, IToolHittable
 	public void OnAttackHoldFrame()
 	{
 		_combatDriver.OnAttackHoldFrame(IsLocal);
+	}
+
+	public void Anim_AttackSwingFrame()
+	{
+		_combatDriver.OnAttackSwingFrame();
 	}
 
 	// input and local gameplay
@@ -368,12 +374,10 @@ public partial class Player : CharacterBody3D, IToolHittable
 	{
 		var stack = Hotbar.GetSlot(Hotbar.SelectedSlot);
 		var newItem = stack?.Item;
+		var changed = _equipment.UpdateHeldItem(newItem);
 
-		if (!_equipment.UpdateHeldItem(newItem))
-			return;
-
-		if (IsLocal)
-			UpdatePlacementState(_equipment.HeldItem);
+		if (IsLocal && (changed || _placement.Active))
+			UpdatePlacementState(newItem);
 	}
 
 	private void EquipOffhand()

@@ -45,8 +45,6 @@ public partial class PlayerEquipment : Node
 
 	public bool UpdateHeldItem(Item item)
 	{
-		item ??= _defaultTool;
-
 		if (item == _lastHeldItem)
 			return false;
 

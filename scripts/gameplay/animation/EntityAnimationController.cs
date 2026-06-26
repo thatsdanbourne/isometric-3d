@@ -20,8 +20,6 @@ public partial class EntityAnimationController : Node
 	private const string ChargingState = "Charging";
 	private const string StaggeredState = "Staggered";
 
-	private const string SwingBladeSmallSound = "swing_blade_small";
-	private const string SwingFistSound = "swing_fist";
 	private const float UpperBodyBlendDuration = 0.2f;
 
 	private CharacterBody3D _owner;
@@ -97,7 +95,7 @@ public partial class EntityAnimationController : Node
 
 	public void PlayLightAttack(ToolItem tool, int comboIndex)
 	{
-		PlayBufferedAttack(GetLightAttackAnimation(tool, comboIndex), GetSwingSound(tool));
+		PlayBufferedAttack(GetLightAttackAnimation(tool, comboIndex));
 	}
 
 	public void PlayChargeStart(ToolItem tool)
@@ -107,14 +105,14 @@ public partial class EntityAnimationController : Node
 
 	public void PlayChargedRelease(ToolItem tool)
 	{
-		PlayBufferedAttack(GetChargedReleaseAnimation(tool), GetSwingSound(tool));
+		PlayBufferedAttack(GetChargedReleaseAnimation(tool));
 	}
 
 	private static string GetLightAttackAnimation(ToolItem tool, int comboIndex)
 	{
 		return tool.ToolType switch
 		{
-			"sword" => $"attack_axe_light_{comboIndex + 1}",
+			"sword" => $"attack_sword_light_{comboIndex + 1}",
 			"axe" => $"attack_axe_light_{comboIndex + 1}",
 			_ => "attack_fist"
 		};
@@ -130,12 +128,7 @@ public partial class EntityAnimationController : Node
 		};
 	}
 
-	private static string GetSwingSound(ToolItem tool)
-	{
-		return tool.ToolType is "axe" or "sword" ? SwingBladeSmallSound : SwingFistSound;
-	}
-
-	private void PlayBufferedAttack(string animation, string soundKey)
+	private void PlayBufferedAttack(string animation)
 	{
 		var useFirstBuffer = _attackBufferIndex == 0;
 
@@ -149,8 +142,6 @@ public partial class EntityAnimationController : Node
 		_attackBufferIndex = useFirstBuffer ? 1 : 0;
 
 		PlayAttackBuffer(bufferName);
-
-		AudioManager.Instance.PlayVariantAt(soundKey, _owner.GlobalPosition, AudioManager.BusTools, 0.1f);
 	}
 
 	private bool TryGetAttackBuffer(bool useFirstBuffer, out string bufferName, out AnimationNodeBlendTree buffer,

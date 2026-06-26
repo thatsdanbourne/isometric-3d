@@ -18,6 +18,7 @@ public class PlayerCombatDriver
 	private ToolItem _pendingAttackTool;
 	private Vector3 _pendingAttackDir;
 	private bool _pendingAttackCharged;
+	private string _pendingSwingSoundKey;
 	private int _localCombatAnimSequence;
 	private int _lastRemoteCombatAnimSequence;
 	private float _remoteCombatReturnTimer;
@@ -42,6 +43,7 @@ public class PlayerCombatDriver
 	{
 		if (_combat.Tick(dt) && !_combat.IsCharged)
 		{
+			// StartChainCooldown();
 			SyncCombatAnim(PlayerCombatAnimEvent.None, string.Empty, Vector3.Zero, 0);
 			_animation.ReturnToIdle();
 		}
@@ -79,6 +81,11 @@ public class PlayerCombatDriver
 		}
 
 		_combat.OpenComboWindow();
+	}
+
+	public void OnAttackSwingFrame()
+	{
+		PlayToolSound(_pendingSwingSoundKey, _player.GlobalPosition);
 	}
 
 	public void RequestUseActiveTool(Vector3 aimDir, bool isCharged)
@@ -208,8 +215,7 @@ public class PlayerCombatDriver
 		if (swingDir.LengthSquared() < 0.001f)
 			return;
 
-		_combat.StartAttack();
-		_combat.StartCooldown(tool);
+		_combat.StartAttack(tool);
 
 		var comboIndex = isCharged ? 0 : _combat.ConsumeComboIndex(tool);
 		_animation.PlayUseTool(tool, swingDir, isCharged, comboIndex);
@@ -220,9 +226,16 @@ public class PlayerCombatDriver
 		_pendingAttackTool = tool;
 		_pendingAttackDir = swingDir;
 		_pendingAttackCharged = isCharged;
+		_pendingSwingSoundKey = tool.ToolType is "axe" or "sword" ? "swing_blade_small" : "swing_fist";
 
 		SyncCombatAnim(isCharged ? PlayerCombatAnimEvent.ChargeRelease : PlayerCombatAnimEvent.LightAttack, tool.Id,
 			swingDir, comboIndex);
+	}
+
+	private void StartChainCooldown()
+	{
+		if (!_combat.LastChainCompleted && _combat.LastAttackTool != null)
+			_combat.StartCooldown(_combat.LastAttackTool);
 	}
 
 	private void StartBlockVisuals(ToolItem blockingTool)
