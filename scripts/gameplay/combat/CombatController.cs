@@ -11,6 +11,7 @@ public partial class CombatController : Node
 	public bool HasQueuedAttack => QueuedAttack != QueuedAttackType.None;
 	public bool IsQueuedAttackReady => HasQueuedAttack && _queuedAttackDelay <= 0f;
 	public int ComboIndex { get; private set; }
+	public bool IsComboQueueWindowOpen { get; private set; }
 	public bool IsComboWindowOpen { get; private set; }
 	public bool AttackInProgress { get; private set; }
 	public bool IsBlocking { get; private set; }
@@ -103,7 +104,7 @@ public partial class CombatController : Node
 
 	public void QueueLightAttack(float delay = 0f)
 	{
-		if (!IsComboWindowOpen || _hasCompletedCombo) return;
+		if (!IsComboQueueWindowOpen || _hasCompletedCombo) return;
 		QueuedAttack = QueuedAttackType.Light;
 		_queuedAttackDelay = Mathf.Max(delay, 0f);
 	}
@@ -142,6 +143,7 @@ public partial class CombatController : Node
 		LastChainCompleted = false;
 		_hasCompletedCombo = false;
 		ClearQueuedAttack();
+		CloseComboWindow();
 	}
 
 	public void MarkChargeReady()
@@ -175,8 +177,14 @@ public partial class CombatController : Node
 
 	public void OpenComboWindow()
 	{
+		IsComboQueueWindowOpen = true;
 		IsComboWindowOpen = true;
 		_comboWindowTimer = ComboResetTime;
+	}
+
+	public void OpenComboQueueWindow()
+	{
+		IsComboQueueWindowOpen = true;
 	}
 
 	public bool StartBlock()
@@ -217,6 +225,7 @@ public partial class CombatController : Node
 
 	private void CloseComboWindow()
 	{
+		IsComboQueueWindowOpen = false;
 		IsComboWindowOpen = false;
 		_comboWindowTimer = 0f;
 	}

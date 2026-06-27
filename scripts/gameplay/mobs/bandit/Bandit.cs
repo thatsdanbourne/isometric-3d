@@ -595,9 +595,6 @@ public partial class Bandit : Mob
 			return;
 
 		_combatController.OpenComboWindow();
-
-		if (ShouldQueueComboFollowup())
-			_combatController.QueueLightAttack(ComboFollowupDelay);
 	}
 
 	private bool ShouldQueueComboFollowup()
@@ -622,7 +619,11 @@ public partial class Bandit : Mob
 		if (_pendingAttackTool == null)
 			return;
 
+		_combatController.OpenComboQueueWindow();
 		World.ResolveEnemyMeleeAttack(this, _pendingAttackTool, _pendingAttackDir, _toolQuery);
+
+		if (ShouldQueueComboFollowup())
+			_combatController.QueueLightAttack(ComboFollowupDelay);
 	}
 
 	public void Anim_AttackSwingFrame()

@@ -69,6 +69,7 @@ public class PlayerCombatDriver
 		if (_pendingAttackTool == null)
 			return;
 
+		_combat.OpenComboQueueWindow();
 		RequestUseActiveTool(_pendingAttackDir, _pendingAttackCharged);
 	}
 
