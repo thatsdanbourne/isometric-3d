@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dfxn8jg5m0gcf"]
 
-[ext_resource type="Texture2D" uid="uid://cdp66guigpcge" path="res://assets/icons/inputs/mouse_right_outline.png" id="1_c131v"]
 [ext_resource type="Script" uid="uid://8lwiq5a4j0va" path="res://scripts/ui/hud/InteractionPrompt.cs" id="1_vpmcn"]
+[ext_resource type="Texture2D" uid="uid://1pjnh5wnh24g" path="res://assets/icons/inputs/keyboard_f_outline.png" id="2_vpmcn"]
 
 [sub_resource type="QuadMesh" id="QuadMesh_vpmcn"]
 
@@ -10,7 +10,7 @@ render_priority = 1
 transparency = 1
 no_depth_test = true
 shading_mode = 0
-albedo_texture = ExtResource("1_c131v")
+albedo_texture = ExtResource("2_vpmcn")
 texture_filter = 0
 billboard_mode = 1
 

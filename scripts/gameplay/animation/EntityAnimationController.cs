@@ -7,6 +7,8 @@ public partial class EntityAnimationController : Node
 	private const string ComboMuxPath = "parameters/ComboMux/transition_request";
 	private const string UpperBodyStatePath = "parameters/UpperBodyState/transition_request";
 	private const string UpperBodyBlendPath = "parameters/UpperBodyFilter/blend_amount";
+	private const string FullBodyCurrentStatePath = "parameters/FullBodyState/current_state";
+	private const string UpperBodyCurrentStatePath = "parameters/UpperBodyState/current_state";
 
 	private const string AttackBuffer0 = "AttackBuffer0";
 	private const string AttackBuffer1 = "AttackBuffer1";
@@ -34,6 +36,14 @@ public partial class EntityAnimationController : Node
 	{
 		_owner = owner;
 		_animTree = animTree;
+
+		_animTree.Active = true;
+		_animTree.Set(LocomotionBlendPath, 0f);
+		_animTree.Set(FullBodyCurrentStatePath, NormalState);
+		_animTree.Set(CombatStatePath, NormalState);
+		_animTree.Set(UpperBodyCurrentStatePath, AttackState);
+		_animTree.Set(UpperBodyStatePath, AttackState);
+		_animTree.Set(UpperBodyBlendPath, 0f);
 	}
 
 	public void SetLocomotionState(bool isMoving)
@@ -83,19 +93,18 @@ public partial class EntityAnimationController : Node
 			.SetEase(Tween.EaseType.InOut);
 	}
 
-	public void PlayUseTool(ToolItem tool, Vector3 swingDir, bool isCharged, int comboIndex = 0)
+	public bool PlayUseTool(ToolItem tool, Vector3 swingDir, bool isCharged, int comboIndex = 0)
 	{
-		if (isCharged)
-			PlayChargedRelease(tool);
-		else
-			PlayLightAttack(tool, comboIndex);
-
 		FaceDirection(swingDir);
+		if (isCharged)
+			return PlayChargedRelease(tool);
+		else
+			return PlayLightAttack(tool, comboIndex);
 	}
 
-	public void PlayLightAttack(ToolItem tool, int comboIndex)
+	public bool PlayLightAttack(ToolItem tool, int comboIndex)
 	{
-		PlayBufferedAttack(GetLightAttackAnimation(tool, comboIndex));
+		return PlayBufferedAttack(GetLightAttackAnimation(tool, comboIndex));
 	}
 
 	public void PlayChargeStart(ToolItem tool)
@@ -103,9 +112,9 @@ public partial class EntityAnimationController : Node
 		SetCombatState(ChargingState);
 	}
 
-	public void PlayChargedRelease(ToolItem tool)
+	public bool PlayChargedRelease(ToolItem tool)
 	{
-		PlayBufferedAttack(GetChargedReleaseAnimation(tool));
+		return PlayBufferedAttack(GetChargedReleaseAnimation(tool));
 	}
 
 	private static string GetLightAttackAnimation(ToolItem tool, int comboIndex)
@@ -128,20 +137,25 @@ public partial class EntityAnimationController : Node
 		};
 	}
 
-	private void PlayBufferedAttack(string animation)
+	private bool PlayBufferedAttack(string animation)
 	{
+		if (!_animTree.HasAnimation(animation))
+			return false;
+
 		var useFirstBuffer = _attackBufferIndex == 0;
 
 		if (!TryGetAttackBuffer(useFirstBuffer, out var bufferName, out var buffer, out var animNodeName))
-			return;
+			return false;
 
 		if (buffer.GetNode(animNodeName) is not AnimationNodeAnimation dynamicAnim)
-			return;
+			return false;
 
 		dynamicAnim.Animation = animation;
 		_attackBufferIndex = useFirstBuffer ? 1 : 0;
 
 		PlayAttackBuffer(bufferName);
+
+		return true;
 	}
 
 	private bool TryGetAttackBuffer(bool useFirstBuffer, out string bufferName, out AnimationNodeBlendTree buffer,

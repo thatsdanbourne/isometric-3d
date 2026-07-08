@@ -1,6 +1,6 @@
 using Godot;
-
 public partial class PlayerEquipment : Node
+
 {
 	[Export] public NodePath RightHandAttachPath;
 	[Export] public NodePath LeftHandAttachPath;

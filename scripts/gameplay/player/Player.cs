@@ -12,6 +12,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 		GD.Load<PackedScene>("res://scenes/entities/player/CameraController.tscn");
 
 	private static readonly StringName InteractAction = "interact";
+	private static readonly StringName PlaceItemAction = "place_item";
 
 	private const float BiomeCheckDistance = 0.5f;
 	private const float BiomeCheckDistanceSquared = BiomeCheckDistance * BiomeCheckDistance;
@@ -124,13 +125,13 @@ public partial class Player : CharacterBody3D, IToolHittable
 		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_axe"), 1);
 		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("stone_pickaxe"), 1);
 		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("iron_shield"), 1);
-		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("chest"), 1);
-		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
+		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("chest"), 1);
+		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("crafting_table"), 1);
 		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("kiln"), 1);
 		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("copper_ore"), 99);
 		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("coal"), 99);
 		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("wood"), 99);
-		InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("campfire"), 2);
+		// InventoryManager.Instance.AddItem(this, ItemRegistry.GetItem("campfire"), 2);
 
 		if (Multiplayer.HasMultiplayerPeer())
 			_world.Sync.SyncPlayerInventoryState(this);
@@ -362,18 +363,23 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	private void HandlePlaceItem(bool hudOpen)
 	{
-		if (hudOpen || !Input.IsActionJustPressed(InteractAction))
+		if (hudOpen || !Input.IsActionJustPressed(PlaceItemAction))
 			return;
 
-		if (_equipment.HeldItem is PlaceableItem && _placement.TryPlace())
+		if (GetSelectedHotbarItem() is PlaceableItem && _placement.TryPlace())
 			UpdateEquippedItem();
 	}
 
 	// equipped item and inventory sync
-	private void UpdateEquippedItem()
+	private Item GetSelectedHotbarItem()
 	{
 		var stack = Hotbar.GetSlot(Hotbar.SelectedSlot);
-		var newItem = stack?.Item;
+		return stack?.Item;
+	}
+
+	private void UpdateEquippedItem()
+	{
+		var newItem = GetSelectedHotbarItem();
 		var changed = _equipment.UpdateHeldItem(newItem);
 
 		if (IsLocal && (changed || _placement.Active))
@@ -382,8 +388,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 
 	private void EquipOffhand()
 	{
-		var stack = Hotbar.GetSlot(Hotbar.SelectedSlot);
-		if (!_equipment.TryEquipOffhand(stack?.Item, out var tool))
+		if (!_equipment.TryEquipOffhand(GetSelectedHotbarItem(), out var tool))
 			return;
 
 		if (IsLocal)

@@ -216,10 +216,13 @@ public class PlayerCombatDriver
 		if (swingDir.LengthSquared() < 0.001f)
 			return;
 
-		_combat.StartAttack(tool);
-
 		var comboIndex = isCharged ? 0 : _combat.ConsumeComboIndex(tool);
-		_animation.PlayUseTool(tool, swingDir, isCharged, comboIndex);
+		var animationStarted = _animation.PlayUseTool(tool, swingDir, isCharged, comboIndex);
+
+		if (!animationStarted)
+			return;
+
+		_combat.StartAttack(tool);
 
 		if (isCharged && tool.ChargedLungeDistance > 0f)
 			_motor.StartLunge(swingDir, tool.ChargedLungeDistance, tool.ChargedLungeDuration);
@@ -233,11 +236,11 @@ public class PlayerCombatDriver
 			swingDir, comboIndex);
 	}
 
-	private void StartChainCooldown()
-	{
-		if (!_combat.LastChainCompleted && _combat.LastAttackTool != null)
-			_combat.StartCooldown(_combat.LastAttackTool);
-	}
+	// private void StartChainCooldown()
+	// {
+	// 	if (!_combat.LastChainCompleted && _combat.LastAttackTool != null)
+	// 		_combat.StartCooldown(_combat.LastAttackTool);
+	// }
 
 	private void StartBlockVisuals(ToolItem blockingTool)
 	{
