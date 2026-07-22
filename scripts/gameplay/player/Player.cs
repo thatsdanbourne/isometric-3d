@@ -279,7 +279,9 @@ public partial class Player : CharacterBody3D, IToolHittable
 	{
 		var inputDir = GetMovementInput();
 		var hasMovementInput = inputDir != Vector2.Zero;
-		var moveVelocity = hasMovementInput ? HandleMovementInput(inputDir, dt) : Vector3.Zero;
+		var moveVelocity = hasMovementInput
+			? HandleMovementInput(inputDir, dt)
+			: Vector3.Zero;
 
 		if (!hasMovementInput)
 			_aimLockTimer = 0f;
@@ -290,10 +292,10 @@ public partial class Player : CharacterBody3D, IToolHittable
 			_animationController.FaceDirection(_aimDirection);
 		}
 
-		_animationController.SetLocomotionState(hasMovementInput);
-		_animationController.SetLocomotionBlend(Velocity.Length() / Speed);
 		_entityMotor.Update(dt, moveVelocity);
 		MoveAndSlide();
+
+		_animationController.UpdateLocomotionBlend(_entityMotor.MovementVelocity, Speed);
 	}
 
 	private Vector2 GetMovementInput()
@@ -571,11 +573,7 @@ public partial class Player : CharacterBody3D, IToolHittable
 			SetRotationY(Mathf.LerpAngle(Rotation.Y, _remoteTargetRotY, RemoteRotationCorrection * dt));
 		}
 
-		var isMoving = _remoteTargetVelocity.LengthSquared() > RemoteMovementThresholdSquared ||
-		               moveVelocity.LengthSquared() > RemoteMovementThresholdSquared;
-
-		_animationController.SetLocomotionState(isMoving);
-		_animationController.SetLocomotionBlend(Velocity.Length() / Speed);
+		_animationController.UpdateLocomotionBlend(_entityMotor.MovementVelocity, Speed);
 		_animationController.Tick(blendAlpha);
 		_combatDriver.TickRemoteCombatVisual(dt);
 

@@ -283,7 +283,7 @@ public partial class Bandit : Mob
 		if (World != null && !World.Multiplayer.IsServer())
 			return;
 
-		TickVisuals(dt, Velocity);
+		TickVisuals(dt, EntityMotor.MovementVelocity);
 	}
 
 	protected override void ApplyRemoteStateVisuals(float dt)
@@ -296,7 +296,7 @@ public partial class Bandit : Mob
 		var horizontalVelocity = velocity;
 		horizontalVelocity.Y = 0f;
 
-		_animationController.SetLocomotionBlend(horizontalVelocity.Length() / MoveSpeed);
+		_animationController.UpdateLocomotionBlend(horizontalVelocity, MoveSpeed);
 		_animationController.Tick(1f - Mathf.Exp(-14f * dt));
 
 		if (StaggerTimer > 0f)

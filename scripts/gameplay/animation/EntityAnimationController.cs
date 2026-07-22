@@ -26,8 +26,8 @@ public partial class EntityAnimationController : Node
 
 	private CharacterBody3D _owner;
 	private AnimationTree _animTree;
-	private float _locomotionBlend;
-	private float _locomotionBlendTarget;
+	private Vector2 _locomotionBlend;
+	private Vector2 _locomotionBlendTarget;
 	private int _attackBufferIndex;
 	private Tween _upperBodyTween;
 
@@ -38,7 +38,7 @@ public partial class EntityAnimationController : Node
 		_animTree = animTree;
 
 		_animTree.Active = true;
-		_animTree.Set(LocomotionBlendPath, 0f);
+		_animTree.Set(LocomotionBlendPath, Vector2.Zero);
 		_animTree.Set(FullBodyCurrentStatePath, NormalState);
 		_animTree.Set(CombatStatePath, NormalState);
 		_animTree.Set(UpperBodyCurrentStatePath, AttackState);
@@ -46,19 +46,51 @@ public partial class EntityAnimationController : Node
 		_animTree.Set(UpperBodyBlendPath, 0f);
 	}
 
-	public void SetLocomotionState(bool isMoving)
+	// public void SetLocomotionState(bool isMoving)
+	// {
+	// 	SetLocomotionBlend(isMoving ? 1f : 0f);
+	// }
+
+	public void SetLocomotionBlend(Vector2 blend)
 	{
-		SetLocomotionBlend(isMoving ? 1f : 0f);
+		_locomotionBlendTarget = new Vector2(
+			Mathf.Clamp(blend.X, -1f, 1f),
+			Mathf.Clamp(blend.Y, -1f, 1f)
+		);
 	}
 
-	public void SetLocomotionBlend(float blend)
+	public void UpdateLocomotionBlend(Vector3 velocity, float maxSpeed)
 	{
-		_locomotionBlendTarget = Mathf.Clamp(blend, 0f, 1f);
+		var horizontalVelocity = new Vector3(velocity.X, 0f, velocity.Z);
+
+		if (horizontalVelocity.LengthSquared() < 0.001f)
+		{
+			SetLocomotionBlend(Vector2.Zero);
+			return;
+		}
+
+		var movementDirection = horizontalVelocity.Normalized();
+
+		var forward = _owner.GlobalTransform.Basis.Z.Normalized();
+		var right = _owner.GlobalTransform.Basis.X.Normalized();
+
+		var forwardAmount = movementDirection.Dot(forward);
+		var sidewaysAmount = movementDirection.Dot(right);
+
+		var speedBlend = Mathf.Clamp(
+			horizontalVelocity.Length() / maxSpeed,
+			0f,
+			1f
+		);
+
+		SetLocomotionBlend(
+			new Vector2(sidewaysAmount, forwardAmount) * speedBlend
+		);
 	}
 
 	public void Tick(float blendAlpha)
 	{
-		_locomotionBlend = Mathf.Lerp(_locomotionBlend, _locomotionBlendTarget, blendAlpha);
+		_locomotionBlend = _locomotionBlend.Lerp(_locomotionBlendTarget, blendAlpha);
 		_animTree.Set(LocomotionBlendPath, _locomotionBlend);
 	}
 

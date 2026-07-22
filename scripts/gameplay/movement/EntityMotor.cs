@@ -2,6 +2,10 @@ using Godot;
 
 public partial class EntityMotor : Node
 {
+	public float Acceleration { get; set; } = 20f;
+	public float Deceleration { get; set; } = 28f;
+	public Vector3 MovementVelocity { get; private set; }
+
 	public float Gravity { get; set; } = 24f;
 	public float KnockbackDecay { get; set; } = 14f;
 	public float KnockbackResistance { get; set; } = 1f;
@@ -48,8 +52,13 @@ public partial class EntityMotor : Node
 		LungeVelocity = direction.Normalized() * (distance / duration);
 	}
 
-	public void Update(float dt, Vector3 moveVelocity)
+	public void Update(float dt, Vector3 targetMoveVelocity)
 	{
+		targetMoveVelocity.Y = 0;
+
+		var rate = targetMoveVelocity.LengthSquared() > 0.001f ? Acceleration : Deceleration;
+
+		MovementVelocity = MovementVelocity.MoveToward(targetMoveVelocity, rate * dt);
 		KnockbackVelocity = KnockbackVelocity.MoveToward(Vector3.Zero, KnockbackDecay * dt);
 		LungeVelocity = LungeVelocity.MoveToward(Vector3.Zero, KnockbackDecay * dt);
 
@@ -58,9 +67,9 @@ public partial class EntityMotor : Node
 		var movementSuppressed = KnockbackVelocity.LengthSquared() > 0.25f;
 
 		if (movementSuppressed)
-			moveVelocity = Vector3.Zero;
+			targetMoveVelocity = Vector3.Zero;
 
-		_body.Velocity = moveVelocity + KnockbackVelocity + LungeVelocity;
+		_body.Velocity = MovementVelocity + KnockbackVelocity + LungeVelocity;
 		_body.Velocity = new Vector3(_body.Velocity.X, _verticalVelocity, _body.Velocity.Z);
 
 		UpdateFootsteps(dt);

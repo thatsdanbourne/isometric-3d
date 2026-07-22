@@ -334,6 +334,12 @@ public partial class HUD : CanvasLayer
 
 	private void OnSlotLeftClick(IItemContainer container, int index)
 	{
+		if (container is Hotbar hotbar && !WindowOpen)
+		{
+			hotbar.SelectSlot(index);
+			return;
+		}
+
 		var world = GameManager.Instance.CurrentWorld;
 		if (world == null)
 			return;

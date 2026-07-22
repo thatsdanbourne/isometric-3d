@@ -142,6 +142,9 @@ public partial class ItemContainerSlot : PanelContainer
 				SlotRightClicked?.Invoke(Container, Index);
 				break;
 		}
+
+		GetViewport().SetInputAsHandled();
+		AcceptEvent();
 	}
 
 	public override void _Process(double delta)
